@@ -1,118 +1,146 @@
-import Image from "next/image";
-import { Inter } from "next/font/google";
+'use client';
+// @/pages/index.js
+import React,{useState} from 'react';
+import YugiohCardListInput from '@/components/YugiohCardListInput';
+import AlphabeticalIndex from "@/components/AlphabeticalIndex";
+import {fetchCardData,setNameIdMap} from '@/utils/api';
+import {saveCardListToLocalStorage} from '@/utils/localStorage';
 
-const inter = Inter({ subsets: ["latin"] });
+const Home=() => {
+  const [cardList,setCardList]=useState('');
+  const [matchedCardData,setMatchedCardData]=useState(null);
+  const [isLoading,setIsLoading]=useState(false);
+  const [error,setError]=useState(null);
 
-export default function Home() {
+  const handleSubmit=async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    console.log('Form submitted');
+    console.log('Card List:',cardList);
+    console.log('Is loading:',isLoading);
+
+    try {
+      // Split the card list and parse it into JSON
+      const cards=cardList.trim().split('\n').map((cardLine) => {
+        const [productName,setName,number,printing,rarity,condition]=cardLine?.trim().split(',');
+        return {productName,setName,number,printing,rarity,condition};
+      });
+
+      // Fetch card data for each card in batches
+      const fetchedCardData=await Promise.all(
+        cards.map((card) => fetchCardData(card))
+      );
+
+      // Filter out null responses
+      const validCardData=fetchedCardData.filter((data) => data!==null);
+
+      console.log('Parsed cards:',cards);
+      console.log('Fetched card data:',fetchedCardData);
+      console.log('Valid card data:',validCardData);
+
+      // Update matched card data
+      setMatchedCardData(validCardData);
+      saveCardListToLocalStorage(cards);
+    } catch(error) {
+      setError('Error fetching card data');
+      console.error('Error fetching card data:',error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  const fetchedSetData={};
+
+  const fetchCardData=async (card) => {
+    try {
+      const {productName,setName,number,printing,rarity,condition}=card;
+      // Get the numerical setNameId from the mapping
+      const setNameId=setNameIdMap[setName];
+      if(!setNameId) {
+        throw new Error('Numerical setNameId not found for set name:',setName);
+      }
+
+      // Check if set data is already fetched
+      if(!fetchedSetData[setName]) {
+        console.log('Fetching set data for:',setName);
+        const response=await fetch(`/api/cards/${setNameId}`);
+        if(!response.ok) {
+          throw new Error('Failed to fetch card data for set:',setName);
+        }
+        const responseData=await response.json();
+        fetchedSetData[setName]=responseData; // Cache the fetched set data
+      } else {
+        console.log('Using cached set data for:',setName);
+      }
+
+      const setCardData=fetchedSetData[setName];
+      // Find the matching card in the fetched set data
+      const matchedCard=setCardData?.result.find((card) => {
+        return (
+          card.productName.includes(productName)&&
+          card.set.includes(setName)&&
+          card.number.includes(number)&&
+          card.printing.includes(printing)&&
+          card.rarity.includes(rarity)&&
+          card.condition.includes(condition)
+        );
+      });
+      if(!matchedCard||!matchedCard?.marketPrice) {
+        throw new Error('Market price data not found for the card');
+      }
+      const marketPrice=matchedCard?.marketPrice;
+      console.log('Matched card:',matchedCard);
+      return {card,data: {...matchedCard,marketPrice}};
+    } catch(error) {
+      console.error('Error fetching card data:',error);
+      return null;
+    }
+  };
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">pages/index.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    <div className="max-w-full lg:w-7xl w-fit mx-auto my-24 text-center text-pretty">
+      <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
+      <p className="flex flex-wrap mx-auto text-base italic font-medium mb-5 lg:text-left">
+        Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
+      </p>
+      <ul className="my-2 list-none list-outside mx-auto text-sm font-medium lg:text-left">
+        <li>Near Mint+[Edition]</li>
+        <li>Lightly Played+[Edition]</li>
+        <li>Moderately Played+[Edition]</li>
+        <li>Heavily Played+[Edition]</li>
+        <li>Damaged+[Edition]</li>
+      </ul>
+      <p className="mx-auto text-base leading-7 italic font-medium mb-5 lg:text-left">
+        e.g.<br />
+        <ul className="list-none w-11/12 text-sm  overflow-x-auto max-h-24 overflow-y-scroll overflow-ellipsis">
+          <li>Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Rank-Up-Magic Argent Chaos Force,Brothers of Legend,BROL-EN091,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Autorokket Dragon,Circuit Break,CIBR-EN010,1st Edition,Super Rare,Near Mint 1st Edition</li>
+          <li>World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Mint 1st Edition</li>
+          <li>Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition</li>
+          <li>Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited</li>
+          <li>The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited</li>
+        </ul>
+        <br />OR: <br />Browse sets by name by choosing the letter it starts with from the list below:</p>
+      <AlphabeticalIndex />
+      <YugiohCardListInput
+        cardList={cardList}
+        setCardList={setCardList}
+        handleSubmit={handleSubmit}
+        isLoading={isLoading}
+        error={error}
+        matchedCardData={matchedCardData}
+        setMatchedCardData={setMatchedCardData}
+      />
+    </div>
   );
-}
+};
+
+export default Home;

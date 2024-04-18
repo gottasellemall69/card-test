@@ -1,5 +1,11 @@
 import "@/styles/globals.css";
+import {CardProvider} from '../context/CardContext';
 
-export default function App({ Component, pageProps }) {
-  return <Component {...pageProps} />;
+function MyApp({Component,pageProps}) {
+  return (
+    <CardProvider>
+      <Component {...pageProps} />
+    </CardProvider>
+  );
 }
+export default MyApp;
