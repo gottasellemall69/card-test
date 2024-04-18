@@ -113,22 +113,31 @@ const Home=() => {
         <li>Heavily Played+[Edition]</li>
         <li>Damaged+[Edition]</li>
       </ul>
-      <p className="mx-auto text-base leading-7 italic font-medium mb-5 lg:text-left">
-        e.g.<br />
-        <ul className="list-none w-11/12 text-sm  overflow-x-auto max-h-24 overflow-y-scroll overflow-ellipsis">
-          <li>Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-          <li>Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-          <li>Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-          <li>Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-          <li>Rank-Up-Magic Argent Chaos Force,Brothers of Legend,BROL-EN091,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-          <li>Autorokket Dragon,Circuit Break,CIBR-EN010,1st Edition,Super Rare,Near Mint 1st Edition</li>
-          <li>World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Mint 1st Edition</li>
-          <li>Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition</li>
-          <li>Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited</li>
-          <li>The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-          <li>Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited</li>
-        </ul>
-        <br />OR: <br />Browse sets by name by choosing the letter it starts with from the list below:</p>
+      <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+        e.g.
+      </p>
+      <br />
+      <ul className="list-none w-11/12 text-sm overflow-x-hidden text-clip max-h-24 overflow-y-scroll mx-auto lg:text-left">
+        <li>Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+        <li>Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+        <li>Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+        <li>Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+        <li>Rank-Up-Magic Argent Chaos Force,Brothers of Legend,BROL-EN091,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+        <li>Autorokket Dragon,Circuit Break,CIBR-EN010,1st Edition,Super Rare,Near Mint 1st Edition</li>
+        <li>World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Mint 1st Edition</li>
+        <li>Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition</li>
+        <li>Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited</li>
+        <li>The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+        <li>Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited</li>
+      </ul>
+      <br />
+      <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+        OR:
+      </p>
+      <br />
+      <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+        Browse sets by name by choosing the letter it starts with from the list below:
+      </p>
       <AlphabeticalIndex />
       <YugiohCardListInput
         cardList={cardList}

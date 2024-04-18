@@ -1,5 +1,5 @@
 // @/components/YugiohCardListInput.js
-import React,{useState} from 'react';
+import React,{useState,useMemo} from 'react';
 import {ChevronDownIcon,ChevronUpIcon} from '@heroicons/react/24/solid';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import YugiohPagination from '@/components/YugiohPagination';
@@ -22,11 +22,6 @@ const YugiohCardListInput=({
   const handlePageClick=(page) => {
     setCurrentPage(page);
   };
-
-  // Pagination calculation
-  const indexOfLastItem=currentPage*itemsPerPage;
-  const indexOfFirstItem=indexOfLastItem-itemsPerPage;
-  const currentItems=matchedCardData?.slice(indexOfFirstItem,indexOfLastItem);
 
   const handleSort=(key) => {
     let direction='ascending';
@@ -51,21 +46,31 @@ const YugiohCardListInput=({
     });
   };
 
-  const sortedData=() => {
-    const arrayCopy=[...matchedCardData];
-    if(sortConfig.key) {
-      arrayCopy.sort((a,b) => {
-        if(a[sortConfig.key]<b[sortConfig.key]) {
-          return sortConfig.direction==='ascending'? -1:1;
-        }
-        if(a[sortConfig.key]>b[sortConfig.key]) {
-          return sortConfig.direction==='ascending'? 1:-1;
-        }
-        return 0;
-      });
+  // Memoize sorted and paginated data
+  const sortedAndPaginatedData=useMemo(() => {
+    if(!Array.isArray(matchedCardData)) {
+      return {currentItems: [],totalCount: 0};
     }
-    return arrayCopy;
-  };
+    const sortedData=[...matchedCardData].sort((a,b) => {
+      const aValue=sortConfig.key==='marketPrice'? (a.data.marketPrice||0):a.card[sortConfig.key];
+      const bValue=sortConfig.key==='marketPrice'? (b.data.marketPrice||0):b.card[sortConfig.key];
+      if(aValue<bValue) {
+        return sortConfig.direction==='ascending'? -1:1;
+      }
+      if(aValue>bValue) {
+        return sortConfig.direction==='ascending'? 1:-1;
+      }
+      return 0;
+    });
+
+    // Pagination calculation
+    const indexOfLastItem=currentPage*itemsPerPage;
+    const indexOfFirstItem=indexOfLastItem-itemsPerPage;
+    const currentItems=sortedData.slice(indexOfFirstItem,indexOfLastItem);
+
+    return {currentItems,totalCount: sortedData.length};
+  },[currentPage,itemsPerPage,matchedCardData,sortConfig]);
+
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -86,7 +91,7 @@ const YugiohCardListInput=({
         {isLoading&&<LoadingSpinner />}
         {error&&<p>{error}</p>}
         <h2 className="my-5 text-white font-black">Matched Card Data:</h2>
-        {matchedCardData?.length>0&&(
+        {sortedAndPaginatedData.currentItems.length>0&&(
           <table className="mx-auto divide-y w-full divide-gray-200">
             <thead className="mx-auto bg-transparent">
               <tr>
@@ -170,7 +175,7 @@ const YugiohCardListInput=({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 text-black">
-              {sortedData().map(({card,data},index) => (
+              {sortedAndPaginatedData.currentItems.map(({card,data},index) => (
                 <tr key={index}>
                   <td className="border border-gray-800 p-2 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
                   <td className="border border-gray-800 p-2 whitespace-pre-wrap text-sm font-medium text-black hidden md:table-cell hover:bg-black hover:text-white">{card?.setName}</td>
@@ -186,10 +191,9 @@ const YugiohCardListInput=({
         )}
       </>
       <YugiohPagination
-        currentItems={currentItems}
         currentPage={currentPage}
         itemsPerPage={itemsPerPage}
-        totalItems={matchedCardData?.length}
+        totalItems={sortedAndPaginatedData.totalCount}
         handlePageClick={handlePageClick}
       />
     </div>
