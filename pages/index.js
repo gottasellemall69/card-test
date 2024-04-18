@@ -11,6 +11,7 @@ const Home=() => {
   const [matchedCardData,setMatchedCardData]=useState(null);
   const [isLoading,setIsLoading]=useState(false);
   const [error,setError]=useState(null);
+  const [collection,setCollection]=useState([]);
 
   const handleSubmit=async (event) => {
     event.preventDefault();
@@ -101,54 +102,57 @@ const Home=() => {
   };
 
   return (
-    <div className="max-w-full lg:w-7xl w-fit mx-auto my-24 text-center text-pretty">
-      <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
-      <p className="flex flex-wrap mx-auto text-base italic font-medium mb-5 lg:text-left">
-        Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
-      </p>
-      <ul className="my-2 list-none list-outside mx-auto text-sm font-medium lg:text-left">
-        <li>Near Mint+[Edition]</li>
-        <li>Lightly Played+[Edition]</li>
-        <li>Moderately Played+[Edition]</li>
-        <li>Heavily Played+[Edition]</li>
-        <li>Damaged+[Edition]</li>
-      </ul>
-      <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
-        e.g.
-      </p>
-      <br />
-      <ul className="list-none w-11/12 text-sm overflow-x-hidden text-clip max-h-24 overflow-y-scroll mx-auto lg:text-left">
-        <li>Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-        <li>Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-        <li>Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-        <li>Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-        <li>Rank-Up-Magic Argent Chaos Force,Brothers of Legend,BROL-EN091,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-        <li>Autorokket Dragon,Circuit Break,CIBR-EN010,1st Edition,Super Rare,Near Mint 1st Edition</li>
-        <li>World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Mint 1st Edition</li>
-        <li>Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition</li>
-        <li>Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited</li>
-        <li>The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
-        <li>Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited</li>
-      </ul>
-      <br />
-      <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
-        OR:
-      </p>
-      <br />
-      <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
-        Browse sets by name by choosing the letter it starts with from the list below:
-      </p>
-      <AlphabeticalIndex />
-      <YugiohCardListInput
-        cardList={cardList}
-        setCardList={setCardList}
-        handleSubmit={handleSubmit}
-        isLoading={isLoading}
-        error={error}
-        matchedCardData={matchedCardData}
-        setMatchedCardData={setMatchedCardData}
-      />
-    </div>
+    <>
+      <div className="max-w-full lg:w-7xl w-fit mx-auto my-24 text-center text-pretty">
+        <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
+        <p className="flex flex-wrap mx-auto text-base italic font-medium mb-5 lg:text-left">
+          Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
+        </p>
+        <ul className="my-2 list-none list-outside mx-auto text-sm font-medium lg:text-left">
+          <li>Near Mint+[Edition]</li>
+          <li>Lightly Played+[Edition]</li>
+          <li>Moderately Played+[Edition]</li>
+          <li>Heavily Played+[Edition]</li>
+          <li>Damaged+[Edition]</li>
+        </ul>
+        <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+          e.g.
+        </p>
+        <br />
+        <ul className="list-none w-11/12 text-sm overflow-x-hidden text-clip max-h-24 overflow-y-scroll mx-auto lg:text-left">
+          <li>Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Rank-Up-Magic Argent Chaos Force,Brothers of Legend,BROL-EN091,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Autorokket Dragon,Circuit Break,CIBR-EN010,1st Edition,Super Rare,Near Mint 1st Edition</li>
+          <li>World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Mint 1st Edition</li>
+          <li>Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition</li>
+          <li>Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited</li>
+          <li>The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition</li>
+          <li>Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited</li>
+        </ul>
+        <br />
+        <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+          OR:
+        </p>
+        <br />
+        <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+          Browse sets by name by choosing the letter it starts with from the list below:
+        </p>
+        <AlphabeticalIndex />
+        <YugiohCardListInput
+          setCollection={setCollection}
+          cardList={cardList}
+          setCardList={setCardList}
+          handleSubmit={handleSubmit}
+          isLoading={isLoading}
+          error={error}
+          matchedCardData={matchedCardData}
+          setMatchedCardData={setMatchedCardData}
+        />
+      </div>
+    </>
   );
 };
 
