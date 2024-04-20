@@ -1,46 +1,44 @@
 'use client';
 // @/pages/index.js
 import React,{useState} from 'react';
+import {useRouter} from 'next/router';
 import YugiohCardListInput from '@/components/YugiohCardListInput';
-import AlphabeticalIndex from "@/components/AlphabeticalIndex";
+import AlphabeticalIndex from '@/components/AlphabeticalIndex';
 import {fetchCardData,setNameIdMap} from '@/utils/api';
 import {saveCardListToLocalStorage} from '@/utils/localStorage';
-
 const Home=() => {
+  const router=useRouter();
+  const [collection,setCollection]=useState([]);
+  const [selectedRows,setSelectedRows]=useState([]);
   const [cardList,setCardList]=useState('');
   const [matchedCardData,setMatchedCardData]=useState(null);
   const [isLoading,setIsLoading]=useState(false);
   const [error,setError]=useState(null);
-  const [collection,setCollection]=useState([]);
-
   const handleSubmit=async (event) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-
     console.log('Form submitted');
     console.log('Card List:',cardList);
     console.log('Is loading:',isLoading);
-
     try {
       // Split the card list and parse it into JSON
       const cards=cardList.trim().split('\n').map((cardLine) => {
         const [productName,setName,number,printing,rarity,condition]=cardLine?.trim().split(',');
         return {productName,setName,number,printing,rarity,condition};
       });
-
+      if(cards.length===0) {
+        throw new Error('Card list is empty');
+      }
       // Fetch card data for each card in batches
       const fetchedCardData=await Promise.all(
         cards.map((card) => fetchCardData(card))
       );
-
       // Filter out null responses
       const validCardData=fetchedCardData.filter((data) => data!==null);
-
       console.log('Parsed cards:',cards);
       console.log('Fetched card data:',fetchedCardData);
       console.log('Valid card data:',validCardData);
-
       // Update matched card data
       setMatchedCardData(validCardData);
       saveCardListToLocalStorage(cards);
@@ -51,10 +49,7 @@ const Home=() => {
       setIsLoading(false);
     }
   };
-
-
   const fetchedSetData={};
-
   const fetchCardData=async (card) => {
     try {
       const {productName,setName,number,printing,rarity,condition}=card;
@@ -63,7 +58,6 @@ const Home=() => {
       if(!setNameId) {
         throw new Error('Numerical setNameId not found for set name:',setName);
       }
-
       // Check if set data is already fetched
       if(!fetchedSetData[setName]) {
         console.log('Fetching set data for:',setName);
@@ -76,7 +70,6 @@ const Home=() => {
       } else {
         console.log('Using cached set data for:',setName);
       }
-
       const setCardData=fetchedSetData[setName];
       // Find the matching card in the fetched set data
       const matchedCard=setCardData?.result.find((card) => {
@@ -101,6 +94,11 @@ const Home=() => {
     }
   };
 
+
+
+  const handleGoToCollectionPage=() => {
+    router.push('/MyCollectionPage');
+  };
   return (
     <>
       <div className="max-w-full lg:w-7xl w-fit mx-auto my-24 text-center text-pretty">
@@ -142,6 +140,7 @@ const Home=() => {
         </p>
         <AlphabeticalIndex />
         <YugiohCardListInput
+          setSelectedRows={setSelectedRows}
           setCollection={setCollection}
           cardList={cardList}
           setCardList={setCardList}
@@ -151,6 +150,9 @@ const Home=() => {
           matchedCardData={matchedCardData}
           setMatchedCardData={setMatchedCardData}
         />
+
+        <button className="float-end border border-white rounded-lg m-1 p-1 text-xs text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>Go to My Collection</button>
+
       </div>
     </>
   );
