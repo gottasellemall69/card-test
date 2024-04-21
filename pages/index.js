@@ -1,13 +1,12 @@
 'use client';
 // @/pages/index.js
 import React,{useState} from 'react';
-import {useRouter} from 'next/router';
+
 import YugiohCardListInput from '@/components/YugiohCardListInput';
 import AlphabeticalIndex from '@/components/AlphabeticalIndex';
 import {fetchCardData,setNameIdMap} from '@/utils/api';
 import {saveCardListToLocalStorage} from '@/utils/localStorage';
 const Home=() => {
-  const router=useRouter();
   const [collection,setCollection]=useState([]);
   const [selectedRows,setSelectedRows]=useState([]);
   const [cardList,setCardList]=useState('');
@@ -96,9 +95,7 @@ const Home=() => {
 
 
 
-  const handleGoToCollectionPage=() => {
-    router.push('/MyCollectionPage');
-  };
+
   return (
     <>
       <div className="max-w-full lg:w-7xl w-fit mx-auto my-24 text-center text-pretty">
@@ -151,7 +148,6 @@ const Home=() => {
           setMatchedCardData={setMatchedCardData}
         />
 
-        <button className="float-end border border-white rounded-lg m-1 p-1 text-xs text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>Go to My Collection</button>
 
       </div>
     </>

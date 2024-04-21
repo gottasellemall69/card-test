@@ -1,20 +1,21 @@
+// MyCollectionPage.js
 import React,{useEffect,useState} from 'react';
 import MyCollection from '@/components/MyCollection';
 
 const MyCollectionPage=() => {
-  const [cards,setCards]=useState([]);
+  const [aggregatedData,setAggregatedData]=useState([]);
 
   useEffect(() => {
     const fetchData=async () => {
       try {
-        const response=await fetch('/api/my-collection');
+        const response=await fetch('/api/aggregation');
         if(!response.ok) {
-          throw new Error('Failed to fetch data');
+          throw new Error('Failed to fetch aggregated data');
         }
-        const {cards}=await response.json();
-        setCards(cards);
+        const data=await response.json();
+        setAggregatedData(data);
       } catch(error) {
-        console.error('Error fetching data:',error);
+        console.error('Error fetching aggregated data:',error);
       }
     };
 
@@ -22,10 +23,8 @@ const MyCollectionPage=() => {
   },[]);
 
   return (
-    <div className="bg-grayscale-950 backdrop text-shadow w-full min-h-screen">
-      <div className="container mx-auto py-8">
-        <MyCollection cards={cards} />
-      </div>
+    <div className="backdrop text-shadow w-full">
+      <MyCollection aggregatedData={aggregatedData} />
     </div>
   );
 };

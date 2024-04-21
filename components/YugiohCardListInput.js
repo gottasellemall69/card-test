@@ -1,11 +1,14 @@
 'use client';
 // @/components/YugiohCardListInput.js
 import React,{useState,useMemo} from 'react';
+import {useRouter} from 'next/router';
 import {ChevronDownIcon,ChevronUpIcon} from '@heroicons/react/24/solid';
 import dynamic from 'next/dynamic';
 const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'));
 const YugiohPagination=dynamic(() => import('@/components/YugiohPagination'));
 const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,matchedCardData,setMatchedCardData}) => {
+  const router=useRouter();
+
   const [currentPage,setCurrentPage]=useState(1);
   const itemsPerPage=25; // Adjust as needed
   const [sortConfig,setSortConfig]=useState({key: [],direction: 'ascending'});
@@ -110,6 +113,9 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
     }
   };
 
+  const handleGoToCollectionPage=() => {
+    router.push('/MyCollectionPage');
+  };
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -227,22 +233,27 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
                 ))}
               </tbody>
             </table>
-
+            <YugiohPagination
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={sortedAndPaginatedData.totalCount}
+              handlePageClick={handlePageClick}
+            />
+            <button
+              className="float-start border border-white rounded-lg m-1 p-1 text-xs text-white font-bold hover:text-black hover:bg-white"
+              onClick={addToCollection}>
+              Add selected cards to Collection
+            </button>
+            <button
+              className="float-end border border-white rounded-lg m-1 p-1 text-xs text-white font-bold hover:text-black hover:bg-white"
+              onClick={handleGoToCollectionPage}>
+              View Collection
+            </button>
 
           </>
         )}
       </>
-      <YugiohPagination
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={sortedAndPaginatedData.totalCount}
-        handlePageClick={handlePageClick}
-      />
-      <button
-        className="float-start border border-white rounded-lg m-1 p-1 text-xs text-white font-bold hover:text-black hover:bg-white"
-        onClick={addToCollection}>
-        Add selected cards to Collection
-      </button>
+
     </div>
   );
 };
