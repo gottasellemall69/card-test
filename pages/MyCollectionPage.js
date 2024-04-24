@@ -23,7 +23,7 @@ const MyCollectionPage=() => {
   },[]);
 
   return (
-    <div className="backdrop text-shadow w-full">
+    <div className="backdrop w-full">
       <MyCollection aggregatedData={aggregatedData} />
     </div>
   );

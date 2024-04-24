@@ -33,12 +33,15 @@ export async function getCardData(setName) {
     }
     const data=await response.json();
     console.log('Received card data:',data);
+
+    // Store the fetched data in the cache
+    cardDataCache[setName]=data;
     return data;
   } catch(error) {
     console.error('Error fetching card data:',error);
     return null;
   }
-}
+};
 
 export async function getCardSetsData() {
   try {

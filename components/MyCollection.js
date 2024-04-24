@@ -1,59 +1,137 @@
-// MyCollection.js
 import React from 'react';
+import Link from 'next/link';
 
 const MyCollection=({aggregatedData}) => {
   const calculatePriceTrend=(previousPrice,currentPrice) => {
     if(currentPrice>previousPrice) {
-      return 'up';
+      return '+';
     } else if(currentPrice<previousPrice) {
-      return 'down';
+      return '-';
     } else {
-      return 'same';
+      return '';
     }
   };
 
   return (
-    <div className="container mx-auto py-8 min-h-screen w-full">
-      <h1 className="text-3xl font-semibold mb-4 p-5">My Collection</h1>
-      <div className="grid w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 m-5 p-5 py-10">
-        {aggregatedData?.map((card,index) => (
-          <div key={index} className="bg-none shadow-md rounded-md p-4 relative border border-zinc-300">
-            <h2 className="text-lg font-semibold mb-2">{card?.productName}</h2>
-            <p className="text-grayscale-100 text-shadow mb-2">Set: {card?.setName}</p>
-            <p className="text-grayscale-100 text-shadow mb-2">Number: {card?.number}</p>
-            <p className="text-grayscale-100 text-shadow mb-2">Printing: {card?.printing}</p>
-            <p className="text-grayscale-100 text-shadow mb-2">Rarity: {card?.rarity}</p>
-            <p className="text-grayscale-100 text-shadow mb-2">Condition: {card?.condition}</p>
-            <p className="text-grayscale-100 text-shadow mb-2">Price: {card?.marketPrice}</p>
-            {index>0&&(
-              <div
-                className={`absolute top-0 left-0 -mt-3 -ml-3 w-8 h-8 rounded-full flex items-center justify-center ${calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='up'
-                  ? 'bg-green-500'
-                  :calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='down'
-                    ? 'bg-red-500'
-                    :'bg-gray-500'
-                  }`}
-              >
-                <span
-                  className={`text-white text-xs font-semibold ${calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='up'
-                    ? 'transform rotate-45'
-                    :calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='down'
-                      ? 'transform rotate-45'
-                      :''
-                    }`}
-                >
-                  {calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='up'
-                    ? '↑'
-                    :calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='down'
-                      ? '↓'
-                      :'='}
-                </span>
+    <>
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          {aggregatedData?.map((card,index) => (
+            <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
+              <div className="flex justify-between mb-6">
+                <div>
+                  <div className="flex items-center mb-1">
+                    <div className="text-2xl font-semibold">{card?.productName}</div>
+                    {index>0&&(
+                      <div className="p-1 rounded ml-2">
+                        {calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='+'
+                          ? <span className="text-emerald-500">↑</span>
+                          :calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='-'
+                            ? <span className="text-rose-500">↓</span>
+                            :<span className="text-gray-500 "></span>
+                        }
+                        {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-sm font-medium text-gray-400">Set: {card?.setName}</div>
+                  <div className="text-sm font-medium text-gray-400">Market Price: {card?.marketPrice}</div>
+                  <div className="text-sm font-medium text-gray-400">Quantity: {card?.quantity}</div>
+
+                </div>
               </div>
-            )}
+              <Link className="text-[#f84525] font-medium text-sm hover:text-red-800" href="#">View</Link>
+            </div>
+
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 mb-6">
+          <div className="p-6 relative flex flex-col min-w-0 mb-4 lg:mb-0 break-words w-full rounded">
+            <div className="rounded-t mb-0 px-0 border-0">
+              <div className="flex flex-wrap items-center px-4 py-2">
+                <div className="relative w-full max-w-full flex-grow flex-1">
+                  <h3 className="font-semibold text-base dark:text-gray-50">Collection</h3>
+                </div>
+              </div>
+              <div className="block w-full overflow-x-auto">
+                <table className="text-white items-center w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th
+                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Qty
+
+                      </th>
+                      <th
+                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Name
+
+                      </th>
+                      <th
+                        className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Set
+
+                      </th>
+                      <th
+                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Number
+
+                      </th>
+                      <th
+                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Printing
+
+                      </th>
+                      <th
+                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Rarity
+
+                      </th>
+                      <th
+                        className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Condition
+
+                      </th>
+                      <th
+                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                        Price
+
+                      </th>
+                      <th
+                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {aggregatedData?.map((card,index) => (
+                      <tr key={index} className="bg-white">
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.quantity}</td>
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hidden md:table-cell hover:bg-black hover:text-white">{card?.setName}</td>
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.printing}</td>
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hidden md:table-cell hover:bg-black hover:text-white">{card?.condition}</td>
+                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.marketPrice}</td>
+
+                        {index>0&&(
+                          <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">
+                            <div className={`flex items-center text-sm font-semibold ${calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='+'? 'text-emerald-600':'text-rose-500'}`}>
+                              {calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)}{Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

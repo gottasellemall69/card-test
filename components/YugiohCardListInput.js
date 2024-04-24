@@ -10,9 +10,10 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
   const router=useRouter();
 
   const [currentPage,setCurrentPage]=useState(1);
-  const itemsPerPage=25; // Adjust as needed
+  const itemsPerPage=15; // Adjust as needed
   const [sortConfig,setSortConfig]=useState({key: [],direction: 'ascending'});
   const [selectedRows,setSelectedRows]=useState([]);
+  const [selectAllChecked,setSelectAllChecked]=useState(false);
   // Pagination handlers
   const handlePageClick=(page) => {
     setCurrentPage(page);
@@ -71,6 +72,17 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
     }
     setSelectedRows(newSelected);
   };
+
+  const toggleSelectAll=() => {
+    if(!selectAllChecked) {
+      const allRowsIndexes=Array.from({length: matchedCardData.length},(_,index) => index);
+      setSelectedRows(allRowsIndexes);
+    } else {
+      setSelectedRows([]);
+    }
+    setSelectAllChecked(!selectAllChecked);
+  };
+
   // Function to handle adding selected rows to collection
   const addToCollection=async () => {
     try {
@@ -141,8 +153,13 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
             <table className="mx-auto divide-y w-full divide-gray-200">
               <thead className="mx-auto bg-transparent">
                 <tr>
-                  <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                    Select
+                  <th className="sticky top-0 z-10 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+
+                    <input
+                      type="checkbox"
+                      checked={selectAllChecked}
+                      onChange={toggleSelectAll}
+                    />
                   </th>
                   <th
                     onClick={() => handleSort('productName')}
@@ -232,6 +249,7 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
                   </tr>
                 ))}
               </tbody>
+
             </table>
             <YugiohPagination
               currentPage={currentPage}
@@ -240,12 +258,12 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
               handlePageClick={handlePageClick}
             />
             <button
-              className="float-start border border-white rounded-lg m-1 p-1 text-xs text-white font-bold hover:text-black hover:bg-white"
+              className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"
               onClick={addToCollection}>
               Add selected cards to Collection
             </button>
             <button
-              className="float-end border border-white rounded-lg m-1 p-1 text-xs text-white font-bold hover:text-black hover:bg-white"
+              className="float-end border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"
               onClick={handleGoToCollectionPage}>
               View Collection
             </button>

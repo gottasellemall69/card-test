@@ -6,152 +6,38 @@ export default async function handler(req,res) {
     const agg=[
       {
         '$group': {
-          '_id': '$_id',
-          'productName': {
-            '$addToSet': '$productName'
-          },
-          'setName': {
-            '$addToSet': '$setName'
-          },
-          'number': {
-            '$addToSet': '$number'
-          },
-          'printing': {
-            '$addToSet': '$printing'
-          },
-          'rarity': {
-            '$addToSet': '$rarity'
-          },
-          'condition': {
-            '$addToSet': '$condition'
+          '_id': {
+            'productName': '$productName',
+            'setName': '$setName',
+            'number': '$number',
+            'printing': '$printing',
+            'rarity': '$rarity',
+            'condition': '$condition',
           },
           'marketPrice': {
-            '$addToSet': '$marketPrice'
+            '$max': '$marketPrice'
+          },
+          'quantity': {
+            '$sum': 1
+          }
+        }
+      },{
+        '$addFields': {
+          'objectId': {
+            '$first': '$objectId'
           }
         }
       },{
         '$project': {
           '_id': 0,
-          'objectId': '$_id',
-          'productName': {
-            '$cond': {
-              'if': {
-                '$eq': [
-                  {
-                    '$size': '$productName'
-                  },1
-                ]
-              },
-              'then': {
-                '$arrayElemAt': [
-                  '$productName',0
-                ]
-              },
-              'else': null
-            }
-          },
-          'setName': {
-            '$cond': {
-              'if': {
-                '$eq': [
-                  {
-                    '$size': '$setName'
-                  },1
-                ]
-              },
-              'then': {
-                '$arrayElemAt': [
-                  '$setName',0
-                ]
-              },
-              'else': null
-            }
-          },
-          'number': {
-            '$cond': {
-              'if': {
-                '$eq': [
-                  {
-                    '$size': '$number'
-                  },1
-                ]
-              },
-              'then': {
-                '$arrayElemAt': [
-                  '$number',0
-                ]
-              },
-              'else': null
-            }
-          },
-          'printing': {
-            '$cond': {
-              'if': {
-                '$eq': [
-                  {
-                    '$size': '$printing'
-                  },1
-                ]
-              },
-              'then': {
-                '$arrayElemAt': [
-                  '$printing',0
-                ]
-              },
-              'else': null
-            }
-          },
-          'rarity': {
-            '$cond': {
-              'if': {
-                '$eq': [
-                  {
-                    '$size': '$rarity'
-                  },1
-                ]
-              },
-              'then': {
-                '$arrayElemAt': [
-                  '$rarity',0
-                ]
-              },
-              'else': null
-            }
-          },
-          'condition': {
-            '$cond': {
-              'if': {
-                '$eq': [
-                  {
-                    '$size': '$condition'
-                  },1
-                ]
-              },
-              'then': {
-                '$arrayElemAt': [
-                  '$condition',0
-                ]
-              },
-              'else': null
-            }
-          },
-          'marketPrice': {
-            '$cond': {
-              'if': {
-                '$eq': [
-                  {
-                    '$size': '$marketPrice'
-                  },1
-                ]
-              },
-              'then': {
-                '$arrayElemAt': [
-                  '$marketPrice',0
-                ]
-              },
-              'else': null
-            }
-          }
+          'productName': '$_id.productName',
+          'setName': '$_id.setName',
+          'number': '$_id.number',
+          'printing': '$_id.printing',
+          'rarity': '$_id.rarity',
+          'condition': '$_id.condition',
+          'marketPrice': 1,
+          'quantity': 1
         }
       }
     ];

@@ -1,7 +1,6 @@
 'use client';
 // @/pages/sets//[letter]/cards/[setName].js
 import {useRouter} from 'next/router';
-import Image from 'next/image';
 import {useEffect,useState} from 'react';
 import {fetchCardData} from '@/utils/api';
 import Card from '@/components/Card';
