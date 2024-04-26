@@ -1,48 +1,50 @@
-import React from 'react';
-import Link from 'next/link';
+import React from 'react'
+import Link from 'next/link'
 
-const MyCollection=({aggregatedData}) => {
-  const calculatePriceTrend=(previousPrice,currentPrice) => {
+const MyCollection=({aggregatedData, onDeleteCard}) => {
+  const handleDelete=(cardId) => {
+    onDeleteCard(cardId)
+  }
+  const calculatePriceTrend=(previousPrice, currentPrice) => {
     if(currentPrice>previousPrice) {
-      return '+';
+      return '+'
     } else if(currentPrice<previousPrice) {
-      return '-';
+      return '-'
     } else {
-      return '';
+      return ''
     }
-  };
+  }
 
   return (
     <>
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-          {aggregatedData?.map((card,index) => (
+          {aggregatedData?.map((card, index) => (
             <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
-              <div className="flex justify-between mb-6">
-                <div>
-                  <div className="flex items-center mb-1">
-                    <div className="text-2xl font-semibold">{card?.productName}</div>
-                    {index>0&&(
-                      <div className="p-1 rounded ml-2">
-                        {calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='+'
-                          ? <span className="text-emerald-500">↑</span>
-                          :calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='-'
-                            ? <span className="text-rose-500">↓</span>
-                            :<span className="text-gray-500 "></span>
-                        }
-                        {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-sm font-medium text-gray-400">Set: {card?.setName}</div>
-                  <div className="text-sm font-medium text-gray-400">Market Price: {card?.marketPrice}</div>
-                  <div className="text-sm font-medium text-gray-400">Quantity: {card?.quantity}</div>
+              <div className="flex items-center mb-1">
+                <div className="text-2xl font-semibold">{card?.productName}</div>
 
-                </div>
               </div>
-              <Link className="text-[#f84525] font-medium text-sm hover:text-red-800" href="#">View</Link>
+              <div className="text-sm font-medium text-gray-400">Set: {card?.setName}</div>
+              <div className="text-sm font-medium text-gray-400">Set: {card?.number}</div>
+              <div className="text-sm font-medium text-gray-400">Set: {card?.rarity}</div>
+              <div className="text-sm font-medium text-gray-400">Set: {card?.printing}</div>
+              <div className="text-sm font-medium text-gray-400">Set: {card?.condition}</div>
+              <div className="text-sm font-medium text-gray-400 inline-flex">Market Price: {card?.marketPrice}
+                {index>0&&(
+                  <div className="rounded ml-2">
+                    {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'
+                      ? <span className="text-emerald-500">↑</span>
+                      :calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='-'
+                        ? <span className="text-rose-500">↓</span>
+                        :<span className="text-gray-500"></span>
+                    }
+                    {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
+                  </div>
+                )}</div>
+              <div className="text-sm font-medium text-gray-400">Quantity: {card?.quantity}</div>
+              <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
             </div>
-
           ))}
         </div>
 
@@ -104,7 +106,7 @@ const MyCollection=({aggregatedData}) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {aggregatedData?.map((card,index) => (
+                    {aggregatedData?.map((card, index) => (
                       <tr key={index} className="bg-white">
                         <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.quantity}</td>
                         <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
@@ -117,8 +119,8 @@ const MyCollection=({aggregatedData}) => {
 
                         {index>0&&(
                           <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">
-                            <div className={`flex items-center text-sm font-semibold ${calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)==='+'? 'text-emerald-600':'text-rose-500'}`}>
-                              {calculatePriceTrend(aggregatedData[index-1].marketPrice,card.marketPrice)}{Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
+                            <div className={`flex items-center text-sm font-semibold ${ calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'? 'text-emerald-600':'text-rose-500' }`}>
+                              {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)}{Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
                             </div>
                           </td>
                         )}
@@ -132,7 +134,7 @@ const MyCollection=({aggregatedData}) => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default MyCollection;
+export default MyCollection

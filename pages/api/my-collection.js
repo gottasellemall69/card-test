@@ -1,20 +1,55 @@
-// @/pages/api/my-collection.js
-import clientPromise from '@/utils/mongo';
+import {MongoClient, ObjectId} from 'mongodb'
+import clientPromise from '@/utils/mongo'
 
-export default async function handler(req,res) {
-  try {
-    const client=await clientPromise;
-    const db=client.db('cardPriceApp');
-    const collection=db.collection('myCollection');
+export default async function handler(req, res) {
+  const client=await clientPromise
+  const collection=client.db('cardPriceApp').collection('myCollection')
 
-    if(req.method==='GET') {
-      const cards=await collection.find({}).toArray();
-      res.status(200).json(cards);
-    } else {
-      res.status(405).json({message: 'Method Not Allowed'});
-    }
-  } catch(error) {
-    console.error('Error fetching cards:',error);
-    res.status(500).json({message: 'Server error'});
+  switch(req.method) {
+    case 'GET':
+      try {
+        // Aggregation pipeline to group and calculate quantity of unique documents
+        const agg=[
+          {
+            '$group': {
+              '_id': {
+                'productName': '$productName',
+                'setName': '$setName',
+                'number': '$number',
+                'printing': '$printing',
+                'rarity': '$rarity',
+                'condition': '$condition',
+              },
+              'marketPrice': {'$max': '$marketPrice'},
+              'uniqueDocs': {'$addToSet': '$$ROOT'}, // Keep track of unique documents within each group
+            },
+          },
+          {
+            '$addFields': {
+              'quantity': {'$size': '$uniqueDocs'}, // Calculate the quantity of unique documents within each group
+            },
+          },
+          {
+            '$project': {
+              '_id': 0,
+              'productName': '$_id.productName',
+              'setName': '$_id.setName',
+              'number': '$_id.number',
+              'printing': '$_id.printing',
+              'rarity': '$_id.rarity',
+              'condition': '$_id.condition',
+              'marketPrice': 1,
+              'quantity': 1,
+            },
+          },
+        ]
+
+        const cursor=collection.aggregate(agg)
+        const result=await cursor.toArray()
+        res.status(200).json(result)
+      } catch(error) {
+        console.error('Error executing aggregation query:', error)
+        res.status(500).json({message: 'Server error'})
+      }
   }
 }

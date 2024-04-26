@@ -5,7 +5,6 @@ import React,{useState} from 'react';
 import YugiohCardListInput from '@/components/YugiohCardListInput';
 import AlphabeticalIndex from '@/components/AlphabeticalIndex';
 import {fetchCardData,setNameIdMap} from '@/utils/api';
-import {saveCardListToLocalStorage} from '@/utils/localStorage';
 
 const exampleCardList=
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
@@ -75,7 +74,6 @@ const Home=() => {
       console.log('Valid card data:',validCardData);
       // Update matched card data
       setMatchedCardData(validCardData);
-      saveCardListToLocalStorage(cards);
     } catch(error) {
       setError('Error fetching card data');
       console.error('Error fetching card data:',error);
@@ -108,12 +106,12 @@ const Home=() => {
       // Find the matching card in the fetched set data
       const matchedCard=setCardData?.result.find((card) => {
         return (
-          card.productName.includes(productName)&&
-          card.set.includes(setName)&&
-          card.number.includes(number)&&
-          card.printing.includes(printing)&&
-          card.rarity.includes(rarity)&&
-          card.condition.includes(condition)
+          card.productName===(productName)&&
+          card.set===(setName)&&
+          card.number===(number)&&
+          card.printing===(printing)&&
+          card.rarity===(rarity)&&
+          card.condition===(condition)
         );
       });
       if(!matchedCard||!matchedCard?.marketPrice) {

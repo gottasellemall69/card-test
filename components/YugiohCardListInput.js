@@ -1,99 +1,99 @@
-'use client';
+'use client'
 // @/components/YugiohCardListInput.js
-import React,{useState,useMemo} from 'react';
-import {useRouter} from 'next/router';
-import {ChevronDownIcon,ChevronUpIcon} from '@heroicons/react/24/solid';
-import dynamic from 'next/dynamic';
-const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'));
-const YugiohPagination=dynamic(() => import('@/components/YugiohPagination'));
-const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,matchedCardData,setMatchedCardData}) => {
-  const router=useRouter();
+import React, {useState, useMemo} from 'react'
+import {useRouter} from 'next/router'
+import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/24/solid'
+import dynamic from 'next/dynamic'
+const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'))
+const YugiohPagination=dynamic(() => import('@/components/YugiohPagination'))
+const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData}) => {
+  const router=useRouter()
 
-  const [currentPage,setCurrentPage]=useState(1);
-  const itemsPerPage=15; // Adjust as needed
-  const [sortConfig,setSortConfig]=useState({key: [],direction: 'ascending'});
-  const [selectedRows,setSelectedRows]=useState([]);
-  const [selectAllChecked,setSelectAllChecked]=useState(false);
+  const [currentPage, setCurrentPage]=useState(1)
+  const itemsPerPage=15 // Adjust as needed
+  const [sortConfig, setSortConfig]=useState({key: [], direction: 'ascending'})
+  const [selectedRows, setSelectedRows]=useState([])
+  const [selectAllChecked, setSelectAllChecked]=useState(false)
   // Pagination handlers
   const handlePageClick=(page) => {
-    setCurrentPage(page);
-  };
+    setCurrentPage(page)
+  }
   const handleSort=(key) => {
-    let direction='ascending';
+    let direction='ascending'
     if(sortConfig.key===key&&sortConfig.direction==='ascending') {
-      direction='descending';
+      direction='descending'
     }
-    setSortConfig({key,direction});
+    setSortConfig({key, direction})
     setMatchedCardData((prevData) => {
-      const sorted=[...prevData].sort((a,b) => {
-        const aValue=key==='marketPrice'? (a.data.marketPrice||0):a.card[key];
-        const bValue=key==='marketPrice'? (b.data.marketPrice||0):b.card[key];
+      const sorted=[...prevData].sort((a, b) => {
+        const aValue=key==='marketPrice'? (a.data.marketPrice||0):a.card[key]
+        const bValue=key==='marketPrice'? (b.data.marketPrice||0):b.card[key]
         if(aValue<bValue) {
-          return direction==='ascending'? -1:1;
+          return direction==='ascending'? -1:1
         }
         if(aValue>bValue) {
-          return direction==='ascending'? 1:-1;
+          return direction==='ascending'? 1:-1
         }
-        return 0;
-      });
-      return sorted;
-    });
-  };
+        return 0
+      })
+      return sorted
+    })
+  }
   // Memoize sorted and paginated data
   const sortedAndPaginatedData=useMemo(() => {
     if(!Array.isArray(matchedCardData)) {
-      return {currentItems: [],totalCount: 0};
+      return {currentItems: [], totalCount: 0}
     }
-    const sortedData=[...matchedCardData].sort((a,b) => {
-      const aValue=sortConfig.key==='marketPrice'? (a.data.marketPrice||0):a.card[sortConfig.key];
-      const bValue=sortConfig.key==='marketPrice'? (b.data.marketPrice||0):b.card[sortConfig.key];
+    const sortedData=[...matchedCardData].sort((a, b) => {
+      const aValue=sortConfig.key==='marketPrice'? (a.data.marketPrice||0):a.card[sortConfig.key]
+      const bValue=sortConfig.key==='marketPrice'? (b.data.marketPrice||0):b.card[sortConfig.key]
       if(aValue<bValue) {
-        return sortConfig.direction==='ascending'? -1:1;
+        return sortConfig.direction==='ascending'? -1:1
       }
       if(aValue>bValue) {
-        return sortConfig.direction==='ascending'? 1:-1;
+        return sortConfig.direction==='ascending'? 1:-1
       }
-      return 0;
-    });
+      return 0
+    })
     // Pagination calculation
-    const indexOfLastItem=currentPage*itemsPerPage;
-    const indexOfFirstItem=indexOfLastItem-itemsPerPage;
-    const currentItems=sortedData.slice(indexOfFirstItem,indexOfLastItem);
-    return {currentItems,totalCount: sortedData.length};
-  },[currentPage,itemsPerPage,matchedCardData,sortConfig]);
+    const indexOfLastItem=currentPage*itemsPerPage
+    const indexOfFirstItem=indexOfLastItem-itemsPerPage
+    const currentItems=sortedData.slice(indexOfFirstItem, indexOfLastItem)
+    return {currentItems, totalCount: sortedData.length}
+  }, [currentPage, itemsPerPage, matchedCardData, sortConfig])
   // Function to handle checkbox toggle
   const toggleCheckbox=(index) => {
-    const selectedIndex=selectedRows.indexOf(index);
-    let newSelected=[...selectedRows];
+    const selectedIndex=selectedRows.indexOf(index)
+    let newSelected=[...selectedRows]
     if(selectedIndex===-1) {
-      newSelected.push(index);
+      newSelected.push(index)
     } else {
-      newSelected.splice(selectedIndex,1);
+      newSelected.splice(selectedIndex, 1)
     }
-    setSelectedRows(newSelected);
-  };
+    setSelectedRows(newSelected)
+  }
 
   const toggleSelectAll=() => {
     if(!selectAllChecked) {
-      const allRowsIndexes=Array.from({length: matchedCardData.length},(_,index) => index);
-      setSelectedRows(allRowsIndexes);
+      const allRowsIndexes=Array.from({length: matchedCardData.length}, (_, index) => index)
+      setSelectedRows(allRowsIndexes)
     } else {
-      setSelectedRows([]);
+      setSelectedRows([])
     }
-    setSelectAllChecked(!selectAllChecked);
-  };
+    setSelectAllChecked(!selectAllChecked)
+  }
 
   // Function to handle adding selected rows to collection
   const addToCollection=async () => {
     try {
       // Ensure selectedRows contains valid indices
       if(selectedRows.length===0) {
-        console.log('No cards selected to add to collection');
-        return;
+        console.log('No cards selected to add to collection')
+        return
       }
 
-      const selectedData=selectedRows.map((index) => sortedAndPaginatedData.currentItems[index]);
-      const collectionArray=selectedData.map(({card,data}) => ({
+      const selectedData=selectedRows.map((index) => sortedAndPaginatedData.currentItems[index])
+      const collectionArray=selectedData.map(({card, data}) => ({
         productName: card?.productName,
         setName: card?.setName,
         number: card?.number,
@@ -101,33 +101,33 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
         rarity: card?.rarity,
         condition: card?.condition,
         marketPrice: data?.marketPrice,
-      }));
+      }))
 
       // Send a POST request to the server to save the cards
-      const response=await fetch('/api/cards',{
+      const response=await fetch('/api/cards', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({cards: collectionArray}), // Ensure cards data is included in the request body
-      });
+      })
 
       // Check if the response is ok
       if(!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error('Network response was not ok')
       }
 
       // Parse the response data
-      const result=await response.json();
-      console.log('Success:',result);
+      const result=await response.json()
+      console.log('Success:', result)
     } catch(error) {
-      console.error('Failed to save the cards:',error);
+      console.error('Failed to save the cards:', error)
     }
-  };
+  }
 
   const handleGoToCollectionPage=() => {
-    router.push('/MyCollectionPage');
-  };
+    router.push('/MyCollectionPage')
+  }
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -234,7 +234,7 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 text-black">
-                {sortedAndPaginatedData.currentItems.map(({card,data},index) => (
+                {sortedAndPaginatedData.currentItems.map(({card, data}, index) => (
                   <tr key={index}>
                     <td className="border border-gray-800 p-1 text-center">
                       <input type="checkbox" checked={selectedRows.includes(index)} onChange={() => toggleCheckbox(index)} />
@@ -273,6 +273,6 @@ const YugiohCardListInput=({cardList,setCardList,handleSubmit,isLoading,error,ma
       </>
 
     </div>
-  );
-};
-export default YugiohCardListInput;
+  )
+}
+export default YugiohCardListInput
