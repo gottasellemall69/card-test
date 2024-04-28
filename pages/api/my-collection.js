@@ -12,41 +12,50 @@ export default async function handler(req, res) {
         const agg=[
           {
             '$group': {
-              '_id': {
-                'productName': '$productName',
-                'setName': '$setName',
-                'number': '$number',
-                'printing': '$printing',
-                'rarity': '$rarity',
-                'condition': '$condition',
-              },
+              '_id': '$_id', // Include the _id field explicitly
+              'productName': {'$first': '$productName'},
+              'setName': {'$first': '$setName'},
+              'number': {'$first': '$number'},
+              'printing': {'$first': '$printing'},
+              'rarity': {'$first': '$rarity'},
+              'condition': {'$first': '$condition'},
               'marketPrice': {'$max': '$marketPrice'},
-              'uniqueDocs': {'$addToSet': '$$ROOT'}, // Keep track of unique documents within each group
+              'uniqueDocs': {'$addToSet': '$$ROOT'},
             },
           },
           {
             '$addFields': {
-              'quantity': {'$size': '$uniqueDocs'}, // Calculate the quantity of unique documents within each group
+              'quantity': {'$size': '$uniqueDocs'},
             },
           },
           {
             '$project': {
-              '_id': 0,
-              'productName': '$_id.productName',
-              'setName': '$_id.setName',
-              'number': '$_id.number',
-              'printing': '$_id.printing',
-              'rarity': '$_id.rarity',
-              'condition': '$_id.condition',
+              '_id': 1, // Include _id field
+              'productName': 1,
+              'setName': 1,
+              'number': 1,
+              'printing': 1,
+              'rarity': 1,
+              'condition': 1,
               'marketPrice': 1,
-              'quantity': 1,
+              'quantity': {'$sum': 1},
             },
           },
         ]
 
         const cursor=collection.aggregate(agg)
         const result=await cursor.toArray()
-        res.status(200).json(result)
+
+        // Modify the result to include the _id field
+        const modifiedResult=result.map((item) => {
+          return {
+            _id: item._id.toString(), // Convert ObjectId to string
+            ...item
+          }
+        })
+
+        res.status(200).json(modifiedResult)
+
       } catch(error) {
         console.error('Error executing aggregation query:', error)
         res.status(500).json({message: 'Server error'})

@@ -2,9 +2,20 @@ import React from 'react'
 import Link from 'next/link'
 
 const MyCollection=({aggregatedData, onDeleteCard}) => {
-  const handleDelete=(cardId) => {
-    onDeleteCard(cardId)
+  const handleDelete=(card) => {
+    console.log('Card object:', card)
+    const cardId=card._id
+
+    console.log("Deleting card with ID:", cardId)
+    if(cardId) {
+      onDeleteCard(cardId)
+    } else {
+      console.error('Invalid cardId:', cardId)
+    }
+
   }
+
+
   const calculatePriceTrend=(previousPrice, currentPrice) => {
     if(currentPrice>previousPrice) {
       return '+'
@@ -30,20 +41,20 @@ const MyCollection=({aggregatedData, onDeleteCard}) => {
               <div className="text-sm font-medium text-gray-400">Set: {card?.rarity}</div>
               <div className="text-sm font-medium text-gray-400">Set: {card?.printing}</div>
               <div className="text-sm font-medium text-gray-400">Set: {card?.condition}</div>
-              <div className="text-sm font-medium text-gray-400 inline-flex">Market Price: {card?.marketPrice}
+              <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice}
                 {index>0&&(
-                  <div className="rounded ml-2">
+                  <div className="rounded inline-block ml-3 text-lg">
                     {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'
-                      ? <span className="text-emerald-500">↑</span>
+                      ? <span className="text-emerald-500 text-2xl inline-block">↑</span>
                       :calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='-'
-                        ? <span className="text-rose-500">↓</span>
-                        :<span className="text-gray-500"></span>
+                        ? <span className="text-rose-500 text-2xl inline-block">↓</span>
+                        :<span className="text-gray-500 text-2xl inline-block"></span>
                     }
                     {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
                   </div>
                 )}</div>
               <div className="text-sm font-medium text-gray-400">Quantity: {card?.quantity}</div>
-              <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
+              <button onClick={() => handleDelete(card)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
             </div>
           ))}
         </div>

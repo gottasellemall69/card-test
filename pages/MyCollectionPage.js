@@ -1,4 +1,3 @@
-// MyCollectionPage.js
 import React, {useEffect, useState} from 'react'
 import MyCollection from '@/components/MyCollection'
 
@@ -31,11 +30,12 @@ const MyCollectionPage=() => {
         },
         body: JSON.stringify({cardIds: [cardId]}),
       })
+
       if(!response.ok) {
         throw new Error('Failed to delete card')
       }
-      // Update state after successful deletion
-      fetchData()
+
+      fetchData() // Refresh data after successful deletion
     } catch(error) {
       console.error('Error deleting card:', error)
     }
