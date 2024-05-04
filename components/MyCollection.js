@@ -37,10 +37,10 @@ const MyCollection=({aggregatedData, onDeleteCard}) => {
 
               </div>
               <div className="text-sm font-medium text-gray-400">Set: {card?.setName}</div>
-              <div className="text-sm font-medium text-gray-400">Set: {card?.number}</div>
-              <div className="text-sm font-medium text-gray-400">Set: {card?.rarity}</div>
-              <div className="text-sm font-medium text-gray-400">Set: {card?.printing}</div>
-              <div className="text-sm font-medium text-gray-400">Set: {card?.condition}</div>
+              <div className="text-sm font-medium text-gray-400">Number: {card?.number}</div>
+              <div className="text-sm font-medium text-gray-400">Rarity: {card?.rarity}</div>
+              <div className="text-sm font-medium text-gray-400">Printing: {card?.printing}</div>
+              <div className="text-sm font-medium text-gray-400">Condition: {card?.condition}</div>
               <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice}
                 {index>0&&(
                   <div className="rounded inline-block ml-3 text-lg">

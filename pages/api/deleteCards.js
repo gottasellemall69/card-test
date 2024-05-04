@@ -13,7 +13,7 @@ export default async function handler(req, res) {
       const collection=client.db('cardPriceApp').collection('myCollection')
 
       // Delete documents with matching _id
-      const result=await collection.deleteMany({_id: {$in: objectIds}})
+      const result=await collection.deleteOne({_id: {$in: objectIds}})
 
       res.status(200).json({message: `${ result.deletedCount } document(s) deleted`})
     } catch(error) {

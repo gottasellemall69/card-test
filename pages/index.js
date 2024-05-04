@@ -1,10 +1,10 @@
-'use client';
+'use client'
 // @/pages/index.js
-import React,{useState} from 'react';
+import React, {useState} from 'react'
 
-import YugiohCardListInput from '@/components/YugiohCardListInput';
-import AlphabeticalIndex from '@/components/AlphabeticalIndex';
-import {fetchCardData,setNameIdMap} from '@/utils/api';
+import YugiohCardListInput from '@/components/YugiohCardListInput'
+import AlphabeticalIndex from '@/components/AlphabeticalIndex'
+import {fetchCardData, setNameIdMap} from '@/utils/api'
 
 const exampleCardList=
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
@@ -17,34 +17,34 @@ World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Min
 Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition
 Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited
 The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition
-Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited`;
+Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited`
 
 const Home=() => {
-  const [collection,setCollection]=useState([]);
-  const [selectedRows,setSelectedRows]=useState([]);
-  const [cardList,setCardList]=useState('');
+  const [collection, setCollection]=useState([])
+  const [selectedRows, setSelectedRows]=useState([])
+  const [cardList, setCardList]=useState('')
   const handleLoadExampleData=() => {
-    setCardList(exampleCardList);
-  };
-  const [matchedCardData,setMatchedCardData]=useState(null);
-  const [isLoading,setIsLoading]=useState(false);
-  const [error,setError]=useState(null);
+    setCardList(exampleCardList)
+  }
+  const [matchedCardData, setMatchedCardData]=useState(null)
+  const [isLoading, setIsLoading]=useState(false)
+  const [error, setError]=useState(null)
 
   const handleSubmit=async (event) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    console.log('Form submitted');
-    console.log('Card List:',cardList);
-    console.log('Is loading:',isLoading);
+    event.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    console.log('Form submitted')
+    console.log('Card List:', cardList)
+    console.log('Is loading:', isLoading)
     try {
       // Split the card list and parse it into JSON
       const cards=cardList.trim().split('\n').map((cardLine) => {
         // Use regular expression to handle escaped commas inside quotation marks
-        const regex=/(?:^|,)("(?:[^"]+|"")*"|[^",]+)(?=$|,)/g;
-        const matches=cardLine.match(regex);
+        const regex=/(?:^|,)("(?:[^"]+|"")*"|[^",]+)(?=$|,)/g
+        const matches=cardLine.match(regex)
         if(!matches||matches.length!==6) {
-          throw new Error('Invalid card format');
+          throw new Error('Invalid card format')
         }
         const [
           rawProductName,
@@ -53,56 +53,56 @@ const Home=() => {
           printing,
           rarity,
           condition
-        ]=matches.map((match) => match.replace(/(^,|,$)/g,''));
+        ]=matches.map((match) => match.replace(/(^,|,$)/g, ''))
 
         // Remove quotation marks around productName if present
-        const productName=rawProductName.replace(/^"|"$/g,'');
+        const productName=rawProductName.replace(/^"|"$/g, '')
 
-        return {productName,setName,number,printing,rarity,condition};
-      });
+        return ({productName, setName, number, printing, rarity, condition})
+      })
       if(cards.length===0) {
-        throw new Error('Card list is empty');
+        throw new Error('Card list is empty')
       }
       // Fetch card data for each card in batches
       const fetchedCardData=await Promise.all(
         cards.map((card) => fetchCardData(card))
-      );
+      )
       // Filter out null responses
-      const validCardData=fetchedCardData.filter((data) => data!==null);
-      console.log('Parsed cards:',cards);
-      console.log('Fetched card data:',fetchedCardData);
-      console.log('Valid card data:',validCardData);
+      const validCardData=fetchedCardData.filter((data) => data!==null)
+      console.log('Parsed cards:', cards)
+      console.log('Fetched card data:', fetchedCardData)
+      console.log('Valid card data:', validCardData)
       // Update matched card data
-      setMatchedCardData(validCardData);
+      setMatchedCardData(validCardData)
     } catch(error) {
-      setError('Error fetching card data');
-      console.error('Error fetching card data:',error);
+      setError('Error fetching card data')
+      console.error('Error fetching card data:', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
-  const fetchedSetData={};
+  }
+  const fetchedSetData={}
   const fetchCardData=async (card) => {
     try {
-      const {productName,setName,number,printing,rarity,condition}=card;
+      const {productName, setName, number, printing, rarity, condition}=card
       // Get the numerical setNameId from the mapping
-      const setNameId=setNameIdMap[setName];
+      const setNameId=setNameIdMap[setName]
       if(!setNameId) {
-        throw new Error('Numerical setNameId not found for set name:',setName);
+        throw new Error('Numerical setNameId not found for set name:', setName)
       }
       // Check if set data is already fetched
       if(!fetchedSetData[setName]) {
-        console.log('Fetching set data for:',setName);
-        const response=await fetch(`/api/cards/${setNameId}`);
+        console.log('Fetching set data for:', setName)
+        const response=await fetch(`/api/cards/${ setNameId }`)
         if(!response.ok) {
-          throw new Error('Failed to fetch card data for set:',setName);
+          throw new Error('Failed to fetch card data for set:', setName)
         }
-        const responseData=await response.json();
-        fetchedSetData[setName]=responseData; // Cache the fetched set data
+        const responseData=await response.json()
+        fetchedSetData[setName]=responseData // Cache the fetched set data
       } else {
-        console.log('Using cached set data for:',setName);
+        console.log('Using cached set data for:', setName)
       }
-      const setCardData=fetchedSetData[setName];
+      const setCardData=fetchedSetData[setName]
       // Find the matching card in the fetched set data
       const matchedCard=setCardData?.result.find((card) => {
         return (
@@ -112,19 +112,19 @@ const Home=() => {
           card.printing===(printing)&&
           card.rarity===(rarity)&&
           card.condition===(condition)
-        );
-      });
+        )
+      })
       if(!matchedCard||!matchedCard?.marketPrice) {
-        throw new Error('Market price data not found for the card');
+        throw new Error('Market price data not found for the card')
       }
-      const marketPrice=matchedCard?.marketPrice;
-      console.log('Matched card:',matchedCard);
-      return {card,data: {...matchedCard,marketPrice}};
+      const marketPrice=matchedCard?.marketPrice
+      console.log('Matched card:', matchedCard)
+      return {card, data: {...matchedCard, marketPrice}}
     } catch(error) {
-      console.error('Error fetching card data:',error);
-      return null;
+      console.error('Error fetching card data:', error)
+      return null
     }
-  };
+  }
 
 
 
@@ -166,6 +166,8 @@ const Home=() => {
       </div>
 
       <YugiohCardListInput
+        collection={collection}
+        selectedRows={selectedRows}
         setSelectedRows={setSelectedRows}
         setCollection={setCollection}
         cardList={cardList}
@@ -179,7 +181,7 @@ const Home=() => {
 
 
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home

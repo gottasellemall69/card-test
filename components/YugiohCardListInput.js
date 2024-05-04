@@ -10,7 +10,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
   const router=useRouter()
 
   const [currentPage, setCurrentPage]=useState(1)
-  const itemsPerPage=15 // Adjust as needed
+  const itemsPerPage=25 // Adjust as needed
   const [sortConfig, setSortConfig]=useState({key: [], direction: 'ascending'})
   const [selectedRows, setSelectedRows]=useState([])
   const [selectAllChecked, setSelectAllChecked]=useState(false)
@@ -42,7 +42,9 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
   // Memoize sorted and paginated data
   const sortedAndPaginatedData=useMemo(() => {
     if(!Array.isArray(matchedCardData)) {
-      return {currentItems: [], totalCount: 0}
+      return (
+        {currentItems: [], totalCount: 0}
+      )
     }
     const sortedData=[...matchedCardData].sort((a, b) => {
       const aValue=sortConfig.key==='marketPrice'? (a.data.marketPrice||0):a.card[sortConfig.key]
@@ -75,7 +77,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
 
   const toggleSelectAll=() => {
     if(!selectAllChecked) {
-      const allRowsIndexes=Array.from({length: matchedCardData.length}, (_, index) => index)
+      const allRowsIndexes=Array.from({length: matchedCardData?.length}, (_, index) => index)
       setSelectedRows(allRowsIndexes)
     } else {
       setSelectedRows([])
@@ -92,8 +94,8 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
         return
       }
 
-      const selectedData=selectedRows.map((index) => sortedAndPaginatedData.currentItems[index])
-      const collectionArray=selectedData.map(({card, data}) => ({
+      const selectedData=selectedRows.map((index) => sortedAndPaginatedData?.currentItems[index])
+      const collectionArray=selectedData?.map(({card, data}) => ({
         productName: card?.productName,
         setName: card?.setName,
         number: card?.number,
@@ -235,7 +237,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 text-black">
                 {sortedAndPaginatedData.currentItems.map(({card, data}, index) => (
-                  <tr key={index}>
+                  <tr key={({card, data}, index)}>
                     <td className="border border-gray-800 p-1 text-center">
                       <input type="checkbox" checked={selectedRows.includes(index)} onChange={() => toggleCheckbox(index)} />
                     </td>

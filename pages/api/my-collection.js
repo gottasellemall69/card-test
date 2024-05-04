@@ -20,12 +20,7 @@ export default async function handler(req, res) {
               'rarity': {'$first': '$rarity'},
               'condition': {'$first': '$condition'},
               'marketPrice': {'$max': '$marketPrice'},
-              'uniqueDocs': {'$addToSet': '$$ROOT'},
-            },
-          },
-          {
-            '$addFields': {
-              'quantity': {'$size': '$uniqueDocs'},
+              'quantity': {'$sum': 1},
             },
           },
           {
@@ -38,7 +33,7 @@ export default async function handler(req, res) {
               'rarity': 1,
               'condition': 1,
               'marketPrice': 1,
-              'quantity': {'$sum': 1},
+              'quantity': 1,
             },
           },
         ]
@@ -49,7 +44,7 @@ export default async function handler(req, res) {
         // Modify the result to include the _id field
         const modifiedResult=result.map((item) => {
           return {
-            _id: item._id.toString(), // Convert ObjectId to string
+            _id: JSON.stringify(item._id), // Convert ObjectId to string
             ...item
           }
         })
