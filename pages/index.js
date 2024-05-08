@@ -23,12 +23,13 @@ const Home=() => {
   const [collection, setCollection]=useState([])
   const [selectedRows, setSelectedRows]=useState([])
   const [cardList, setCardList]=useState('')
-  const handleLoadExampleData=() => {
-    setCardList(exampleCardList)
-  }
   const [matchedCardData, setMatchedCardData]=useState(null)
   const [isLoading, setIsLoading]=useState(false)
   const [error, setError]=useState(null)
+
+  const handleLoadExampleData=() => {
+    setCardList(exampleCardList)
+  }
 
   const handleSubmit=async (event) => {
     event.preventDefault()

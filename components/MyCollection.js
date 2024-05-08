@@ -1,7 +1,36 @@
-import React from 'react'
+import React, {useState} from 'react'
 import Link from 'next/link'
+import DownloadYugiohCSVButton from './DownloadYugiohCSVButton'
 
-const MyCollection=({aggregatedData, onDeleteCard}) => {
+const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
+  const [edit, setEdit]=useState({})
+  const [editValues, setEditValues]=useState({})
+
+  const handleEdit=(card, field) => {
+    setEdit({...edit, [card]: field})
+    setEditValues({...editValues, [card]: {...card}})
+  }
+
+  const handleChange=(e, cardId) => {
+    setEditValues({
+      ...editValues,
+      [cardId]: {...editValues[cardId], [e.target.name]: e.target.value}
+    })
+  }
+
+  const handleSave=cardId => {
+    console.log('Saving card with ID:', cardId) // Debug log
+    if(cardId&&editValues[cardId]) {
+      onUpdateCard(editValues[cardId])
+      setEdit({})
+      setEditValues({})
+    } else {
+      console.error('Invalid data or missing card ID on save:', cardId, editValues[cardId])
+    }
+  }
+
+
+
   const handleDelete=(card) => {
     console.log('Card object:', card)
     const cardId=card._id
@@ -39,8 +68,20 @@ const MyCollection=({aggregatedData, onDeleteCard}) => {
               <div className="text-sm font-medium text-gray-400">Set: {card?.setName}</div>
               <div className="text-sm font-medium text-gray-400">Number: {card?.number}</div>
               <div className="text-sm font-medium text-gray-400">Rarity: {card?.rarity}</div>
-              <div className="text-sm font-medium text-gray-400">Printing: {card?.printing}</div>
-              <div className="text-sm font-medium text-gray-400">Condition: {card?.condition}</div>
+              <div className="text-sm font-medium text-gray-400">Printing:
+                {edit[card._id]==='printing'? (
+                  <input type="text" name="printing" value={editValues[card._id].printing} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                ):(
+                  <span onClick={() => handleEdit(card, 'printing')}>{card.printing}</span>
+                )}
+              </div>
+              <div className="text-sm font-medium text-gray-400">Condition:
+                {edit[card._id]==='condition'? (
+                  <input type="text" name="condition" value={editValues[card._id].condition} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                ):(
+                  <span onClick={() => handleEdit(card, 'condition')}>{card.condition}</span>
+                )}
+              </div>
               <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice}
                 {index>0&&(
                   <div className="rounded inline-block ml-3 text-lg">
@@ -53,7 +94,13 @@ const MyCollection=({aggregatedData, onDeleteCard}) => {
                     {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
                   </div>
                 )}</div>
-              <div className="text-sm font-medium text-gray-400">Quantity: {card?.quantity}</div>
+              <div className="text-sm font-medium text-gray-400">Quantity:
+                {edit[card._id]==='quantity'? (
+                  <input type="number" name="quantity" value={editValues[card._id].quantity} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                ):(
+                  <span onClick={() => handleEdit(card, 'quantity')}>{card.quantity}</span>
+                )}
+              </div>
               <button onClick={() => handleDelete(card)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
             </div>
           ))}
@@ -64,7 +111,9 @@ const MyCollection=({aggregatedData, onDeleteCard}) => {
             <div className="rounded-t mb-0 px-0 border-0">
               <div className="flex flex-wrap items-center px-4 py-2">
                 <div className="relative w-full max-w-full flex-grow flex-1">
-                  <h3 className="font-semibold text-base dark:text-gray-50">Collection</h3>
+                  <h3 className="font-semibold text-base dark:text-gray-50">
+                    <DownloadYugiohCSVButton
+                    /></h3>
                 </div>
               </div>
               <div className="block w-full overflow-x-auto">

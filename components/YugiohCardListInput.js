@@ -6,7 +6,7 @@ import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/24/solid'
 import dynamic from 'next/dynamic'
 const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'))
 const YugiohPagination=dynamic(() => import('@/components/YugiohPagination'))
-const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData}) => {
+const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData, }) => {
   const router=useRouter()
 
   const [currentPage, setCurrentPage]=useState(1)
@@ -95,7 +95,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
       }
 
       const selectedData=selectedRows.map((index) => sortedAndPaginatedData?.currentItems[index])
-      const collectionArray=selectedData?.map(({card, data}) => ({
+      const collectionArray=selectedData?.map(({card, data}, index) => ({
         productName: card?.productName,
         setName: card?.setName,
         number: card?.number,
