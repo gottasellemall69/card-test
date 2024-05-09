@@ -32,7 +32,7 @@ const MyCollectionPage=() => {
     }
 
     try {
-      const response=await fetch(`/api/updateCards/${ cardId }`, { // Assuming you need to pass the cardId in the URL
+      const response=await fetch(`/api/updateCards`, { // Assuming you need to pass the cardId in the URL
         method: 'PATCH', // Assuming you're using PATCH method to update the card
         headers: {
           'Content-Type': 'application/json',

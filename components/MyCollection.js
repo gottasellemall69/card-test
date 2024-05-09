@@ -18,18 +18,16 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
     })
   }
 
-  const handleSave=cardId => {
+  const handleSave=(cardId) => {
     console.log('Saving card with ID:', cardId) // Debug log
     if(cardId&&editValues[cardId]) {
-      onUpdateCard(editValues[cardId])
+      onUpdateCard(cardId, editValues[cardId])
       setEdit({})
       setEditValues({})
     } else {
       console.error('Invalid data or missing card ID on save:', cardId, editValues[cardId])
     }
   }
-
-
 
   const handleDelete=(card) => {
     console.log('Card object:', card)
@@ -41,9 +39,7 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
     } else {
       console.error('Invalid cardId:', cardId)
     }
-
   }
-
 
   const calculatePriceTrend=(previousPrice, currentPrice) => {
     if(currentPrice>previousPrice) {
@@ -58,26 +54,25 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
   return (
     <>
       <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto">
           {aggregatedData?.map((card, index) => (
             <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
               <div className="flex items-center mb-1">
                 <div className="text-2xl font-semibold">{card?.productName}</div>
-
               </div>
               <div className="text-sm font-medium text-gray-400">Set: {card?.setName}</div>
               <div className="text-sm font-medium text-gray-400">Number: {card?.number}</div>
               <div className="text-sm font-medium text-gray-400">Rarity: {card?.rarity}</div>
               <div className="text-sm font-medium text-gray-400">Printing:
                 {edit[card._id]==='printing'? (
-                  <input type="text" name="printing" value={editValues[card._id].printing} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                  <input type="text" name="printing" value={editValues[card.id]?.printing||''} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
                 ):(
-                  <span onClick={() => handleEdit(card, 'printing')}>{card.printing}</span>
+                  <span onClick={() => handleEdit(card._id, 'printing')}>{card.printing}</span>
                 )}
               </div>
               <div className="text-sm font-medium text-gray-400">Condition:
-                {edit[card._id]==='condition'? (
-                  <input type="text" name="condition" value={editValues[card._id].condition} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                {edit[card]==='condition'? (
+                  <input type="text" name="condition" value={editValues[card._id]?.condition||''} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card)} />
                 ):(
                   <span onClick={() => handleEdit(card, 'condition')}>{card.condition}</span>
                 )}
@@ -93,10 +88,11 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
                     }
                     {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
                   </div>
-                )}</div>
+                )}
+              </div>
               <div className="text-sm font-medium text-gray-400">Quantity:
-                {edit[card._id]==='quantity'? (
-                  <input type="number" name="quantity" value={editValues[card._id].quantity} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                {edit[card]==='quantity'? (
+                  <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
                 ):(
                   <span onClick={() => handleEdit(card, 'quantity')}>{card.quantity}</span>
                 )}
@@ -113,52 +109,47 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
                 <div className="relative w-full max-w-full flex-grow flex-1">
                   <h3 className="font-semibold text-base dark:text-gray-50">
                     <DownloadYugiohCSVButton
-                    /></h3>
+                      aggregatedData={aggregatedData}
+                      userCardList={[]}
+                    />
+                  </h3>
                 </div>
               </div>
-              <div className="block w-full overflow-x-auto">
+              <div className="block w-full overflow-x-auto max-h-[750px] overflow-y-auto">
                 <table className="text-white items-center w-full border-collapse">
                   <thead>
                     <tr>
                       <th
                         className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Qty
-
                       </th>
                       <th
                         className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Name
-
                       </th>
                       <th
                         className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Set
-
                       </th>
                       <th
                         className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Number
-
                       </th>
                       <th
                         className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Printing
-
                       </th>
                       <th
                         className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Rarity
-
                       </th>
                       <th
                         className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Condition
-
                       </th>
                       <th
                         className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                         Price
-
                       </th>
                       <th
                         className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
