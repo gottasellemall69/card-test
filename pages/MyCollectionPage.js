@@ -23,17 +23,18 @@ const MyCollectionPage=() => {
 
   const onUpdateCard=async (cardId, field, value) => {
     if(!cardId||!['quantity', 'printing', 'condition'].includes(field)) {
-      console.error('Invalid cardId or field:', cardId, field)
+      console.error('Invalid cardId or field:', cardId)
       return
     }
 
     const updateData={
+      cardId, // Include cardId in the updateData
       [field]: value,
     }
 
     try {
-      const response=await fetch(`/api/updateCards`, { // Assuming you need to pass the cardId in the URL
-        method: 'PATCH', // Assuming you're using PATCH method to update the card
+      const response=await fetch(`/api/updateCards`, { // Include cardId in the URL
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -44,20 +45,18 @@ const MyCollectionPage=() => {
         throw new Error('Failed to update card')
       }
 
-      const updatedCard=await response.json() // Assuming the response contains the updated card data
+      const updatedCard=await response.json()
 
       // Update the local state
       setAggregatedData(currentData =>
-        currentData.map(card =>
-          card._id===cardId? {...card, ...updatedCard}:card
+        currentData.map(currentCard =>
+          currentCard._id===cardId? {...currentCard, ...updatedCard}:currentCard
         )
       )
     } catch(error) {
       console.error('Error updating card:', error)
     }
   }
-
-
 
   const handleDeleteCard=async (cardId) => {
     try {
@@ -81,7 +80,7 @@ const MyCollectionPage=() => {
 
   return (
     <div className="backdrop w-full">
-      <MyCollection aggregatedData={aggregatedData} onDeleteCard={handleDeleteCard} onUpdateCard={onUpdateCard} />
+      <MyCollection aggregatedData={aggregatedData} onDeleteCard={handleDeleteCard} onUpdateCard={onUpdateCard} setAggregatedData={setAggregatedData} />
     </div>
   )
 }

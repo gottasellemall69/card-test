@@ -1,43 +1,68 @@
 import React, {useState} from 'react'
-import Link from 'next/link'
-import DownloadYugiohCSVButton from './DownloadYugiohCSVButton'
+import DownloadYugiohCSVButton from '@/components/DownloadYugiohCSVButton'
 
-const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
+const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData}) => {
   const [edit, setEdit]=useState({})
   const [editValues, setEditValues]=useState({})
 
-  const handleEdit=(card, field) => {
-    setEdit({...edit, [card]: field})
-    setEditValues({...editValues, [card]: {...card}})
-  }
-
-  const handleChange=(e, cardId) => {
+  const handleEdit=(cardId, field) => {
+    setEdit({...edit, [cardId]: field})
     setEditValues({
       ...editValues,
-      [cardId]: {...editValues[cardId], [e.target.name]: e.target.value}
+      [cardId]: {...aggregatedData.find(card => card._id===cardId)}
     })
   }
 
-  const handleSave=(cardId) => {
-    console.log('Saving card with ID:', cardId) // Debug log
-    if(cardId&&editValues[cardId]) {
-      onUpdateCard(cardId, editValues[cardId])
-      setEdit({})
-      setEditValues({})
-    } else {
-      console.error('Invalid data or missing card ID on save:', cardId, editValues[cardId])
+  const handleChange=(e, cardId, field) => {
+    setEditValues({
+      ...editValues,
+      [cardId]: {...editValues[cardId], [field]: e.target.value}
+    })
+  }
+
+  const handleSave=async (cardId, field) => {
+    try {
+      if(cardId&&editValues[cardId]&&field) {
+        const updateData={
+          cardId,
+          field,
+          value: editValues[cardId][field]
+        }
+
+        const response=await fetch(`/api/updateCards`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        })
+
+        if(!response.ok) {
+          throw new Error('Failed to update card')
+        }
+
+        const updatedCard=await response.json()
+
+        // Update the local state
+        setAggregatedData(currentData =>
+          currentData.map(currentCard =>
+            currentCard._id===cardId? {...currentCard, ...updatedCard}:currentCard
+          )
+        )
+        setEdit({...edit, [cardId]: null})
+      } else {
+        throw new Error('Invalid data or missing card ID or field')
+      }
+    } catch(error) {
+      console.error('Error saving card:', error)
     }
   }
 
-  const handleDelete=(card) => {
-    console.log('Card object:', card)
-    const cardId=card._id
-
-    console.log("Deleting card with ID:", cardId)
-    if(cardId) {
+  const handleDelete=(cardId) => {
+    try {
       onDeleteCard(cardId)
-    } else {
-      console.error('Invalid cardId:', cardId)
+    } catch(error) {
+      console.error('Error deleting card:', error)
     }
   }
 
@@ -65,16 +90,16 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
               <div className="text-sm font-medium text-gray-400">Rarity: {card?.rarity}</div>
               <div className="text-sm font-medium text-gray-400">Printing:
                 {edit[card._id]==='printing'? (
-                  <input type="text" name="printing" value={editValues[card.id]?.printing||''} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                  <input type="text" name="printing" value={editValues[card._id]?.printing||''} onChange={(e) => handleChange(e, card._id, 'printing')} onBlur={() => handleSave(card._id, 'printing')} />
                 ):(
                   <span onClick={() => handleEdit(card._id, 'printing')}>{card.printing}</span>
                 )}
               </div>
               <div className="text-sm font-medium text-gray-400">Condition:
-                {edit[card]==='condition'? (
-                  <input type="text" name="condition" value={editValues[card._id]?.condition||''} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card)} />
+                {edit[card._id]==='condition'? (
+                  <input type="text" name="condition" value={editValues[card._id]?.condition||''} onChange={(e) => handleChange(e, card._id, 'condition')} onBlur={() => handleSave(card._id, 'condition')} />
                 ):(
-                  <span onClick={() => handleEdit(card, 'condition')}>{card.condition}</span>
+                  <span onClick={() => handleEdit(card._id, 'condition')}>{card.condition}</span>
                 )}
               </div>
               <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice}
@@ -91,13 +116,13 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
                 )}
               </div>
               <div className="text-sm font-medium text-gray-400">Quantity:
-                {edit[card]==='quantity'? (
-                  <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id)} onBlur={() => handleSave(card._id)} />
+                {edit[card._id]==='quantity'? (
+                  <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
                 ):(
-                  <span onClick={() => handleEdit(card, 'quantity')}>{card.quantity}</span>
+                  <span onClick={() => handleEdit(card._id, 'quantity')}>{card.quantity}</span>
                 )}
               </div>
-              <button onClick={() => handleDelete(card)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
+              <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
             </div>
           ))}
         </div>
@@ -119,41 +144,15 @@ const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard}) => {
                 <table className="text-white items-center w-full border-collapse">
                   <thead>
                     <tr>
-                      <th
-                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Qty
-                      </th>
-                      <th
-                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Name
-                      </th>
-                      <th
-                        className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Set
-                      </th>
-                      <th
-                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Number
-                      </th>
-                      <th
-                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Printing
-                      </th>
-                      <th
-                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Rarity
-                      </th>
-                      <th
-                        className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Condition
-                      </th>
-                      <th
-                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                        Price
-                      </th>
-                      <th
-                        className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                      </th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Qty</th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Name</th>
+                      <th className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Set</th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Number</th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Printing</th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Rarity</th>
+                      <th className="hidden md:table-cell sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Condition</th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Price</th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter"></th>
                     </tr>
                   </thead>
                   <tbody>
