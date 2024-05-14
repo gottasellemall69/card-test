@@ -149,9 +149,9 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
       <>
         {isLoading&&<LoadingSpinner />}
         {error&&<p>{error}</p>}
-        <h2 className="my-5 text-white font-black">Matched Card Data:</h2>
         {sortedAndPaginatedData.currentItems.length>0&&(
           <>
+            <h2 className="my-5 text-white font-black">Matched Card Data:</h2>
             <table className="mx-auto divide-y w-full divide-gray-200">
               <thead className="mx-auto bg-transparent">
                 <tr>

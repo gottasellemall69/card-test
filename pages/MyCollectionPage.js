@@ -10,7 +10,7 @@ const MyCollectionPage=() => {
 
   const fetchData=async () => {
     try {
-      const response=await fetch('/api/aggregation')
+      const response=await fetch('/api/my-collection')
       if(!response.ok) {
         throw new Error('Failed to fetch aggregated data')
       }

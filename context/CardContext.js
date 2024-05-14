@@ -1,18 +1,18 @@
 // @/context/CardContext.js
-import {createContext,useContext,useState} from 'react';
+import {createContext, useContext, useState} from 'react'
 
-const CardContext=createContext();
+const CardContext=createContext()
 
 export function CardProvider({children}) {
-  const [cards,setCards]=useState([]);
+  const [cards, setCards]=useState([])
 
   return (
-    <CardContext.Provider value={{cards,setCards}}>
+    <CardContext.Provider value={{cards, setCards}}>
       {children}
     </CardContext.Provider>
-  );
+  )
 }
 
 export function useCards() {
-  return useContext(CardContext);
+  return useContext(CardContext)
 }

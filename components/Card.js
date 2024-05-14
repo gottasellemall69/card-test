@@ -1,20 +1,21 @@
 // @/components/Card.js
-import React,{useCallback} from 'react';
-import {useRouter} from 'next/router';
-import Image from 'next/image';
-import Link from 'next/link';
+import React, {useCallback} from 'react'
+import {useRouter} from 'next/router'
+import Image from 'next/image'
+import Link from 'next/link'
 
 export default function Card({cardData}) {
-  const router=useRouter();
-  const {letter}=router.query;
-  const getLocalImagePath=useCallback((cardId) => `/images/yugiohImages/${String(cardId)}.jpg`,[]);
+  const router=useRouter()
+  const {letter}=router.query
+  const getLocalImagePath=useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, [])
   return (
     <div>
-      <Link className="w-fit" href={`/sets/${letter}/cards/CardDetails?card=${cardData?.id}`}>
+      <Link href={`/sets/${ letter }/cards/CardDetails?card=${ cardData?.id }`}>
         <Image
+          priority={false}
           unoptimized={true}
           src={getLocalImagePath(cardData?.id)}
-          alt={`Card Image - ${cardData?.name}`}
+          alt={`Card Image - ${ cardData?.name }`}
           loading="lazy"
           width={275}
           height={325}
@@ -22,5 +23,5 @@ export default function Card({cardData}) {
         />
       </Link>
     </div>
-  );
+  )
 }
