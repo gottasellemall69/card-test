@@ -3,25 +3,26 @@ import React from 'react'
 const DownloadYugiohCSVButton=({aggregatedData, userCardList}) => {
   const downloadCSV=() => {
     try {
-      const csvHeader="Product Name,Set,Number,Printing,Rarity,Condition,Market Price"
+      const csvHeader="Quantity,Product Name,Set,Number,Printing,Rarity,Condition,Market Price"
       const csvData=aggregatedData?.map((card) => {
         const productName=card?.productName||''
-        const userCard=userCardList?.find((entry) =>
+        const userCard=userCardList?.filter((entry) =>
           entry.toLowerCase().includes(productName.toLowerCase())
         )
 
-        const relevantCard=userCard.find((card) =>
+        const relevantCard=userCard.filter((card) =>
           userCard.toLowerCase().includes(card.productName?.toLowerCase())&&
           userCard.toLowerCase().includes(card.number?.toLowerCase())&&
           userCard.toLowerCase().includes(card.printing?.toLowerCase())&&
           userCard.toLowerCase().includes(card.condition?.toLowerCase())
         )
         return [
-          `"${ productName }"`,
-          `"${ relevantCard?.set||'' }"`,
-          `"${ relevantCard?.number||'' }"`,
-          `"${ relevantCard?.printing||'' }"`,
-          `"${ relevantCard?.rarity||'' }"`,
+          `"${ card?.quantity||'' }"`,
+          `"${ card?.productName||'' }"`,
+          `"${ card?.setName||'' }"`,
+          `"${ card?.number||'' }"`,
+          `"${ card?.printing||'' }"`,
+          `"${ card?.rarity||'' }"`,
           `"${ card.condition||'' }"`,
           `"${ card.marketPrice||'' }"`
         ].join(',')

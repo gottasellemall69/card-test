@@ -1,196 +1,55 @@
-import {MongoClient, ObjectId} from 'mongodb'
+import {MongoClient} from 'mongodb'
 
 export default async function handler(req, res) {
-  const client=await MongoClient.connect(process.env.MONGODB_URI)
-  const collection=client.db('cardPriceApp').collection('myCollection')
+  const client=new MongoClient(process.env.MONGODB_URI)
 
-  switch(req.method) {
-    case 'GET':
-      try {
-        // Aggregation pipeline to group and calculate quantity of unique documents
+  try {
+    await client.connect()
+    const collection=client.db('cardPriceApp').collection('myCollection')
+
+    switch(req.method) {
+      case 'GET':
         const agg=[
           {
-            '$group': {
-              '_id': '$_id',
-              'productName': {
-                '$addToSet': '$productName'
-              },
-              'setName': {
-                '$addToSet': '$setName'
-              },
-              'number': {
-                '$addToSet': '$number'
-              },
-              'printing': {
-                '$addToSet': '$printing'
-              },
-              'rarity': {
-                '$addToSet': '$rarity'
-              },
-              'condition': {
-                '$addToSet': '$condition'
-              },
-              'marketPrice': {
-                '$addToSet': '$marketPrice'
-              },
-              'quantity': {
-                '$sum': 1
-
-
-              }
-            }
-          }, {
             '$project': {
               '_id': '$_id',
-              'productName': {
-                '$cond': {
-                  'if': {
-                    '$eq': [
-                      {
-                        '$size': '$productName'
-                      }, 1
-                    ]
-                  },
-                  'then': {
-                    '$arrayElemAt': [
-                      '$productName', 0
-                    ]
-                  },
-                  'else': null
-                }
-              },
-              'setName': {
-                '$cond': {
-                  'if': {
-                    '$eq': [
-                      {
-                        '$size': '$setName'
-                      }, 1
-                    ]
-                  },
-                  'then': {
-                    '$arrayElemAt': [
-                      '$setName', 0
-                    ]
-                  },
-                  'else': null
-                }
-              },
-              'number': {
-                '$cond': {
-                  'if': {
-                    '$eq': [
-                      {
-                        '$size': '$number'
-                      }, 1
-                    ]
-                  },
-                  'then': {
-                    '$arrayElemAt': [
-                      '$number', 0
-                    ]
-                  },
-                  'else': null
-                }
-              },
-              'printing': {
-                '$cond': {
-                  'if': {
-                    '$eq': [
-                      {
-                        '$size': '$printing'
-                      }, 1
-                    ]
-                  },
-                  'then': {
-                    '$arrayElemAt': [
-                      '$printing', 0
-                    ]
-                  },
-                  'else': null
-                }
-              },
-              'rarity': {
-                '$cond': {
-                  'if': {
-                    '$eq': [
-                      {
-                        '$size': '$rarity'
-                      }, 1
-                    ]
-                  },
-                  'then': {
-                    '$arrayElemAt': [
-                      '$rarity', 0
-                    ]
-                  },
-                  'else': null
-                }
-              },
-              'condition': {
-                '$cond': {
-                  'if': {
-                    '$eq': [
-                      {
-                        '$size': '$condition'
-                      }, 1
-                    ]
-                  },
-                  'then': {
-                    '$arrayElemAt': [
-                      '$condition', 0
-                    ]
-                  },
-                  'else': null
-                }
-              },
-              'marketPrice': {
-                '$cond': {
-                  'if': {
-                    '$eq': [
-                      {
-                        '$size': '$marketPrice'
-                      }, 1
-                    ]
-                  },
-                  'then': {
-                    '$arrayElemAt': [
-                      '$marketPrice', 0
-                    ]
-                  },
-                  'else': null
-                }
-              },
-              'quantity': 1
-
-
+              'productName': '$productName',
+              'setName': '$setName',
+              'number': '$number',
+              'printing': '$printing',
+              'rarity': '$rarity',
+              'condition': '$condition',
+              'marketPrice': '$marketPrice',
+              'quantity': {'$sum': 1}
             }
-          }, {
-            '$sort':
-            {
+          },
+          {
+            '$sort': {
               '_id': 1
             }
-
-          },
+          }
         ]
 
         const cursor=collection.aggregate(agg)
         const result=await cursor.toArray()
-
-        // Modify the result to include the _id field
-        const modifiedResult=result.map((item => {
+        const modifiedResult=result.map((item) => {
           return {
-            _id: JSON.stringify(item._id), // Convert ObjectId to string
+            _id: JSON.stringify(item._id),
             ...item
           }
-        }))
+        })
 
         res.status(200).json(modifiedResult)
+        break
 
-      } catch(error) {
-        console.error('Error executing aggregation query:', error)
-        res.status(500).json({message: 'Server error'})
-      }
-      await client.close()
+      default:
+        res.setHeader('Allow', ['GET'])
+        res.status(405).end(`Method ${ req.method } Not Allowed`)
+    }
+  } catch(error) {
+    console.error('Error executing aggregation query:', error)
+    res.status(500).json({message: 'Server error'})
+  } finally {
+    await client.close()
   }
 }

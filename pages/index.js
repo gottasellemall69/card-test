@@ -3,7 +3,7 @@
 import React, {useState} from 'react'
 import Head from 'next/head'
 import YugiohCardListInput from '@/components/YugiohCardListInput'
-import AlphabeticalIndex from '@/components/AlphabeticalIndex'
+import AlphabeticalIndex from '@/components/Navigation/AlphabeticalIndex'
 import {fetchCardData, getCardData, setNameIdMap} from '@/utils/api'
 
 const exampleCardList=

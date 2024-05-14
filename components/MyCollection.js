@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
-import DownloadYugiohCSVButton from '@/components/DownloadYugiohCSVButton'
+import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton'
 
-const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData}) => {
+const MyCollection=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData, updateData, updatedCard}) => {
   const [edit, setEdit]=useState({})
   const [editValues, setEditValues]=useState({})
 
