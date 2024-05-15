@@ -1,4 +1,5 @@
 import "@/styles/globals.css"
+import "@/styles/dashboard.css"
 import {SWRConfig} from 'swr'
 import {CardProvider} from '@/context/CardContext'
 

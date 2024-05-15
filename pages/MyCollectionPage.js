@@ -1,7 +1,8 @@
+'use client'
 import React, {useEffect, useState, useCallback} from 'react'
 import MyCollection from '@/components/MyCollection'
 import CardFilter from '@/components/CardFilter'
-import FiltersButton from '@/components/Buttons/FiltersButton'
+
 
 const MyCollectionPage=() => {
   const [aggregatedData, setAggregatedData]=useState([])
@@ -17,7 +18,7 @@ const MyCollectionPage=() => {
 
   const fetchData=useCallback(async () => {
     try {
-      const response=await fetch('/api/my-collection')
+      const response=await fetch('/api/aggregation')
       if(!response.ok) {
         throw new Error('Failed to fetch aggregated data')
       }
@@ -59,7 +60,7 @@ const MyCollectionPage=() => {
     setFilters({...filters, [filterType]: values})
   }
 
-  const onUpdateCard=async (cardId, field, value) => {
+  const onUpdateCard=useCallback((async (cardId, field, value) => {
     if(!cardId||!['quantity', 'printing', 'condition'].includes(field)) {
       console.error('Invalid cardId or field:', cardId)
       return
@@ -72,7 +73,7 @@ const MyCollectionPage=() => {
 
     try {
       const response=await fetch(`/api/updateCards`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -92,9 +93,9 @@ const MyCollectionPage=() => {
     } catch(error) {
       console.error('Error updating card:', error)
     }
-  }
+  }), [])
 
-  const handleDeleteCard=async (cardId) => {
+  const handleDeleteCard=useCallback((async (cardId) => {
     try {
       const response=await fetch('/api/deleteCards', {
         method: 'DELETE',
@@ -112,59 +113,258 @@ const MyCollectionPage=() => {
     } catch(error) {
       console.error('Error deleting card:', error)
     }
-  }
+  }), [fetchData])
 
   return (
     <>
-
       <CardFilter updateFilters={updateFilters} />
-      {isFilterMenuOpen&&(
-        <aside>
-          <div
-            id="filterMenu"
-            className="fixed inset-y-0 right-0 z-50 w-72 px-4 py-6 bg-white shadow-lg will-change-transform transform translate-x-full transition-transform duration-300 ease-in-out"
-          >
-            <div className="flex justify-between items-center px-4 py-3 bg-blue-500 text-shadow text-white">
-              <h2 className="text-lg font-bold">Filters</h2>
-              <button
-                id="closeFilterBtn"
-                className="text-white hover:text-gray-200 focus:outline-none"
-                onClick={toggleFilterMenu}
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            <div id="filters-container">
-              <div className="mb-4">
-                <label htmlFor="rarity-filter" className="block font-black text-lg mt-5">
-                  Rarity
-                </label>
-                <select id="rarity-filter" className="form-select w-full rounded-lg border-gray-300 px-4 py-2">
-                  {/* Add options here */}
-                </select>
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <div className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
+            <div className="flex justify-between mb-6">
+              <div>
+                <div className="flex items-center mb-1">
+                  <div className="text-2xl font-semibold">2</div>
+                </div>
+                <div className="text-sm font-medium text-gray-400">Users</div>
               </div>
-              <div className="mb-4">
-                <label htmlFor="condition-filter" className="block font-black text-lg mt-5">
-                  Condition
-                </label>
-                <select id="condition-filter" className="form-select w-full rounded-lg border-gray-300 px-4 py-2">
-                  {/* Add options here */}
-                </select>
+
+            </div>
+
+          </div>
+          <div className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
+            <div className="flex justify-between mb-4">
+              <div>
+                <div className="flex items-center mb-1">
+                  <div className="text-2xl font-semibold">100</div>
+                  <div className="p-1 rounded bg-emerald-500/10 text-emerald-500 text-[12px] font-semibold leading-none ml-2">
+                    +30%
+                  </div>
+                </div>
+                <div className="text-sm font-medium text-gray-400">Companies</div>
+              </div>
+
+            </div>
+
+          </div>
+          <div className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
+            <div className="flex justify-between mb-6">
+              <div>
+                <div className="text-2xl font-semibold mb-1">100</div>
+                <div className="text-sm font-medium text-gray-400">Blogs</div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="p-6 relative flex flex-col min-w-0 mb-4 lg:mb-0 break-words bg-transparent dark:bg-gray-800 w-full shadow-lg rounded">
+            <div className="rounded-t mb-0 px-0 border-0">
+              <div className="flex flex-wrap items-center px-4 py-2">
+                <div className="relative w-full max-w-full flex-grow flex-1">
+                  <h3 className="font-semibold text-base text-gray-900 dark:text-gray-50">
+                    Users
+                  </h3>
+                </div>
+              </div>
+              <div className="block w-full overflow-x-auto">
+                <table className="items-center w-full bg-transparent border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="px-4 bg-transparent dark:bg-gray-600 text-gray-500 dark:text-gray-100 align-middle border border-solid border-gray-200 dark:border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
+                        Role
+                      </th>
+                      <th className="px-4 bg-transparent dark:bg-gray-600 text-gray-500 dark:text-gray-100 align-middle border border-solid border-gray-200 dark:border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left">
+                        Amount
+                      </th>
+                      <th className="px-4 bg-transparent dark:bg-gray-600 text-gray-500 dark:text-gray-100 align-middle border border-solid border-gray-200 dark:border-gray-500 py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left min-w-140-px">
+                        Completion
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="text-gray-700 dark:text-gray-100">
+                      <th className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left">
+                        Administrator
+                      </th>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        1
+                      </td>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        <div className="flex items-center">
+                          <span className="mr-2">70%</span>
+                          <div className="relative w-full">
+                            <div className="overflow-hidden h-2 text-xs flex rounded bg-blue-200">
+                              <div
+                                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600"
+                                style={{width: "70%"}} />
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="text-gray-700 dark:text-gray-100">
+                      <th className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left">
+                        User
+                      </th>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        6
+                      </td>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        <div className="flex items-center">
+                          <span className="mr-2">40%</span>
+                          <div className="relative w-full">
+                            <div className="overflow-hidden h-2 text-xs flex rounded bg-blue-200">
+                              <div
+                                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"
+                                style={{width: "40%"}} />
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="text-gray-700 dark:text-gray-100">
+                      <th className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left">
+                        User
+                      </th>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        5
+                      </td>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        <div className="flex items-center">
+                          <span className="mr-2">45%</span>
+                          <div className="relative w-full">
+                            <div className="overflow-hidden h-2 text-xs flex rounded bg-pink-200">
+                              <div
+                                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-pink-500"
+                                style={{width: "45%"}} />
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="text-gray-700 dark:text-gray-100">
+                      <th className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left">
+                        User
+                      </th>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        4
+                      </td>
+                      <td className="border-t-0 px-4 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                        <div className="flex items-center">
+                          <span className="mr-2">60%</span>
+                          <div className="relative w-full">
+                            <div className="overflow-hidden h-2 text-xs flex rounded bg-red-200">
+                              <div
+                                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500"
+                                style={{width: "60%"}} />
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-        </aside>
-      )}
+          <div className="bg-transparent border border-gray-100 shadow-md shadow-black/5 p-6 rounded-md">
+            <div className="flex justify-between mb-4 items-start">
+              <div className="font-medium">Activities</div>
 
-      <div className="backdrop w-full">
-        <MyCollection
-          aggregatedData={aggregatedData}
-          onDeleteCard={handleDeleteCard}
-          onUpdateCard={onUpdateCard}
-          setAggregatedData={setAggregatedData}
-        />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-fit min-w-[540px]">
+                <tbody>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <div className="flex items-center">
+                        <a
+                          className="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate"
+                          href="#"
+                        >
+                          Lorem Ipsum
+                        </a>
+                      </div>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <span className="text-[13px] font-medium text-gray-400">
+                        02-02-2024
+                      </span>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <span className="text-[13px] font-medium text-gray-400">
+                        17.45
+                      </span>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <div className="dropdown">
+                        <button
+                          className="dropdown-toggle text-gray-400 hover:text-gray-600 text-sm w-6 h-6 rounded flex items-center justify-center bg-gray-50"
+                          type="button"
+                        >
+                          <i className="ri-more-2-fill" />
+                        </button>
+
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <div className="flex items-center">
+                        <a
+                          className="text-gray-600 text-sm font-medium hover:text-blue-500 ml-2 truncate"
+                          href="#"
+                        >
+                          Lorem Ipsum
+                        </a>
+                      </div>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <span className="text-[13px] font-medium text-gray-400">
+                        02-02-2024
+                      </span>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <span className="text-[13px] font-medium text-gray-400">
+                        17.45
+                      </span>
+                    </td>
+                    <td className="py-2 px-4 border-b border-b-gray-50">
+                      <div className="dropdown">
+                        <button
+                          className="dropdown-toggle text-gray-400 hover:text-gray-600 text-sm w-6 h-6 rounded flex items-center justify-center bg-gray-50"
+                          type="button"
+                        >
+                          <i className="ri-more-2-fill" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto w-fit grid grid-cols-1 gap-6 mb-6">
+
+          <div className="bg-transparent w-full border border-gray-100 shadow-md shadow-black/5 rounded-md">
+            <div className="flex mx-auto mb-4">
+              <div className="font-black p-6 text-xl">Collection</div>
+
+            </div>
+            <div className="overflow-x-hidden mx-auto">
+
+              <MyCollection
+                aggregatedData={aggregatedData}
+                onDeleteCard={handleDeleteCard}
+                onUpdateCard={onUpdateCard}
+                setAggregatedData={setAggregatedData} />
+
+            </div>
+          </div>
+        </div>
       </div>
     </>
   )

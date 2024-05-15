@@ -7,22 +7,6 @@ export default async function handler(req, res) {
   try {
     const agg=[
       {
-        '$group': {
-          '_id': '$_id', // Include the _id field explicitly
-          'productName': {'$first': '$productName'},
-          'setName': {'$first': '$setName'},
-          'number': {'$first': '$number'},
-          'printing': {'$first': '$printing'},
-          'rarity': {'$first': '$rarity'},
-          'condition': {'$first': '$condition'},
-          'marketPrice': {'$max': '$marketPrice'},
-          'quantity': {'$sum': 1}, // Keep track of unique documents within each group
-        },
-      },
-
-
-
-      {
         '$project': {
           '_id': 1, // Include _id field
           'productName': 1,

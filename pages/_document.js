@@ -5,9 +5,9 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head />
-      <body className="w-fit max-w-full mx-auto min-h-full">
+      <body className="w-fit mx-auto min-h-full">
         <div>
-          <div className="hidden sm:hidden md:block fixed left-0 top-0 w-64 h-full bg-black p-4 z-50 sidebar-menu transition-transform">
+          <div className="sm:block sm:fixed left-0 top-0 h-full bg-black p-4 sidebar-menu transition-transform">
             <a className="flex items-center pb-4 border-b border-b-gray-800" href="#">
               <h2 className="font-bold text-2xl">
                 LOREM{" "}
@@ -18,7 +18,7 @@ export default function Document() {
               <span className="text-gray-400 font-bold">WELCOME</span>
               <li className="mb-1 group">
                 <Link
-                  className="flex font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100"
+                  className="inline-flex flex-wrap flex-row font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100"
                   href="/"
                 >
                   <i className="ri-home-2-line mr-3 text-lg" />
@@ -27,7 +27,7 @@ export default function Document() {
               </li>
               <li className="mb-1 group">
                 <Link
-                  className="flex font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100 sidebar-dropdown-toggle"
+                  className="inline-flex flex-wrap flex-row font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100 sidebar-dropdown-toggle"
                   href="/MyCollectionPage"
                 >
                   <i className="bx bx-user mr-3 text-lg" />
@@ -36,8 +36,8 @@ export default function Document() {
               </li>
               <li className="mb-1 group">
                 <Link
-                  className="flex font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100"
-                  href="/SportsPage"
+                  className="inline-flex flex-wrap flex-row font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100"
+                  href="#"
                 >
                   <i className="bx bx-list-ul mr-3 text-lg" />
                   <span className="text-sm">Sports Card Prices</span>
@@ -45,7 +45,7 @@ export default function Document() {
               </li>
             </ul>
           </div>
-          <div className="w-full md:w-[calc(100%-256px)] md:ml-64 min-h-screen transition-all main">
+          <div className="w-fit sm:w-[calc(100%-256px)] sm:ml-64 min-h-screen transition-all main">
             <Main />
           </div>
           <NextScript />
