@@ -2,7 +2,9 @@
 import React, {useEffect, useState, useCallback} from 'react'
 import MyCollection from '@/components/MyCollection'
 import CardFilter from '@/components/CardFilter'
-import FiltersButton from '@/components/Buttons/FiltersButton'
+import GridView from '@/components/GridView'
+import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton'
+
 
 const MyCollectionPage=() => {
   const [aggregatedData, setAggregatedData]=useState([])
@@ -10,11 +12,19 @@ const MyCollectionPage=() => {
     rarity: [],
     condition: []
   })
+
+  const [sortConfig, setSortConfig]=useState({
+    key: [''],
+    direction: ['']
+  })
+
+  const [view, setView]=useState('grid') // 'table' or 'grid'
+
   const [isFilterMenuOpen, setIsFilterMenuOpen]=useState(false)
 
-  useEffect(() => {
-    fetchData()
-  }, [filters]) // Refetch data when filters change
+  const toggleFilterMenu=() => {
+    setIsFilterMenuOpen(!isFilterMenuOpen)
+  }
 
   const fetchData=useCallback(async () => {
     try {
@@ -23,19 +33,19 @@ const MyCollectionPage=() => {
         throw new Error('Failed to fetch aggregated data')
       }
       const data=await response.json()
-
       // Apply filters to the fetched data
       const filteredData=applyFilters(data)
-
-      setAggregatedData(filteredData)
-    } catch(error) {
+      const sortedData=applySorting(filteredData)
+      setAggregatedData(sortedData)
+    }
+    catch(error) {
       console.error('Error fetching aggregated data:', error)
     }
-  }, [filters])
+  }, [filters, sortConfig])
 
-  const toggleFilterMenu=() => {
-    setIsFilterMenuOpen(!isFilterMenuOpen)
-  }
+  useEffect(() => {
+    fetchData()
+  }, [fetchData]) // Refetch data when filters change
 
   const applyFilters=(data) => {
     // If no filters are selected, return all data
@@ -45,7 +55,6 @@ const MyCollectionPage=() => {
     ) {
       return data
     }
-
     // Apply filters to the fetched data
     return data.filter((card) => {
       // Check if the card matches all selected filters
@@ -56,8 +65,32 @@ const MyCollectionPage=() => {
     })
   }
 
+  const applySorting=(data) => {
+    if(!sortConfig.key) {
+      return data
+    }
+    const sortedData=[...data].sort((a, b) => {
+      if(a[sortConfig.key]<b[sortConfig.key]) {
+        return sortConfig.direction==='ascending'? -1:1
+      }
+      if(a[sortConfig.key]>b[sortConfig.key]) {
+        return sortConfig.direction==='ascending'? 1:-1
+      }
+      return 0
+    })
+    return sortedData
+  }
+
   const updateFilters=(filterType, values) => {
     setFilters({...filters, [filterType]: values})
+  }
+
+  const onSort=(key) => {
+    let direction='ascending'
+    if(sortConfig.key===key&&sortConfig.direction==='ascending') {
+      direction='descending'
+    }
+    setSortConfig({key, direction})
   }
 
   const onUpdateCard=useCallback(async (cardId, field, value) => {
@@ -68,7 +101,7 @@ const MyCollectionPage=() => {
 
     const updateData={
       cardId,
-      field: value,
+      [field]: value,
     }
 
     try {
@@ -87,11 +120,10 @@ const MyCollectionPage=() => {
       const updatedCard=await response.json()
       setAggregatedData((currentData) =>
         currentData.map((currentCard) =>
-          currentCard._id===cardId? {...currentCard, ...updatedCard, [field]: value}:currentCard
-        )
-      )
-
-    } catch(error) {
+          currentCard._id===cardId? {...currentCard, ...updatedCard, quantity: value}:currentCard
+        ))
+    }
+    catch(error) {
       console.error('Error updating card:', error)
     }
   }, [])
@@ -116,10 +148,15 @@ const MyCollectionPage=() => {
     }
   }, [fetchData])
 
+  const toggleView=() => {
+    setView(view==='table'? 'grid':'table')
+  }
+
   return (
     <>
       <CardFilter updateFilters={updateFilters} />
       <div className="p-6">
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
           <div className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex justify-between mb-6">
@@ -129,9 +166,7 @@ const MyCollectionPage=() => {
                 </div>
                 <div className="text-sm font-medium text-gray-400">Users</div>
               </div>
-
             </div>
-
           </div>
           <div className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex justify-between mb-4">
@@ -144,9 +179,7 @@ const MyCollectionPage=() => {
                 </div>
                 <div className="text-sm font-medium text-gray-400">Companies</div>
               </div>
-
             </div>
-
           </div>
           <div className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex justify-between mb-6">
@@ -154,9 +187,7 @@ const MyCollectionPage=() => {
                 <div className="text-2xl font-semibold mb-1">100</div>
                 <div className="text-sm font-medium text-gray-400">Blogs</div>
               </div>
-
             </div>
-
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -273,7 +304,6 @@ const MyCollectionPage=() => {
           <div className="bg-transparent border border-gray-100 shadow-md shadow-black/5 p-6 rounded-md">
             <div className="flex justify-between mb-4 items-start">
               <div className="font-medium">Activities</div>
-
             </div>
             <div className="overflow-x-auto">
               <table className="w-fit min-w-[540px]">
@@ -307,7 +337,6 @@ const MyCollectionPage=() => {
                         >
                           <i className="ri-more-2-fill" />
                         </button>
-
                       </div>
                     </td>
                   </tr>
@@ -349,21 +378,37 @@ const MyCollectionPage=() => {
           </div>
         </div>
         <div className="mx-auto w-full grid grid-cols-1 gap-6 mb-6">
-
           <div className="bg-transparent w-full border border-gray-100 shadow-md shadow-black/5 rounded-md">
-            <div className="flex mx-auto mb-4">
-              <div className="font-black p-6 text-xl">Collection</div>
-
-            </div>
-            <div className="overflow-x-hidden mx-auto">
-
-              <MyCollection
+            <div className="inline-flex mx-auto mb-4">
+              <h3 className="font-black p-6 text-xl">Collection</h3>
+              <button
+                onClick={toggleView}
+                className="relative float-start bg-white text-black font-bold m-1 px-2 py-1 rounded border border-zinc-400 hover:bg-black hover:text-white"
+              >
+                {view==='grid'? 'Switch to Table View':'Switch to Grid View'}
+              </button>
+              <DownloadYugiohCSVButton
                 aggregatedData={aggregatedData}
-                onDeleteCard={handleDeleteCard}
-                onUpdateCard={onUpdateCard}
-                setAggregatedData={setAggregatedData} />
-
+                userCardList={[]}
+              />
             </div>
+
+            <div className="overflow-x-hidden mx-auto">
+              {view==='grid'? (
+                <GridView
+                  aggregatedData={aggregatedData}
+                  onDeleteCard={handleDeleteCard}
+                  onUpdateCard={onUpdateCard}
+                  setAggregatedData={setAggregatedData} />
+              ):(
+                <MyCollection
+                  aggregatedData={aggregatedData}
+                  onDeleteCard={handleDeleteCard}
+                  onUpdateCard={onUpdateCard}
+                  onSort={onSort}
+                  sortConfig={sortConfig}
+                  setAggregatedData={setAggregatedData} />
+              )}</div>
           </div>
         </div>
       </div>
