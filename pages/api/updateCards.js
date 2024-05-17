@@ -18,7 +18,8 @@ export default async function updateCardsHandler(req, res) {
       const updatedCard=await collection.findOneAndUpdate(
         {_id: new ObjectId(cardId)},
         {$set: {[field]: value}},
-        {returnDocument: 'after'}
+        {returnDocument: 'after'},
+        {returnOriginal: false}
       )
 
       if(!updatedCard) {

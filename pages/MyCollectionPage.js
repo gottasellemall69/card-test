@@ -2,7 +2,7 @@
 import React, {useEffect, useState, useCallback} from 'react'
 import MyCollection from '@/components/MyCollection'
 import CardFilter from '@/components/CardFilter'
-
+import FiltersButton from '@/components/Buttons/FiltersButton'
 
 const MyCollectionPage=() => {
   const [aggregatedData, setAggregatedData]=useState([])
@@ -18,7 +18,7 @@ const MyCollectionPage=() => {
 
   const fetchData=useCallback(async () => {
     try {
-      const response=await fetch('/api/aggregation')
+      const response=await fetch('/api/my-collection')
       if(!response.ok) {
         throw new Error('Failed to fetch aggregated data')
       }
@@ -60,7 +60,7 @@ const MyCollectionPage=() => {
     setFilters({...filters, [filterType]: values})
   }
 
-  const onUpdateCard=useCallback((async (cardId, field, value) => {
+  const onUpdateCard=useCallback(async (cardId, field, value) => {
     if(!cardId||!['quantity', 'printing', 'condition'].includes(field)) {
       console.error('Invalid cardId or field:', cardId)
       return
@@ -68,7 +68,7 @@ const MyCollectionPage=() => {
 
     const updateData={
       cardId,
-      [field]: value,
+      field: value,
     }
 
     try {
@@ -87,15 +87,16 @@ const MyCollectionPage=() => {
       const updatedCard=await response.json()
       setAggregatedData((currentData) =>
         currentData.map((currentCard) =>
-          currentCard._id===cardId? {...currentCard, ...updatedCard}:currentCard
+          currentCard._id===cardId? {...currentCard, ...updatedCard, [field]: value}:currentCard
         )
       )
+
     } catch(error) {
       console.error('Error updating card:', error)
     }
-  }), [])
+  }, [])
 
-  const handleDeleteCard=useCallback((async (cardId) => {
+  const handleDeleteCard=useCallback(async (cardId) => {
     try {
       const response=await fetch('/api/deleteCards', {
         method: 'DELETE',
@@ -113,7 +114,7 @@ const MyCollectionPage=() => {
     } catch(error) {
       console.error('Error deleting card:', error)
     }
-  }), [fetchData])
+  }, [fetchData])
 
   return (
     <>
@@ -347,7 +348,7 @@ const MyCollectionPage=() => {
             </div>
           </div>
         </div>
-        <div className="mx-auto w-fit grid grid-cols-1 gap-6 mb-6">
+        <div className="mx-auto w-full grid grid-cols-1 gap-6 mb-6">
 
           <div className="bg-transparent w-full border border-gray-100 shadow-md shadow-black/5 rounded-md">
             <div className="flex mx-auto mb-4">

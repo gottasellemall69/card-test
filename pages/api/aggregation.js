@@ -6,19 +6,30 @@ export default async function handler(req, res) {
   const collection=client.db('cardPriceApp').collection('myCollection')
   try {
     const agg=[
+
       {
-        '$project': {
-          '_id': 1, // Include _id field
-          'productName': 1,
-          'setName': 1,
-          'number': 1,
-          'printing': 1,
-          'rarity': 1,
-          'condition': 1,
-          'marketPrice': 1,
-          'quantity': {'$sum': 1},
-        },
+        '$group': {
+          '_id': {
+            'marketPrice': '$marketPrice',
+            'productName': '$productName'
+          },
+          'quantity': '$quantity',
+          'document': {
+            '$push': '$$ROOT'
+          }
+        }
+      }, {
+        '$unwind': '$document'
+      }, {
+        '$set': {
+          'document.quantity': '$quantity'
+        }
+      }, {
+        '$replaceRoot': {
+          'newRoot': '$document'
+        }
       },
+
       {
         '$sort': {'_id': 1}
 

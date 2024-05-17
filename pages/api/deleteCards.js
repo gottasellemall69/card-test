@@ -7,7 +7,7 @@ export default async function handler(req, res) {
       const {cardIds}=req.body
 
       // Convert cardIds to ObjectId
-      const objectIds=cardIds.map((_id) => new ObjectId(_id))
+      const objectIds=cardIds.map((id) => new ObjectId(id))
 
       const client=await clientPromise
       const collection=client.db('cardPriceApp').collection('myCollection')
