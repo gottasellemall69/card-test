@@ -3,6 +3,7 @@ import React, {useEffect, useState, useCallback} from 'react'
 import MyCollection from '@/components/MyCollection'
 import CardFilter from '@/components/CardFilter'
 import GridView from '@/components/GridView'
+
 import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton'
 
 
@@ -21,6 +22,8 @@ const MyCollectionPage=() => {
   const [view, setView]=useState('grid') // 'table' or 'grid'
 
   const [isFilterMenuOpen, setIsFilterMenuOpen]=useState(false)
+
+
 
   const toggleFilterMenu=() => {
     setIsFilterMenuOpen(!isFilterMenuOpen)
@@ -76,7 +79,7 @@ const MyCollectionPage=() => {
       if(a[sortConfig.key]>b[sortConfig.key]) {
         return sortConfig.direction==='ascending'? 1:-1
       }
-      return 0
+      return null
     })
     return sortedData
   }
@@ -120,10 +123,12 @@ const MyCollectionPage=() => {
       const updatedCard=await response.json()
       setAggregatedData((currentData) =>
         currentData.map((currentCard) =>
-          currentCard._id===cardId? {...currentCard, ...updatedCard, quantity: value}:currentCard
-        ))
-    }
-    catch(error) {
+          currentCard._id===cardId?
+            {...currentCard, ...updatedCard, field: value}
+            :currentCard
+        )
+      )
+    } catch(error) {
       console.error('Error updating card:', error)
     }
   }, [])
@@ -143,6 +148,7 @@ const MyCollectionPage=() => {
       }
 
       fetchData() // Refresh data after successful deletion
+
     } catch(error) {
       console.error('Error deleting card:', error)
     }
@@ -392,7 +398,6 @@ const MyCollectionPage=() => {
                 userCardList={[]}
               />
             </div>
-
             <div className="overflow-x-hidden mx-auto">
               {view==='grid'? (
                 <GridView
@@ -403,12 +408,11 @@ const MyCollectionPage=() => {
               ):(
                 <MyCollection
                   aggregatedData={aggregatedData}
-                  onDeleteCard={handleDeleteCard}
-                  onUpdateCard={onUpdateCard}
                   onSort={onSort}
                   sortConfig={sortConfig}
                   setAggregatedData={setAggregatedData} />
-              )}</div>
+              )}
+            </div>
           </div>
         </div>
       </div>

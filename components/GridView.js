@@ -1,9 +1,14 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
+import Notification from '@/components/Notification'
 
-const GridView=({aggregatedData, onDeleteCard, setAggregatedData}) => {
+
+const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData}) => {
+  const [notification, setNotification]=useState({
+    show: false,
+    message: ''
+  })
   const [edit, setEdit]=useState({})
   const [editValues, setEditValues]=useState({})
-
   const handleEdit=(cardId, field) => {
     setEdit({...edit, [cardId]: field})
     setEditValues({
@@ -11,14 +16,12 @@ const GridView=({aggregatedData, onDeleteCard, setAggregatedData}) => {
       [cardId]: {...aggregatedData.find(card => card._id===cardId)}
     })
   }
-
   const handleChange=(e, cardId, field) => {
     setEditValues({
       ...editValues,
       [cardId]: {...editValues[cardId], [field]: e.target.value}
     })
   }
-
   const handleSave=async (cardId, field) => {
     try {
       if(cardId&&editValues[cardId]&&field) {
@@ -35,11 +38,9 @@ const GridView=({aggregatedData, onDeleteCard, setAggregatedData}) => {
           },
           body: JSON.stringify(updateCard),
         })
-
         if(!response.ok) {
           throw new Error('Failed to update card')
         }
-
         const updatedCard=await response.json()
 
         // Update the local state
@@ -52,14 +53,19 @@ const GridView=({aggregatedData, onDeleteCard, setAggregatedData}) => {
       } else {
         throw new Error('Invalid data or missing card ID or field')
       }
+
+
     } catch(error) {
       console.error('Error saving card:', error)
     }
+    setNotification({show: true, message: 'Card updated successfully!'})
   }
 
   const handleDelete=(cardId) => {
     try {
       onDeleteCard(cardId)
+      setNotification({show: true, message: 'Card deleted successfully!'})
+
     } catch(error) {
       console.error('Error deleting card:', error)
     }
@@ -122,7 +128,9 @@ const GridView=({aggregatedData, onDeleteCard, setAggregatedData}) => {
           <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
         </div>
       ))}
+      <Notification show={notification.show} setShow={(show) => setNotification({...notification, show})} message={notification.message} />
     </div>
+
   )
 }
 

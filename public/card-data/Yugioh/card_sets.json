@@ -172,10 +172,10 @@
   {
     "setNameId": 143,
     "categoryId": 2,
-    "name": "American God Cards",
-    "cleanSetName": "American God Cards",
-    "urlName": "american-god-cards",
-    "abbreviation": "",
+    "name": "Yu-Gi-Oh! Duel Monsters International: Worldwide Edition",
+    "cleanSetName": "Yu Gi Oh Duel Monsters International Worldwide Edition",
+    "urlName": "yu-gi-oh-duel-monsters-international-worldwide-edition",
+    "abbreviation": "GBI",
     "releaseDate": "2003-04-17T00:00:00",
     "active": true
   },
@@ -5870,6 +5870,36 @@
     "active": true
   },
   {
+    "setNameId": 23355,
+    "categoryId": 2,
+    "name": "Speed Duel GX: Midterm Destruction",
+    "cleanSetName": "Speed Duel GX Midterm Destruction",
+    "urlName": "speed-duel-gx-midterm-destruction",
+    "abbreviation": "SGX4",
+    "releaseDate": "2024-03-29T00:00:00",
+    "active": true
+  },
+  {
+    "setNameId": 23366,
+    "categoryId": 2,
+    "name": "25th Anniversary Ultimate Kaiba Set",
+    "cleanSetName": "25th Anniversary Ultimate Kaiba Set",
+    "urlName": "25th-anniversary-ultimate-kaiba-set",
+    "abbreviation": "KC01",
+    "releaseDate": "2024-03-29T00:00:00",
+    "active": true
+  },
+  {
+    "setNameId": 23383,
+    "categoryId": 2,
+    "name": "Legacy of Destruction",
+    "cleanSetName": "Legacy of Destruction",
+    "urlName": "legacy-of-destruction",
+    "abbreviation": "LEDE",
+    "releaseDate": "2024-04-26T00:00:00",
+    "active": true
+  },
+  {
     "setNameId": 23427,
     "categoryId": 2,
     "name": "OTS Tournament Pack 24",
@@ -5877,6 +5907,26 @@
     "urlName": "ots-tournament-pack-24",
     "abbreviation": "OP24",
     "releaseDate": "2024-02-14T00:00:00",
+    "active": true
+  },
+  {
+    "setNameId": 23469,
+    "categoryId": 2,
+    "name": "Legendary Decks II (2024 Reprint)",
+    "cleanSetName": "Legendary Decks II 2024 Reprint",
+    "urlName": "legendary-decks-ii-2024-reprint",
+    "abbreviation": "LDK2",
+    "releaseDate": "2024-03-15T00:00:00",
+    "active": true
+  },
+  {
+    "setNameId": 23484,
+    "categoryId": 2,
+    "name": "Speed Duel: Tournament Pack 7",
+    "cleanSetName": "Speed Duel Tournament Pack 7",
+    "urlName": "speed-duel-tournament-pack-7",
+    "abbreviation": "STP7",
+    "releaseDate": "2024-04-03T00:00:00",
     "active": true
   }
 ]
