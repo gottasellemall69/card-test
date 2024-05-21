@@ -37,7 +37,7 @@ export default function Document() {
               <li className="mb-1 group">
                 <Link
                   className="inline-flex flex-wrap flex-row font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100"
-                  href="#"
+                  href="/SportsPage"
                 >
                   <i className="bx bx-list-ul mr-3 text-lg" />
                   <span className="text-sm">Sports Card Prices</span>
