@@ -20,7 +20,7 @@ export default async function handler(req, res) {
               'rarity': '$rarity',
               'condition': '$condition',
               'marketPrice': '$marketPrice',
-              'quantity': '$quantity',
+              'quantity': parseFloat('$quantity', 1),
             }
           },
           {

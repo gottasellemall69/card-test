@@ -10,7 +10,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
   const router=useRouter()
 
   const [currentPage, setCurrentPage]=useState(1)
-  const itemsPerPage=25 // Adjust as needed
+  const itemsPerPage=5 // Adjust as needed
   const [sortConfig, setSortConfig]=useState({key: [], direction: 'ascending'})
   const [selectedRows, setSelectedRows]=useState([])
   const [selectAllChecked, setSelectAllChecked]=useState(false)
@@ -64,11 +64,11 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
     return {currentItems, totalCount: sortedData.length}
   }, [currentPage, itemsPerPage, matchedCardData, sortConfig])
   // Function to handle checkbox toggle
-  const toggleCheckbox=(index) => {
-    const selectedIndex=selectedRows.indexOf(index)
+  const toggleCheckbox=(currentItems) => {
+    const selectedIndex=selectedRows
     let newSelected=[...selectedRows]
     if(selectedIndex===-1) {
-      newSelected.push(index)
+      newSelected.push(currentPage)
     } else {
       newSelected.splice(selectedIndex, 1)
     }
@@ -94,7 +94,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
         return
       }
 
-      const selectedData=selectedRows.map((index) => sortedAndPaginatedData?.currentItems[index])
+      const selectedData=selectedRows.map((index) => matchedCardData[index])
       const collectionArray=selectedData?.map(({card, data}, index) => ({
         productName: card?.productName,
         setName: card?.setName,
