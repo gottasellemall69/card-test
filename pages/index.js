@@ -66,7 +66,7 @@ const Home=() => {
       }
       // Fetch card data for each card in batches
       const fetchedCardData=await Promise.all(
-        cards.map((card) => fetchCardData(card))
+        cards.map((cards) => fetchCardData(cards))
       )
       // Filter out null responses
       const validCardData=fetchedCardData.filter((data) => data!==null)
@@ -107,12 +107,12 @@ const Home=() => {
       // Find the matching card in the fetched set data
       const matchedCard=setCardData?.result.find((card) => {
         return (
-          card.productName===(productName)&&
-          card.set===(setName)&&
-          card.number===(number)&&
-          card.printing===(printing)&&
-          card.rarity===(rarity)&&
-          card.condition===(condition)
+          card.productName.includes(productName)&&
+          card.set.includes(setName)&&
+          card.number.includes(number)&&
+          card.printing.includes(printing)&&
+          card.rarity.includes(rarity)&&
+          card.condition.includes(condition)
         )
       })
       if(!matchedCard||!matchedCard?.marketPrice) {

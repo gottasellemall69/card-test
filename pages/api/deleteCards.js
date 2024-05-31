@@ -1,26 +1,29 @@
-import {ObjectId} from 'mongodb'
-import clientPromise from '../../utils/mongo'
+import {MongoClient, ObjectId} from 'mongodb'
 
 export default async function handler(req, res) {
   if(req.method==='DELETE') {
+    const client=new MongoClient(process.env.MONGODB_URI)
+    await client.connect()
+    const db=client.db('cardPriceApp')
+    const collection=db.collection('myCollection')
+    const {cardId}=req.body
+
     try {
-      const {cardIds}=req.body
+      const result=await collection.deleteOne({_id: new ObjectId(cardId)})
 
-      // Convert cardIds to ObjectId
-      const objectIds=cardIds.map((_id) => new ObjectId(_id))
-
-      const client=await clientPromise
-      const collection=client.db('cardPriceApp').collection('myCollection')
-
-      // Delete documents with matching _id
-      const result=await collection.deleteOne({_id: {$in: objectIds}})
-
-      res.status(200).json({message: `${ result.deletedCount } document(s) deleted`})
+      if(result.deletedCount===1) {
+        res.status(200).json({message: 'Card deleted successfully'})
+      } else {
+        res.status(404).json({message: 'Card not found'})
+      }
     } catch(error) {
-      console.error('Error deleting documents:', error)
-      res.status(500).json({message: 'Server error'})
+      console.error('Delete error:', error)
+      res.status(500).json({message: `Internal server error: ${ error.message }`})
+    } finally {
+      await client.close()
     }
   } else {
-    res.status(405).json({message: 'Method Not Allowed'})
+    res.setHeader('Allow', ['DELETE'])
+    res.status(405).json({message: `Method ${ req.method } Not Allowed`})
   }
 }

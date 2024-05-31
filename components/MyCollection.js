@@ -1,9 +1,6 @@
-import React, {useState} from 'react'
-
+import React from 'react'
 
 const MyCollection=({aggregatedData}) => {
-
-
   const calculatePriceTrend=(previousPrice, currentPrice) => {
     if(currentPrice>previousPrice) {
       return '+'
@@ -29,30 +26,32 @@ const MyCollection=({aggregatedData}) => {
                       <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Set</th>
                       <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Number</th>
                       <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Printing</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Rarity</th>
                       <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Condition</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Price</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Shift</th>
+                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Market Price</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="relative">
                     {aggregatedData?.map((card, index) => (
-                      <tr key={index} className="bg-white">
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.quantity}</td>
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.printing}</td>
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
-                        <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.marketPrice}</td>
-                        {index>0&&(
-                          <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">
-                            <div className={`flex items-center text-sm font-semibold ${ calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'? 'text-emerald-600':'text-rose-500' }`}>
-                              {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)}{Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
+                      <tr key={index}>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.quantity}</td>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.productName}</td>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.setName}</td>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.number}</td>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.printing}</td>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.condition}</td>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.marketPrice}
+                          {index>0&&(
+                            <div className="rounded inline-block ml-3 text-lg">
+                              {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'
+                                ? <span className="text-emerald-500 text-2xl inline-block">↑</span>
+                                :calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='-'
+                                  ? <span className="text-rose-500 text-2xl inline-block">↓</span>
+                                  :<span className="text-gray-500 text-2xl inline-block"></span>
+                              }
+                              {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
                             </div>
-                          </td>
-                        )}
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

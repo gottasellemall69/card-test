@@ -64,7 +64,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
     return {currentItems, totalCount: sortedData.length}
   }, [currentPage, itemsPerPage, matchedCardData, sortConfig])
   // Function to handle checkbox toggle
-  const toggleCheckbox=(currentItems) => {
+  const toggleCheckbox=(currentItems => {
     const selectedIndex=selectedRows
     let newSelected=[...selectedRows]
     if(selectedIndex===-1) {
@@ -73,7 +73,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
       newSelected.splice(selectedIndex, 1)
     }
     setSelectedRows(newSelected)
-  }
+  })
 
   const toggleSelectAll=() => {
     if(!selectAllChecked) {
@@ -103,6 +103,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
         rarity: card?.rarity,
         condition: card?.condition,
         marketPrice: data?.marketPrice,
+        'quantity': parseInt("1")
       }))
 
       // Send a POST request to the server to save the cards
