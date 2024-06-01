@@ -1,4 +1,3 @@
-// @/pages/api/cards/[setNameId].js
 import {getCardData, setNameIdMap} from '@/utils/api'
 
 export default async function handler(req, res) {
@@ -6,7 +5,7 @@ export default async function handler(req, res) {
 
   try {
     // Retrieve the set name corresponding to the numerical setNameId
-    const setName=Object.keys(setNameIdMap).filter(
+    const setName=Object.keys(setNameIdMap).find(
       (name) => setNameIdMap[name]===parseInt(setNameId)
     )
 

@@ -1,6 +1,5 @@
-// pages/api/setNameIdMap.js
-import {setNameIdMap} from '@/utils/api';
+import {setNameIdMap} from '@/utils/api'
 
-export default function handler(req,res) {
-  res.status(200).json(setNameIdMap);
+export default function handler(req, res) {
+  res.status(200).json(setNameIdMap)
 }

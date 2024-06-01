@@ -1,5 +1,4 @@
 'use client'
-// @/pages/index.js
 import React, {useState} from 'react'
 import Head from 'next/head'
 import YugiohCardListInput from '@/components/YugiohCardListInput'
@@ -126,9 +125,6 @@ const Home=() => {
       return null
     }
   }
-
-
-
 
   return (
     <>

@@ -36,7 +36,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard}) => {
         const value=editValues[cardId][field]
         await onUpdateCard(cardId, field, value)
         setEdit({...edit, [cardId]: null})
-        setNotification({show: true, message: 'Card updated successfully!'})
+        setNotification({show: true, message: 'Card quantity updated successfully!'})
       } else {
         throw new Error('Invalid data or missing card ID or field')
       }
@@ -84,7 +84,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard}) => {
       <div className="mt-6">
         <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice.toFixed(2)}</div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto p-5">
         {aggregatedData?.map((card, index) => (
           <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex items-center mb-1">
@@ -112,7 +112,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard}) => {
               {edit[card._id]==='quantity'? (
                 <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
               ):(
-                <span onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
+                <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
               )}
             </div>
             <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>

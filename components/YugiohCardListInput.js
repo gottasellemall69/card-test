@@ -4,11 +4,15 @@ import React, {useState, useMemo} from 'react'
 import {useRouter} from 'next/router'
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/24/solid'
 import dynamic from 'next/dynamic'
+import Notification from '@/components/Notification'
 const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'))
 const YugiohPagination=dynamic(() => import('@/components/Navigation/YugiohPagination'))
 const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData, }) => {
   const router=useRouter()
-
+  const [notification, setNotification]=useState({
+    show: false,
+    message: ''
+  })
   const [currentPage, setCurrentPage]=useState(1)
   const itemsPerPage=5 // Adjust as needed
   const [sortConfig, setSortConfig]=useState({key: [], direction: 'ascending'})
@@ -64,16 +68,16 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
     return {currentItems, totalCount: sortedData.length}
   }, [currentPage, itemsPerPage, matchedCardData, sortConfig])
   // Function to handle checkbox toggle
-  const toggleCheckbox=(currentItems => {
-    const selectedIndex=selectedRows
+  const toggleCheckbox=(index) => {
+    const selectedIndex=selectedRows.indexOf(index)
     let newSelected=[...selectedRows]
     if(selectedIndex===-1) {
-      newSelected.push(currentPage)
+      newSelected.push(index)
     } else {
       newSelected.splice(selectedIndex, 1)
     }
     setSelectedRows(newSelected)
-  })
+  }
 
   const toggleSelectAll=() => {
     if(!selectAllChecked) {
@@ -90,6 +94,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
     try {
       // Ensure selectedRows contains valid indices
       if(selectedRows.length===0) {
+        setNotification({show: true, message: 'No cards were selected to add to the collection!'})
         console.log('No cards selected to add to collection')
         return
       }
@@ -122,8 +127,10 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
 
       // Parse the response data
       const result=await response.json()
+      setNotification({show: true, message: 'Card(s) added to the collection!'})
       console.log('Success:', result)
     } catch(error) {
+      setNotification({show: true, message: 'Card(s) failed to save!'})
       console.error('Failed to save the cards:', error)
     }
   }
@@ -270,7 +277,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
               onClick={handleGoToCollectionPage}>
               View Collection
             </button>
-
+            <Notification show={notification.show} setShow={(show) => setNotification({...notification, show})} message={notification.message} />
           </>
         )}
       </>
