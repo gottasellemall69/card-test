@@ -4,7 +4,7 @@ import CardFilter from '@/components/CardFilter'
 import GridView from '@/components/GridView'
 import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton'
 
-const MyCollectionPage=() => {
+const MyCollectionPage=({updateFilters}) => {
   const [aggregatedData, setAggregatedData]=useState([])
   const [filters, setFilters]=useState({
     rarity: [],
@@ -166,6 +166,7 @@ const MyCollectionPage=() => {
       </div>
       {isFilterMenuOpen&&(
         <CardFilter
+          updateFilters={updateFilters}
           filters={filters}
           onFilterChange={handleFilterChange}
           onSortChange={handleSortChange}
@@ -174,6 +175,7 @@ const MyCollectionPage=() => {
       )}
       {view==='grid'? (
         <GridView
+          updateFilters={updateFilters}
           aggregatedData={aggregatedData}
           onDeleteCard={onDeleteCard}
           onUpdateCard={onUpdateCard}

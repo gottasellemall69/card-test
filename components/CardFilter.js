@@ -31,15 +31,20 @@ const CardFilter=({updateFilters}) => {
       {
         id: 'rarity-filter',
         label: 'Rarity',
-        values: ["Common", "Rare", "Super Rare", "Ultra Rare", "Secret Rare", "Gold Rare", "Starfoil Rare", "Shatterfoil Rare", "Mosaic Rare", "Premium Gold Rare"],
+        values: [
+          "Common", "Rare", "Super Rare", "Ultra Rare", "Secret Rare",
+          "Gold Rare", "Starfoil Rare", "Shatterfoil Rare", "Mosaic Rare",
+          "Premium Gold Rare"
+        ],
       },
       {
         id: 'condition-filter',
         label: "Condition",
         values: [
-          "Near Mint 1st Edition", "Lightly Played 1st Edition", "Moderately Played 1st Edition", "Heavily Played 1st Edition",
-          "Near Mint Limited", "Lightly Played Limited", "Moderately Played Limited", "Heavily Played Limited",
-          "Near Mint Unlimited", "Lightly Played Unlimited", "Moderately Played Unlimited", "Heavily Played Unlimited",
+          "Near Mint 1st Edition", "Lightly Played 1st Edition", "Moderately Played 1st Edition",
+          "Heavily Played 1st Edition", "Near Mint Limited", "Lightly Played Limited",
+          "Moderately Played Limited", "Heavily Played Limited", "Near Mint Unlimited",
+          "Lightly Played Unlimited", "Moderately Played Unlimited", "Heavily Played Unlimited"
         ],
       }
     ]

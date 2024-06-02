@@ -2,7 +2,7 @@
 import React, {useState} from 'react'
 import CardFilter from '@/components/CardFilter'
 
-const FiltersButton=() => {
+const FiltersButton=({updateFilters}) => {
   const [isFilterMenuOpen, setIsFilterMenuOpen]=useState(false)
 
   const openFilterMenu=() => {
@@ -19,7 +19,7 @@ const FiltersButton=() => {
       {isFilterMenuOpen&&(
         <div id="filterMenu">
           <button id="closeFilterBtn" onClick={closeFilterMenu}>Close</button>
-          <CardFilter />
+          <CardFilter updateFilters={updateFilters} />
         </div>
       )}
     </>

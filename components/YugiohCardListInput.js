@@ -5,19 +5,23 @@ import {useRouter} from 'next/router'
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/24/solid'
 import dynamic from 'next/dynamic'
 import Notification from '@/components/Notification'
+
 const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'))
 const YugiohPagination=dynamic(() => import('@/components/Navigation/YugiohPagination'))
+
 const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData, }) => {
   const router=useRouter()
   const [notification, setNotification]=useState({
     show: false,
     message: ''
   })
+
   const [currentPage, setCurrentPage]=useState(1)
   const itemsPerPage=5 // Adjust as needed
   const [sortConfig, setSortConfig]=useState({key: [], direction: 'ascending'})
-  const [selectedRows, setSelectedRows]=useState([])
+  const [selectedRows, setSelectedRows]=useState(new Set())
   const [selectAllChecked, setSelectAllChecked]=useState(false)
+
   // Pagination handlers
   const handlePageClick=(page) => {
     setCurrentPage(page)
@@ -27,7 +31,9 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
     if(sortConfig.key===key&&sortConfig.direction==='ascending') {
       direction='descending'
     }
+
     setSortConfig({key, direction})
+
     setMatchedCardData((prevData) => {
       const sorted=[...prevData].sort((a, b) => {
         const aValue=key==='marketPrice'? (a.data.marketPrice||0):a.card[key]
@@ -43,6 +49,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
       return sorted
     })
   }
+
   // Memoize sorted and paginated data
   const sortedAndPaginatedData=useMemo(() => {
     if(!Array.isArray(matchedCardData)) {
@@ -61,30 +68,33 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
       }
       return 0
     })
+
     // Pagination calculation
     const indexOfLastItem=currentPage*itemsPerPage
     const indexOfFirstItem=indexOfLastItem-itemsPerPage
     const currentItems=sortedData.slice(indexOfFirstItem, indexOfLastItem)
     return {currentItems, totalCount: sortedData.length}
-  }, [currentPage, itemsPerPage, matchedCardData, sortConfig])
+  }, [matchedCardData, currentPage, sortConfig.key, sortConfig.direction])
+
+
   // Function to handle checkbox toggle
   const toggleCheckbox=(index) => {
-    const selectedIndex=selectedRows.indexOf(index)
-    let newSelected=[...selectedRows]
-    if(selectedIndex===-1) {
-      newSelected.push(index)
+    const paginatedIndex=(currentPage-1)*itemsPerPage+index
+    const newSelectedRows=new Set(selectedRows)
+    if(newSelectedRows.has(paginatedIndex)) {
+      newSelectedRows.delete(paginatedIndex)
     } else {
-      newSelected.splice(selectedIndex, 1)
+      newSelectedRows.add(paginatedIndex)
     }
-    setSelectedRows(newSelected)
+    setSelectedRows(newSelectedRows)
   }
 
   const toggleSelectAll=() => {
     if(!selectAllChecked) {
       const allRowsIndexes=Array.from({length: matchedCardData?.length}, (_, index) => index)
-      setSelectedRows(allRowsIndexes)
+      setSelectedRows(new Set(allRowsIndexes))
     } else {
-      setSelectedRows([])
+      setSelectedRows(new Set())
     }
     setSelectAllChecked(!selectAllChecked)
   }
@@ -93,14 +103,14 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
   const addToCollection=async () => {
     try {
       // Ensure selectedRows contains valid indices
-      if(selectedRows.length===0) {
+      if(selectedRows.size===0) {
         setNotification({show: true, message: 'No cards were selected to add to the collection!'})
         console.log('No cards selected to add to collection')
         return
       }
 
-      const selectedData=selectedRows.map((index) => matchedCardData[index])
-      const collectionArray=selectedData?.map(({card, data}, index) => ({
+      const selectedData=Array.from(selectedRows).map((index) => matchedCardData[index])
+      const collectionArray=selectedData.map(({card, data}, index) => ({
         productName: card?.productName,
         setName: card?.setName,
         number: card?.number,
@@ -245,9 +255,13 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 text-black">
                 {sortedAndPaginatedData.currentItems.map(({card, data}, index) => (
-                  <tr key={({card, data}, index)}>
-                    <td className="border border-gray-800 p-1 text-center">
-                      <input type="checkbox" checked={selectedRows.includes(index)} onChange={() => toggleCheckbox(index)} />
+                  <tr key={index} className="hover:bg-stone-500">
+                    <td className="border p-1 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has((currentPage-1)*itemsPerPage+index)}
+                        onChange={() => toggleCheckbox(index)}
+                      />
                     </td>
                     <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
                     <td className="border border-gray-800 p-1 whitespace-pre-wrap text-sm font-medium text-black hidden md:table-cell hover:bg-black hover:text-white">{card?.setName}</td>

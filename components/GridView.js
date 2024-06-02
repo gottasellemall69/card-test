@@ -9,10 +9,20 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard}) => {
   const [edit, setEdit]=useState({})
   const [editValues, setEditValues]=useState({})
   const [subtotalMarketPrice, setSubtotalMarketPrice]=useState(0)
+  const [collectionTotal, setCollectionTotal]=useState([])
 
   useEffect(() => {
-    const subtotal=aggregatedData.reduce((sum, card) => sum+card.marketPrice, 0)
-    setSubtotalMarketPrice(subtotal)
+    if(Array.isArray(aggregatedData)) {
+      const subtotal=aggregatedData.reduce((sum, card) => sum+card.marketPrice, 0)
+      setSubtotalMarketPrice(subtotal)
+    }
+  }, [aggregatedData])
+
+  useEffect(() => {
+    if(Array.isArray(aggregatedData)) {
+      const collectionTotal=aggregatedData?.reduce((card) => card, [])
+      setCollectionTotal(collectionTotal)
+    }
   }, [aggregatedData])
 
   const handleEdit=(cardId, field) => {
@@ -83,9 +93,10 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard}) => {
     <>
       <div className="mt-6">
         <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice.toFixed(2)}</div>
+        <div className="text-xl font-semibold p-2">Cards Collected: {collectionTotal}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto p-5">
-        {aggregatedData?.map((card, index) => (
+        {Array.isArray(aggregatedData)&&aggregatedData.map((card, index) => (
           <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex items-center mb-1">
               <div className="text-2xl font-semibold">{card?.productName}</div>
@@ -95,7 +106,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard}) => {
             <div className="text-sm font-medium text-gray-400">Rarity: {card?.rarity}</div>
             <div className="text-sm font-medium text-gray-400">Printing: {card.printing}</div>
             <div className="text-sm font-medium text-gray-400">Condition: {card.condition}</div>
-            <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice}
+            <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice.toFixed(2)}
               {index>0&&(
                 <div className="rounded inline-block ml-3 text-lg">
                   {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'
