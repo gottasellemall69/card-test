@@ -5,9 +5,9 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head />
-      <body className="w-fit mx-auto min-h-full">
+      <body className="mx-auto min-h-full">
         <div>
-          <div className="sm:block sm:fixed left-0 top-0 h-full bg-black p-4 sidebar-menu transition-transform">
+          <div className="md:block md:fixed left-0 top-0 h-full bg-black p-4 sidebar-menu transition-transform">
             <a className="flex items-center pb-4 border-b border-b-gray-800" href="#">
               <h2 className="font-bold text-2xl">
                 LOREM{" "}
@@ -45,7 +45,7 @@ export default function Document() {
               </li>
             </ul>
           </div>
-          <div className="w-fit sm:w-[calc(100%-256px)] sm:ml-64 min-h-screen transition-all main">
+          <div className="w-full mx-auto md:w-[calc(100%-256px)] md:ml-64 min-h-screen transition-all main">
             <Main />
           </div>
           <NextScript />

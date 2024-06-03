@@ -134,7 +134,7 @@ const Home=() => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <div className="max-w-full lg:w-7xl w-fit mx-auto my-24 lg:text-left text-center text-pretty">
+      <div className="mx-auto my-24 lg:text-left text-center text-pretty">
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
         <div className="mx-auto container flex flex-wrap flex-col lg:text-left">
           <div className="mx-auto text-base italic font-medium mb-5 lg:text-left">
@@ -165,23 +165,24 @@ const Home=() => {
             </div>
           </div>
         </div>
-        <div className="m-2 mx-auto w-fit">
+        <div className="m-2 leading-5 mx-auto max-w-fit">
           <AlphabeticalIndex />
         </div>
-
-        <YugiohCardListInput
-          collection={collection}
-          selectedRows={selectedRows}
-          setSelectedRows={setSelectedRows}
-          setCollection={setCollection}
-          cardList={cardList}
-          setCardList={setCardList}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-          error={error}
-          matchedCardData={matchedCardData}
-          setMatchedCardData={setMatchedCardData}
-        />
+        <div className='mx-auto'>
+          <YugiohCardListInput
+            collection={collection}
+            selectedRows={selectedRows}
+            setSelectedRows={setSelectedRows}
+            setCollection={setCollection}
+            cardList={cardList}
+            setCardList={setCardList}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+            error={error}
+            matchedCardData={matchedCardData}
+            setMatchedCardData={setMatchedCardData}
+          />
+        </div>
       </div>
     </>
   )

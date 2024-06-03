@@ -61,6 +61,25 @@ export async function getCardSetsData() {
   }
 }
 
+export const updateCardPrices=async (setName, cardData) => {
+  try {
+    const response=await fetch('/api/updateCardPrices', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({setName, cardData}),
+    })
+
+    if(!response.ok) {
+      throw new Error('Failed to update card prices')
+    }
+  } catch(error) {
+    console.error('Error updating card prices:', error)
+  }
+}
+
+
 export async function fetchCardData() {
   const url="https://db.ygoprodeck.com/api/v7/cardinfo.php?tcgplayer_data=true"
   try {

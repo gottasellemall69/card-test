@@ -1,4 +1,3 @@
-// filters-button.js
 import React, {useState} from 'react'
 import CardFilter from '@/components/CardFilter'
 

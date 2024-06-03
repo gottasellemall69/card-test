@@ -1,10 +1,11 @@
 import React, {useEffect, useState, useCallback} from 'react'
 import MyCollection from '@/components/MyCollection'
 import CardFilter from '@/components/CardFilter'
+import {MarketPriceProvider} from '@/context/MarketPriceContext'
 import GridView from '@/components/GridView'
 import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton'
 
-const MyCollectionPage=({updateFilters}) => {
+const MyCollectionPage=() => {
   const [aggregatedData, setAggregatedData]=useState([])
   const [filters, setFilters]=useState({
     rarity: [],
@@ -111,7 +112,6 @@ const MyCollectionPage=({updateFilters}) => {
     }
   }
 
-
   const onDeleteCard=async (cardId) => {
     try {
       const response=await fetch(`/api/deleteCards`, {
@@ -130,15 +130,10 @@ const MyCollectionPage=({updateFilters}) => {
       )
 
       // Fetch updated data after deleting the card
-
-
     } catch(error) {
       console.error('Error deleting card:', error)
     }
   }
-
-
-
 
   return (
     <div className="container mx-auto mt-8">
@@ -165,22 +160,17 @@ const MyCollectionPage=({updateFilters}) => {
         </div>
       </div>
       {isFilterMenuOpen&&(
-        <CardFilter
-          updateFilters={updateFilters}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onSortChange={handleSortChange}
-          sortConfig={sortConfig}
-        />
+        <CardFilter updateFilters={handleFilterChange} />
       )}
       {view==='grid'? (
-        <GridView
-          updateFilters={updateFilters}
-          aggregatedData={aggregatedData}
-          onDeleteCard={onDeleteCard}
-          onUpdateCard={onUpdateCard}
-          setAggregatedData={setAggregatedData}
-        />
+        <MarketPriceProvider>
+          <GridView
+            aggregatedData={aggregatedData}
+            onDeleteCard={onDeleteCard}
+            onUpdateCard={onUpdateCard}
+            setAggregatedData={setAggregatedData}
+          />
+        </MarketPriceProvider>
       ):(
         <MyCollection aggregatedData={aggregatedData} />
       )}
