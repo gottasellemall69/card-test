@@ -1,4 +1,4 @@
-import clientPromise from '@/utils/mongo' // Adjust the path as necessary
+import {MongoClient} from 'mongodb'
 
 export default async function handler(req, res) {
   if(req.method==='POST') {
@@ -9,9 +9,10 @@ export default async function handler(req, res) {
     }
 
     try {
-      const {db}=await clientPromise
+      const client=new MongoClient(process.env.MONGODB_URI)
+      await client.connect()
+      const db=client.db('cardPriceApp')
       const collection=db.collection('myCollection')
-
       // Update the prices for each card in the set
       await Promise.all(cardData.map(async (card) => {
         await collection.updateOne(

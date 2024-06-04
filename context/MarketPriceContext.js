@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useCallback, useRef} from 'react'
-import {getCardData, updateCardPrices} from '@/utils/api' // assuming updateCardPrices is a new API function to update prices in MongoDB
+import {getCardData, updateCardPrices} from '@/utils/api' // Assuming updateCardPrices is a new API function to update prices in MongoDB
 
 const MarketPriceContext=createContext()
 
@@ -42,6 +42,4 @@ export const MarketPriceProvider=({children}) => {
   )
 }
 
-export const useMarketPrice=() => {
-  return useContext(MarketPriceContext)
-}
+export const useMarketPrice=() => useContext(MarketPriceContext)

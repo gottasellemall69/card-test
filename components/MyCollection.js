@@ -21,13 +21,13 @@ const MyCollection=({aggregatedData}) => {
                 <table className="text-white items-center w-full border-collapse">
                   <thead>
                     <tr>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Qty</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Name</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Set</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Number</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Printing</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Condition</th>
-                      <th className="sticky top-0 z-10 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Market Price</th>
+                      <th className="sticky top-0 z-10 py-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Qty</th>
+                      <th className="sticky top-0 z-10 py-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Name</th>
+                      <th className="sticky top-0 z-10 py-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Set</th>
+                      <th className="sticky top-0 z-10 py-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Number</th>
+                      <th className="sticky top-0 z-10 py-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Rarity</th>
+                      <th className="sticky top-0 z-10 py-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Condition</th>
+                      <th className="sticky top-0 z-10 py-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">Market Price</th>
                     </tr>
                   </thead>
                   <tbody className="relative">
@@ -37,7 +37,7 @@ const MyCollection=({aggregatedData}) => {
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.productName}</td>
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.setName}</td>
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.number}</td>
-                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.printing}</td>
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.rarity}</td>
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.condition}</td>
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.marketPrice.toFixed(2)}
                           {index>0&&(

@@ -83,7 +83,7 @@ const MyCollectionPage=() => {
     }))
   }
 
-  const onUpdateCard=async (cardId, field, value) => {
+  const onUpdateCard=useCallback(async (cardId, field, value) => {
     try {
       if(cardId&&field&&value!==undefined&&value!==null) {
         const updateCard={cardId, field, value}
@@ -110,9 +110,9 @@ const MyCollectionPage=() => {
     } catch(error) {
       console.error('Error updating card:', error)
     }
-  }
+  }, [fetchData])
 
-  const onDeleteCard=async (cardId) => {
+  const onDeleteCard=useCallback(async (cardId) => {
     try {
       const response=await fetch(`/api/deleteCards`, {
         method: 'DELETE',
@@ -132,6 +132,24 @@ const MyCollectionPage=() => {
       // Fetch updated data after deleting the card
     } catch(error) {
       console.error('Error deleting card:', error)
+    }
+  }, [fetchData])
+
+  const onDeleteAllCards=async () => {
+    try {
+      const response=await fetch(`/api/deleteAllCards`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      if(!response.ok) {
+        throw new Error('Failed to delete all cards')
+      }
+      await fetchData()
+      setAggregatedData([])
+    } catch(error) {
+      console.error('Error deleting all cards:', error)
     }
   }
 
@@ -157,6 +175,9 @@ const MyCollectionPage=() => {
           <button onClick={toggleFilterMenu} className="my-2 text-sm border border-white rounded-lg px-2 py-2 mx-auto text-white font-bold hover:text-black hover:bg-white">
             {isFilterMenuOpen? 'Close Filter':'Open Filter'}
           </button>
+          <button onClick={onDeleteAllCards} className="hidden my-2 text-sm border border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500">
+            Delete All Cards
+          </button>
         </div>
       </div>
       {isFilterMenuOpen&&(
@@ -174,7 +195,7 @@ const MyCollectionPage=() => {
       ):(
         <MyCollection aggregatedData={aggregatedData} />
       )}
-      <DownloadYugiohCSVButton aggregatedData={aggregatedData} />
+      <DownloadYugiohCSVButton aggregatedData={aggregatedData} userCardList={[]} />
     </div>
   )
 }
