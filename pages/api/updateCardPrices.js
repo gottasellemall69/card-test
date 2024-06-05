@@ -17,7 +17,8 @@ export default async function handler(req, res) {
       await Promise.all(cardData.map(async (card) => {
         await collection.updateOne(
           {setName, number: card.number},
-          {$set: {marketPrice: card.marketPrice}}
+          [{$set: {marketPrice: card.marketPrice}}],
+          {returnNewDocument: true}
         )
       }))
 

@@ -22,14 +22,14 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
       try {
         const response=await fetch('/api/countCards')
         const data=await response.json()
-        setTotalCardCount(data.count)
+        setTotalCardCount(parseFloat(data.totalQuantity), 0)
 
       } catch(error) {
         console.error('Error fetching card count:', error)
       }
     }
     fetchCardCount()
-  }, [])
+  }, [aggregatedData])
 
   /*useEffect(() => {
     const ws=new WebSocket('ws://localhost:8080')
@@ -125,6 +125,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto p-5">
+
         {aggregatedData?.map((card, index) => (
           <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex items-center mb-1">
@@ -138,13 +139,13 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
             <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice.toFixed(2)}
               {index>0&&(
                 <div className="rounded inline-block ml-3 text-lg">
-                  {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'
+                  {calculatePriceTrend(aggregatedData[index-1].marketPrice, card?.marketPrice)==='+'
                     ? <span className="text-emerald-500 text-2xl inline-block">↑</span>
-                    :calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='-'
+                    :calculatePriceTrend(aggregatedData[index-1].marketPrice, card?.marketPrice)==='-'
                       ? <span className="text-rose-500 text-2xl inline-block">↓</span>
                       :<span className="text-gray-500 text-2xl inline-block"></span>
                   }
-                  {Math.abs((aggregatedData[index-1].marketPrice-card.marketPrice).toFixed(2))}
+                  {Math.abs((aggregatedData[index-1].marketPrice-card?.marketPrice).toFixed(2))}
                 </div>
               )}
             </div>
@@ -155,7 +156,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
                 <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
               )}
             </div>
-            <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
+            <button onClick={() => handleDelete(card?._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
           </div>
         ))}
         <Notification show={notification.show} setShow={(show) => setNotification({...notification, show})} message={notification.message} />

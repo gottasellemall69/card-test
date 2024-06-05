@@ -9,9 +9,7 @@ const SportsTable=() => {
   const [dataLoaded, setDataLoaded]=useState(false)
   const [selectedCardSet, setSelectedCardSet]=useState(null)
   const [currentPage, setCurrentPage]=useState(1)
-  const [selectedItems, setSelectedItems]=useState([])
   const pageSize=1
-  const router=useRouter()
 
   const calculateTotalPages=(totalData, pageSize) => {
     return Math.ceil(totalData/pageSize)
@@ -74,40 +72,6 @@ const SportsTable=() => {
     setCurrentPage(page)
   }
 
-  useEffect(() => {
-    setSelectedItems([])
-  }, [currentPage])
-
-  const handleCheck=(item, isChecked) => {
-    let newSelectedItems
-    if(isChecked) {
-      newSelectedItems=[selectedItems, item]
-    } else {
-      newSelectedItems=selectedItems?.filter(i => i!==item)
-    }
-    setSelectedItems(newSelectedItems)
-    localStorage.setItem(selectedCardSet, JSON.stringify(newSelectedItems))
-  }
-
-  const handleAddToCollection=() => {
-    const allSelectedItems=Object.keys(localStorage).reduce((acc, key) => {
-      if(key!=='myCollection') {
-        let items
-        try {
-          items=JSON.parse(localStorage.getItem(key))
-        } catch(error) {
-          console.error('Error parsing JSON:', error)
-          items=[]
-        }
-        items=Array.isArray(items)? items:[]
-        acc=[...acc, ...items]
-      }
-      return acc
-    }, [])
-    localStorage.setItem('myCollection', JSON.stringify(allSelectedItems))
-    router.push('/collection')
-  }
-
   return (
     <>
       <div className="items-center p-2 overflow-x-hidden text-nowrap space-y-5 sm:space-y-0 space-x-0 sm:space-x-10 flex flex-wrap flex-col sm:flex-row sm:flex-nowrap">
@@ -119,25 +83,22 @@ const SportsTable=() => {
         </div>
       </div>
 
-      <table className="mx-auto table container mb-2 overflow-x-hidden w-11/12" style={{maxHeight: '300px', overflowY: 'auto'}}>
+      <table className="mx-auto mb-2 w-full " style={{maxHeight: '300px', overflowY: 'auto'}}>
         <thead>
           <tr>
-            <th scope="col" className="sticky top-0 z-10 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
-              Select
-            </th>
-            <th scope="col" className="sticky top-0 z-10 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
+            <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
               Name
             </th>
-            <th scope="col" className="hidden sticky top-0 z-10 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap md:table-cell">
+            <th scope="col" className="hidden sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
               Set
             </th>
-            <th scope="col" className="hidden sticky top-0 z-10 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap sm:table-cell">
+            <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
               Ungraded
             </th>
-            <th scope="col" className="sticky top-0 z-10 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
+            <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
               PSA 9
             </th>
-            <th scope="col" className="sticky top-0 z-10 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
+            <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
               PSA 10
             </th>
           </tr>
@@ -146,22 +107,19 @@ const SportsTable=() => {
           {cardsToRender?.map((item, index) =>
             item.products.map((product, productIndex) => (
               <tr key={`${ index }-${ productIndex }`}>
-                <td scope="row" className="border border-gray-800 p-2 whitespace-wrap text-center sm:text-left text-sm font-medium text-white">
-                  <input type="checkbox" onChange={e => handleCheck(product, e.target.checked)} />
-                </td>
-                <td scope="row" className="border border-gray-800 p-2 whitespace-wrap text-center sm:text-left text-sm font-medium text-white">
+                <td scope="row" className="border border-gray-800 p-1 whitespace-wrap text-center sm:text-left text-sm font-medium text-white">
                   {product['productName']}
                 </td>
-                <td scope="row" className="border border-gray-800 p-2 whitespace-nowrap hidden text-center sm:text-left text-sm text-white md:table-cell">
+                <td scope="row" className="hidden border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
                   {product['consoleUri']}
                 </td>
-                <td scope="row" className="border border-gray-800 p-2 whitespace-nowrap hidden text-center sm:text-left text-sm text-white sm:table-cell">
+                <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
                   {product['price1']}
                 </td>
-                <td scope="row" className="border border-gray-800 p-2 whitespace-nowrap text-center sm:text-left text-sm text-white">
+                <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
                   {product['price3']}
                 </td>
-                <td scope="row" className="border border-gray-800 p-2 whitespace-nowrap text-center sm:text-left text-sm font-medium table-cell">
+                <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm font-medium table-cell">
                   {product['price2']}
                 </td>
               </tr>
@@ -172,11 +130,6 @@ const SportsTable=() => {
 
       {dataLoaded&&(
         <div className="mx-auto container w-fit">
-          {selectedItems?.length>0&&(
-            <button
-              className="mx-auto text-center self-center border-l-4 border-r-4 p-2 m-2 rounded-lg bg-transparent text-white border-white hover:border-none hover:bg-white hover:text-black"
-              onClick={handleAddToCollection}>Add selected items to collection</button>
-          )}
           <SportsPagination
             pageSize={pageSize}
             currentPage={currentPage}

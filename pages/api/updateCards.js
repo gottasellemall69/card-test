@@ -11,7 +11,8 @@ export default async function handler(req, res) {
     try {
       const result=await collection.updateOne(
         {_id: new ObjectId(cardId)},
-        {$set: {[field]: value}}
+        [{$set: {[field]: value}}],
+        {returnNewDocument: true}
       )
 
       if(result.modifiedCount===1) {

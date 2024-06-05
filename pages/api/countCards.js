@@ -11,9 +11,18 @@ export default async function handler(req, res) {
       const cards=database.collection('myCollection')
 
       // Get the total number of cards
-      const count=await cards.estimatedDocumentCount()
+      const aggregationPipeline=[
+        {
+          $group: {
+            _id: null,
+            totalQuantity: {$sum: '$quantity'}
+          }
+        }
+      ]
+      const aggregationResult=await cards.aggregate(aggregationPipeline).toArray()
+      const totalQuantity=aggregationResult[0]? aggregationResult[0].totalQuantity:0
 
-      res.status(200).json({count})
+      res.status(200).json({totalQuantity})
     } catch(error) {
       console.error(error)
       res.status(500).json({error: 'Unable to fetch card count'})
