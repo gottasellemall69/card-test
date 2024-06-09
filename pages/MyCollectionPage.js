@@ -180,7 +180,7 @@ const MyCollectionPage=() => {
 
           <DownloadYugiohCSVButton aggregatedData={aggregatedData} userCardList={[]} />
 
-          <button onClick={onDeleteAllCards} className="hidden invisible my-2 text-sm border border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500">
+          <button onClick={onDeleteAllCards} className="my-2 text-sm border border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500">
             Delete All Cards
           </button>
         </div>

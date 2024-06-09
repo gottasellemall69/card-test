@@ -30,57 +30,6 @@ const Home=() => {
     setCardList(exampleCardList)
   }
 
-  const handleSubmit=async (event) => {
-    event.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    console.log('Form submitted')
-    console.log('Card List:', cardList)
-    console.log('Is loading:', isLoading)
-    try {
-      // Split the card list and parse it into JSON
-      const cards=cardList.trim().split('\n').map((cardLine) => {
-        // Use regular expression to handle escaped commas inside quotation marks
-        const regex=/(?:^|,)("(?:[^"]+|"")*"|[^",]+)(?=$|,)/g
-        const matches=cardLine.match(regex)
-        if(!matches||matches.length!==6) {
-          throw new Error('Invalid card format')
-        }
-        const [
-          rawProductName,
-          setName,
-          number,
-          printing,
-          rarity,
-          condition
-        ]=matches.map((match) => match.replace(/(^,|,$)/g, ''))
-
-        // Remove quotation marks around productName if present
-        const productName=rawProductName.replace(/^"|"$/g, '')
-
-        return ({productName, setName, number, printing, rarity, condition})
-      })
-      if(cards.length===0) {
-        throw new Error('Card list is empty')
-      }
-      // Fetch card data for each card in batches
-      const fetchedCardData=await Promise.all(
-        cards.map((cards) => fetchCardData(cards))
-      )
-      // Filter out null responses
-      const validCardData=fetchedCardData.filter((data) => data!==null)
-      console.log('Parsed cards:', cards)
-      console.log('Fetched card data:', fetchedCardData)
-      console.log('Valid card data:', validCardData)
-      // Update matched card data
-      setMatchedCardData(validCardData)
-    } catch(error) {
-      setError('Error fetching card data')
-      console.error('Error fetching card data:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
   const fetchedSetData={}
   const fetchCardData=async (card) => {
     try {
@@ -119,13 +68,61 @@ const Home=() => {
       }
       const marketPrice=matchedCard?.marketPrice
       console.log('Matched card:', matchedCard)
-      return {card, data: {...matchedCard, marketPrice}}
+      return {card, data: {...matchedCard, marketPrice}, error: null}
     } catch(error) {
       console.error('Error fetching card data:', error)
-      return null
+      return {card, data: null, error: 'No market price available'}
     }
   }
 
+  const handleSubmit=async (event) => {
+    event.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    console.log('Form submitted')
+    console.log('Card List:', cardList)
+    console.log('Is loading:', isLoading)
+    try {
+      // Split the card list and parse it into JSON
+      const cards=cardList.trim().split('\n').map((cardLine) => {
+        // Use regular expression to handle escaped commas inside quotation marks
+        const regex=/(?:^|,)("(?:[^"]+|"")*"|[^",]+)(?=$|,)/g
+        const matches=cardLine.match(regex)
+        if(!matches||matches.length!==6) {
+          throw new Error('Invalid card format')
+        }
+        const [
+          rawProductName,
+          setName,
+          number,
+          printing,
+          rarity,
+          condition
+        ]=matches.map((match) => match.replace(/(^,|,$)/g, ''))
+
+        // Remove quotation marks around productName if present
+        const productName=rawProductName.replace(/^"|"$/g, '')
+
+        return ({productName, setName, number, printing, rarity, condition})
+      })
+      if(cards.length===0) {
+        throw new Error('Card list is empty')
+      }
+      // Fetch card data for each card in batches
+      const fetchedCardData=await Promise.all(
+        cards.map((card) => fetchCardData(card))
+      )
+      console.log('Parsed cards:', cards)
+      console.log('Fetched card data:', fetchedCardData)
+      // Update matched card data
+      setMatchedCardData(fetchedCardData)
+    } catch(error) {
+      setError('Error fetching card data')
+      console.error('Error fetching card data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
   return (
     <>
       <Head>

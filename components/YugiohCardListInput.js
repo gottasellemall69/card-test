@@ -16,6 +16,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
     message: ''
   })
 
+
   const [currentPage, setCurrentPage]=useState(1)
   const itemsPerPage=25 // Adjust as needed
   const [sortConfig, setSortConfig]=useState({key: [], direction: 'ascending'})
@@ -58,8 +59,8 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
       )
     }
     const sortedData=[...matchedCardData].sort((a, b) => {
-      const aValue=sortConfig.key==='marketPrice'? (a.data.marketPrice||0):a.card[sortConfig.key]
-      const bValue=sortConfig.key==='marketPrice'? (b.data.marketPrice||0):b.card[sortConfig.key]
+      const aValue=sortConfig.key==='marketPrice'? (a.data?.marketPrice||0):a.card[sortConfig.key]
+      const bValue=sortConfig.key==='marketPrice'? (b.data?.marketPrice||0):b.card[sortConfig.key]
       if(aValue<bValue) {
         return sortConfig.direction==='ascending'? -1:1
       }
@@ -254,7 +255,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 text-black">
-                {sortedAndPaginatedData.currentItems.map(({card, data}, index) => (
+                {sortedAndPaginatedData.currentItems.map(({card, data, error}, index) => (
                   <tr key={index}>
                     <td className="border border-black text-center">
                       <input
@@ -269,7 +270,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
                     <td className="hidden border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.printing}</td>
                     <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
                     <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
-                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice}</td>
+                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice!==undefined? `${ data?.marketPrice }`:error}</td>
                   </tr>
                 ))}
               </tbody>

@@ -22,7 +22,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
       try {
         const response=await fetch('/api/countCards')
         const data=await response.json()
-        setTotalCardCount(parseFloat(data.totalQuantity), 0)
+        setTotalCardCount(data.totalQuantity)
 
       } catch(error) {
         console.error('Error fetching card count:', error)
@@ -71,10 +71,16 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
   const handleSave=useCallback(async (cardId, field) => {
     try {
       if(cardId&&editValues[cardId]&&field) {
-        const value=editValues[cardId][field]
+        const value=parseFloat(editValues[cardId][field])
         await onUpdateCard(cardId, field, value)
         setEdit({...edit, [cardId]: null})
         setNotification({show: true, message: 'Card quantity updated successfully!'})
+
+        // Fetch updated card count
+        const response=await fetch('/api/countCards')
+        const data=await response.json()
+        setTotalCardCount(data.totalQuantity)
+
       } else {
         throw new Error('Invalid data or missing card ID or field')
       }
@@ -85,7 +91,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
   }, [edit, editValues, onUpdateCard])
 
   const updateQuantity=useCallback(async (cardId, quantity) => {
-    if(quantity===0) {
+    if(quantity<=0) {
       await onDeleteCard(cardId)
       setNotification({show: true, message: 'Card deleted successfully!'})
     } else {
@@ -98,7 +104,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
     try {
       const card=aggregatedData.find(card => card?._id===cardId)
       if(card) {
-        const newQuantity=card.quantity-1
+        const newQuantity=parseFloat(card.quantity-1)
         await updateQuantity(cardId, newQuantity)
       } else {
         throw new Error('Card not found')

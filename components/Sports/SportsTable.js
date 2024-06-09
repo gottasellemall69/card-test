@@ -23,16 +23,6 @@ const SportsTable=() => {
       if(response.ok) {
         const data=await response.json()
         setSportsData(data)
-        let savedItems
-        try {
-          savedItems=JSON.parse(localStorage.getItem(selectedCardSet))
-        } catch(error) {
-          console.error('Error parsing JSON:', error)
-          savedItems=[]
-        }
-        setSelectedItems(savedItems)
-      } else {
-        console.error('Failed to fetch data from the API')
       }
     } catch(error) {
       console.error('Error fetching data:', error)

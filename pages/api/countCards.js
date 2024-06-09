@@ -17,6 +17,12 @@ export default async function handler(req, res) {
             _id: null,
             totalQuantity: {$sum: '$quantity'}
           }
+        },
+        {
+          $project: {
+            totalQuantity: 1
+
+          }
         }
       ]
       const aggregationResult=await cards.aggregate(aggregationPipeline).toArray()
