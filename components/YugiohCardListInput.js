@@ -5,7 +5,6 @@ import {useRouter} from 'next/router'
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/24/solid'
 import dynamic from 'next/dynamic'
 import Notification from '@/components/Notification'
-import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton'
 const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'))
 const YugiohPagination=dynamic(() => import('@/components/Navigation/YugiohPagination'))
 
@@ -149,6 +148,43 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
   const handleGoToCollectionPage=() => {
     router.push('/MyCollectionPage')
   }
+
+  // Function to convert data to CSV
+  const convertToCSV=(data) => {
+    const headers=["Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price"]
+    const rows=data.map(({card, data}) => [
+      card?.productName,
+      card?.setName,
+      card?.number,
+      card?.printing,
+      card?.rarity,
+      card?.condition,
+      data?.marketPrice
+    ])
+
+    let csvContent="data:text/csv;charset=utf-8,"
+      +headers.join(",")+"\n"
+      +rows.map(e => e.join(",")).join("\n")
+
+    return encodeURI(csvContent)
+  }
+
+  // Function to download CSV
+  const downloadCSV=() => {
+    if(!matchedCardData||matchedCardData.length===0) {
+      setNotification({show: true, message: 'No data available to download!'})
+      return
+    }
+
+    const csvContent=convertToCSV(matchedCardData)
+    const link=document.createElement("a")
+    link.setAttribute("href", csvContent)
+    link.setAttribute("download", "yugioh_cards.csv")
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -171,7 +207,12 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
         {sortedAndPaginatedData.currentItems.length>0&&(
           <>
             <h2 className="my-5 text-white font-black">Matched Card Data:</h2>
-
+            <button
+              className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"
+              onClick={downloadCSV}
+            >
+              Download CSV
+            </button>
             <table className="w-full mx-auto divide-y divide-gray-200">
               <thead className="mx-auto bg-transparent">
                 <tr>
@@ -293,10 +334,6 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
               onClick={handleGoToCollectionPage}>
               View Collection
             </button>
-            <DownloadYugiohCSVButton
-              selectedRows={selectedRows}
-              matchedCardData={matchedCardData}
-            />
           </>
         )}
       </>
