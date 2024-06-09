@@ -39,7 +39,7 @@ const MyCollection=({aggregatedData}) => {
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.number}</td>
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.rarity}</td>
                         <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.condition}</td>
-                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.marketPrice.toFixed(2)}
+                        <td className="p-2 text-center border-t border-gray-100 text-sm">{card?.marketPrice}
                           {index>0&&(
                             <div className="rounded inline-block ml-3 text-lg">
                               {calculatePriceTrend(aggregatedData[index-1].marketPrice, card.marketPrice)==='+'
