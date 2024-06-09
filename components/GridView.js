@@ -142,7 +142,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
             <div className="text-sm font-medium text-gray-400">Rarity: {card?.rarity}</div>
             <div className="text-sm font-medium text-gray-400">Printing: {card.printing}</div>
             <div className="text-sm font-medium text-gray-400">Condition: {card.condition}</div>
-            <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice.toFixed(2)}
+            <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice}
               {index>0&&(
                 <div className="rounded inline-block ml-3 text-lg">
                   {calculatePriceTrend(aggregatedData[index-1].marketPrice, card?.marketPrice)==='+'

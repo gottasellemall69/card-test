@@ -66,12 +66,12 @@ const Home=() => {
       if(!matchedCard||!matchedCard?.marketPrice) {
         throw new Error('Market price data not found for the card')
       }
-      const marketPrice=matchedCard?.marketPrice
+      const marketPrice=matchedCard?.marketPrice!==undefined? matchedCard.marketPrice:parseFloat("0").toFixed(2)
       console.log('Matched card:', matchedCard)
       return {card, data: {...matchedCard, marketPrice}, error: null}
     } catch(error) {
       console.error('Error fetching card data:', error)
-      return {card, data: null, error: 'No market price available'}
+      return {card, data: {marketPrice: parseFloat("0").toFixed(2)}, error: 'No market price available'}
     }
   }
 
