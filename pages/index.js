@@ -86,9 +86,13 @@ const Home=() => {
       // Split the card list and parse it into JSON
       const cards=cardList.trim().split('\n').map((cardLine) => {
         // Use regular expression to handle escaped commas inside quotation marks
-        const regex=/(?:^|,)("(?:[^"]+|"")*"|[^",]+)(?=$|,)/g
-        const matches=cardLine.match(regex)
-        if(!matches||matches.length!==6) {
+        const regex=/(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g
+        const matches=[]
+        let match
+        while((match=regex.exec(cardLine))!==null) {
+          matches.push(match[1]||match[2])
+        }
+        if(matches.length!==6) {
           throw new Error('Invalid card format')
         }
         const [
@@ -98,7 +102,7 @@ const Home=() => {
           printing,
           rarity,
           condition
-        ]=matches.map((match) => match.replace(/(^,|,$)/g, ''))
+        ]=matches.map((match) => match.trim())
 
         // Remove quotation marks around productName if present
         const productName=rawProductName.replace(/^"|"$/g, '')
@@ -123,6 +127,7 @@ const Home=() => {
       setIsLoading(false)
     }
   }
+
   return (
     <>
       <Head>

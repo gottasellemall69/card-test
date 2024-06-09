@@ -4,23 +4,26 @@ export default async function handler(req, res) {
   if(req.method==='POST') {
     const {setName, cardData}=req.body
 
-    if(!setName||!Array.isArray(cardData)) {
+    // Validate the input data
+    if(typeof setName!=='string'||!Array.isArray(cardData)||cardData.some(card => typeof card.number!=='string'||typeof card.marketPrice!=='number')) {
       return res.status(400).json({error: 'Invalid data'})
     }
 
     try {
-      const client=new MongoClient(process.env.MONGODB_URI)
+      const client=new MongoClient(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true})
       await client.connect()
       const db=client.db('cardPriceApp')
       const collection=db.collection('myCollection')
+
       // Update the prices for each card in the set
       await Promise.all(cardData.map(async (card) => {
         await collection.updateOne(
-          {setName, number: card.number},
-          [{$set: {marketPrice: card.marketPrice}}],
-          {returnNewDocument: true}
+          {setName: {$eq: setName}, number: {$eq: card.number}},
+          {$set: {marketPrice: card.marketPrice}},
         )
       }))
+
+      await client.close()
 
       res.status(200).json({message: 'Prices updated successfully'})
     } catch(error) {

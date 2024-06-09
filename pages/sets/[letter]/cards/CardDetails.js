@@ -1,52 +1,56 @@
-import React,{useEffect,useState} from 'react';
-import {useRouter} from 'next/router';
+import React, {useEffect, useState} from 'react'
+import {useRouter} from 'next/router'
 
 const CardDetails=() => {
-  const router=useRouter();
-  const {card}=router.query;
-  const [cardData,setCardData]=useState(null);
-  const [isLoading,setIsLoading]=useState(false);
-  const [error,setError]=useState(null);
+  const router=useRouter()
+  const {card}=router.query
+  const [cardData, setCardData]=useState(null)
+  const [isLoading, setIsLoading]=useState(false)
+  const [error, setError]=useState(null)
 
   // Helper function to fetch card data
   const fetchCardData=async (cardId) => {
-    const res=await fetch(`/api/card/${cardId}`);
-    if(!res.ok) throw new Error('Failed to fetch');
-    return res.json();
-  };
+    try {
+      const res=await fetch(`/api/card/${ encodeURIComponent(cardId) }`)
+      if(!res.ok) throw new Error('Failed to fetch')
+      return await res.json()
+    } catch(err) {
+      throw err
+    }
+  }
 
   useEffect(() => {
     const loadData=async () => {
-      if(!card) return;  // Ensure we have a card ID from the query
-      setIsLoading(true);
+      if(!card) return // Ensure we have a card ID from the query
+      setIsLoading(true)
       try {
-        const cardDetails=await fetchCardData(card);
-        setCardData(cardDetails);
+        const cardDetails=await fetchCardData(card)
+        setCardData(cardDetails)
       } catch(error) {
-        setError('Error fetching card data');
+        setError('Error fetching card data')
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    loadData();
-  },[card]);
+    loadData()
+  }, [card])
 
   if(isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   if(error) {
-    return <div>{error}</div>;
+    return <div>{error}</div>
   }
 
   if(!cardData) {
-    return <div>Card not found</div>;
+    return <div>Card not found</div>
   }
 
   return (
     <>
-      <div key={cardData} className="text-pretty text-white p-6 rounded-md shadow-md mb-8">
+      <div key={cardData.id} className="text-pretty text-white p-6 rounded-md shadow-md mb-8">
         <h1 className="text-2xl font-bold mb-4">{cardData.name}</h1>
         <p className="mb-2"><span className="font-bold">Type:</span> {cardData.type}</p>
         <p className="mb-2 max-w-prose"><span className="font-bold">Description:</span> {cardData.desc}</p>
@@ -56,8 +60,8 @@ const CardDetails=() => {
         <div className="mb-4 text-pretty">
           <h2 className="text-lg font-bold mb-2">Set Details</h2>
           <ul className="flex flex-col sm:flex-row sm:inline-flex flex-wrap">
-            {cardData.card_sets?.map((set,index) => (
-              <li key={`${set.set_code}-${index}`} className="m-2 p-2 divide-y divide-x divide-x-reverse">
+            {cardData.card_sets?.map((set, index) => (
+              <li key={`${ set.set_code }-${ index }`} className="m-2 p-2 divide-y divide-x divide-x-reverse">
                 <p><span className="font-bold">Set Name:</span> {set.set_name}</p>
                 <p><span className="font-bold">Rarity:</span> {set.set_rarity}</p>
                 <p><span className="font-bold">Edition:</span> {set.set_edition}</p>
@@ -77,6 +81,7 @@ const CardDetails=() => {
         </div>
       </div>
     </>
-  );
-};
-export default CardDetails;
+  )
+}
+
+export default CardDetails
