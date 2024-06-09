@@ -16,7 +16,9 @@ const FiltersButton=({updateFilters}) => {
     <>
       <button id="filterBtn" onClick={openFilterMenu}>Filter</button>
       {isFilterMenuOpen&&(
-        <div id="filterMenu">
+        <div
+          id="filterMenu"
+        >
           <button id="closeFilterBtn" onClick={closeFilterMenu}>Close</button>
           <CardFilter updateFilters={updateFilters} />
         </div>

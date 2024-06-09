@@ -5,18 +5,16 @@ import {useRouter} from 'next/router'
 import {ChevronDownIcon, ChevronUpIcon} from '@heroicons/react/24/solid'
 import dynamic from 'next/dynamic'
 import Notification from '@/components/Notification'
-
+import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton'
 const LoadingSpinner=dynamic(() => import('@/components/LoadingSpinner'))
 const YugiohPagination=dynamic(() => import('@/components/Navigation/YugiohPagination'))
 
-const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData, }) => {
+const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData}) => {
   const router=useRouter()
   const [notification, setNotification]=useState({
     show: false,
     message: ''
   })
-
-
   const [currentPage, setCurrentPage]=useState(1)
   const itemsPerPage=25 // Adjust as needed
   const [sortConfig, setSortConfig]=useState({key: [], direction: 'ascending'})
@@ -27,6 +25,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
   const handlePageClick=(page) => {
     setCurrentPage(page)
   }
+
   const handleSort=(key) => {
     let direction='ascending'
     if(sortConfig.key===key&&sortConfig.direction==='ascending') {
@@ -58,6 +57,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
         {currentItems: [], totalCount: 0}
       )
     }
+
     const sortedData=[...matchedCardData].sort((a, b) => {
       const aValue=sortConfig.key==='marketPrice'? (a.data?.marketPrice||0):a.card[sortConfig.key]
       const bValue=sortConfig.key==='marketPrice'? (b.data?.marketPrice||0):b.card[sortConfig.key]
@@ -76,7 +76,6 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
     const currentItems=sortedData.slice(indexOfFirstItem, indexOfLastItem)
     return {currentItems, totalCount: sortedData.length}
   }, [matchedCardData, currentPage, sortConfig.key, sortConfig.direction])
-
 
   // Function to handle checkbox toggle
   const toggleCheckbox=(index) => {
@@ -111,6 +110,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
       }
 
       const selectedData=Array.from(selectedRows).map((index) => matchedCardData[index])
+
       const collectionArray=selectedData.map(({card, data}, index) => ({
         productName: card?.productName,
         setName: card?.setName,
@@ -171,6 +171,7 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
         {sortedAndPaginatedData.currentItems.length>0&&(
           <>
             <h2 className="my-5 text-white font-black">Matched Card Data:</h2>
+
             <table className="w-full mx-auto divide-y divide-gray-200">
               <thead className="mx-auto bg-transparent">
                 <tr>
@@ -292,6 +293,10 @@ const YugiohCardListInput=({cardList, setCardList, handleSubmit, isLoading, erro
               onClick={handleGoToCollectionPage}>
               View Collection
             </button>
+            <DownloadYugiohCSVButton
+              selectedRows={selectedRows}
+              matchedCardData={matchedCardData}
+            />
           </>
         )}
       </>
