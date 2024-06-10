@@ -3,12 +3,16 @@ import React from 'react'
 const CardFilter=({updateFilters}) => {
   const createCheckbox=(id, label, value) => {
     const handleChange=() => {
-      const checkboxes=document.querySelectorAll(`input[id^="${ id }"]:checked`)
-      const values=Array.from(checkboxes).map((checkbox) => checkbox.value)
-      console.log('Updating filters:', id.split('-')[0], values)
+      const checked=event.target.checked
+      const filterType=id.split('-')[0]
+
+      const values=Array.from(document.querySelectorAll(`input[id^="${ filterType }"]:checked`)).map((checkbox) => checkbox.value)
+
+      console.log('Applying filters:', filterType, values)
+
       if(typeof updateFilters==='function') {
-        updateFilters(id.split('-')[0], values)
-        console.log('Filters updated.')
+        updateFilters(filterType, values)
+        console.log('Filters applied.')
       }
     }
 
@@ -51,11 +55,11 @@ const CardFilter=({updateFilters}) => {
         {filters.map((filter) => (
           <div key={filter.id} className="inline-block items-center text-base p-3 font-semibold mx-auto">
             {filter.label+': '}
-            {filter.values.map((value) => (
+            {filter.values.map((values) => (
               createCheckbox(
-                `${ filter.id }-${ value.toLowerCase().replace(/\s/g, '-') }`,
-                value,
-                value
+                `${ filter.id }-${ values.toLowerCase().replace(/\s/g, '-') }`,
+                values,
+                values
               )
             ))}
           </div>
