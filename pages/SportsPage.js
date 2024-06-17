@@ -28,9 +28,7 @@ const SportsPage=({metaTags}) => {
           https://www.sportscardspro.com
         </a>
       </p>
-      <div className='mx-auto w-full max-h-[750px]'>
-        <SportsTable />
-      </div>
+      <SportsTable />
     </>
   )
 }

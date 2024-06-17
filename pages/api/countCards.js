@@ -13,14 +13,14 @@ export default async function handler(req, res) {
       // Get the total number of cards
       const aggregationPipeline=[
         {
-          $group: {
-            _id: null,
-            totalQuantity: {$sum: '$quantity'}
+          '$group': {
+            '_id': null,
+            'totalQuantity': {'$sum': '$quantity'}
           }
         },
         {
-          $project: {
-            totalQuantity: 1
+          '$project': {
+            'totalQuantity': 1
 
           }
         }
@@ -32,10 +32,6 @@ export default async function handler(req, res) {
     } catch(error) {
       console.error(error)
       res.status(500).json({error: 'Unable to fetch card count'})
-    } finally {
-      await client.close()
     }
-  } else {
-    res.status(405).json({error: 'Method not allowed'})
   }
 }

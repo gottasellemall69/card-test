@@ -154,19 +154,19 @@ const MyCollectionPage=() => {
   }
 
   return (
-    <div className="w-full mx-auto mt-8">
+    <div className="w-fit mx-auto mt-8">
       <h1 className="text-3xl font-semibold mb-6">My Collection</h1>
       <div className="inline-flex flex-row w-full gap-10 align-baseline">
         <div className='float-left'>
           <button
             onClick={() => setView('grid')}
-            className={`px-4 py-2 mr-2 ${ view==='grid'? 'my-2 text-sm border border-white rounded-lg px-2 py-2 mx-auto text-white font-bold hover:text-black hover:bg-white':'relative bg-white text-black font-bold m-1 px-2 py-1 rounded border border-zinc-400 hover:bg-black hover:text-white' }`}
+            className={`px-2 py-2 ${ view==='grid'? 'my-2 text-sm border border-white rounded-lg mx-auto text-black font-bold bg-white hover:text-white hover:bg-black':'relative bg-black text-white font-bold my-2 m-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black' }`}
           >
             Grid View
           </button>
           <button
             onClick={() => setView('table')}
-            className={`px-4 py-2 ${ view==='table'? 'my-2 text-sm border border-white rounded-lg px-2 py-2 mx-auto text-white font-bold hover:text-black hover:bg-white':'relative bg-white text-black font-bold m-1 px-2 py-1 rounded border border-zinc-400 hover:bg-black hover:text-white' }`}
+            className={`px-2 py-2 ${ view==='table'? 'my-2 text-sm border border-white rounded-lg mx-auto text-black bg-white font-bold hover:text-white hover:bg-black':'relative bg-black text-white font-bold my-2 m-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black' }`}
           >
             Table View
           </button>
@@ -174,13 +174,13 @@ const MyCollectionPage=() => {
         </div>
 
         <div className='float-right flex-wrap flex-row'>
-          <button onClick={toggleFilterMenu} className="text-nowrap bg-white text-black font-bold m-1 px-2 py-1 rounded border border-zinc-400 hover:bg-black hover:text-white">
+          <button onClick={toggleFilterMenu} className="text-nowrap bg-white text-black font-bold m-1 px-2 py-2 rounded border border-zinc-400 hover:bg-black hover:text-white">
             {isFilterMenuOpen? 'Close Filter':'Open Filter'}
           </button>
 
           <DownloadYugiohCSVButton aggregatedData={aggregatedData} userCardList={[]} />
 
-          <button onClick={onDeleteAllCards} className="my-2 text-sm border border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500">
+          <button onClick={onDeleteAllCards} className="my-2 float-right text-sm border border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500">
             Delete All Cards
           </button>
         </div>

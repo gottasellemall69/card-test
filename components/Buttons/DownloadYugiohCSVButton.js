@@ -48,7 +48,7 @@ const DownloadYugiohCSVButton=({aggregatedData, userCardList}) => {
   return (
     <button
       name="DownloadYugiohCSVButton"
-      className="relative bg-white text-black font-bold m-1 px-2 py-1 text-nowrap rounded border border-zinc-400 hover:bg-black hover:text-white"
+      className="relative bg-white text-black font-bold m-1 px-2 py-2 text-nowrap rounded-lg border border-zinc-400 hover:bg-black hover:text-white"
       onClick={downloadCSV}
     >
       Download CSV
