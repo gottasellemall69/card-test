@@ -118,7 +118,21 @@ module.exports={
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      keyframes: {
+        flip: {
+          '0%': {transform: 'rotateY(0deg)'},
+          '100%': {transform: 'rotateY(180deg)'},
+        },
+        'flip-back': {
+          '0%': {transform: 'rotateY(180deg)'},
+          '100%': {transform: 'rotateY(0deg)'},
+        },
+      },
+      animation: {
+        flip: 'flip 0.6s forwards',
+        'flip-back': 'flip-back 0.6s forwards',
+      },
     },
   },
   plugins: [],
-};
+}

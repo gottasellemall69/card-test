@@ -71,71 +71,73 @@ const SportsTable=() => {
 
   return (
     <>
-      <div className="items-center p-2 min-w-full text-nowrap space-y-5 sm:space-y-0 space-x-0 sm:space-x-10 flex flex-wrap flex-col sm:flex-row sm:flex-nowrap">
-        <div className="w-fit my-2 float-left text-black font-black">
-          <CardSetButtons cardSets={memoizedCardSets} onSelectCardSet={setSelectedCardSet} />
+      <div className=" gap-6 mb-6 items-center p-2 w-full">
+        <div className="">
+          <div className="w-fit my-2 float-left text-black font-black">
+            <CardSetButtons cardSets={memoizedCardSets} onSelectCardSet={setSelectedCardSet} />
+          </div>
+          <div className="w-fit my-2 float-right">
+            <SportsCSVButton sportsData={sportsData} />
+          </div>
         </div>
-        <div className="w-fit my-2 float-right">
-          <SportsCSVButton sportsData={sportsData} />
+        <div className="container max-h-[550px] overflow-y-auto w-full">
+          <table className="mx-auto mb-2 w-full">
+            <thead>
+              <tr>
+                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
+                  Name
+                </th>
+                <th scope="col" className="hidden sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
+                  Set
+                </th>
+                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
+                  Ungraded
+                </th>
+                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
+                  PSA 9
+                </th>
+                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
+                  PSA 10
+                </th>
+              </tr>
+            </thead>
+            <tbody className="mx-auto overflow-x-hidden">
+              {cardsToRender?.map((item, index) =>
+                item.products.map((product, productIndex) => (
+                  <tr key={`${ index }-${ productIndex }`}>
+                    <td scope="row" className="border border-gray-800 p-1 whitespace-wrap text-center sm:text-left text-sm font-medium text-white">
+                      {product['productName']}
+                    </td>
+                    <td scope="row" className="hidden border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
+                      {product['consoleUri']}
+                    </td>
+                    <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
+                      {product['price1']}
+                    </td>
+                    <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
+                      {product['price3']}
+                    </td>
+                    <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm font-medium table-cell">
+                      {product['price2']}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
+        {dataLoaded&&(
+          <div className="mx-auto container w-fit">
+            <SportsPagination
+              pageSize={pageSize}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              calculateTotalPages={calculateTotalPages}
+            />
+          </div>
+        )}
       </div>
-      <div className="container max-h-[550px] overflow-y-auto min-w-full">
-        <table className="mx-auto mb-2 min-w-full">
-          <thead>
-            <tr>
-              <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
-                Name
-              </th>
-              <th scope="col" className="hidden sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
-                Set
-              </th>
-              <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
-                Ungraded
-              </th>
-              <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
-                PSA 9
-              </th>
-              <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
-                PSA 10
-              </th>
-            </tr>
-          </thead>
-          <tbody className="mx-auto overflow-x-hidden">
-            {cardsToRender?.map((item, index) =>
-              item.products.map((product, productIndex) => (
-                <tr key={`${ index }-${ productIndex }`}>
-                  <td scope="row" className="border border-gray-800 p-1 whitespace-wrap text-center sm:text-left text-sm font-medium text-white">
-                    {product['productName']}
-                  </td>
-                  <td scope="row" className="hidden border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
-                    {product['consoleUri']}
-                  </td>
-                  <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
-                    {product['price1']}
-                  </td>
-                  <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
-                    {product['price3']}
-                  </td>
-                  <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm font-medium table-cell">
-                    {product['price2']}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      {dataLoaded&&(
-        <div className="mx-auto container w-fit">
-          <SportsPagination
-            pageSize={pageSize}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-            calculateTotalPages={calculateTotalPages}
-          />
-        </div>
-      )}
     </>
   )
 }

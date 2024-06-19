@@ -1,9 +1,7 @@
 import React, {useState, useEffect, useContext, useCallback} from 'react'
-import {useMarketPrice} from '@/context/MarketPriceContext'
 import Notification from '@/components/Notification'
 
 const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData}) => {
-  const fetchMarketPrice=useContext(useMarketPrice)
   const [edit, setEdit]=useState({})
   const [editValues, setEditValues]=useState({})
   const [notification, setNotification]=useState({show: false, message: ''})
@@ -109,7 +107,6 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto p-5">
-
         {aggregatedData?.map((card, index) => (
           <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex items-center mb-1">

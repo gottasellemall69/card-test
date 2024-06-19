@@ -156,17 +156,17 @@ const MyCollectionPage=() => {
   return (
     <div className="w-fit mx-auto mt-8">
       <h1 className="text-3xl font-semibold mb-6">My Collection</h1>
-      <div className="inline-flex flex-row w-full gap-10 align-baseline">
+      <div className="inline-flex flex-row w-full gap-10  align-baseline">
         <div className='float-left'>
           <button
             onClick={() => setView('grid')}
-            className={`px-2 py-2 ${ view==='grid'? 'my-2 text-sm border border-white rounded-lg mx-auto text-black font-bold bg-white hover:text-white hover:bg-black':'relative bg-black text-white font-bold my-2 m-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black' }`}
+            className={`px-2 py-2 ${ view==='grid'? 'my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black font-bold bg-white hover:text-white hover:bg-black':'relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black' }`}
           >
             Grid View
           </button>
           <button
             onClick={() => setView('table')}
-            className={`px-2 py-2 ${ view==='table'? 'my-2 text-sm border border-white rounded-lg mx-auto text-black bg-white font-bold hover:text-white hover:bg-black':'relative bg-black text-white font-bold my-2 m-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black' }`}
+            className={`px-2 py-2 ${ view==='table'? 'my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black bg-white font-bold hover:text-white hover:bg-black':'relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black' }`}
           >
             Table View
           </button>
@@ -180,7 +180,7 @@ const MyCollectionPage=() => {
 
           <DownloadYugiohCSVButton aggregatedData={aggregatedData} userCardList={[]} />
 
-          <button onClick={onDeleteAllCards} className="my-2 float-right text-sm border border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500">
+          <button disabled={true} type="button" onClick={onDeleteAllCards} className="my-2 float-start flex-wrap text-sm border hover:cursor-not-allowed border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500">
             Delete All Cards
           </button>
         </div>
