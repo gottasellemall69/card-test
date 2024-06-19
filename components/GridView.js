@@ -1,5 +1,6 @@
-import React, {useState, useEffect, useContext, useCallback} from 'react'
+import React, {useState, useEffect, useCallback} from 'react'
 import Notification from '@/components/Notification'
+
 
 const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData}) => {
   const [edit, setEdit]=useState({})
@@ -99,6 +100,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
       return ''
     }
   }
+  const getLocalImagePath=(cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`
 
   return (
     <>
@@ -108,6 +110,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto p-5">
         {aggregatedData?.map((card, index) => (
+
           <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
             <div className="flex items-center mb-1">
               <div className="text-2xl font-semibold">{card?.productName}</div>
@@ -139,6 +142,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
             </div>
             <button onClick={() => handleDelete(card?._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
           </div>
+
         ))}
         <Notification show={notification.show} setShow={(show) => setNotification({...notification, show})} message={notification.message} />
       </div>
