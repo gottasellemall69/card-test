@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useCallback} from 'react'
+import Image from 'next/image'
 import Notification from '@/components/Notification'
-
+import cardData from '@/public/card-data/Yugioh/card_data'
 
 const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData}) => {
   const [edit, setEdit]=useState({})
@@ -22,7 +23,6 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
         const response=await fetch('/api/countCards')
         const data=await response.json()
         setTotalCardCount(data.totalQuantity)
-
       } catch(error) {
         console.error('Error fetching card count:', error)
       }
@@ -57,14 +57,12 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
         const response=await fetch('/api/countCards')
         const data=await response.json()
         setTotalCardCount(data.totalQuantity)
-
       } else {
         throw new Error('Invalid data or missing card ID or field')
       }
     } catch(error) {
       console.error('Error saving card:', error)
     }
-
   }, [edit, editValues, onUpdateCard])
 
   const updateQuantity=useCallback(async (cardId, quantity) => {
@@ -100,7 +98,14 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
       return ''
     }
   }
-  const getLocalImagePath=(cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`
+
+  const getFullImagePath=useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, [])
+  const getCroppedImagePath=useCallback((cardId) => `/images/yugiohImagesCropped/${ String(cardId) }.jpg`, [])
+
+  const getCardImage=(cardName) => {
+    const cardInfo=cardData.find(item => item.name===cardName)
+    return cardInfo? {full: getFullImagePath(cardInfo?.id), cropped: getCroppedImagePath(cardInfo?.id)}:null
+  }
 
   return (
     <>
@@ -109,41 +114,54 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto p-5">
-        {aggregatedData?.map((card, index) => (
+        {aggregatedData?.map((card, index) => {
+          const cardImages=getCardImage(card.productName)
+          return (
+            <div key={index} className="card">
 
-          <div key={index} className="bg-transparent rounded-md border border-gray-100 p-6 shadow-md shadow-black/5">
-            <div className="flex items-center mb-1">
-              <div className="text-2xl font-semibold">{card?.productName}</div>
-            </div>
-            <div className="text-sm font-medium text-gray-400">Set: {card?.setName}</div>
-            <div className="text-sm font-medium text-gray-400">Number: {card?.number}</div>
-            <div className="text-sm font-medium text-gray-400">Rarity: {card?.rarity}</div>
-            <div className="text-sm font-medium text-gray-400">Printing: {card?.printing}</div>
-            <div className="text-sm font-medium text-gray-400">Condition: {card?.condition}</div>
-            <div className="text-sm font-medium text-gray-400 inline-block align-baseline">Market Price: {card?.marketPrice}
-              {index>0&&(
-                <div className="rounded inline-block ml-3 text-lg">
-                  {calculatePriceTrend(aggregatedData[index-1].marketPrice, card?.marketPrice)==='+'
-                    ? <span className="text-emerald-500 text-2xl inline-block">↑</span>
-                    :calculatePriceTrend(aggregatedData[index-1].marketPrice, card?.marketPrice)==='-'
-                      ? <span className="text-rose-500 text-2xl inline-block">↓</span>
-                      :<span className="text-gray-500 text-2xl inline-block"></span>
-                  }
-                  {Math.abs((aggregatedData[index-1].marketPrice-card?.marketPrice).toFixed(2))}
+              <a className="wrapper">
+                <Image
+                  unoptimized={true}
+                  src={cardImages? cardImages.full:'/images/yugioh-card.png'}
+                  alt={`${ card.productName }`}
+                  width={275}
+                  height={325}
+                  className="cover-image"
+                />
+                <div className="details">
+                  <Image
+                    unoptimized={true}
+                    src={cardImages? cardImages.cropped:'/images/yugioh-card.png'}
+                    alt={`${ card.productName }`}
+                    width={275}
+                    height={325}
+                    className="cropped-image"
+                  />
+
+                  <div className="character">
+                    <div className="title">{card.productName}</div>
+                    <div>Set: {card.setName}</div>
+                    <div>Number: {card.number}</div>
+                    <div>Rarity: {card.rarity}</div>
+                    <div>Printing: {card.printing}</div>
+                    <div>Condition: {card.condition}</div>
+                    <div>Market Price: ${card.marketPrice}</div>
+
+                  </div>
                 </div>
-              )}
-            </div>
-            <div className="text-sm font-medium text-gray-400">Quantity:
-              {edit[card._id]==='quantity'? (
-                <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
-              ):(
-                <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
-              )}
-            </div>
-            <button onClick={() => handleDelete(card?._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
-          </div>
 
-        ))}
+              </a>
+              <div className="text-sm font-medium text-gray-400">Quantity:
+                {edit[card._id]==='quantity'? (
+                  <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
+                ):(
+                  <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
+                )}
+              </div>
+              <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
+            </div>
+          )
+        })}
         <Notification show={notification.show} setShow={(show) => setNotification({...notification, show})} message={notification.message} />
       </div>
     </>
