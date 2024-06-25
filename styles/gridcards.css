@@ -1,7 +1,7 @@
 :root
 {
   --card-height: 375px;
-  --card-width: 270px;
+  --card-width: 250px;
 }
 
 *
@@ -35,6 +35,15 @@ body
 
 .cover-image
 {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.cropped-image
+{
+  display: none;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -88,7 +97,7 @@ body
 }
 
 .card:hover .wrapper::before,
-.wrapper::after
+.card:hover .wrapper::after
 {
   opacity: 1;
 }
@@ -131,11 +140,29 @@ body
 {
   opacity: 0;
   transition: all 0.5s;
-
 }
 
 .card:hover .character
 {
   opacity: 1;
   transform: translate3d(0%, -30%, 100px);
+}
+
+.black-overlay
+{
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 2;
+  transition: opacity 0.5s ease-in-out;
+  opacity: 0;
+}
+
+.card:hover .black-overlay
+{
+  opacity: 1;
 }

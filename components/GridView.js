@@ -113,33 +113,36 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
         <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice.toFixed(2)}</div>
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6 max-h-[750px] overflow-y-auto p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] overflow-y-auto p-5 mx-auto">
         {aggregatedData?.map((card, index) => {
           const cardImages=getCardImage(card.productName)
           return (
             <div key={index} className="card">
 
-              <a className="wrapper">
+
+              <div className="wrapper">
                 <Image
                   unoptimized={true}
                   src={cardImages? cardImages.full:'/images/yugioh-card.png'}
                   alt={`${ card.productName }`}
-                  width={275}
+                  width={250}
                   height={325}
                   className="cover-image"
                 />
+                <div className="black-overlay"></div>
                 <div className="details">
                   <Image
                     unoptimized={true}
                     src={cardImages? cardImages.cropped:'/images/yugioh-card.png'}
                     alt={`${ card.productName }`}
-                    width={275}
+                    width={250}
                     height={325}
                     className="cropped-image"
                   />
 
                   <div className="character">
-                    <div className="title">{card.productName}</div>
+                    <div className="title text-2xl font-black text-filter outline-2 outline-black text-white">{card.productName}</div>
+
                     <div>Set: {card.setName}</div>
                     <div>Number: {card.number}</div>
                     <div>Rarity: {card.rarity}</div>
@@ -150,7 +153,7 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
                   </div>
                 </div>
 
-              </a>
+              </div>
               <div className="text-sm font-medium text-gray-400">Quantity:
                 {edit[card._id]==='quantity'? (
                   <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
