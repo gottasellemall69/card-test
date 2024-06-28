@@ -100,11 +100,10 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
   }
 
   const getFullImagePath=useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, [])
-  const getCroppedImagePath=useCallback((cardId) => `/images/yugiohImagesCropped/${ String(cardId) }.jpg`, [])
 
   const getCardImage=(cardName) => {
     const cardInfo=cardData.find(item => item.name===cardName)
-    return cardInfo? {full: getFullImagePath(cardInfo?.id), cropped: getCroppedImagePath(cardInfo?.id)}:null
+    return cardInfo? {full: getFullImagePath(cardInfo?.id)}:null
   }
 
   return (
@@ -113,48 +112,32 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
         <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice.toFixed(2)}</div>
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] overflow-y-auto p-5 mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] max-w-full overflow-y-auto m-5 p-7 mx-auto">
         {aggregatedData?.map((card, index) => {
           const cardImages=getCardImage(card.productName)
           return (
             <div key={index} className="card">
-
-
               <div className="wrapper">
                 <Image
                   unoptimized={true}
                   src={cardImages? cardImages.full:'/images/yugioh-card.png'}
-                  alt={`${ card.productName }`}
-                  width={250}
-                  height={325}
+                  alt={`${ card?.productName }`}
+                  width={220}
+                  height={375}
                   className="cover-image"
                 />
                 <div className="black-overlay"></div>
                 <div className="details">
-                  <Image
-                    unoptimized={true}
-                    src={cardImages? cardImages.cropped:'/images/yugioh-card.png'}
-                    alt={`${ card.productName }`}
-                    width={250}
-                    height={325}
-                    className="cropped-image"
-                  />
-
-                  <div className="character">
-                    <div className="title text-2xl font-black text-filter outline-2 outline-black text-white">{card.productName}</div>
-
-                    <div>Set: {card.setName}</div>
-                    <div>Number: {card.number}</div>
-                    <div>Rarity: {card.rarity}</div>
-                    <div>Printing: {card.printing}</div>
-                    <div>Condition: {card.condition}</div>
-                    <div>Market Price: ${card.marketPrice}</div>
-
-                  </div>
+                  <div className="title text-2xl font-black text-filter outline-2 outline-black text-white">{card.productName}</div>
+                  <div>Set: {card.setName}</div>
+                  <div>Number: {card.number}</div>
+                  <div>Rarity: {card.rarity}</div>
+                  <div>Printing: {card.printing}</div>
+                  <div>Condition: {card.condition}</div>
+                  <div>Market Price: ${card.marketPrice}</div>
                 </div>
-
               </div>
-              <div className="text-sm font-medium text-gray-400">Quantity:
+              <div className="text-sm font-medium text-gray-400 mt-3">Quantity:
                 {edit[card._id]==='quantity'? (
                   <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
                 ):(
