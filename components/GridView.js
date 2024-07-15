@@ -1,130 +1,130 @@
-import React, {useState, useEffect, useCallback} from 'react'
-import Image from 'next/image'
-import Notification from '@/components/Notification'
-import cardData from '@/public/card-data/Yugioh/card_data'
+import Notification from '@/components/Notification';
+import cardData from '@/public/card-data/Yugioh/card_data';
+import Image from 'next/image';
+import { useCallback, useEffect, useState } from 'react';
 
-const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData}) => {
-  const [edit, setEdit]=useState({})
-  const [editValues, setEditValues]=useState({})
-  const [notification, setNotification]=useState({show: false, message: ''})
-  const [subtotalMarketPrice, setSubtotalMarketPrice]=useState(0)
-  const [totalCardCount, setTotalCardCount]=useState(0)
+const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData }) => {
+  const [edit, setEdit] = useState({});
+  const [editValues, setEditValues] = useState({});
+  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
+  const [totalCardCount, setTotalCardCount] = useState(0);
 
   useEffect(() => {
-    if(Array.isArray(aggregatedData)) {
-      const subtotal=aggregatedData.reduce((sum, card) => sum+(card.marketPrice*card.quantity), 0)
-      setSubtotalMarketPrice(subtotal)
+    if (Array.isArray(aggregatedData)) {
+      const subtotal = aggregatedData.reduce((sum, card) => sum + (card.marketPrice * card.quantity), 0);
+      setSubtotalMarketPrice(subtotal);
     }
-  }, [aggregatedData])
+  }, [aggregatedData]);
 
   useEffect(() => {
-    const fetchCardCount=async () => {
+    const fetchCardCount = async () => {
       try {
-        const response=await fetch('/api/countCards')
-        const data=await response.json()
-        setTotalCardCount(data.totalQuantity)
-      } catch(error) {
-        console.error('Error fetching card count:', error)
+        const response = await fetch('/api/countCards');
+        const data = await response.json();
+        setTotalCardCount(data.totalQuantity);
+      } catch (error) {
+        console.error('Error fetching card count:', error);
       }
-    }
-    fetchCardCount()
-  }, [aggregatedData])
+    };
+    fetchCardCount();
+  }, [aggregatedData]);
 
-  const handleEdit=(cardId, field) => {
-    setEdit({...edit, [cardId]: field})
+  const handleEdit = (cardId, field) => {
+    setEdit({ ...edit, [cardId]: field });
     setEditValues({
       ...editValues,
-      [cardId]: {...aggregatedData.find(card => card._id===cardId)}
-    })
-  }
+      [cardId]: { ...aggregatedData.find(card => card._id === cardId) }
+    });
+  };
 
-  const handleChange=(e, cardId, field) => {
+  const handleChange = (e, cardId, field) => {
     setEditValues({
       ...editValues,
-      [cardId]: {...editValues[cardId], [field]: e.target.value}
-    })
-  }
+      [cardId]: { ...editValues[cardId], [field]: e.target.value }
+    });
+  };
 
-  const handleSave=useCallback(async (cardId, field) => {
+  const handleSave = useCallback(async (cardId, field) => {
     try {
-      if(cardId&&editValues[cardId]&&field) {
-        const value=parseFloat(editValues[cardId][field])
-        await onUpdateCard(cardId, field, value)
-        setEdit({...edit, [cardId]: null})
-        setNotification({show: true, message: 'Card quantity updated successfully!'})
+      if (cardId && editValues[cardId] && field) {
+        const value = parseFloat(editValues[cardId][field]);
+        await onUpdateCard(cardId, field, value);
+        setEdit({ ...edit, [cardId]: null });
+        setNotification({ show: true, message: 'Card quantity updated successfully!' });
 
         // Fetch updated card count
-        const response=await fetch('/api/countCards')
-        const data=await response.json()
-        setTotalCardCount(data.totalQuantity)
+        const response = await fetch('/api/countCards');
+        const data = await response.json();
+        setTotalCardCount(data.totalQuantity);
       } else {
-        throw new Error('Invalid data or missing card ID or field')
+        throw new Error('Invalid data or missing card ID or field');
       }
-    } catch(error) {
-      console.error('Error saving card:', error)
+    } catch (error) {
+      console.error('Error saving card:', error);
     }
-  }, [edit, editValues, onUpdateCard])
+  }, [edit, editValues, onUpdateCard]);
 
-  const updateQuantity=useCallback(async (cardId, quantity) => {
-    if(quantity<=0) {
-      await onDeleteCard(cardId)
-      setNotification({show: true, message: 'Card deleted successfully!'})
+  const updateQuantity = useCallback(async (cardId, quantity) => {
+    if (quantity <= 0) {
+      await onDeleteCard(cardId);
+      setNotification({ show: true, message: 'Card deleted successfully!' });
     } else {
-      await onUpdateCard(cardId, 'quantity', quantity)
-      setNotification({show: true, message: 'Card quantity decreased successfully!'})
+      await onUpdateCard(cardId, 'quantity', quantity);
+      setNotification({ show: true, message: 'Card quantity decreased successfully!' });
     }
-  }, [onDeleteCard, onUpdateCard])
+  }, [onDeleteCard, onUpdateCard]);
 
-  const handleDelete=useCallback(async (cardId) => {
+  const handleDelete = useCallback(async (cardId) => {
     try {
-      const card=aggregatedData.find(card => card?._id===cardId)
-      if(card) {
-        const newQuantity=parseFloat(card.quantity-1)
-        await updateQuantity(cardId, newQuantity)
+      const card = aggregatedData.find(card => card?._id === cardId);
+      if (card) {
+        const newQuantity = parseFloat(card.quantity - 1);
+        await updateQuantity(cardId, newQuantity);
       } else {
-        throw new Error('Card not found')
+        throw new Error('Card not found');
       }
-    } catch(error) {
-      console.error('Error deleting card:', error)
+    } catch (error) {
+      console.error('Error deleting card:', error);
     }
-  }, [aggregatedData, updateQuantity])
+  }, [aggregatedData, updateQuantity]);
 
-  const calculatePriceTrend=(previousPrice, currentPrice) => {
-    if(currentPrice>previousPrice) {
-      return '+'
-    } else if(currentPrice<previousPrice) {
-      return '-'
+  const calculatePriceTrend = (previousPrice, currentPrice) => {
+    if (currentPrice > previousPrice) {
+      return '+';
+    } else if (currentPrice < previousPrice) {
+      return '-';
     } else {
-      return ''
+      return '';
     }
-  }
+  };
 
-  const getFullImagePath=useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, [])
+  const getFullImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, []);
 
-  const getCardImage=(cardName) => {
-    const cardInfo=cardData.find(item => item.name===cardName)
-    return cardInfo? {full: getFullImagePath(cardInfo?.id)}:null
-  }
+  const getCardImage = (cardName) => {
+    const cardInfo = cardData.find(item => item.name === cardName);
+    return cardInfo ? { full: getFullImagePath(cardInfo?.id) } : null;
+  };
 
   return (
     <>
-      <div className="mt-6">
+      <div className="mt-6 mx-auto w-full">
         <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice.toFixed(2)}</div>
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] max-w-full overflow-y-auto m-5 p-7 mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] w-full overflow-y-auto m-5 p-10 mx-auto py-12">
         {aggregatedData?.map((card, index) => {
-          const cardImages=getCardImage(card.productName)
+          const cardImages = getCardImage(card.productName);
           return (
-            <div key={index} className="card">
-              <div className="wrapper">
+            <div key={index} className="card mx-auto">
+              <div className="wrapper mx-auto">
                 <Image
                   unoptimized={true}
-                  src={cardImages? cardImages.full:'/images/yugioh-card.png'}
+                  src={cardImages ? cardImages.full : '/images/yugioh-card.png'}
                   alt={`${ card?.productName }`}
                   width={220}
                   height={375}
-                  className="cover-image"
+                  className="cover-image mx-auto"
                 />
                 <div className="black-overlay"></div>
                 <div className="details">
@@ -138,20 +138,20 @@ const GridView=({aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData})
                 </div>
               </div>
               <div className="text-sm font-medium text-gray-400 mt-3">Quantity:
-                {edit[card._id]==='quantity'? (
-                  <input type="number" name="quantity" value={editValues[card._id]?.quantity||''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
-                ):(
+                {edit[card._id] === 'quantity' ? (
+                  <input type="number" name="quantity" value={editValues[card._id]?.quantity || ''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
+                ) : (
                   <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
                 )}
               </div>
               <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
             </div>
-          )
+          );
         })}
-        <Notification show={notification.show} setShow={(show) => setNotification({...notification, show})} message={notification.message} />
+        <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
       </div>
     </>
-  )
-}
+  );
+};
 
-export default GridView
+export default GridView;

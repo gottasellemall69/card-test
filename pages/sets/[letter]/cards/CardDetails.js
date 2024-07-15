@@ -1,51 +1,51 @@
-import React, {useEffect, useState} from 'react'
-import {useRouter} from 'next/router'
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
-const CardDetails=() => {
-  const router=useRouter()
-  const {card}=router.query
-  const [cardData, setCardData]=useState(null)
-  const [isLoading, setIsLoading]=useState(false)
-  const [error, setError]=useState(null)
+const CardDetails = () => {
+  const router = useRouter();
+  const { card } = router.query;
+  const [cardData, setCardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Helper function to fetch card data
-  const fetchCardData=async (cardId) => {
+  const fetchCardData = async (cardId) => {
     try {
-      const res=await fetch(`/api/card/${ encodeURIComponent(cardId) }`)
-      if(!res.ok) throw new Error('Failed to fetch')
-      return await res.json()
-    } catch(err) {
-      throw err
+      const res = await fetch(`/api/card/${ encodeURIComponent(cardId) }`);
+      if (!res.ok) throw new Error('Failed to fetch');
+      return await res.json();
+    } catch (err) {
+      throw err;
     }
-  }
+  };
 
   useEffect(() => {
-    const loadData=async () => {
-      if(!card) return // Ensure we have a card ID from the query
-      setIsLoading(true)
+    const loadData = async () => {
+      if (!card) return; // Ensure we have a card ID from the query
+      setIsLoading(true);
       try {
-        const cardDetails=await fetchCardData(card)
-        setCardData(cardDetails)
-      } catch(error) {
-        setError('Error fetching card data')
+        const cardDetails = await fetchCardData(card);
+        setCardData(cardDetails);
+      } catch (error) {
+        setError('Error fetching card data');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [card])
+    loadData();
+  }, [card]);
 
-  if(isLoading) {
-    return <div>Loading...</div>
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
-  if(error) {
-    return <div>{error}</div>
+  if (error) {
+    return <div>{error}</div>;
   }
 
-  if(!cardData) {
-    return <div>Card not found</div>
+  if (!cardData) {
+    return <div>Card not found</div>;
   }
 
   return (
@@ -81,7 +81,7 @@ const CardDetails=() => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default CardDetails
+export default CardDetails;

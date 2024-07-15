@@ -1,28 +1,28 @@
-'use client'
+'use client';
 // @/pages/sets//[letter]/cards/[setName].js
-import {useRouter} from 'next/router'
-import {useEffect, useState} from 'react'
-import {fetchCardData} from '@/utils/api'
-import Card from '@/components/Card'
+import Card from '@/components/Card';
+import { fetchCardData } from '@/utils/api';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
-const CardsInSetPage=() => {
-  const [cards, setCards]=useState([])
-  const router=useRouter()
-  const {setName}=router.query
+const CardsInSetPage = () => {
+  const [cards, setCards] = useState([]);
+  const router = useRouter();
+  const { setName } = router.query;
 
   useEffect(() => {
-    const loadData=async () => {
-      const allCards=await fetchCardData()
-      const cardsInSet=allCards.filter(
-        (card) => card.card_sets?.some((set) => set.set_name.toLowerCase()===setName.toLowerCase())
-      )
-      setCards(cardsInSet)
-    }
+    const loadData = async () => {
+      const allCards = await fetchCardData();
+      const cardsInSet = allCards.filter(
+        (card) => card.card_sets?.some((set) => set.set_name.toLowerCase() === setName.toLowerCase())
+      );
+      setCards(cardsInSet);
+    };
 
-    if(setName) {
-      loadData()
+    if (setName) {
+      loadData();
     }
-  }, [setName])
+  }, [setName]);
 
   return (
     <div>
@@ -36,7 +36,7 @@ const CardsInSetPage=() => {
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CardsInSetPage
+export default CardsInSetPage;
