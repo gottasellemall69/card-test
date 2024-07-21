@@ -1,11 +1,11 @@
-'use client'
-import React, {useState} from 'react'
-import Head from 'next/head'
-import YugiohCardListInput from '@/components/YugiohCardListInput'
-import AlphabeticalIndex from '@/components/Navigation/AlphabeticalIndex'
-import {fetchCardData, getCardData, setNameIdMap} from '@/utils/api'
+'use client';
+import AlphabeticalIndex from '@/components/Navigation/AlphabeticalIndex';
+import YugiohCardListInput from '@/components/YugiohCardListInput';
+import { setNameIdMap } from '@/utils/api';
+import Head from 'next/head';
+import { useState } from 'react';
 
-const exampleCardList=
+const exampleCardList =
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
 Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition
 Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition
@@ -16,84 +16,84 @@ World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Min
 Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition
 Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited
 The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition
-Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited`
+Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited`;
 
-const Home=() => {
-  const [collection, setCollection]=useState([])
-  const [selectedRows, setSelectedRows]=useState([])
-  const [cardList, setCardList]=useState('')
-  const [matchedCardData, setMatchedCardData]=useState(null)
-  const [isLoading, setIsLoading]=useState(false)
-  const [error, setError]=useState(null)
+const Home = () => {
+  const [collection, setCollection] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [cardList, setCardList] = useState('');
+  const [matchedCardData, setMatchedCardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleLoadExampleData=() => {
-    setCardList(exampleCardList)
-  }
+  const handleLoadExampleData = () => {
+    setCardList(exampleCardList);
+  };
 
-  const fetchedSetData={}
-  const fetchCardData=async (card) => {
+  const fetchedSetData = {};
+  const fetchCardData = async (card) => {
     try {
-      const {productName, setName, number, printing, rarity, condition}=card
+      const { productName, setName, number, printing, rarity, condition } = card;
       // Get the numerical setNameId from the mapping
-      const setNameId=setNameIdMap[setName]
-      if(!setNameId) {
-        throw new Error('Numerical setNameId not found for set name:', setName)
+      const setNameId = setNameIdMap[setName];
+      if (!setNameId) {
+        throw new Error('Numerical setNameId not found for set name:', setName);
       }
       // Check if set data is already fetched
-      if(!fetchedSetData[setName]) {
-        console.log('Fetching set data for:', setName)
-        const response=await fetch(`/api/cards/${ setNameId }`)
-        if(!response.ok) {
-          throw new Error('Failed to fetch card data for set:', setName)
+      if (!fetchedSetData[setName]) {
+        console.log('Fetching set data for:', setName);
+        const response = await fetch(`/api/cards/${ setNameId }`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch card data for set:', setName);
         }
-        const responseData=await response.json()
-        fetchedSetData[setName]=responseData // Cache the fetched set data
+        const responseData = await response.json();
+        fetchedSetData[setName] = responseData; // Cache the fetched set data
       } else {
-        console.log('Using cached set data for:', setName)
+        console.log('Using cached set data for:', setName);
       }
-      const setCardData=fetchedSetData[setName]
+      const setCardData = fetchedSetData[setName];
       // Find the matching card in the fetched set data
-      const matchedCard=setCardData?.result.find((card) => {
+      const matchedCard = setCardData?.result.find((card) => {
         return (
-          card.productName.includes(productName)&&
-          card.set.includes(setName)&&
-          card.number.includes(number)&&
-          card.printing.includes(printing)&&
-          card.rarity.includes(rarity)&&
+          card.productName.includes(productName) &&
+          card.set.includes(setName) &&
+          card.number.includes(number) &&
+          card.printing.includes(printing) &&
+          card.rarity.includes(rarity) &&
           card.condition.includes(condition)
-        )
-      })
-      if(!matchedCard||!matchedCard?.marketPrice) {
-        throw new Error('Market price data not found for the card')
+        );
+      });
+      if (!matchedCard || !matchedCard?.marketPrice) {
+        throw new Error('Market price data not found for the card');
       }
-      const marketPrice=matchedCard?.marketPrice!==undefined? matchedCard.marketPrice:parseFloat("0").toFixed(2)
-      console.log('Matched card:', matchedCard)
-      return {card, data: {...matchedCard, marketPrice}, error: null}
-    } catch(error) {
-      console.error('Error fetching card data:', error)
-      return {card, data: {marketPrice: parseFloat("0").toFixed(2)}, error: 'No market price available'}
+      const marketPrice = matchedCard?.marketPrice !== undefined ? matchedCard.marketPrice : parseFloat("0").toFixed(2);
+      console.log('Matched card:', matchedCard);
+      return { card, data: { ...matchedCard, marketPrice }, error: null };
+    } catch (error) {
+      console.error('Error fetching card data:', error);
+      return { card, data: { marketPrice: parseFloat("0").toFixed(2) }, error: 'No market price available' };
     }
-  }
+  };
 
-  const handleSubmit=async (event) => {
-    event.preventDefault()
-    setIsLoading(true)
-    setError(null)
-    console.log('Form submitted')
-    console.log('Card List:', cardList)
-    console.log('Is loading:', isLoading)
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    console.log('Form submitted');
+    console.log('Card List:', cardList);
+    console.log('Is loading:', isLoading);
     try {
       // Split the card list and parse it into JSON
-      const cards=cardList.trim().split('\n').map((cardLine) => {
+      const cards = cardList.trim().split('\n').map((cardLine) => {
         // Use regular expression to handle escaped commas inside quotation marks
-        const regex=/(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g
-        const matches=[]
-        let match
-        while((match=regex.exec(cardLine))!==null) {
-          matches.push(match[1]||match[2])
+        const regex = /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
+        const matches = [];
+        let match;
+        while ((match = regex.exec(cardLine)) !== null) {
+          matches.push(match[1] || match[2]);
         }
-        if(matches.length!==6) {
-          throw new Error('Invalid card format')
+        if (matches.length !== 6) {
+          throw new Error('Invalid card format');
         }
         const [
           rawProductName,
@@ -102,31 +102,31 @@ const Home=() => {
           printing,
           rarity,
           condition
-        ]=matches.map((match) => match.trim())
+        ] = matches.map((match) => match.trim());
 
         // Remove quotation marks around productName if present
-        const productName=rawProductName.replace(/^"|"$/g, '')
+        const productName = rawProductName.replace(/^"|"$/g, '');
 
-        return ({productName, setName, number, printing, rarity, condition})
-      })
-      if(cards.length===0) {
-        throw new Error('Card list is empty')
+        return ({ productName, setName, number, printing, rarity, condition });
+      });
+      if (cards.length === 0) {
+        throw new Error('Card list is empty');
       }
       // Fetch card data for each card in batches
-      const fetchedCardData=await Promise.all(
+      const fetchedCardData = await Promise.all(
         cards.map((card) => fetchCardData(card))
-      )
-      console.log('Parsed cards:', cards)
-      console.log('Fetched card data:', fetchedCardData)
+      );
+      console.log('Parsed cards:', cards);
+      console.log('Fetched card data:', fetchedCardData);
       // Update matched card data
-      setMatchedCardData(fetchedCardData)
-    } catch(error) {
-      setError('Error fetching card data')
-      console.error('Error fetching card data:', error)
+      setMatchedCardData(fetchedCardData);
+    } catch (error) {
+      setError('Error fetching card data');
+      console.error('Error fetching card data:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -136,12 +136,12 @@ const Home=() => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <div className="mx-auto my-24 lg:text-left text-center text-pretty">
+      <div className="mx-auto my-24 text-center lg:text-left text-pretty">
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
-        <div className="mx-auto container flex flex-wrap flex-col lg:text-left">
-          <div className="mx-auto text-base italic font-medium mb-5 lg:text-left">
+        <div className="mx-auto flex flex-wrap flex-col lg:text-left">
+          <div className="w-full mx-auto text-base italic font-medium mb-5">
             Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
-            <ul className="my-2 list-none list-outside mx-auto text-sm font-medium lg:text-left">
+            <ul className="w-full my-2 list-none list-outside mx-auto text-sm font-medium lg:text-left">
               <li>Near Mint+[Edition]</li>
               <li>Lightly Played+[Edition]</li>
               <li>Moderately Played+[Edition]</li>
@@ -150,7 +150,7 @@ const Home=() => {
             </ul>
 
 
-            <div className="mx-auto text-base leading-7 italic font-medium text-center lg:text-left">
+            <div className="w-full mx-auto text-base leading-7 italic font-medium text-center lg:text-left">
               Try it out:
               <br />
               <button
@@ -158,19 +158,19 @@ const Home=() => {
                 onClick={handleLoadExampleData}>
                 Load Example Data
               </button>
-              <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+              <p className="w-full mx-auto text-base leading-7 italic font-medium lg:text-left">
                 OR:
               </p>
-              <p className="mx-auto text-base leading-7 italic font-medium lg:text-left">
+              <p className="w-full mx-auto text-base leading-7 italic font-medium lg:text-left">
                 Browse sets by name by choosing the letter it starts with from the list below:
               </p>
             </div>
           </div>
         </div>
-        <div className="m-2 leading-5 mx-auto max-w-fit">
+        <div className="m-2 leading-5 mx-auto w-fit">
           <AlphabeticalIndex />
         </div>
-        <div className='mx-auto'>
+        <div className="m-2 w-7xl mx-auto flex flex-wrap flex-col">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}
@@ -187,7 +187,7 @@ const Home=() => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

@@ -172,10 +172,10 @@
   {
     "setNameId": 143,
     "categoryId": 2,
-    "name": "Yu-Gi-Oh! Duel Monsters International: Worldwide Edition",
-    "cleanSetName": "Yu Gi Oh Duel Monsters International Worldwide Edition",
-    "urlName": "yu-gi-oh-duel-monsters-international-worldwide-edition",
-    "abbreviation": "GBI",
+    "name": "American God Cards",
+    "cleanSetName": "American God Cards",
+    "urlName": "american-god-cards",
+    "abbreviation": "",
     "releaseDate": "2003-04-17T00:00:00",
     "active": true
   },
@@ -5900,6 +5900,16 @@
     "active": true
   },
   {
+    "setNameId": 23416,
+    "categoryId": 2,
+    "name": "25th Anniversary Rarity Collection II",
+    "cleanSetName": "25th Anniversary Rarity Collection II",
+    "urlName": "25th-anniversary-rarity-collection-ii",
+    "abbreviation": "RA02",
+    "releaseDate": "2024-05-24T00:00:00",
+    "active": true
+  },
+  {
     "setNameId": 23427,
     "categoryId": 2,
     "name": "OTS Tournament Pack 24",
@@ -5907,6 +5917,26 @@
     "urlName": "ots-tournament-pack-24",
     "abbreviation": "OP24",
     "releaseDate": "2024-02-14T00:00:00",
+    "active": true
+  },
+  {
+    "setNameId": 23441,
+    "categoryId": 2,
+    "name": "Battles of Legend: Terminal Revenge",
+    "cleanSetName": "Battles of Legend Terminal Revenge",
+    "urlName": "battles-of-legend-terminal-revenge",
+    "abbreviation": "BLTR",
+    "releaseDate": "2024-06-21T00:00:00",
+    "active": true
+  },
+  {
+    "setNameId": 23458,
+    "categoryId": 2,
+    "name": "The Infinite Forbidden",
+    "cleanSetName": "The Infinite Forbidden",
+    "urlName": "the-infinite-forbidden",
+    "abbreviation": "INFO",
+    "releaseDate": "2024-07-19T00:00:00",
     "active": true
   },
   {
@@ -5927,6 +5957,16 @@
     "urlName": "speed-duel-tournament-pack-7",
     "abbreviation": "STP7",
     "releaseDate": "2024-04-03T00:00:00",
+    "active": true
+  },
+  {
+    "setNameId": 23535,
+    "categoryId": 2,
+    "name": "OTS Tournament Pack 25",
+    "cleanSetName": "OTS Tournament Pack 25",
+    "urlName": "ots-tournament-pack-25",
+    "abbreviation": "OP25",
+    "releaseDate": "2024-06-12T00:00:00",
     "active": true
   }
 ]

@@ -62,6 +62,7 @@ const CardDetails = () => {
           <ul className="flex flex-col sm:flex-row sm:inline-flex flex-wrap">
             {cardData.card_sets?.map((set, index) => (
               <li key={`${ set.set_code }-${ index }`} className="m-2 p-2 divide-y divide-x divide-x-reverse">
+                <p><span className="font-bold">Card Number:</span> {set.set_code}</p>
                 <p><span className="font-bold">Set Name:</span> {set.set_name}</p>
                 <p><span className="font-bold">Rarity:</span> {set.set_rarity}</p>
                 <p><span className="font-bold">Edition:</span> {set.set_edition}</p>
