@@ -5,7 +5,7 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        <meta
+        {/*<meta
           httpEquiv="Content-Security-Policy"
           content="
               script-src 'self' 'unsafe-inline' 'unsafe-eval' vercel.app;
@@ -13,7 +13,7 @@ export default function Document() {
               img-src 'self' data:;
               object-src 'none';
             "
-        />
+        />*/}
       </Head>
       <body className="mx-auto min-h-full">
         <div>

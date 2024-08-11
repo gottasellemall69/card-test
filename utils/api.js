@@ -1,32 +1,14 @@
 // @/utils/api.js
+import cardSetsData from '@/public/card-data/Yugioh/card_sets.json';
 
-// Function to fetch card sets data from the given URL
-async function fetchCardSetsData() {
-  const url = 'https://mpapi.tcgplayer.com/v2/Catalog/SetNames?categoryId=2&active=true';
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch card sets data');
-    }
-    const data = await response.json();
-    return data.results; // Adjust this if the returned structure is different
-  } catch (error) {
-    console.error('Error fetching card sets data:', error);
-    return [];
-  }
-};
+// Parse card sets data from JSON file
+const cardSets = JSON.parse(JSON.stringify(cardSetsData));
 
 // Create a mapping between set names and numerical IDs
 const setNameIdMap = {};
-
-let cardSets = [];
-
-(async () => {
-  cardSets = await fetchCardSetsData();
-  cardSets.forEach((set) => {
-    setNameIdMap[set.name] = set.setNameId;
-  });
-})();
+cardSets.forEach((set) => {
+  setNameIdMap[set.name] = set.setNameId;
+});
 
 // Export the mapping for external use if needed
 export { setNameIdMap };
@@ -39,7 +21,7 @@ export async function getCardData(setName) {
     if (cardDataCache[setName]) {
       console.log('Using cached data for set:', setName);
       return cardDataCache[setName];
-    };
+    }
 
     console.log('Fetching card data for set:', setName);
     const setNameId = setNameIdMap[setName];
@@ -60,15 +42,15 @@ export async function getCardData(setName) {
     console.error('Error fetching card data:', error);
     return null;
   }
-};
+}
 
 export async function getCardSetsData() {
   try {
-    // Fetch the card sets data from the URL
-    const parsedData = await fetchCardSetsData();
+    // Parse the card_sets.json data
+    const parsedData = JSON.parse(JSON.stringify(cardSetsData));
     // Map setNameId to cleanSetName
     const mappedData = parsedData.reduce((acc, curr) => {
-      acc[curr.setNameId] = curr.cleanSetName; // Adjust if necessary
+      acc[curr.setNameId] = curr.cleanSetName;
       return acc;
     }, {});
     console.log('Card sets data parsed:', mappedData);
@@ -77,7 +59,7 @@ export async function getCardSetsData() {
     console.error('Error parsing card sets data:', error);
     return null;
   }
-};
+}
 
 export const updateCardPrices = async (setName, cardData) => {
   try {
@@ -96,6 +78,7 @@ export const updateCardPrices = async (setName, cardData) => {
     console.error('Error updating card prices:', error);
   }
 };
+
 
 export async function fetchCardData() {
   const url = "https://db.ygoprodeck.com/api/v7/cardinfo.php?tcgplayer_data=true";
