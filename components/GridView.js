@@ -1,7 +1,7 @@
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData }) => {
   const [edit, setEdit] = useState({});
@@ -99,12 +99,14 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard, setAggregatedDat
     }
   };
 
-  const getFullImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, []);
+  const getFullImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, []); // Use WebP format for better compression
 
-  const getCardImage = (cardName) => {
+  const getCardImage = useCallback((cardName) => {
     const cardInfo = cardData.find(item => item.name === cardName);
     return cardInfo ? { full: getFullImagePath(cardInfo?.id) } : null;
-  };
+  }, [getFullImagePath]);
+
+  const memoizedAggregatedData = useMemo(() => aggregatedData, [aggregatedData]);
 
   return (
     <>
@@ -112,15 +114,15 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard, setAggregatedDat
         <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice.toFixed(2)}</div>
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] w-full overflow-y-auto m-5 p-10 mx-auto py-12">
-        {aggregatedData?.map((card, index) => {
+      <div className="justify-center mx-auto align-baseline grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] w-fit overflow-y-auto m-5 p-10 py-12">
+        {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
           return (
             <div key={index} className="card mx-auto">
               <div className="wrapper mx-auto">
                 <Image
                   unoptimized={true}
-                  src={cardImages ? cardImages.full : '/images/yugioh-card.png'}
+                  src={cardImages ? cardImages.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                   alt={`${ card?.productName }`}
                   width={220}
                   height={375}

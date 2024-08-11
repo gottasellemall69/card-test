@@ -1,13 +1,12 @@
-'use client'
+'use client';
 // @/pages/SportsPage.page.js
-import React from 'react'
-import Head from 'next/head'
-import dynamic from 'next/dynamic'
+import dynamic from 'next/dynamic';
+import Head from 'next/head';
 
 
-const SportsTable=dynamic(() => import('@/components/Sports/SportsTable.js'), {ssr: false})
+const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: false });
 
-const SportsPage=({metaTags}) => {
+const SportsPage = ({ metaTags }, { nonce }) => {
   return (
     <>
       <Head>
@@ -30,21 +29,21 @@ const SportsPage=({metaTags}) => {
       </p>
       <SportsTable />
     </>
-  )
-}
+  );
+};
 export async function getStaticProps() {
   // Fetch data for meta tags
-  const metaTags={
+  const metaTags = {
     title: 'Sports Card Prices',
     description: 'Get sports card prices',
     charset: 'UTF-8',
     keywords: 'javascript,nextjs,price-tracker,trading-card-game,tailwindcss'
-  }
+  };
 
   return {
     props: {
       metaTags
     },
-  }
+  };
 }
-export default SportsPage
+export default SportsPage;

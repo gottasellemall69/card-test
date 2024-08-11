@@ -29,7 +29,6 @@ const Home = () => {
   const handleLoadExampleData = () => {
     setCardList(exampleCardList);
   };
-
   const fetchedSetData = {};
   const fetchCardData = async (card) => {
     try {
