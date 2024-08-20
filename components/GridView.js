@@ -3,7 +3,7 @@ import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard, setAggregatedData }) => {
+const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
@@ -89,15 +89,6 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard, setAggregatedDat
     }
   }, [aggregatedData, updateQuantity]);
 
-  const calculatePriceTrend = (previousPrice, currentPrice) => {
-    if (currentPrice > previousPrice) {
-      return '+';
-    } else if (currentPrice < previousPrice) {
-      return '-';
-    } else {
-      return '';
-    }
-  };
 
   const getFullImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, []); // Use WebP format for better compression
 

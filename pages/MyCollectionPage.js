@@ -2,6 +2,7 @@ import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButto
 import CardFilter from '@/components/CardFilter';
 import GridView from '@/components/GridView';
 import MyCollection from '@/components/MyCollection';
+import YugiohPagination from '@/components/Navigation/YugiohPagination';
 import { useCallback, useEffect, useState } from 'react';
 
 const MyCollectionPage = () => {
@@ -16,6 +17,10 @@ const MyCollectionPage = () => {
   });
   const [view, setView] = useState('grid'); // 'table' or 'grid'
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(30); // Adjust the number based on your design
 
   const toggleFilterMenu = () => {
     setIsFilterMenuOpen(!isFilterMenuOpen);
@@ -127,8 +132,6 @@ const MyCollectionPage = () => {
       setAggregatedData(currentData =>
         currentData.filter(card => card._id !== cardId)
       );
-
-      // Fetch updated data after deleting the card
     } catch (error) {
       console.error('Error deleting card:', error);
     }
@@ -150,6 +153,14 @@ const MyCollectionPage = () => {
     } catch (error) {
       console.error('Error deleting all cards:', error);
     }
+  };
+
+  // Get paginated data
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = aggregatedData.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageClick = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -174,7 +185,6 @@ const MyCollectionPage = () => {
           >
             Table View
           </button>
-
         </div>
 
         <div className='float-right flex-wrap flex-row'>
@@ -193,18 +203,23 @@ const MyCollectionPage = () => {
         <CardFilter updateFilters={handleFilterChange} />
       )}
       {view === 'grid' ? (
-
-        <GridView
-          aggregatedData={aggregatedData}
-          onDeleteCard={onDeleteCard}
-          onUpdateCard={onUpdateCard}
-          setAggregatedData={setAggregatedData}
-        />
-
+        <>
+          <GridView
+            aggregatedData={paginatedData}
+            onDeleteCard={onDeleteCard}
+            onUpdateCard={onUpdateCard}
+            setAggregatedData={setAggregatedData}
+          />
+          <YugiohPagination
+            currentPage={currentPage}
+            itemsPerPage={itemsPerPage}
+            totalItems={aggregatedData.length}
+            handlePageClick={handlePageClick}
+          />
+        </>
       ) : (
-        <MyCollection aggregatedData={aggregatedData} />
+        <MyCollection aggregatedData={aggregatedData} onDeleteCard={onDeleteCard} />
       )}
-
     </div>
   );
 };

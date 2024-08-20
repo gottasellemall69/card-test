@@ -15,7 +15,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
     message: ''
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 25; // Adjust as needed
+  const itemsPerPage = 30; // Adjust as needed
   const [sortConfig, setSortConfig] = useState({ key: [], direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [selectAllChecked, setSelectAllChecked] = useState(false);
@@ -189,7 +189,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
     <div>
       <form onSubmit={handleSubmit}>
         <textarea
-          className="mx-auto text-black w-[96%] text-nowrap h-72 resize-none justify-items-center p-2"
+          className="text-black w-11/12 text-nowrap h-72 resize-none justify-items-center p-2"
           value={cardList}
           onChange={(e) => setCardList(e.target.value)}
           placeholder="Enter your list of cards..."
@@ -213,8 +213,8 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
             >
               Download CSV
             </button>
-            <table className="w-full mx-auto divide-y divide-gray-200">
-              <thead className="mx-auto bg-transparent">
+            <table className="mx-auto divide-y divide-gray-200">
+              <thead className="bg-transparent">
                 <tr>
                   <th className="sticky top-0 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
 
@@ -254,16 +254,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                       </span>
                     )}
                   </th>
-                  <th
-                    onClick={() => handleSort('printing')}
-                    className="hidden sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
-                    Printing
-                    {sortConfig.key === 'printing' && (
-                      <span className="ml-1">
-                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-4 w-4 inline" /> : <ChevronDownIcon className="h-4 w-4 inline" />}
-                      </span>
-                    )}
-                  </th>
+
                   <th
                     onClick={() => handleSort('rarity')}
                     className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
@@ -306,13 +297,12 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                         onChange={() => toggleCheckbox(index)}
                       />
                     </td>
-                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
-                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
-                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
-                    <td className="hidden border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.printing}</td>
-                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
-                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
-                    <td className="border border-gray-800 py-1 whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${ data?.marketPrice }` : error}</td>
+                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
+                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
+                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
+                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
+                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
+                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${ data?.marketPrice }` : error}</td>
                   </tr>
                 ))}
               </tbody>
@@ -327,7 +317,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
             <button
               className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"
               onClick={addToCollection}>
-              Add selected cards to Collection
+              Add selected cards
             </button>
             <button
               className="float-end border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"

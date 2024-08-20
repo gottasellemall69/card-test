@@ -169,7 +169,7 @@ const Home = () => {
         <div className="m-2 leading-5 mx-auto w-fit">
           <AlphabeticalIndex />
         </div>
-        <div className="m-2 w-7xl mx-auto flex flex-wrap flex-col">
+        <div className="mx-auto flex flex-wrap flex-col">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}
