@@ -1,21 +1,21 @@
-import {MongoClient} from 'mongodb'
+import { MongoClient } from 'mongodb';
 
-const uri=process.env.MONGODB_URI
-const client=new MongoClient(uri)
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
 
 export default async function handler(req, res) {
-  if(req.method==='GET') {
+  if (req.method === 'GET') {
     try {
-      await client.connect()
-      const database=client.db('cardPriceApp')
-      const cards=database.collection('myCollection')
+      await client.connect();
+      const database = client.db('cardPriceApp');
+      const cards = database.collection('myCollection');
 
       // Get the total number of cards
-      const aggregationPipeline=[
+      const aggregationPipeline = [
         {
           '$group': {
             '_id': null,
-            'totalQuantity': {'$sum': '$quantity'}
+            'totalQuantity': { '$sum': '$quantity' }
           }
         },
         {
@@ -24,14 +24,14 @@ export default async function handler(req, res) {
 
           }
         }
-      ]
-      const aggregationResult=await cards.aggregate(aggregationPipeline).toArray()
-      const totalQuantity=aggregationResult[0]? aggregationResult[0].totalQuantity:0
+      ];
+      const aggregationResult = await cards.aggregate(aggregationPipeline).toArray();
+      const totalQuantity = aggregationResult[0] ? aggregationResult[0].totalQuantity : 0;
 
-      res.status(200).json({totalQuantity})
-    } catch(error) {
-      console.error(error)
-      res.status(500).json({error: 'Unable to fetch card count'})
+      res.status(200).json({ totalQuantity });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Unable to fetch card count' });
     }
   }
 }

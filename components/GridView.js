@@ -7,13 +7,13 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
-  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
-  const [totalCardCount, setTotalCardCount] = useState(0);
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState();
+  const [totalCardCount, setTotalCardCount] = useState();
 
   useEffect(() => {
     if (Array.isArray(aggregatedData)) {
       const subtotal = aggregatedData.reduce((sum, card) => sum + (card.marketPrice * card.quantity), 0);
-      setSubtotalMarketPrice(subtotal);
+      setSubtotalMarketPrice(subtotal.toFixed(2));
     }
   }, [aggregatedData]);
 
@@ -102,7 +102,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   return (
     <>
       <div className="mt-6 mx-auto w-full">
-        <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice.toFixed(2)}</div>
+        <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice}</div>
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
       <div className="justify-center mx-auto align-baseline grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] w-fit overflow-y-auto m-5 p-10 py-12">

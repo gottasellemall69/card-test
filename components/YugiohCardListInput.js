@@ -189,7 +189,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
     <div>
       <form onSubmit={handleSubmit}>
         <textarea
-          className="text-black w-11/12 text-nowrap h-72 resize-none justify-items-center p-2"
+          className="mx-auto w-full text-black flex flex-wrap text-nowrap h-72 resize-none justify-items-center p-2"
           value={cardList}
           onChange={(e) => setCardList(e.target.value)}
           placeholder="Enter your list of cards..."
@@ -208,15 +208,25 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
           <>
             <h2 className="my-5 text-white font-black">Matched Card Data:</h2>
             <button
-              className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"
+              className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
               onClick={downloadCSV}
             >
               Download CSV
+            </button><button
+              className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white"
+              onClick={addToCollection}>
+              Add cards to collection
             </button>
-            <table className="mx-auto divide-y divide-gray-200">
-              <thead className="bg-transparent">
+
+            <button
+              className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white"
+              onClick={handleGoToCollectionPage}>
+              View Collection
+            </button>
+            <table className="mx-auto w-full divide-y divide-gray-200 p-5">
+              <thead className="p-1 bg-transparent">
                 <tr>
-                  <th className="sticky top-0 p-2 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                  <th className="sticky px-1 top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
 
                     <input
                       type="checkbox"
@@ -226,7 +236,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                   <th
                     onClick={() => handleSort('productName')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Name
                     {sortConfig.key === 'productName' && (
                       <span className="ml-1">
@@ -287,7 +297,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200 text-black">
+              <tbody className="bg-white divide-y divide-gray-200 text-black px-1 py-1 mx-auto">
                 {sortedAndPaginatedData.currentItems.map(({ card, data, error }, index) => (
                   <tr key={index}>
                     <td className="border border-black text-center">
@@ -297,33 +307,25 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                         onChange={() => toggleCheckbox(index)}
                       />
                     </td>
-                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
-                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
-                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
-                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
-                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
-                    <td className="border border-gray-800 py-1 break-words whitespace-pre-wrap text-sm font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${ data?.marketPrice }` : error}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${ data?.marketPrice }` : error}</td>
                   </tr>
                 ))}
               </tbody>
 
             </table>
+
             <YugiohPagination
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
               totalItems={sortedAndPaginatedData.totalCount}
               handlePageClick={handlePageClick}
             />
-            <button
-              className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"
-              onClick={addToCollection}>
-              Add selected cards
-            </button>
-            <button
-              className="float-end border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white font-bold hover:text-black hover:bg-white"
-              onClick={handleGoToCollectionPage}>
-              View Collection
-            </button>
+
           </>
         )}
       </>

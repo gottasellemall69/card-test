@@ -135,41 +135,41 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <div className="mx-auto my-24 text-center lg:text-left text-pretty">
-        <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
-        <div className="mx-auto flex flex-wrap flex-col lg:text-left">
-          <div className="w-full mx-auto text-base italic font-medium mb-5">
-            Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
-            <ul className="w-full my-2 list-none list-outside mx-auto text-sm font-medium lg:text-left">
-              <li>Near Mint+[Edition]</li>
-              <li>Lightly Played+[Edition]</li>
-              <li>Moderately Played+[Edition]</li>
-              <li>Heavily Played+[Edition]</li>
-              <li>Damaged+[Edition]</li>
-            </ul>
+      <div className="my-24 text-pretty">
+        <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
+
+        <div className="w-full text-base italic font-medium mb-5 text-center sm:text-left">
+          Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
+          <ul className="w-full my-2 list-none list-outside text-sm font-medium ">
+            <li>Near Mint+[Edition]</li>
+            <li>Lightly Played+[Edition]</li>
+            <li>Moderately Played+[Edition]</li>
+            <li>Heavily Played+[Edition]</li>
+            <li>Damaged+[Edition]</li>
+          </ul>
 
 
-            <div className="w-full mx-auto text-base leading-7 italic font-medium text-center lg:text-left">
-              Try it out:
-              <br />
-              <button
-                className="my-2 text-sm border border-white rounded-lg px-2 py-2 mx-auto text-white font-bold hover:text-black hover:bg-white"
-                onClick={handleLoadExampleData}>
-                Load Example Data
-              </button>
-              <p className="w-full mx-auto text-base leading-7 italic font-medium lg:text-left">
-                OR:
-              </p>
-              <p className="w-full mx-auto text-base leading-7 italic font-medium lg:text-left">
-                Browse sets by name by choosing the letter it starts with from the list below:
-              </p>
-            </div>
-          </div>
+          <p className="w-full text-base leading-7 italic font-medium">
+            Try it out:
+            <br />
+            <button
+              className="my-2 text-sm border border-white rounded-lg px-2 py-2 text-white font-bold hover:text-black hover:bg-white"
+              onClick={handleLoadExampleData}>
+              Load Example Data
+            </button>
+            <br />
+            OR:
+            <br />
+            <br />
+
+            Browse sets by name by choosing the letter it starts with from the list below:
+          </p>
+
         </div>
-        <div className="m-2 leading-5 mx-auto w-fit">
+        <div className="m-2 leading-5 w-full">
           <AlphabeticalIndex />
         </div>
-        <div className="mx-auto flex flex-wrap flex-col">
+        <div className="w-full flex flex-wrap flex-col max-w-7xl">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}
