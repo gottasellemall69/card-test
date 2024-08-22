@@ -7,8 +7,8 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
-  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState();
-  const [totalCardCount, setTotalCardCount] = useState();
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState([]);
+  const [totalCardCount, setTotalCardCount] = useState([]);
 
   useEffect(() => {
     if (Array.isArray(aggregatedData)) {
@@ -18,17 +18,19 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   }, [aggregatedData]);
 
   useEffect(() => {
-    const fetchCardCount = async () => {
+    const fetchCardData = async () => {
       try {
         const response = await fetch('/api/countCards');
         const data = await response.json();
         setTotalCardCount(data.totalQuantity);
+        setSubtotalMarketPrice(data.totalMarketPrice); // Use the total market price from the API
       } catch (error) {
-        console.error('Error fetching card count:', error);
+        console.error('Error fetching card data:', error);
       }
     };
-    fetchCardCount();
-  }, [aggregatedData]);
+    fetchCardData();
+  }, [aggregatedData], []); // Only run on initial load
+
 
   const handleEdit = (cardId, field) => {
     setEdit({ ...edit, [cardId]: field });
@@ -102,7 +104,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   return (
     <>
       <div className="mt-6 mx-auto w-full">
-        <div className="text-xl font-semibold p-2">Collection Value: ${subtotalMarketPrice}</div>
+        <div className="text-xl font-semibold p-2">Total Collection Value: ${subtotalMarketPrice}</div>
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
       <div className="justify-center mx-auto align-baseline grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] w-fit overflow-y-auto m-5 p-10 py-12">

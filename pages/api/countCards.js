@@ -10,28 +10,38 @@ export default async function handler(req, res) {
       const database = client.db('cardPriceApp');
       const cards = database.collection('myCollection');
 
-      // Get the total number of cards
+      // Aggregate the total quantity and total market price across the entire collection
       const aggregationPipeline = [
         {
           '$group': {
             '_id': null,
-            'totalQuantity': { '$sum': '$quantity' }
+            'totalQuantity': { '$sum': { '$toDouble': '$quantity' } },
+            'totalMarketPrice': {
+              '$sum': {
+                '$multiply': [
+                  { '$toDouble': '$quantity' },
+                  { '$toDouble': '$marketPrice' }
+                ]
+              }
+            }
           }
         },
         {
           '$project': {
-            'totalQuantity': 1
-
+            'totalQuantity': 1,
+            'totalMarketPrice': 1
           }
         }
       ];
+
       const aggregationResult = await cards.aggregate(aggregationPipeline).toArray();
       const totalQuantity = aggregationResult[0] ? aggregationResult[0].totalQuantity : 0;
+      const totalMarketPrice = aggregationResult[0] ? aggregationResult[0].totalMarketPrice.toFixed(2) : '0.00';
 
-      res.status(200).json({ totalQuantity });
+      res.status(200).json({ totalQuantity, totalMarketPrice });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Unable to fetch card count' });
+      res.status(500).json({ error: 'Unable to fetch card data' });
     }
   }
 }
