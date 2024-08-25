@@ -166,12 +166,11 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
         </button>
       </form>
       <>
-        <h2 className="my-5 text-white font-black">Matched Card Data:</h2>
         {isLoading && <LoadingSpinner />}
         {error && <p>{error}</p>}
         {sortedAndPaginatedData.currentItems.length > 0 && (
 
-          <div className="container overscroll-contain max-w-full">
+          <div className="container max-h-[700px] overflow-y-auto lg:w-10/12">
             <button
               className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
               onClick={downloadCSV}
@@ -190,7 +189,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
             >
               View Collection
             </button>
-            <table className="max-w-full divide-y divide-gray-200 p-5">
+            <table className="divide-y divide-gray-200 p-5">
 
               <thead className="p-1 bg-transparent">
                 <tr>
