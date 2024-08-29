@@ -35,8 +35,8 @@ export default async function handler(req, res) {
       ];
 
       const aggregationResult = await cards.aggregate(aggregationPipeline).toArray();
-      const totalQuantity = aggregationResult[0] ? aggregationResult[0].totalQuantity : 0;
-      const totalMarketPrice = aggregationResult[0] ? aggregationResult[0].totalMarketPrice.toFixed(2) : '0.00';
+      const totalQuantity = aggregationResult[0] ? aggregationResult[0]?.totalQuantity : 0;
+      const totalMarketPrice = aggregationResult[0] ? aggregationResult[0]?.totalMarketPrice.toFixed(2) : 0;
 
       res.status(200).json({ totalQuantity, totalMarketPrice });
     } catch (error) {

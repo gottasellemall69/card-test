@@ -3,9 +3,10 @@ import AlphabeticalIndex from '@/components/Navigation/AlphabeticalIndex';
 import YugiohCardListInput from '@/components/YugiohCardListInput';
 import { setNameIdMap } from '@/utils/api';
 import Head from 'next/head';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 
-const exampleCardList = `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
+const exampleCardList =
+  `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
 Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition
 Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition
 Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition
@@ -25,66 +26,65 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleLoadExampleData = useCallback(() => {
+  const handleLoadExampleData = () => {
     setCardList(exampleCardList);
-  }, []);
-
-  const fetchCardData = useCallback(async (card) => {
-    const { productName, setName, number, printing, rarity, condition } = card;
-    const setNameId = setNameIdMap[setName];
-    if (!setNameId) {
-      throw new Error(`Numerical setNameId not found for set name: ${ setName }`);
-    }
-
+  };
+  const fetchedSetData = {};
+  const fetchCardData = async (card) => {
     try {
-      const cachedData = localStorage.getItem(setNameId);
-      let setCardData;
-
-      if (cachedData) {
-        setCardData = JSON.parse(cachedData);
-        console.log(`Using cached set data for: ${ setName }`);
-      } else {
-        console.log(`Fetching set data for: ${ setName }`);
+      const { productName, setName, number, printing, rarity, condition } = card;
+      // Get the numerical setNameId from the mapping
+      const setNameId = setNameIdMap[setName];
+      if (!setNameId) {
+        throw new Error('Numerical setNameId not found for set name:', setName);
+      }
+      // Check if set data is already fetched
+      if (!fetchedSetData[setName]) {
+        console.log('Fetching set data for:', setName);
         const response = await fetch(`/api/cards/${ setNameId }`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch card data for set: ${ setName }`);
+          throw new Error('Failed to fetch card data for set:', setName);
         }
-        setCardData = await response.json();
-        localStorage.setItem(setNameId, JSON.stringify(setCardData));
+        const responseData = await response.json();
+        fetchedSetData[setName] = responseData; // Cache the fetched set data
+      } else {
+        console.log('Using cached set data for:', setName);
       }
-
-      const matchedCard = setCardData?.result?.find((c) =>
-        c.productName.includes(productName) &&
-        c.set.includes(setName) &&
-        c.number.includes(number) &&
-        c.printing.includes(printing) &&
-        c.rarity.includes(rarity) &&
-        c.condition.includes(condition)
-      );
-
-      if (!matchedCard || !matchedCard.marketPrice) {
+      const setCardData = fetchedSetData[setName];
+      // Find the matching card in the fetched set data
+      const matchedCard = setCardData?.result.find((card) => {
+        return (
+          card.productName.includes(productName) &&
+          card.set.includes(setName) &&
+          card.number.includes(number) &&
+          card.printing.includes(printing) &&
+          card.rarity.includes(rarity) &&
+          card.condition.includes(condition)
+        );
+      });
+      if (!matchedCard || !matchedCard?.marketPrice) {
         throw new Error('Market price data not found for the card');
       }
-
-      return { card, data: { ...matchedCard, marketPrice: matchedCard.marketPrice }, error: null };
+      const marketPrice = matchedCard?.marketPrice !== undefined ? matchedCard.marketPrice : parseFloat("0").toFixed(2);
+      console.log('Matched card:', matchedCard);
+      return { card, data: { ...matchedCard, marketPrice }, error: null };
     } catch (error) {
       console.error('Error fetching card data:', error);
-      return { card, data: { marketPrice: '0.00' }, error: 'No market price available' };
+      return { card, data: { marketPrice: parseFloat("0").toFixed(2) }, error: 'No market price available' };
     }
-  }, []);
+  };
 
-  const handleSubmit = useCallback(async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-
+    console.log('Form submitted');
+    console.log('Card List:', cardList);
+    console.log('Is loading:', isLoading);
     try {
-      // Check if card list is empty
-      if (!cardList.trim()) {
-        throw new Error('Card list is empty');
-      }
-
+      // Split the card list and parse it into JSON
       const cards = cardList.trim().split('\n').map((cardLine) => {
+        // Use regular expression to handle escaped commas inside quotation marks
         const regex = /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
         const matches = [];
         let match;
@@ -94,39 +94,38 @@ const Home = () => {
         if (matches.length !== 6) {
           throw new Error('Invalid card format');
         }
+        const [
+          rawProductName,
+          setName,
+          number,
+          printing,
+          rarity,
+          condition
+        ] = matches.map((match) => match.trim());
 
-        const [rawProductName, setName, number, printing, rarity, condition] = matches.map((m) => m.trim());
+        // Remove quotation marks around productName if present
         const productName = rawProductName.replace(/^"|"$/g, '');
-        return { productName, setName, number, printing, rarity, condition };
-      });
 
+        return ({ productName, setName, number, printing, rarity, condition });
+      });
       if (cards.length === 0) {
         throw new Error('Card list is empty');
       }
-
-      const fetchedCardData = await Promise.all(cards.map((card) => fetchCardData(card)));
+      // Fetch card data for each card in batches
+      const fetchedCardData = await Promise.all(
+        cards.map((card) => fetchCardData(card))
+      );
+      console.log('Parsed cards:', cards);
+      console.log('Fetched card data:', fetchedCardData);
+      // Update matched card data
       setMatchedCardData(fetchedCardData);
     } catch (error) {
-      setError(error.message || 'Error fetching card data');
-      console.error('Error:', error);
+      setError('Error fetching card data');
+      console.error('Error fetching card data:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [cardList, fetchCardData]);
-
-  const yugiohCardListInputProps = useMemo(() => ({
-    collection,
-    selectedRows,
-    setSelectedRows,
-    setCollection,
-    cardList,
-    setCardList,
-    handleSubmit,
-    isLoading,
-    error,
-    matchedCardData,
-    setMatchedCardData,
-  }), [collection, selectedRows, cardList, isLoading, error, matchedCardData, handleSubmit]);
+  };
 
   return (
     <>
@@ -134,10 +133,11 @@ const Home = () => {
         <title>Card Price App</title>
         <meta name="description" content="Enter list of TCG cards, get data back" />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
-        <meta charSet="UTF-8" />
+        <meta name="charset" content="UTF-8" />
       </Head>
       <div className="my-24 text-pretty">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
+
         <div className="w-full text-base italic font-medium mb-5 text-center sm:text-left">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
           <ul className="w-full my-2 list-none list-outside text-sm font-medium ">
@@ -147,6 +147,8 @@ const Home = () => {
             <li>Heavily Played+[Edition]</li>
             <li>Damaged+[Edition]</li>
           </ul>
+
+
           <p className="w-full text-base leading-7 italic font-medium">
             Try it out:
             <br />
@@ -159,14 +161,28 @@ const Home = () => {
             OR:
             <br />
             <br />
+
             Browse sets by name by choosing the letter it starts with from the list below:
           </p>
+
         </div>
         <div className="m-2 leading-5 w-fit">
           <AlphabeticalIndex />
         </div>
-        <div className="flex flex-wrap flex-col">
-          <YugiohCardListInput {...yugiohCardListInputProps} />
+        <div className="w-10/12 container flex flex-wrap flex-col max-w-7xl">
+          <YugiohCardListInput
+            collection={collection}
+            selectedRows={selectedRows}
+            setSelectedRows={setSelectedRows}
+            setCollection={setCollection}
+            cardList={cardList}
+            setCardList={setCardList}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+            error={error}
+            matchedCardData={matchedCardData}
+            setMatchedCardData={setMatchedCardData}
+          />
         </div>
       </div>
     </>

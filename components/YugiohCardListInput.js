@@ -1,126 +1,157 @@
 'use client';
+// @/components/YugiohCardListInput.js
 import Notification from '@/components/Notification';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useCallback, useMemo, useState } from 'react';
-
+import { useMemo, useState } from 'react';
 const LoadingSpinner = dynamic(() => import('@/components/LoadingSpinner'));
 const YugiohPagination = dynamic(() => import('@/components/Navigation/YugiohPagination'));
 
 const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData }) => {
   const router = useRouter();
-  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [notification, setNotification] = useState({
+    show: false,
+    message: ''
+  });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 30;
-  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
+  const itemsPerPage = 30; // Adjust as needed
+  const [sortConfig, setSortConfig] = useState({ key: [], direction: 'ascending' });
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [selectAllChecked, setSelectAllChecked] = useState(false);
 
-  const handlePageClick = useCallback((page) => {
+  // Pagination handlers
+  const handlePageClick = (page) => {
     setCurrentPage(page);
-  }, []);
+  };
 
-  const handleSort = useCallback((key) => {
-    setSortConfig(prevConfig => {
-      const direction = prevConfig.key === key && prevConfig.direction === 'ascending' ? 'descending' : 'ascending';
-      return { key, direction };
-    });
+  const handleSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
 
-    setMatchedCardData(prevData => {
+    setSortConfig({ key, direction });
+
+    setMatchedCardData((prevData) => {
       const sorted = [...prevData].sort((a, b) => {
-        const aValue = sortConfig.key === 'marketPrice' ? (a.data?.marketPrice || 0) : a.card[sortConfig.key];
-        const bValue = sortConfig.key === 'marketPrice' ? (b.data?.marketPrice || 0) : b.card[sortConfig.key];
-        return (aValue < bValue ? -1 : 1) * (sortConfig.direction === 'ascending' ? 1 : -1);
+        const aValue = key === 'marketPrice' ? (a.data.marketPrice || 0) : a.card[key];
+        const bValue = key === 'marketPrice' ? (b.data.marketPrice || 0) : b.card[key];
+        if (aValue < bValue) {
+          return direction === 'ascending' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
       });
       return sorted;
     });
-  }, [setMatchedCardData]);
+  };
 
+  // Memoize sorted and paginated data
   const sortedAndPaginatedData = useMemo(() => {
-    if (!Array.isArray(matchedCardData)) return { currentItems: [], totalCount: 0 };
+    if (!Array.isArray(matchedCardData)) {
+      return (
+        { currentItems: [], totalCount: 0 }
+      );
+    }
 
     const sortedData = [...matchedCardData].sort((a, b) => {
       const aValue = sortConfig.key === 'marketPrice' ? (a.data?.marketPrice || 0) : a.card[sortConfig.key];
       const bValue = sortConfig.key === 'marketPrice' ? (b.data?.marketPrice || 0) : b.card[sortConfig.key];
-      return (aValue < bValue ? -1 : 1) * (sortConfig.direction === 'ascending' ? 1 : -1);
+      if (aValue < bValue) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      return 0;
     });
 
+    // Pagination calculation
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
     return { currentItems, totalCount: sortedData.length };
-  }, [matchedCardData, currentPage, sortConfig]);
+  }, [matchedCardData, currentPage, sortConfig.key, sortConfig.direction]);
 
-  const toggleCheckbox = useCallback((index) => {
-    setSelectedRows(prevSelectedRows => {
-      const newSelectedRows = new Set(prevSelectedRows);
-      const paginatedIndex = (currentPage - 1) * itemsPerPage + index;
-      if (newSelectedRows.has(paginatedIndex)) {
-        newSelectedRows.delete(paginatedIndex);
-      } else {
-        newSelectedRows.add(paginatedIndex);
-      }
-      return newSelectedRows;
-    });
-  }, [currentPage, itemsPerPage]);
-
-  const toggleSelectAll = useCallback(() => {
-    setSelectAllChecked(prevSelectAllChecked => {
-      if (!prevSelectAllChecked) {
-        const allRowsIndexes = Array.from({ length: matchedCardData?.length }, (_, index) => index);
-        setSelectedRows(new Set(allRowsIndexes));
-      } else {
-        setSelectedRows(new Set());
-      }
-      return !prevSelectAllChecked;
-    });
-  }, [matchedCardData]);
-
-  const addToCollection = useCallback(async () => {
-    if (selectedRows.size === 0) {
-      setNotification({ show: true, message: 'No cards were selected to add to the collection!' });
-      return;
+  // Function to handle checkbox toggle
+  const toggleCheckbox = (index) => {
+    const paginatedIndex = (currentPage - 1) * itemsPerPage + index;
+    const newSelectedRows = new Set(selectedRows);
+    if (newSelectedRows.has(paginatedIndex)) {
+      newSelectedRows.delete(paginatedIndex);
+    } else {
+      newSelectedRows.add(paginatedIndex);
     }
+    setSelectedRows(newSelectedRows);
+  };
 
-    const selectedData = Array.from(selectedRows).map(index => matchedCardData[index]);
-    const collectionArray = selectedData.map(({ card, data }) => ({
-      productName: card?.productName,
-      setName: card?.setName,
-      number: card?.number,
-      printing: card?.printing,
-      rarity: card?.rarity,
-      condition: card?.condition,
-      marketPrice: data?.marketPrice,
-      quantity: 1,
-    }));
+  const toggleSelectAll = () => {
+    if (!selectAllChecked) {
+      const allRowsIndexes = Array.from({ length: matchedCardData?.length }, (_, index) => index);
+      setSelectedRows(new Set(allRowsIndexes));
+    } else {
+      setSelectedRows(new Set());
+    }
+    setSelectAllChecked(!selectAllChecked);
+  };
 
+  // Function to handle adding selected rows to collection
+  const addToCollection = async () => {
     try {
+      // Ensure selectedRows contains valid indices
+      if (selectedRows.size === 0) {
+        setNotification({ show: true, message: 'No cards were selected to add to the collection!' });
+        console.log('No cards selected to add to collection');
+        return;
+      }
+
+      const selectedData = Array.from(selectedRows).map((index) => matchedCardData[index]);
+
+      const collectionArray = selectedData.map(({ card, data }, index) => ({
+        productName: card?.productName,
+        setName: card?.setName,
+        number: card?.number,
+        printing: card?.printing,
+        rarity: card?.rarity,
+        condition: card?.condition,
+        marketPrice: data?.marketPrice,
+        'quantity': parseInt("1")
+      }));
+
+      // Send a POST request to the server to save the cards
       const response = await fetch('/api/cards', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cards: collectionArray }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cards: collectionArray }), // Ensure cards data is included in the request body
       });
 
+      // Check if the response is ok
       if (!response.ok) {
-        throw new Error('Failed to add cards to collection');
+        throw new Error('Network response was not ok');
       }
 
+      // Parse the response data
       const result = await response.json();
-      setNotification({ show: true, message: 'Cards added to the collection successfully!' });
+      setNotification({ show: true, message: 'Card(s) added to the collection!' });
       console.log('Success:', result);
     } catch (error) {
       setNotification({ show: true, message: 'Card(s) failed to save!' });
-      console.error('Error:', error);
+      console.error('Failed to save the cards:', error);
     }
-  }, [selectedRows, matchedCardData]);
+  };
 
-  const handleGoToCollectionPage = useCallback(() => {
+  const handleGoToCollectionPage = () => {
     router.push('/MyCollectionPage');
-  }, [router]);
+  };
 
-  const convertToCSV = useCallback((data) => {
-    const headers = ['Name', 'Set', 'Number', 'Printing', 'Rarity', 'Condition', 'Market Price'];
+  // Function to convert data to CSV
+  const convertToCSV = (data) => {
+    const headers = ["Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price"];
     const rows = data.map(({ card, data }) => [
       card?.productName,
       card?.setName,
@@ -128,26 +159,31 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
       card?.printing,
       card?.rarity,
       card?.condition,
-      data?.marketPrice,
+      data?.marketPrice
     ]);
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-    return encodeURI(csvContent);
-  }, []);
 
-  const downloadCSV = useCallback(() => {
-    if (!matchedCardData?.length) {
+    let csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
+      + rows.map(e => e.join(",")).join("\n");
+
+    return encodeURI(csvContent);
+  };
+
+  // Function to download CSV
+  const downloadCSV = () => {
+    if (!matchedCardData || matchedCardData.length === 0) {
       setNotification({ show: true, message: 'No data available to download!' });
       return;
     }
 
     const csvContent = convertToCSV(matchedCardData);
-    const link = document.createElement('a');
-    link.setAttribute('href', csvContent);
-    link.setAttribute('download', 'yugioh_cards.csv');
+    const link = document.createElement("a");
+    link.setAttribute("href", csvContent);
+    link.setAttribute("download", "yugioh_cards.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [matchedCardData, convertToCSV]);
+  };
 
   return (
     <div>
@@ -168,9 +204,11 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
       <>
         {isLoading && <LoadingSpinner />}
         {error && <p>{error}</p>}
+        <Notification show={Notification.show} setShow={(show) => Notification({ ...Notification, show })} message={Notification.message} />
+
         {sortedAndPaginatedData.currentItems.length > 0 && (
 
-          <div className="container max-h-[700px] overflow-y-auto lg:w-10/12">
+          <div className="box-content max-h-[700px] overflow-y-auto lg:w-full lg:mx-auto overflow-x-hidden">
             <button
               className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
               onClick={downloadCSV}
@@ -189,37 +227,98 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
             >
               View Collection
             </button>
-            <table className="divide-y divide-gray-200 p-5">
+            <table className="divide-y divide-gray-200 w-full">
 
               <thead className="p-1 bg-transparent">
                 <tr>
                   <th className="sticky px-1 top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                    <input type="checkbox" checked={selectAllChecked} onChange={toggleSelectAll} />
+
+                    <input
+                      type="checkbox"
+                      checked={selectAllChecked}
+                      onChange={toggleSelectAll}
+                    />
                   </th>
-                  {['productName', 'setName', 'number', 'rarity', 'condition', 'marketPrice'].map((key) => (
-                    <th
-                      key={key}
-                      onClick={() => handleSort(key)}
-                      className="sticky top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer"
-                    >
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                      {sortConfig.key === key && (sortConfig.direction === 'ascending' ? <ChevronUpIcon className="inline w-4 h-4" /> : <ChevronDownIcon className="inline w-4 h-4" />)}
-                    </th>
-                  ))}
+                  <th
+                    onClick={() => handleSort('productName')}
+                    className="sticky top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    Name
+                    {sortConfig.key === 'productName' && (
+                      <span className="ml-1">
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                      </span>
+                    )}
+                  </th>
+                  <th
+                    onClick={() => handleSort('setName')}
+                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    Set
+                    {sortConfig.key === 'setName' && (
+                      <span className="ml-1">
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                      </span>
+                    )}
+                  </th>
+                  <th
+                    onClick={() => handleSort('number')}
+                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    Number
+                    {sortConfig.key === 'number' && (
+                      <span className="ml-1">
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                      </span>
+                    )}
+                  </th>
+
+                  <th
+                    onClick={() => handleSort('rarity')}
+                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    Rarity
+                    {sortConfig.key === 'rarity' && (
+                      <span className="ml-1">
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                      </span>
+                    )}
+                  </th>
+                  <th
+                    onClick={() => handleSort('condition')}
+                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    Condition
+                    {sortConfig.key === 'condition' && (
+                      <span className="ml-1">
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                      </span>
+                    )}
+                  </th>
+                  <th
+                    onClick={() => handleSort('marketPrice')}
+                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    Price
+                    {sortConfig.key === 'marketPrice' && (
+                      <span className="ml-1">
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                      </span>
+                    )}
+                  </th>
+
                 </tr>
               </thead>
-              <tbody>
-                {sortedAndPaginatedData.currentItems.map(({ card, data }, index) => (
+              <tbody className="bg-white divide-y divide-gray-200 text-black px-1 py-1 mx-auto">
+                {sortedAndPaginatedData.currentItems.map(({ card, data, error }, index) => (
                   <tr key={index}>
-                    <td className="text-white">
-                      <input type="checkbox" checked={selectedRows.has(index)} onChange={() => toggleCheckbox(index)} />
+                    <td className="border border-black text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has((currentPage - 1) * itemsPerPage + index)}
+                        onChange={() => toggleCheckbox(index)}
+                      />
                     </td>
-                    <td className="text-white p-1 text-center whitespace-pre-wrap break-words text-xs">{card?.productName}</td>
-                    <td className="text-white p-1 text-center whitespace-pre-wrap break-words text-xs">{card?.setName}</td>
-                    <td className="text-white p-1 text-center whitespace-pre-wrap break-words text-xs">{card?.number}</td>
-                    <td className="text-white p-1 text-center whitespace-pre-wrap break-words text-xs">{card?.rarity}</td>
-                    <td className="text-white p-1 text-center whitespace-pre-wrap break-words text-xs">{card?.condition}</td>
-                    <td className="text-white p-1 text-center whitespace-pre-wrap break-words text-xs">{data?.marketPrice ? `$${ data.marketPrice.toFixed(2) }` : 'N/A'}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${ data?.marketPrice }` : error}</td>
                   </tr>
                 ))}
               </tbody>
@@ -233,7 +332,6 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
           </div>
         )}
       </>
-      <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
     </div>
   );
 };

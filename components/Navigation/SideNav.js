@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 const SideNav = () => {
   return (
-    <div className=" lg:block lg:fixed left-0 top-0 h-full bg-black p-4 sidebar-menu transition-transform">
+    <div className="lg:block lg:fixed left-0 top-0 h-full bg-black p-4 sidebar-menu transition-transform">
 
       <h2 className="font-bold text-2xl">
         LOREM{" "}
@@ -30,13 +30,12 @@ const SideNav = () => {
           </Link>
         </li>
         <li className="mb-1 group">
-          <Link
+          <a
             className="inline-flex flex-wrap flex-row font-semibold items-center py-2 px-4 text-white hover:bg-gray-950 hover:text-gray-100 rounded-md group-[.active]:bg-gray-800 group-[.active]:text-white group-[.selected]:bg-gray-950 group-[.selected]:text-gray-100"
-            href="/SportsPage"
+            href="/cardSet"
           >
-
             <span className="text-sm">Sports Card Prices</span>
-          </Link>
+          </a>
         </li>
       </ul>
     </div>
