@@ -2,7 +2,7 @@
 // @/pages/SportsPage.page.js
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
 import dynamic from 'next/dynamic';
-const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: false });
+const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: true });
 export async function getStaticPaths() {
   const paths = [
     { params: { cardSet: '1975 NBA Topps' } },

@@ -186,16 +186,17 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
   };
 
   return (
-    <div>
+    <div className="mx-auto sm:mx-0 w-11/12 p-5">
+
       <form onSubmit={handleSubmit}>
         <textarea
-          className="w-full sm:mx-auto rounded-sm text-black flex flex-wrap text-nowrap h-72 resize-none justify-items-center p-2"
+          className="w-full mx-auto rounded-sm text-black flex flex-wrap text-nowrap h-72 resize-none p-2"
           value={cardList}
           onChange={(e) => setCardList(e.target.value)}
           placeholder="Enter your list of cards..."
         />
         <button
-          className="border border-white rounded-lg px-2 py-2 mx-auto m-2 text-white font-bold hover:text-black hover:bg-white"
+          className="mx-auto border border-white rounded-lg px-2 py-2 sm:float-start m-2 text-white font-bold hover:text-black hover:bg-white"
           type="submit"
         >
           Submit
@@ -204,34 +205,36 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
       <>
         {isLoading && <LoadingSpinner />}
         {error && <p>{error}</p>}
-        <Notification show={Notification.show} setShow={(show) => Notification({ ...Notification, show })} message={Notification.message} />
+        <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
 
         {sortedAndPaginatedData.currentItems.length > 0 && (
 
-          <div className="box-content max-h-[700px] overflow-y-auto lg:w-full lg:mx-auto overflow-x-hidden">
-            <button
-              className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
-              onClick={downloadCSV}
-            >
-              Download CSV
-            </button>
-            <button
-              className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white"
-              onClick={addToCollection}
-            >
-              Add cards to collection
-            </button>
-            <button
-              className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white"
-              onClick={handleGoToCollectionPage}
-            >
-              View Collection
-            </button>
-            <table className="divide-y divide-gray-200 w-full">
+          <div className="content max-h-[700px] overflow-y-auto sm:w-full mx-auto mt-16 overflow-x-auto">
+            <div className="container w-full inline-flex sm:flex-row space-x-2">
+              <button
+                className="float-start border border-white rounded-lg px-2 py-2 m-1 text-sm text-white font-bold hover:text-black hover:bg-white"
+                onClick={addToCollection}
+              >
+                Add cards to collection
+              </button>
+              <button
+                className="float-end border border-white rounded-lg px-2 py-2 m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
+                onClick={downloadCSV}
+              >
+                Download CSV
+              </button>
+              <button
+                className="float-end border border-white rounded-lg px-2 py-2 text-sm m-1 text-white font-bold hover:text-black hover:bg-white"
+                onClick={handleGoToCollectionPage}
+              >
+                View Collection
+              </button>
+            </div>
+            <table className="divide-y divide-gray-200 w-full pt-5">
 
-              <thead className="p-1 bg-transparent">
+              <thead className="p-3 bg-transparent">
                 <tr>
-                  <th className="sticky px-1 top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                  <th className="sticky px-3 top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
 
                     <input
                       type="checkbox"
@@ -241,30 +244,30 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                   <th
                     onClick={() => handleSort('productName')}
-                    className="sticky top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky px-3 top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Name
                     {sortConfig.key === 'productName' && (
-                      <span className="ml-1">
+                      <span className="ml-3">
                         {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
                   <th
                     onClick={() => handleSort('setName')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky top-0 px-3 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Set
                     {sortConfig.key === 'setName' && (
-                      <span className="ml-1">
+                      <span className="ml-3">
                         {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
                   <th
                     onClick={() => handleSort('number')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky top-0 px-3 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Number
                     {sortConfig.key === 'number' && (
-                      <span className="ml-1">
+                      <span className="ml-3">
                         {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
                       </span>
                     )}
@@ -272,30 +275,30 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
 
                   <th
                     onClick={() => handleSort('rarity')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky top-0 px-3 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Rarity
                     {sortConfig.key === 'rarity' && (
-                      <span className="ml-1">
+                      <span className="ml-3">
                         {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
                   <th
                     onClick={() => handleSort('condition')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky top-0 px-3 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Condition
                     {sortConfig.key === 'condition' && (
-                      <span className="ml-1">
+                      <span className="ml-3">
                         {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
                   <th
                     onClick={() => handleSort('marketPrice')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky top-0 px-3 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Price
                     {sortConfig.key === 'marketPrice' && (
-                      <span className="ml-1">
+                      <span className="ml-3">
                         {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
                       </span>
                     )}
@@ -326,12 +329,14 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
             <YugiohPagination
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
-              totalItems={sortedAndPaginatedData.totalCount}
+              totalItems={sortedAndPaginatedData?.totalCount}
               handlePageClick={handlePageClick}
             />
           </div>
         )}
+
       </>
+
     </div>
   );
 };

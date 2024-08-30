@@ -4,10 +4,11 @@ import SportsPagination from '@/components/Sports/SportsPagination';
 import { useEffect, useMemo, useState } from 'react';
 
 const SportsTable = () => {
-  const [sportsData, setSportsData] = useState();
+  const [sportsData, setSportsData] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [selectedCardSet, setSelectedCardSet] = useState();
+  const [selectedCardSet, setSelectedCardSet] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const pageSize = 1;
 
   const calculateTotalPages = (totalData, pageSize) => {
@@ -62,10 +63,41 @@ const SportsTable = () => {
   const totalData = sportsData?.length;
   const totalPages = calculateTotalPages(totalData, pageSize);
   const startIndex = (currentPage - 1) * pageSize;
-  const cardsToRender = sportsData?.slice(startIndex, startIndex + pageSize);
+  const sortedData = [...sportsData].sort((a, b) => {
+    if (sortConfig.key) {
+      const isNumeric = !isNaN(a[sortConfig.key]) && !isNaN(b[sortConfig.key]);
+      if (isNumeric) {
+        return sortConfig.direction === 'ascending'
+          ? a[sortConfig.key] - b[sortConfig.key]
+          : b[sortConfig.key] - a[sortConfig.key];
+      } else {
+        return sortConfig.direction === 'ascending'
+          ? a[sortConfig.key] - b[sortConfig.key]
+          : b[sortConfig.key] - a[sortConfig.key];
+      }
+    }
+    return 0;
+  });
+  const cardsToRender = sortedData.slice(startIndex, startIndex + pageSize);
 
   const onPageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  const onSortChange = (key) => {
+    let direction = 'ascending';
+    if (
+      sortConfig.key === key &&
+      sortConfig.direction === 'ascending'
+    ) {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === 'ascending' ? '▲' : '▼';
   };
 
   return (
@@ -83,20 +115,40 @@ const SportsTable = () => {
           <table className="mx-auto mb-2 w-full">
             <thead>
               <tr>
-                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
-                  Name
+                <th
+                  scope="col"
+                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                  onClick={() => onSortChange('productName')}
+                >
+                  Name {getSortIcon('productName')}
                 </th>
-                <th scope="col" className="hidden sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
-                  Set
+                <th
+                  scope="col"
+                  className="hidden sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                  onClick={() => onSortChange('consoleUri')}
+                >
+                  Set {getSortIcon('consoleUri')}
                 </th>
-                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap">
-                  Ungraded
+                <th
+                  scope="col"
+                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                  onClick={() => onSortChange('price1')}
+                >
+                  Ungraded {getSortIcon('price1')}
                 </th>
-                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
-                  PSA 9
+                <th
+                  scope="col"
+                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                  onClick={() => onSortChange('price3')}
+                >
+                  PSA 9 {getSortIcon('price3')}
                 </th>
-                <th scope="col" className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap table-cell">
-                  PSA 10
+                <th
+                  scope="col"
+                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                  onClick={() => onSortChange('price2')}
+                >
+                  PSA 10 {getSortIcon('price2')}
                 </th>
               </tr>
             </thead>
@@ -104,19 +156,34 @@ const SportsTable = () => {
               {cardsToRender?.map((item, index) =>
                 item.products.map((product, productIndex) => (
                   <tr key={`${ index }-${ productIndex }`}>
-                    <td scope="row" className="border border-gray-800 p-1 whitespace-wrap text-center sm:text-left text-sm font-medium text-white">
+                    <td
+                      scope="row"
+                      className="border border-gray-800 p-1 whitespace-wrap text-center sm:text-left text-sm font-medium text-white"
+                    >
                       {product['productName']}
                     </td>
-                    <td scope="row" className="hidden border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
+                    <td
+                      scope="row"
+                      className="hidden border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white"
+                    >
                       {product['consoleUri']}
                     </td>
-                    <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
+                    <td
+                      scope="row"
+                      className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white"
+                    >
                       {product['price1']}
                     </td>
-                    <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white">
+                    <td
+                      scope="row"
+                      className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white"
+                    >
                       {product['price3']}
                     </td>
-                    <td scope="row" className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm font-medium table-cell">
+                    <td
+                      scope="row"
+                      className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm font-medium table-cell"
+                    >
                       {product['price2']}
                     </td>
                   </tr>

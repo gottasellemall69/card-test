@@ -1,3 +1,4 @@
+'use client';
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
@@ -114,8 +115,9 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
             <div key={index} className="card mx-auto">
               <div className="wrapper mx-auto">
                 <Image
+                  priority={true}
                   unoptimized={true}
-                  src={cardImages ? cardImages.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
+                  src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                   alt={`${ card?.productName }`}
                   width={220}
                   height={375}

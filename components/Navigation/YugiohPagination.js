@@ -29,8 +29,8 @@ const YugiohPagination = ({ currentPage, itemsPerPage, totalItems, handlePageCli
   };
 
   return (
-    <nav className="pagination-container mt-4 my-10 mx-auto ">
-      <ul className="pagination flex justify-center items-center">
+    <nav className="pagination-container mt-4 my-10 place-content-stretch w-full">
+      <ul className="pagination flex justify-center mx-auto items-center">
         {/* Previous button */}
         <li className={`page-item ${ currentPage === 1 ? 'disabled' : '' }`}>
           <button

@@ -34,8 +34,7 @@ export function getSportsUrls(cardSet) {
         `https://www.sportscardspro.com/console/basketball-cards-1975-topps?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 150 }&format=json`,
         `https://www.sportscardspro.com/console/basketball-cards-1975-topps?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 200 }&format=json`,
         `https://www.sportscardspro.com/console/basketball-cards-1975-topps?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 250 }&format=json`,
-        `https://www.sportscardspro.com/console/basketball-cards-1975-topps?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 300 }&format=json`,
-        `https://www.sportscardspro.com/console/basketball-cards-1975-topps?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 350 }&format=json`
+        `https://www.sportscardspro.com/console/basketball-cards-1975-topps?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 300 }&format=json`
       ];
     case '1989 NBA Hoops':
       return [

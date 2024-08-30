@@ -1,40 +1,41 @@
+'use client';
+// @/components/Sports/SportsCSVButton.js
 
 const SportsCSVButton = ({ sportsData }) => {
-  // Convert data to CSV format
-  const convertToCSV = (data) => {
-    const headers = ['Product Name', 'Console URI', 'Price 1', 'Price 2', 'Price 3'];
-    const rows = data.map((item) => [
-      item.productName,
-      item.consoleUri,
-      item.price1,
-      item.price2,
-      item.price3,
-    ]);
-
-    // Join headers and rows into CSV format
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.join(',')),
-    ].join('\n');
-
-    return csvContent;
-  };
-
-  // Trigger CSV download
   const downloadCSV = () => {
-    const csvData = convertToCSV(sportsData);
-    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'sports_data.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const csvHeader = "Name,Set,Ungraded,PSA 9,PSA 10";
+    const csvData = sportsData.flatMap((item) =>
+      item.products.map((product) => {
+        const productName = product["productName"] || '';
+        const consoleUri = product["consoleUri"] || '';
+        const price1 = product["price1"] || '';
+        const price3 = product["price3"] || '';
+        const price2 = product["price2"] || '';
+
+        return `"${ productName }",${ consoleUri },"${ price1 }","${ price3 }","${ price2 }"`;
+      })
+    ).join("\n");
+
+    const csvContent = `${ csvHeader }\n${ csvData }`;
+    const element = document.createElement('a');
+    const file = new Blob([csvContent], { type: 'text/csv' });
+    element.href = URL.createObjectURL(file);
+    element.download = 'sports_data.csv';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
 
   return (
-    <button onClick={downloadCSV}>Export to CSV</button>
+    sportsData && sportsData.length > 0 && (
+      <button
+        name="SportsCSVButton"
+        className="bg-white border border-zinc-500 font-bold px-2 py-1 m-1 mx-auto rounded cursor-pointer text-black hover:bg-black hover:text-white"
+        onClick={downloadCSV}
+      >
+        Download CSV
+      </button>
+    )
   );
 };
 
