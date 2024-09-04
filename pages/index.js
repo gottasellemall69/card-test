@@ -1,9 +1,10 @@
-'use client';
 import AlphabeticalIndex from '@/components/Navigation/AlphabeticalIndex';
 import YugiohCardListInput from '@/components/YugiohCardListInput';
 import { setNameIdMap } from '@/utils/api';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
 import { useState } from 'react';
+
 
 const exampleCardList =
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
@@ -186,6 +187,7 @@ const Home = () => {
           />
         </div>
       </div>
+      <SpeedInsights />
     </>
   );
 };

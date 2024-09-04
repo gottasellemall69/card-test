@@ -1,4 +1,3 @@
-'use client';
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
@@ -18,7 +17,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
     }
   }, [aggregatedData]);
 
-  useEffect(() => {
+  useMemo(() => {
     const fetchCardData = async () => {
       try {
         const response = await fetch('/api/countCards');
@@ -116,7 +115,6 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
               <div className="wrapper mx-auto">
                 <Image
                   priority
-                  fetchPriority={'high'}
                   unoptimized={true}
                   src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                   alt={`${ card?.productName }`}

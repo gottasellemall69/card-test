@@ -3,7 +3,9 @@ import CardFilter from '@/components/CardFilter';
 import GridView from '@/components/GridView';
 import MyCollection from '@/components/MyCollection';
 import YugiohPagination from '@/components/Navigation/YugiohPagination';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useCallback, useEffect, useState } from 'react';
+
 
 const MyCollectionPage = () => {
   const [aggregatedData, setAggregatedData] = useState([]);
@@ -220,6 +222,7 @@ const MyCollectionPage = () => {
       ) : (
         <MyCollection aggregatedData={aggregatedData} onDeleteCard={onDeleteCard} />
       )}
+      <SpeedInsights />
     </div>
   );
 };
