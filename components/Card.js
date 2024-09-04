@@ -11,7 +11,8 @@ export default function Card({ cardData }) {
 
     <a href={`/sets/${ letter }/cards/CardDetails?card=${ cardData?.id }`}>
       <Image
-        fetchPriority={'low'}
+        priority
+        fetchPriority={'high'}
         unoptimized={true}
         src={getLocalImagePath(cardData?.id)}
         alt={`Card Image - ${ cardData?.name }`}
