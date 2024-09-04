@@ -135,12 +135,13 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <div className="my-24 text-pretty">
+
+      <div className="my-10 text-pretty mx-auto w-full">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
 
-        <div className="w-full text-base italic font-medium mb-5 text-center sm:text-left">
+        <div className=" text-base italic font-medium mb-5 text-center sm:text-left">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
-          <ul className="w-full my-2 list-none list-outside text-sm font-medium ">
+          <ul className=" my-2 list-none list-outside text-sm font-medium ">
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
             <li>Moderately Played+[Edition]</li>
@@ -149,7 +150,7 @@ const Home = () => {
           </ul>
 
 
-          <p className="w-full text-base leading-7 italic font-medium">
+          <p className=" text-base leading-7 italic font-medium">
             Try it out:
             <br />
             <button
@@ -166,10 +167,10 @@ const Home = () => {
           </p>
 
         </div>
-        <div className="m-2 leading-5 w-fit">
+        <div className="mx-auto m-2 leading-5 ">
           <AlphabeticalIndex />
         </div>
-        <div className="mx-auto w-full max-w-10/12 flex flex-wrap">
+        <div className="mx-auto">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}

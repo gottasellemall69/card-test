@@ -3,7 +3,8 @@ import { Head, Html, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html className="h-full bg-black">
+
       <Head>
         {/*<meta
           httpEquiv="Content-Security-Policy"
@@ -15,11 +16,19 @@ export default function Document() {
             "
         />*/}
       </Head>
-      <body className="mx-auto min-h-full">
-        <div>
-          <SideNav />
-          <div className="w-full mx-auto lg:w-[calc(100%-256px)] lg:ml-64 min-h-screen transition-all main">
-            <Main />
+      <body className="h-full w-full">
+        <div className="flex h-full">
+          <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:max-w-60 lg:flex-col">
+            <SideNav />
+          </div>
+          <div className="w-full mx-auto lg:ml-64 transition-all main">
+            <div className="bg-black w-full px-6 py-5 sm:py-12">
+              <div className="mx-auto w-full text-center sm:text-left">
+                <Main
+                  className="pb-10 lg:pl-72 bg-black h-full"
+                />
+              </div>
+            </div>
           </div>
           <NextScript />
         </div>

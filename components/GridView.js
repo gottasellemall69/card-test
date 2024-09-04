@@ -104,18 +104,18 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="mt-6 mx-auto w-full">
+      <div className="mt-6">
         <div className="text-xl font-semibold p-2">Total Collection Value: ${subtotalMarketPrice}</div>
         <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
       </div>
-      <div className="justify-center mx-auto align-baseline grid grid-cols-1 lg:grid-cols-3 mb-6 max-h-[750px] w-fit overflow-y-auto m-5 p-10 py-12">
+      <div className="mx-auto h-full w-fit align-baseline sm:gap-10 md:gap-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-6">
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
           return (
             <div key={index} className="card mx-auto">
               <div className="wrapper mx-auto">
                 <Image
-                  priority={true}
+                  fetchPriority={'low'}
                   unoptimized={true}
                   src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                   alt={`${ card?.productName }`}
@@ -134,7 +134,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   <div>Market Price: ${card.marketPrice}</div>
                 </div>
               </div>
-              <div className="text-sm font-medium text-gray-400 mt-3">Quantity:
+              <div className="text-sm font-medium text-gray-400 my-2.5">Quantity:
                 {edit[card._id] === 'quantity' ? (
                   <input type="number" name="quantity" value={editValues[card._id]?.quantity || ''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
                 ) : (

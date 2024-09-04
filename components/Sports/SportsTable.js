@@ -8,7 +8,7 @@ const SportsTable = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [selectedCardSet, setSelectedCardSet] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
   const pageSize = 1;
 
   const calculateTotalPages = (totalData, pageSize) => {
@@ -102,16 +102,16 @@ const SportsTable = () => {
 
   return (
     <>
-      <div className=" gap-6 mb-6 items-center p-2 w-full">
-        <div className="">
-          <div className="w-fit my-2 float-left text-black font-black">
+      <div className="mx-auto gap-6 mb-6 items-center w-full">
+        <div className="w-full inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
+          <div className="w-fit my-2 float-start text-black font-black">
             <CardSetButtons cardSets={memoizedCardSets} onSelectCardSet={setSelectedCardSet} />
           </div>
-          <div className="w-fit my-2 float-right">
-            <SportsCSVButton sportsData={sportsData} />
+          <div className="container max-h-[550px] overflow-y-auto w-full">
+            <div className="w-fit my-2 float-start">
+              <SportsCSVButton sportsData={sportsData} />
+            </div>
           </div>
-        </div>
-        <div className="container max-h-[550px] overflow-y-auto w-full">
           <table className="mx-auto mb-2 w-full">
             <thead>
               <tr>
@@ -158,31 +158,31 @@ const SportsTable = () => {
                   <tr key={`${ index }-${ productIndex }`}>
                     <td
                       scope="row"
-                      className="border border-gray-800 p-1 whitespace-wrap text-center sm:text-left text-sm font-medium text-white"
+                      className="border border-gray-800 p-1 whitespace-wrap break-words text-center sm:text-left text-sm font-medium text-white"
                     >
                       {product['productName']}
                     </td>
                     <td
                       scope="row"
-                      className="hidden border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white"
+                      className="hidden border border-gray-800 p-1 whitespace-wrap break-words text-center sm:text-left text-sm text-white"
                     >
                       {product['consoleUri']}
                     </td>
                     <td
                       scope="row"
-                      className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white"
+                      className="border border-gray-800 p-1 whitespace-wrap break-words text-center sm:text-left text-sm text-white"
                     >
                       {product['price1']}
                     </td>
                     <td
                       scope="row"
-                      className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm text-white"
+                      className="border border-gray-800 p-1 whitespace-wrap break-words text-center sm:text-left text-sm text-white"
                     >
                       {product['price3']}
                     </td>
                     <td
                       scope="row"
-                      className="border border-gray-800 p-1 whitespace-nowrap text-center sm:text-left text-sm font-medium table-cell"
+                      className="border border-gray-800 p-1 whitespace-wrap break-words text-center sm:text-left text-sm font-medium table-cell"
                     >
                       {product['price2']}
                     </td>

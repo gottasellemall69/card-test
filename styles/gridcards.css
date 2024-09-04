@@ -9,17 +9,6 @@
   box-sizing: border-box;
 }
 
-body
-{
-  width: 100%;
-  height: 100%;
-  margin: 0%;
-  display: block;
-  justify-content: space-between;
-  align-items: center;
-  background: black;
-}
-
 .card
 {
   width: var(--card-width);

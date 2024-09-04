@@ -1,4 +1,5 @@
 // @/components/Card.js
+import Image from "next/image";
 import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 
@@ -9,10 +10,9 @@ export default function Card({ cardData }) {
   return (
 
     <a href={`/sets/${ letter }/cards/CardDetails?card=${ cardData?.id }`}>
-      <img
-
-
-        unoptimized="true"
+      <Image
+        fetchPriority={'low'}
+        unoptimized={true}
         src={getLocalImagePath(cardData?.id)}
         alt={`Card Image - ${ cardData?.name }`}
         width={275}

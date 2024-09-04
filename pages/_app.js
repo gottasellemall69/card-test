@@ -1,4 +1,3 @@
-import "@/styles/dashboard.css";
 import "@/styles/globals.css";
 import "@/styles/gridcards.css";
 
