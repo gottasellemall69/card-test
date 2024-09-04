@@ -20,7 +20,7 @@ const MyCollectionPage = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(30); // Adjust the number based on your design
+  const [itemsPerPage] = useState(12); // Adjust the number based on your design
 
   const toggleFilterMenu = () => {
     setIsFilterMenuOpen(!isFilterMenuOpen);

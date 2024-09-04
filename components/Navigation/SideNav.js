@@ -5,7 +5,7 @@ export default function SideNav() {
   return (
     <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6">
       <div className="flex h-16 shrink-0 items-center">
-        <Image className="h-auto w-full object-cover mx-auto" src="/uRl6tFT0uQxyhWgCKm4TQjbIjMl4TcQYxVGVvGmt.jpg" height={300} width={500} alt={"Icon"} />
+        <Image className="h-auto w-full object-cover mx-auto" src={"/uRl6tFT0uQxyhWgCKm4TQjbIjMl4TcQYxVGVvGmt.jpg"} height={300} width={500} alt={"Icon"} unoptimized={true} priority />
       </div>
       <nav className="flex flex-1 flex-col">
         <ul role="list" className="flex flex-1 flex-col gap-y-7">
