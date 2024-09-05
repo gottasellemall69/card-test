@@ -11,12 +11,13 @@ export default function Card({ cardData }) {
 
     <a href={`/sets/${ letter }/cards/CardDetails?card=${ cardData?.id }`}>
       <Image
+        priority
         loading={'eager'}
         unoptimized={true}
         src={getLocalImagePath(cardData?.id)}
         alt={`Card Image - ${ cardData?.name }`}
-        width={100}
-        height={100}
+        width={275}
+        height={325}
         className="w-full h-96 object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu"
       />
     </a>

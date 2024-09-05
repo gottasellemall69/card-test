@@ -2,6 +2,7 @@
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
+import Head from 'next/head';
 
 const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: true });
 export async function getStaticPaths() {
@@ -33,6 +34,12 @@ export async function getStaticPaths() {
 const SportsPage = ({ sportsData, cardSet }) => {
   return (
     <>
+      <Head>
+        <title>Card Price App</title>
+        <meta name="description" content="Enter list of TCG cards, get data back" />
+        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta name="charset" content="UTF-8" />
+      </Head>
       <h1 className="text-4xl font-bold mb-4 p-2 text-center md:text-left">Sports Card Prices</h1>
       <p className='text-center md:text-left text-base text-white p-2'>Select from the list of sets found in the dropdown below to view current prices for a card:</p>
       <p className='text-center md:text-left text-sm italic text-white p-2'>

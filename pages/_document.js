@@ -5,18 +5,22 @@ import { Head, Html, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
-    <Html className="h-full bg-black">
+    <Html lang="en" className="h-full bg-black">
 
       <Head>
-        {/*<meta
+        <meta name="description" content="Enter list of TCG cards, get data back" />
+        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta name="charset" content="UTF-8" />
+        <meta
           httpEquiv="Content-Security-Policy"
           content="
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' vercel.app;
-              style-src 'self' 'unsafe-inline' vercel.app;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' infinite-api.tcgplayer.com card-test-ashy.vercel.app va.vercel-scripts.com db.ygoprodeck.com sportscardspro.com;
+              style-src 'self' 'unsafe-inline' card-test-ashy.vercel.app;
               img-src 'self' data:;
               object-src 'none';
+              default-src 'self';
             "
-        />*/}
+        />
       </Head>
       <body className="h-full w-full">
         <div className="flex h-full">
