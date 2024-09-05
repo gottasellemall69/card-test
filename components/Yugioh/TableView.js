@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-const MyCollection = ({ aggregatedData }) => {
+const TableView = ({ aggregatedData }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
 
   const calculatePriceTrend = (previousPrice, currentPrice) => {
@@ -102,4 +102,4 @@ const MyCollection = ({ aggregatedData }) => {
   );
 };
 
-export default MyCollection;
+export default TableView;

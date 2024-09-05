@@ -35,7 +35,7 @@ const SportsPage = ({ sportsData, cardSet }) => {
   return (
     <>
       <Head>
-        <title>Card Price App</title>
+        <title>Sports Card Prices</title>
         <meta name="description" content="Enter list of TCG cards, get data back" />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />

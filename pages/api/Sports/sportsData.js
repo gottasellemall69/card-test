@@ -12,7 +12,7 @@ export default async function handler(req, res) {
 
 export async function fetchSportsData(cardSet) {
   const sportsUrls = getSportsUrls(cardSet);
-  const dataPromises = sportsUrls.map(async (url) => {
+  const dataPromises = sportsUrls?.map(async (url) => {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch data from ${ url }`);

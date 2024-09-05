@@ -1,3 +1,4 @@
+// @/components/Sports/SportsPagination.js
 import { useEffect, useState } from 'react';
 
 const SportsPagination = ({ totalPages, currentPage, onPageChange }) => {

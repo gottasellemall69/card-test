@@ -29,11 +29,11 @@ export default async function handler(req, res) {
         set_price: set.set_price,
         set_url: set.set_url
       })),
-      card_images: card.card_images.map(img => ({
-        id: img.id,
-        image_url: img.image_url,
-        image_url_small: img.image_url_small,
-        image_url_cropped: img.image_url_cropped
+      card_images: card.card_images.map(image => ({
+        id: image.id,
+        image_url: image.image_url,
+        image_url_small: image.image_url_small,
+        image_url_cropped: image.image_url_cropped
       })),
       card_prices: {
         cardmarket_price: card.card_prices[0]['cardmarket_price'],

@@ -1,5 +1,5 @@
-import AlphabeticalIndex from '@/components/Navigation/AlphabeticalIndex';
-import YugiohCardListInput from '@/components/YugiohCardListInput';
+import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
+import YugiohCardListInput from '@/components/Yugioh/YugiohCardListInput';
 import { setNameIdMap } from '@/utils/api';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
@@ -42,7 +42,7 @@ const Home = () => {
       // Check if set data is already fetched
       if (!fetchedSetData[setName]) {
         console.log('Fetching set data for:', setName);
-        const response = await fetch(`/api/cards/${ setNameId }`);
+        const response = await fetch(`/api/Yugioh/cards/${ setNameId }`);
         if (!response.ok) {
           throw new Error('Failed to fetch card data for set:', setName);
         }
@@ -131,7 +131,7 @@ const Home = () => {
   return (
     <>
       <Head>
-        <title>Card Price App</title>
+        <title>Yu-Gi-Oh! Prices</title>
         <meta name="description" content="Enter list of TCG cards, get data back" />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />

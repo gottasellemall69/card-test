@@ -63,7 +63,7 @@ export async function getCardSetsData() {
 
 export const updateCardPrices = async (setName, cardData) => {
   try {
-    const response = await fetch('/api/updateCardPrices', {
+    const response = await fetch('/api/Yugioh/updateCardPrices', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

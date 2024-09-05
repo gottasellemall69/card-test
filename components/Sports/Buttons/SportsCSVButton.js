@@ -1,4 +1,4 @@
-// @/components/Sports/SportsCSVButton.js
+// @/components/Sports/Buttons/SportsCSVButton.js
 
 const SportsCSVButton = ({ sportsData }) => {
   const downloadCSV = () => {

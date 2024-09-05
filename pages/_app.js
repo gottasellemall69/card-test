@@ -1,11 +1,12 @@
+import { CardProvider } from "@/context/CardContext";
 import "@/styles/globals.css";
 import "@/styles/gridcards.css";
 
 function MyApp({ Component, pageProps }) {
   return (
-
-    <Component {...pageProps} />
-
+    <CardProvider>
+      <Component {...pageProps} />
+    </CardProvider>
   );
 }
 export default MyApp;

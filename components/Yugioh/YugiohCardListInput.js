@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 const LoadingSpinner = dynamic(() => import('@/components/LoadingSpinner'));
-const YugiohPagination = dynamic(() => import('@/components/Navigation/YugiohPagination'));
+const YugiohPagination = dynamic(() => import('@/components/Yugioh/YugiohPagination'));
 
 const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData }) => {
   const router = useRouter();
@@ -121,7 +121,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
       }));
 
       // Send a POST request to the server to save the cards
-      const response = await fetch('/api/cards', {
+      const response = await fetch('/api/Yugioh/cards', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
   };
 
   const handleGoToCollectionPage = () => {
-    router.push('/MyCollectionPage');
+    router.push('/my-collection');
   };
 
   // Function to convert data to CSV

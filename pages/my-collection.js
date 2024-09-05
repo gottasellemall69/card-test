@@ -1,11 +1,11 @@
-import DownloadYugiohCSVButton from '@/components/Buttons/DownloadYugiohCSVButton';
-import CardFilter from '@/components/CardFilter';
-import GridView from '@/components/GridView';
-import MyCollection from '@/components/MyCollection';
-import YugiohPagination from '@/components/Navigation/YugiohPagination';
+import DownloadYugiohCSVButton from '@/components/Yugioh/Buttons/DownloadYugiohCSVButton';
+import CardFilter from '@/components/Yugioh/CardFilter';
+import GridView from '@/components/Yugioh/GridView';
+import TableView from '@/components/Yugioh/TableView';
+import YugiohPagination from '@/components/Yugioh/YugiohPagination';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 
 const MyCollectionPage = () => {
@@ -24,6 +24,29 @@ const MyCollectionPage = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12); // Adjust the number based on your design
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState([]);
+  const [totalCardCount, setTotalCardCount] = useState([]);
+
+  useEffect(() => {
+    if (Array.isArray(aggregatedData)) {
+      const subtotal = aggregatedData.reduce((sum, card) => sum + (card.marketPrice * card.quantity), 0);
+      setSubtotalMarketPrice(subtotal.toFixed(2));
+    }
+  }, [aggregatedData]);
+
+  useMemo(() => {
+    const fetchCardData = async () => {
+      try {
+        const response = await fetch('/api/Yugioh/countCards');
+        const data = await response.json();
+        setTotalCardCount(data.totalQuantity);
+        setSubtotalMarketPrice(data.totalMarketPrice); // Use the total market price from the API
+      } catch (error) {
+        console.error('Error fetching card data:', error);
+      }
+    };
+    fetchCardData();
+  }, [aggregatedData], []); // Only run on initial load
 
   const toggleFilterMenu = () => {
     setIsFilterMenuOpen(!isFilterMenuOpen);
@@ -31,7 +54,7 @@ const MyCollectionPage = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch('/api/my-collection');
+      const response = await fetch('/api/Yugioh/my-collection');
       if (!response.ok) {
         throw new Error('Failed to fetch aggregated data');
       }
@@ -94,7 +117,7 @@ const MyCollectionPage = () => {
     try {
       if (cardId && field && value !== undefined && value !== null) {
         const updateCard = { cardId, field, value };
-        const response = await fetch('/api/updateCards', {
+        const response = await fetch('/api/Yugioh/updateCards', {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -121,7 +144,7 @@ const MyCollectionPage = () => {
 
   const onDeleteCard = useCallback(async (cardId) => {
     try {
-      const response = await fetch(`/api/deleteCards`, {
+      const response = await fetch(`/api/Yugioh/deleteCards`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +165,7 @@ const MyCollectionPage = () => {
 
   const onDeleteAllCards = async () => {
     try {
-      const response = await fetch(`/api/deleteAllCards`, {
+      const response = await fetch(`/api/Yugioh/deleteAllCards`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +178,8 @@ const MyCollectionPage = () => {
       setAggregatedData([]);
     } catch (error) {
       console.error('Error deleting all cards:', error);
-    }
+
+    };
   };
 
   // Get paginated data
@@ -169,7 +193,7 @@ const MyCollectionPage = () => {
   return (
     <>
       <Head>
-        <title>Card Price App</title>
+        <title>My Collection</title>
         <meta name="description" content="Enter list of TCG cards, get data back" />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
@@ -210,6 +234,10 @@ const MyCollectionPage = () => {
             </button>
           </div>
         </div>
+        <div className="mt-6">
+          <div className="text-xl font-semibold p-2">Total Collection Value: ${subtotalMarketPrice}</div>
+          <div className="text-xl font-semibold p-2">Cards in Collection: {totalCardCount}</div>
+        </div>
         {isFilterMenuOpen && (
           <CardFilter updateFilters={handleFilterChange} />
         )}
@@ -229,7 +257,7 @@ const MyCollectionPage = () => {
             />
           </>
         ) : (
-          <MyCollection aggregatedData={aggregatedData} onDeleteCard={onDeleteCard} />
+          <TableView aggregatedData={aggregatedData} onDeleteCard={onDeleteCard} />
         )}
         <SpeedInsights />
       </div>

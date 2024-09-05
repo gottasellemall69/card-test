@@ -1,5 +1,5 @@
-import CardSetButtons from '@/components/Sports/CardSetButtons';
-import SportsCSVButton from '@/components/Sports/SportsCSVButton';
+import CardSetButtons from '@/components/Sports/Buttons/CardSetButtons';
+import SportsCSVButton from '@/components/Sports/Buttons/SportsCSVButton';
 import SportsPagination from '@/components/Sports/SportsPagination';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -154,7 +154,7 @@ const SportsTable = () => {
             </thead>
             <tbody className="mx-auto overflow-x-hidden">
               {cardsToRender?.map((item, index) =>
-                item.products.map((product, productIndex) => (
+                item.products?.map((product, productIndex) => (
                   <tr key={`${ index }-${ productIndex }`}>
                     <td
                       scope="row"

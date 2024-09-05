@@ -11,7 +11,7 @@ const CardDetails = () => {
   // Helper function to fetch card data
   const fetchCardData = async (cardId) => {
     try {
-      const res = await fetch(`/api/card/${ encodeURIComponent(cardId) }`);
+      const res = await fetch(`/api/Yugioh/card/${ encodeURIComponent([cardId]) }`);
       if (!res.ok) throw new Error('Failed to fetch');
       return await res.json();
     } catch (err) {

@@ -1,6 +1,6 @@
 'use client';
-// @/pages/sets//[letter]/cards/[setName].js
-import Card from '@/components/Card';
+// @/pages/sets/[letter]/cards/[setName].js
+import Card from '@/components/Yugioh/Card';
 import { fetchCardData } from '@/utils/api';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
