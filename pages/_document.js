@@ -18,7 +18,7 @@ export default function Document() {
               style-src 'self' 'unsafe-inline' card-test-ashy.vercel.app;
               img-src 'self' data:;
               object-src 'none';
-              default-src 'self';
+              default-src 'self' db.ygoprodeck.com;
             "
         />
       </Head>
