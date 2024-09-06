@@ -7,30 +7,31 @@ import Head from 'next/head';
 const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: true });
 export async function getStaticPaths() {
   const paths = [
-    { params: { cardSet: '1975 NBA Topps' } },
-    { params: { cardSet: '1989 NBA Hoops' } },
-    { params: { cardSet: '1990 NBA Hoops' } },
-    { params: { cardSet: '1990 NBA Skybox' } },
-    { params: { cardSet: '1990 NBA Fleer' } },
-    { params: { cardSet: '1991 NBA Fleer' } },
-    { params: { cardSet: '1991 NBA Hoops' } },
-    { params: { cardSet: '1991 NBA Upper Deck' } },
-    { params: { cardSet: '1991 NFL Fleer' } },
-    { params: { cardSet: '1991 NFL Upper Deck' } },
-    { params: { cardSet: '1991 NFL Pro Set' } },
-    { params: { cardSet: '1991 NFL Proline Portraits' } },
-    { params: { cardSet: '1991 NFL Wild Card College Draft Picks' } },
-    { params: { cardSet: '1991 NFL Wild Card' } },
-    { params: { cardSet: '1989 MLB Topps' } },
-    { params: { cardSet: '1989 MLB SCORE' } },
-    { params: { cardSet: '1989 MLB Donruss' } },
-    { params: { cardSet: '1989 MLB Fleer' } },
-    { params: { cardSet: '1991 MLB Donruss' } },
-    { params: { cardSet: '1991 MLB SCORE' } },
-    { params: { cardSet: '1991 MLB Fleer' } },
+    { params: { cardSet: ['1975 NBA Topps'] } },
+    { params: { cardSet: ['1989 NBA Hoops'] } },
+    { params: { cardSet: ['1990 NBA Hoops'] } },
+    { params: { cardSet: ['1990 NBA Skybox'] } },
+    { params: { cardSet: ['1990 NBA Fleer'] } },
+    { params: { cardSet: ['1991 NBA Fleer'] } },
+    { params: { cardSet: ['1991 NBA Hoops'] } },
+    { params: { cardSet: ['1991 NBA Upper Deck'] } },
+    { params: { cardSet: ['1991 NFL Fleer'] } },
+    { params: { cardSet: ['1991 NFL Upper Deck'] } },
+    { params: { cardSet: ['1991 NFL Pro Set'] } },
+    { params: { cardSet: ['1991 NFL Proline Portraits'] } },
+    { params: { cardSet: ['1991 NFL Wild Card College Draft Picks'] } },
+    { params: { cardSet: ['1991 NFL Wild Card'] } },
+    { params: { cardSet: ['1989 MLB Topps'] } },
+    { params: { cardSet: ['1989 MLB SCORE'] } },
+    { params: { cardSet: ['1989 MLB Donruss'] } },
+    { params: { cardSet: ['1989 MLB Fleer'] } },
+    { params: { cardSet: ['1991 MLB Donruss'] } },
+    { params: { cardSet: ['1991 MLB SCORE'] } },
+    { params: { cardSet: ['1991 MLB Fleer'] } },
   ];
   return { paths, fallback: 'blocking' }; // Set fallback to true or 'blocking' if you intend to produce paths on-demand
 }
+
 const SportsPage = ({ sportsData, cardSet }) => {
   return (
     <>
@@ -60,26 +61,21 @@ const SportsPage = ({ sportsData, cardSet }) => {
   );
 };
 
-
-
 export async function getStaticProps({ params }) {
   try {
     const sportsData = await fetchSportsData(params.cardSet);
     return {
       props: {
-
         sportsData,
-        cardSet: params.cardSet,
+        cardSet: params.cardSet, // cardSet will be an array here
       },
     };
   } catch (error) {
     console.error('Error fetching data:', error);
     return {
       props: {
-
         sportsData: [],
         cardSet: params.cardSet,
-
       },
     };
   }

@@ -37,7 +37,7 @@ const MyCollectionPage = () => {
   useMemo(() => {
     const fetchCardData = async () => {
       try {
-        const response = await fetch('/api/Yugioh/countCards');
+        const response = await fetch('api/Yugioh/countCards');
         const data = await response.json();
         setTotalCardCount(data.totalQuantity);
         setSubtotalMarketPrice(data.totalMarketPrice); // Use the total market price from the API
