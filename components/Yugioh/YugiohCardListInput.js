@@ -145,7 +145,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
   };
 
   const handleGoToCollectionPage = () => {
-    router.push('/my-collection');
+    router.push('/yugioh/my-collection');
   };
 
   // Function to convert data to CSV

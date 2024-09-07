@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const YugiohPagination = ({ currentPage, itemsPerPage, totalItems, handlePageClick }) => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const [inputPage, setInputPage] = useState(currentPage);
+  const [inputPage, setInputPage] = useState(0);
 
   useEffect(() => {
     setInputPage(currentPage);

@@ -9,10 +9,10 @@ export default function Card({ cardData }) {
   const getLocalImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, []);
   return (
 
-    <a href={`/sets/${ letter }/cards/CardDetails?card=${ cardData?.id }`}>
+    <a href={`/yugioh/sets/${ letter }/cards/CardDetails?card=${ cardData?.id }`}>
       <Image
-        priority
-        loading={'eager'}
+        priority={true}
+        loading={"eager"}
         unoptimized={true}
         src={getLocalImagePath(cardData?.id)}
         alt={`Card Image - ${ cardData?.name }`}
