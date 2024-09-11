@@ -1,5 +1,5 @@
-'use client';
-// @/pages/sets/[letter]/cards/[setName].js
+// @/pages/yugioh/sets/[letter]/cards/[setName].js
+import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import Card from '@/components/Yugioh/Card';
 import { fetchCardData } from '@/utils/api';
 import { useRouter } from 'next/router';
@@ -25,17 +25,22 @@ const CardsInSetPage = () => {
   }, [setName]);
 
   return (
-    <div>
-      <h1 className="my-10 text-xl font-black">Cards in {decodeURIComponent(setName)}</h1>
-      <div className="w-full mx-auto gap-6 grid sm:grid-cols-2 lg:grid-cols-4">
-        {cards?.map((card) => (
-          <Card
-            key={card.id}
-            cardData={card}
-          />
-        ))}
+    <>
+      <Breadcrumb />
+      <div>
+        <h1 className="my-10 text-xl font-black">Cards in {decodeURIComponent(setName)}</h1>
+        <div className="w-full mx-auto gap-6 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {cards?.map((card) => (
+            <Card
+              priority={true}
+              unoptimized={true}
+              key={card.id}
+              cardData={card}
+            />
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

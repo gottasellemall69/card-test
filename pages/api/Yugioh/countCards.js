@@ -44,4 +44,4 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'Unable to fetch card data' });
     }
   }
-}
+};

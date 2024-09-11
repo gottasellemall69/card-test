@@ -1,9 +1,11 @@
+import Breadcrumb from '@/components/Navigation/Breadcrumb';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 const CardDetails = () => {
   const router = useRouter();
-  const { card } = router.query;
+  const { card, letter, setName } = router.query;
   const [cardData, setCardData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -50,12 +52,44 @@ const CardDetails = () => {
 
   return (
     <>
+      <Breadcrumb>
+        <Link href="/yugioh">Alphabetical Index</Link>
+        <Link href={`/yugioh/sets/${ letter }`}>Sets by Letter: {letter}</Link>
+        {setName && (
+          <Link href={`/yugioh/sets/${ letter }/cards/${ setName }`}>
+            Cards in Set: {setName}
+          </Link>
+        )}
+        <span>Card Details: {card}</span>
+      </Breadcrumb>
       <div key={cardData.id} className="text-pretty text-white p-6 rounded-md shadow-md mb-8">
-        <h1 className="text-2xl font-bold mb-4">{cardData.name}</h1>
-        <p className="mb-2"><span className="font-bold">Type:</span> {cardData.type}</p>
-        <p className="mb-2 max-w-prose"><span className="font-bold">Description:</span> {cardData.desc}</p>
-        <p className="mb-2"><span className="font-bold">Race:</span> {cardData.race}</p>
-        <p className="mb-4"><span className="font-bold">Archetype:</span> {cardData.archetype}</p>
+        <h1 className="text-2xl font-bold mb-4">
+          {cardData.name}
+        </h1>
+        <p className="mb-2">
+          <span className="font-bold">
+            Type:
+          </span>
+          {cardData.type}
+        </p>
+        <p className="mb-2 max-w-prose">
+          <span className="font-bold">
+            Description:
+          </span>
+          {cardData.desc}
+        </p>
+        <p className="mb-2">
+          <span className="font-bold">
+            Race:
+          </span>
+          {cardData.race}
+        </p>
+        <p className="mb-4">
+          <span className="font-bold">
+            Archetype:
+          </span>
+          {cardData.archetype}
+        </p>
 
         <div className="mb-4 text-pretty">
           <h2 className="text-lg font-bold mb-2">Set Details</h2>

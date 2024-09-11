@@ -76,46 +76,43 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-
       <div className="mx-auto h-full w-fit align-baseline sm:gap-10 md:gap-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <>
-          {memoizedAggregatedData?.map((card, index) => {
-            const cardImages = getCardImage(card.productName);
-            return (
-              <div key={index} className="card mx-auto">
-                <div className="wrapper mx-auto">
-                  <Image
-                    priority={true}
-                    unoptimized={true}
-                    src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
-                    alt={`${ card?.productName }`}
-                    width={220}
-                    height={375}
-                    className="cover-image object-scale-down w-full h-auto object-center mx-auto"
-                  />
-                  <div className="black-overlay"></div>
-                  <div className="details">
-                    <div className="title text-2xl font-black text-filter outline-2 outline-black text-white">{card.productName}</div>
-                    <div>Set: {card.setName}</div>
-                    <div>Number: {card.number}</div>
-                    <div>Rarity: {card.rarity}</div>
-                    <div>Printing: {card.printing}</div>
-                    <div>Condition: {card.condition}</div>
-                    <div>Market Price: ${card.marketPrice}</div>
-                  </div>
+
+        {memoizedAggregatedData?.map((card, index) => {
+          const cardImages = getCardImage(card.productName);
+          return (
+            <div key={index} className="card mx-auto">
+              <div className="wrapper mx-auto">
+                <Image
+                  priority={true}
+                  unoptimized={true}
+                  src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
+                  alt={`${ card?.productName }`}
+                  width={220}
+                  height={375}
+                  className="cover-image object-scale-down w-full h-auto object-center mx-auto"
+                />
+                <div className="black-overlay"></div>
+                <div className="details">
+                  <div className="title text-2xl font-black text-filter outline-2 outline-black text-white">{card.productName}</div>
+                  <div>Set: {card.setName}</div>
+                  <div>Number: {card.number}</div>
+                  <div>Rarity: {card.rarity}</div>
+                  <div>Printing: {card.printing}</div>
+                  <div>Condition: {card.condition}</div>
+                  <div>Market Price: ${card.marketPrice}</div>
                 </div>
-                <div className="text-sm font-medium text-gray-400 my-2.5">Quantity:
-                  {edit[card._id] === 'quantity' ? (
-                    <input type="number" name="quantity" value={editValues[card._id]?.quantity || ''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
-                  ) : (
-                    <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
-                  )}
-                </div>
-                <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
               </div>
-            );
-          })}
-        </>
+              <div className="text-sm font-medium text-gray-400 my-2.5">Quantity:
+                {edit[card._id] === 'quantity' ? (
+                  <input type="number" name="quantity" value={editValues[card._id]?.quantity || ''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
+                ) : (
+                  <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
+                )}
+              </div>
+              <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
+            </div>);
+        })}
         <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
       </div>
     </>
