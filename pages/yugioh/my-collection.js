@@ -200,7 +200,7 @@ const MyCollectionPage = () => {
         <meta name="charset" content="UTF-8" />
       </Head>
 
-      <div className="w-full h-full mx-auto mt-8">
+      <div className="w-fit h-full mx-auto mt-8">
         <h1 className="text-3xl font-semibold mb-6">My Collection</h1>
         <p className='max-w-prose italic text-sm text-white mb-5'>
           You can click on the number of the quantity field below the card image to manually update it, and clicking the delete button underneath the card will decrease the quantity by 1, or if there is only one card, will remove the card from the collection.

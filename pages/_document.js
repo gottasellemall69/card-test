@@ -22,8 +22,8 @@ export default function Document() {
         />
       </Head>
       <body className="h-full w-full">
-        <div className="flex h-full">
-          <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:max-w-60 lg:flex-col">
+        <div className="flex flex-wrap w-full h-full">
+          <div className="flex flex-wrap flex-row w-full lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:max-w-52 lg:flex-col">
             <SideNav />
           </div>
           <div className="w-full mx-auto lg:ml-64 transition-all main">
