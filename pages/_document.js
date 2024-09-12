@@ -1,4 +1,3 @@
-import SideNav from "@/components/Navigation/SideNav";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Head, Html, Main, NextScript } from "next/document";
 
@@ -22,21 +21,16 @@ export default function Document() {
         />
       </Head>
       <body className="h-full w-full">
-        <div className="flex flex-wrap w-full h-full">
-          <div className="flex flex-wrap flex-row w-full lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:max-w-52 lg:flex-col">
-            <SideNav />
-          </div>
-          <div className="w-full mx-auto lg:ml-64 transition-all main">
-            <div className="bg-black w-full px-6 py-5 sm:py-12">
-              <div className="mx-auto w-full text-center sm:text-left">
-                <Main
-                  className="pb-10 lg:pl-72 bg-black h-full"
-                />
-              </div>
+        <div className="w-full mx-auto transition-all main">
+          <div className="bg-black w-full px-6 py-5 sm:py-12">
+            <div className="mx-auto w-full text-center sm:text-left">
+              <Main
+              />
             </div>
           </div>
-          <NextScript />
         </div>
+        <NextScript />
+
         <SpeedInsights />
       </body>
     </Html>

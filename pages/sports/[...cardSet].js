@@ -1,4 +1,4 @@
-// @/pages/SportsPage.page.js
+// @/pages/sports/[...cardSet].js
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
