@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from 'react';
 const SportsTable = () => {
   const [sportsData, setSportsData] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [selectedCardSet, setSelectedCardSet] = useState('');
+  const [selectedCardSet, setSelectedCardSet] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState({ key: [], direction: 'ascending' });
   const pageSize = 1;
 
   const calculateTotalPages = (totalData, pageSize) => {
@@ -30,8 +30,9 @@ const SportsTable = () => {
   };
 
   useEffect(() => {
+    fetchSportsData(selectedCardSet, currentPage);
     if (selectedCardSet) {
-      fetchSportsData(selectedCardSet, currentPage);
+
       setDataLoaded(true);
     }
   }, [selectedCardSet, currentPage]);
@@ -102,16 +103,18 @@ const SportsTable = () => {
 
   return (
     <>
-      <div className="mx-auto gap-6 mb-6 items-center w-full">
-        <div className="w-full inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
-          <div className="w-fit my-2 float-start text-black font-black">
-            <CardSetButtons cardSets={memoizedCardSets} onSelectCardSet={setSelectedCardSet} />
-          </div>
-          <div className="container max-h-[550px] overflow-y-auto w-full">
-            <div className="w-fit my-2 float-start">
-              <SportsCSVButton sportsData={sportsData} />
-            </div>
-          </div>
+
+      <div className="w-full inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
+        <div className="w-fit my-2 float-start text-black font-black">
+          <CardSetButtons cardSets={memoizedCardSets} onSelectCardSet={setSelectedCardSet} onPageChange={onPageChange} />
+        </div>
+
+        <div className="w-fit my-2 float-start">
+          <SportsCSVButton sportsData={sportsData} />
+        </div>
+      </div>
+      {cardsToRender && (
+        <div className="container max-h-[550px] overflow-y-auto w-full">
           <table className="mx-auto mb-2 w-full">
             <thead>
               <tr>
@@ -192,18 +195,18 @@ const SportsTable = () => {
             </tbody>
           </table>
         </div>
-        {dataLoaded && (
-          <div className="mx-auto container w-fit">
-            <SportsPagination
-              pageSize={pageSize}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-              calculateTotalPages={calculateTotalPages}
-            />
-          </div>
-        )}
-      </div>
+      )}
+      {dataLoaded && (
+        <div className="mx-auto container w-fit">
+          <SportsPagination
+            pageSize={pageSize}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            calculateTotalPages={calculateTotalPages}
+          />
+        </div>
+      )}
     </>
   );
 };

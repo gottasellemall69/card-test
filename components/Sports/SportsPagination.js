@@ -19,6 +19,9 @@ const SportsPagination = ({ totalPages, currentPage, onPageChange }) => {
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       onPageChange(page);
     }
+    else {
+      onPageChange(1);
+    }
   };
 
   const handleInputBlur = () => {
@@ -38,7 +41,7 @@ const SportsPagination = ({ totalPages, currentPage, onPageChange }) => {
       if (!isNaN(page) && page >= 1 && page <= totalPages) {
         onPageChange(page);
       } else {
-        setInputValue(currentPage.toString());
+        setInputValue(currentPage.toString(page));
       }
     }
   };
@@ -64,7 +67,7 @@ const SportsPagination = ({ totalPages, currentPage, onPageChange }) => {
             value={inputValue}
             onChange={handleInputChange}
             onBlur={handleInputBlur}
-            onKeyPress={handleInputKeyPress}
+            onKeyUp={handleInputKeyPress}
             className="page-input text-black px-3 py-2 mx-1 text-center border rounded w-16"
             aria-label="Page number input"
           />

@@ -207,7 +207,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
 
         {sortedAndPaginatedData.currentItems.length > 0 && (
 
-          <div className="box-content max-h-[700px] overflow-y-auto lg:w-full lg:mx-auto overflow-x-hidden">
+          <div className="block w-full overflow-x-auto max-h-[750px] overflow-y-auto">
             <button
               className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
               onClick={downloadCSV}
@@ -226,7 +226,8 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
             >
               View Collection
             </button>
-            <table className="divide-y divide-gray-200 w-full">
+
+            <table className="text-white items-center w-full border-collapse">
 
               <thead className="p-1 bg-transparent">
                 <tr>
@@ -322,6 +323,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                 ))}
               </tbody>
             </table>
+
             <YugiohPagination
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}

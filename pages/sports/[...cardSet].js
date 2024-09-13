@@ -1,3 +1,4 @@
+'use client';
 // @/pages/sports/[...cardSet].js
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
 import { SpeedInsights } from "@vercel/speed-insights/next";

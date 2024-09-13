@@ -21,14 +21,14 @@ export default function Document() {
         />
       </Head>
       <body className="h-full w-full">
-        <div className="w-full mx-auto transition-all main">
-          <div className="bg-black w-full px-6 py-5 sm:py-12">
-            <div className="mx-auto w-full text-center sm:text-left">
-              <Main
-              />
-            </div>
+        <div className="w-full transition-all main">
+
+          <div className="text-center sm:text-left">
+            <Main
+            />
           </div>
         </div>
+
         <NextScript />
 
         <SpeedInsights />
