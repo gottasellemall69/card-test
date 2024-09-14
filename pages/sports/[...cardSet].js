@@ -4,8 +4,9 @@ import { fetchSportsData } from '@/pages/api/Sports/sportsData';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
+import { useEffect, useState } from 'react';
 
-const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: true });
+const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: false });
 export async function getStaticPaths() {
   const paths = [
     { params: { cardSet: ['1975 NBA Topps'] } },
@@ -33,7 +34,35 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }; // Set fallback to true or 'blocking' if you intend to produce paths on-demand
 }
 
-const SportsPage = ({ sportsData, cardSet }) => {
+export default function SportsPage() {
+  const [sportsData, setSportsData] = useState([]);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [selectedCardSet, setSelectedCardSet] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 1;
+
+  const fetchSportsData = async (selectedCardSet, currentPage) => {
+    try {
+      const response = await fetch(
+        `/api/Sports/sportsData?cardSet=${ selectedCardSet }&page=${ currentPage }`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setSportsData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSportsData(selectedCardSet, currentPage);
+    if (selectedCardSet) {
+
+      setDataLoaded(true);
+    }
+  }, [selectedCardSet, currentPage]);
+
   return (
     <>
       <Head>
@@ -54,8 +83,16 @@ const SportsPage = ({ sportsData, cardSet }) => {
         </a>
       </p>
       <SportsTable
-        initialData={sportsData}
-        initialCardSet={cardSet}
+        sportsData={sportsData}
+        dataLoaded={dataLoaded}
+        selectedCardSet={selectedCardSet}
+        setSelectedCardSet={(set) => {
+          setSelectedCardSet(set);
+          setCurrentPage(1); // Reset to first page when set changes
+        }}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        pageSize={pageSize}
       />
       <SpeedInsights />
     </>
@@ -81,4 +118,3 @@ export async function getStaticProps({ params }) {
     };
   }
 };
-export default SportsPage;

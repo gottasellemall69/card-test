@@ -29,7 +29,7 @@ const SportsCSVButton = ({ sportsData }) => {
     sportsData && sportsData.length > 0 && (
       <button
         name="SportsCSVButton"
-        className="bg-white border border-zinc-500 font-bold px-2 py-1 m-1 mx-auto rounded cursor-pointer text-black hover:bg-black hover:text-white"
+        className="bg-white border border-zinc-500 font-bold px-2 py-2 m-2 mx-auto rounded cursor-pointer text-black hover:bg-black hover:text-white"
         onClick={downloadCSV}
       >
         Download CSV

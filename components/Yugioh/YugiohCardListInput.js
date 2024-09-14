@@ -1,3 +1,4 @@
+'use client';
 // @/components/YugiohCardListInput.js
 import Notification from '@/components/Notification';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';

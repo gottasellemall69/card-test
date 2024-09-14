@@ -1,42 +1,10 @@
 import CardSetButtons from '@/components/Sports/Buttons/CardSetButtons';
 import SportsCSVButton from '@/components/Sports/Buttons/SportsCSVButton';
 import SportsPagination from '@/components/Sports/SportsPagination';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-const SportsTable = () => {
-  const [sportsData, setSportsData] = useState([]);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [selectedCardSet, setSelectedCardSet] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: [], direction: 'ascending' });
-  const pageSize = 1;
-
-  const calculateTotalPages = (totalData, pageSize) => {
-    return Math.ceil(totalData / pageSize);
-  };
-
-  const fetchSportsData = async (selectedCardSet, currentPage) => {
-    try {
-      const response = await fetch(
-        `/api/Sports/sportsData?cardSet=${ selectedCardSet }&page=${ currentPage }`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setSportsData(data);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  useEffect(() => {
-    fetchSportsData(selectedCardSet, currentPage);
-    if (selectedCardSet) {
-
-      setDataLoaded(true);
-    }
-  }, [selectedCardSet, currentPage]);
-
+const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, currentPage, setCurrentPage, pageSize }) => {
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
   const memoizedCardSets = useMemo(() => [
     '1975 NBA Topps',
     '1989 NBA Hoops',
@@ -60,6 +28,10 @@ const SportsTable = () => {
     '1991 MLB SCORE',
     '1991 MLB Fleer'
   ], []);
+
+  const calculateTotalPages = (totalData, pageSize) => {
+    return Math.ceil(totalData / pageSize);
+  };
 
   const totalData = sportsData?.length;
   const totalPages = calculateTotalPages(totalData, pageSize);
@@ -104,12 +76,15 @@ const SportsTable = () => {
   return (
     <>
 
-      <div className="w-full inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
-        <div className="w-fit my-2 float-start text-black font-black">
-          <CardSetButtons cardSets={memoizedCardSets} onSelectCardSet={setSelectedCardSet} onPageChange={onPageChange} />
+      <div className="w-fit inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
+        <div className="w-full float-start text-black font-black">
+          <CardSetButtons
+            cardSets={memoizedCardSets}
+            onSelectCardSet={setSelectedCardSet}
+          />
         </div>
 
-        <div className="w-fit my-2 float-start">
+        <div className="w-full align-baseline float-start">
           <SportsCSVButton sportsData={sportsData} />
         </div>
       </div>

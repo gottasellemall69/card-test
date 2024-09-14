@@ -1,3 +1,4 @@
+'use client';
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import GridView from "@/components/Yugioh/GridView";
@@ -5,9 +6,11 @@ import TableView from "@/components/Yugioh/TableView";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from "next/head";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const MyCollectionPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [aggregatedData, setAggregatedData] = useState([]);
   const [filters, setFilters] = useState({
     rarity: [],
@@ -36,7 +39,7 @@ const MyCollectionPage = () => {
     }
   }, [aggregatedData]);
 
-  useMemo(() => {
+  useEffect(() => {
     const fetchCardData = async () => {
       try {
         const response = await fetch('/api/Yugioh/countCards');
@@ -65,12 +68,27 @@ const MyCollectionPage = () => {
       const sortedData = applySorting(filteredData);
       setAggregatedData(sortedData);
     } catch (error) {
-      console.error("Error fetching aggregated data:", error);
+      setError("Error fetching aggregated data:", error);
+    }
+    finally {
+      setIsLoading(false);
     }
   }, [filters, sortConfig]);
 
   useEffect(() => {
     fetchData();
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+
+    if (error) {
+      return <div>{error}</div>;
+    }
+
+    if (!fetchData) {
+      return <div>Cards not found</div>;
+    }
+
   }, [fetchData]);
 
   const applyFilters = (data) => {
@@ -84,6 +102,14 @@ const MyCollectionPage = () => {
           filters.condition.includes(card.condition))
       );
     });
+  };
+
+  const handleFilterChange = (filterName, selectedOptions) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: selectedOptions,
+    }));
+    setCurrentPage(1);
   };
 
   const applySorting = (data) => {
@@ -102,14 +128,6 @@ const MyCollectionPage = () => {
     return sortedData;
   };
 
-  const handleFilterChange = (filterName, selectedOptions) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      [filterName]: selectedOptions,
-    }));
-    setCurrentPage(1);
-  };
-
   const handleSortChange = (sortKey) => {
     setSortConfig((prevSortConfig) => ({
       key: sortKey,
@@ -120,6 +138,9 @@ const MyCollectionPage = () => {
           : "ascending",
     }));
   };
+
+
+
 
   const onUpdateCard = useCallback(
     async (cardId, field, value) => {
@@ -231,7 +252,7 @@ const MyCollectionPage = () => {
           <br />
           Hover over or tap the card image to view the details of the card.
         </p>
-        <div className="flex flex-col sm:flex-row w-full sm:gap-10 align-baseline">
+        <div className="flex flex-col sm:flex-row w-fit mx-auto sm:mx-0 sm:gap-10 align-baseline">
           <div className="float-left">
             <button
               type="button"

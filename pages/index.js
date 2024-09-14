@@ -1,3 +1,4 @@
+'use client';
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
 import YugiohCardListInput from '@/components/Yugioh/YugiohCardListInput';
 import { setNameIdMap } from '@/utils/api';
