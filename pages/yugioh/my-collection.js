@@ -44,14 +44,14 @@ const MyCollectionPage = () => {
       try {
         const response = await fetch('/api/Yugioh/countCards');
         const data = await response.json();
-        setTotalCardCount(data.totalQuantity);
-        setSubtotalMarketPrice(data.totalMarketPrice);
+        setTotalCardCount(data?.totalQuantity);
+        setSubtotalMarketPrice(data?.totalMarketPrice);
       } catch (error) {
         console.error("Error fetching card data:", error);
       }
     };
     fetchCardData();
-  }, []); // should run only once on component mount
+  }, [totalCardCount, subtotalMarketPrice]); // should run only once on component mount
 
   const toggleFilterMenu = () => {
     setIsFilterMenuOpen(!isFilterMenuOpen);

@@ -186,11 +186,13 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
   };
 
   return (
-    <div>
+    <>
       <form onSubmit={handleSubmit}>
         <textarea
-          className="w-full sm:mx-auto rounded-sm text-black flex flex-wrap text-nowrap h-72 resize-none justify-items-center p-2"
+          id="cardListInput"
+          className="w-full max-w-7xl mx-auto sm:mx-0 rounded-sm text-black flex flex-wrap text-nowrap h-72 resize-none justify-items-center p-2"
           value={cardList}
+
           onChange={(e) => setCardList(e.target.value)}
           placeholder="Enter your list of cards..."
         />
@@ -208,7 +210,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
 
         {sortedAndPaginatedData.currentItems.length > 0 && (
 
-          <div className="block w-full overflow-x-auto max-h-[750px] overflow-y-auto">
+          <div className="block w-full overflow-x-auto max-h-[750px] overflow-y-auto mt-10">
             <button
               className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
               onClick={downloadCSV}
@@ -228,7 +230,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
               View Collection
             </button>
 
-            <table className="text-white items-center w-full border-collapse">
+            <table className="text-white items-center w-full max-w-7xl mx-auto border-collapse">
 
               <thead className="p-1 bg-transparent">
                 <tr>
@@ -334,7 +336,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
           </div>
         )}
       </>
-    </div>
+    </>
   );
 };
 

@@ -6,7 +6,7 @@ const AlphabeticalIndex = () => {
 
   return (
     <>
-      <div className="mx-auto w-full my-10 m-2">
+      <div className="w-full max-w-7xl my-10 m-2">
         <h1 className="text-xl font-semibold mb-4">Alphabetical Index</h1>
         <div className="flex flex-wrap gap-2 place-content-center md:text-nowrap">
           {alphabet.split('').map((letter) => (

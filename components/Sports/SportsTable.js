@@ -74,8 +74,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, currentPage, 
   };
 
   return (
-    <>
-
+    <div className="max-w-7xl w-full mx-auto">
       <div className="w-fit inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
         <div className="w-full float-start text-black font-black">
           <CardSetButtons
@@ -182,7 +181,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, currentPage, 
           />
         </div>
       )}
-    </>
+    </div>
   );
 };
 
