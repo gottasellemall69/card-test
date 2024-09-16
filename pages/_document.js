@@ -8,8 +8,8 @@ export default function Document() {
       <Head>
         <meta name="description" content="Enter list of TCG cards, get data back" />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
-        <meta name="charset" content="UTF-8" />
-        <meta
+        <meta name="charSet" content="UTF-8" />
+      <meta
           httpEquiv="Content-Security-Policy"
           content="
               script-src 'self' 'unsafe-inline' 'unsafe-eval' infinite-api.tcgplayer.com card-test-ashy.vercel.app va.vercel-scripts.com db.ygoprodeck.com sportscardspro.com;
