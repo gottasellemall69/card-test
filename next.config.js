@@ -12,7 +12,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value: `
-              default-src 'self';
+              default-src 'self' 'unsafe-inline';
               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://infinite-api.tcgplayer.com https://card-test-ashy.vercel.app https://va.vercel-scripts.com https://db.ygoprodeck.com https://sportscardspro.com;
               style-src 'self' 'unsafe-inline' https://card-test-ashy.vercel.app;
               img-src 'self' data:;
