@@ -151,15 +151,15 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
 
   // Function to convert data to CSV
   const convertToCSV = (data) => {
-    const headers = ["Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price"];
+    const headers = ["Name", "Set", "Number", "Printing", "Rarity", "Condition", "Price"];
     const rows = data.map(({ card, data }) => [
-      card?.productName,
-      card?.setName,
-      card?.number,
-      card?.printing,
-      card?.rarity,
-      card?.condition,
-      data?.marketPrice
+      `"${ card.productName.replace(/"/g, '""') }"`,
+      `"${ card?.setName.replace(/"/g, '""') || '' }"`,
+      `"${ card?.number.replace(/"/g, '""') || '' }"`,
+      `"${ card?.printing.replace(/"/g, '""') || '' }"`,
+      `"${ card?.rarity.replace(/"/g, '""') || '' }"`,
+      `"${ card?.condition.replace(/"/g, '""') || '' }"`,
+      `"${ data?.marketPrice ? data.marketPrice.toString().replace(/"/g, '""') : '' }"`
     ]);
 
     let csvContent = "data:text/csv;charset=utf-8,"

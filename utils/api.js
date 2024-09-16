@@ -28,7 +28,7 @@ export async function getCardData(setName) {
     if (!setNameId) {
       throw new Error('Set name not found in mapping');
     }
-    const response = await fetch(`https://infinite-api.tcgplayer.com/priceguide/set/${ setNameId }/cards/?rows=5000`);
+    const response = await fetch(`https://${ process.env.GET_CARD_DATA_API }/priceguide/set/${ setNameId }/cards/?rows=5000`);
     if (!response.ok) {
       throw new Error('Failed to fetch card data');
     }

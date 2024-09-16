@@ -90,6 +90,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   unoptimized={true}
                   src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                   alt={`${ card?.productName }`}
+                  quality={75}
                   width={220}
                   height={375}
                   className="cover-image object-scale-down w-full h-auto object-center mx-auto"

@@ -2,33 +2,34 @@
 const DownloadYugiohCSVButton = ({ aggregatedData, userCardList }) => {
   const downloadCSV = () => {
     try {
-      const csvHeader = "Product Name,Set,Number,Printing,Rarity,Condition,Market Price,Quantity";
+      const csvHeader = '"Name","Set","Number","Printing","Rarity","Condition","Price","Quantity"';
       const csvData = aggregatedData?.map((card) => {
         const productName = card?.productName || '';
         const userCard = userCardList?.filter((entry) =>
           entry.toLowerCase().includes(productName.toLowerCase())
         );
 
-        const relevantCard = userCard.filter((card) =>
-          userCard.toLowerCase().includes(card.productName?.toLowerCase()) &&
-          userCard.toLowerCase().includes(card.number?.toLowerCase()) &&
-          userCard.toLowerCase().includes(card.printing?.toLowerCase()) &&
-          userCard.toLowerCase().includes(card.condition?.toLowerCase())
+        const relevantCard = userCard.filter((userEntry) =>
+          userEntry.toLowerCase().includes(card.productName?.toLowerCase()) &&
+          userEntry.toLowerCase().includes(card.number?.toLowerCase()) &&
+          userEntry.toLowerCase().includes(card.printing?.toLowerCase()) &&
+          userEntry.toLowerCase().includes(card.condition?.toLowerCase())
         );
+
         return [
-          `"${ card?.productName || '' }"`,
-          `"${ card?.setName || '' }"`,
-          `"${ card?.number || '' }"`,
-          `"${ card?.printing || '' }"`,
-          `"${ card?.rarity || '' }"`,
-          `"${ card.condition || '' }"`,
-          `"${ card.marketPrice || '' }"`,
-          `"${ card?.quantity || '' }"`
+          `"${ card.productName.replace(/"/g, '""') }"`,
+          `"${ card?.setName.replace(/"/g, '""') || '' }"`,
+          `"${ card?.number.replace(/"/g, '""') || '' }"`,
+          `"${ card?.printing.replace(/"/g, '""') || '' }"`,
+          `"${ card?.rarity.replace(/"/g, '""') || '' }"`,
+          `"${ card?.condition.replace(/"/g, '""') || '' }"`,
+          `"${ card?.marketPrice ? card.marketPrice.toString().replace(/"/g, '""') : '' }"`,
+          `"${ card?.quantity ? card.quantity.toString().replace(/"/g, '""') : '' }"`
         ].join(',');
       }).join("\n");
 
       const csvContent = `${ csvHeader }\n${ csvData }`;
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
 
       const element = document.createElement('a');
