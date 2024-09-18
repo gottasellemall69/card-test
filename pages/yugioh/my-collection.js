@@ -2,10 +2,10 @@
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import GridView from "@/components/Yugioh/GridView";
-import TableView from "@/components/Yugioh/TableView";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import Head from "next/head";
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+const TableView = lazy(() => import("@/components/Yugioh/TableView"));
 
 const MyCollectionPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -74,7 +74,7 @@ const MyCollectionPage = () => {
     }
   }, [filters, sortConfig]);
 
-  useEffect(() => {
+  useMemo(() => {
     fetchData();
     if (isLoading) {
       return <div>Loading...</div>;
@@ -307,27 +307,29 @@ const MyCollectionPage = () => {
           </div>
         </div>
         {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
-        {view === "grid" ? (
-          <>
-            <GridView
-              aggregatedData={paginatedData}
+        <Suspense fallback={<div>Loading...</div>}>
+          {view === "grid" ? (
+            <>
+              <GridView
+                aggregatedData={paginatedData}
+                onDeleteCard={onDeleteCard}
+                onUpdateCard={onUpdateCard}
+                setAggregatedData={setAggregatedData}
+              />
+              <YugiohPagination
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={aggregatedData.length}
+                handlePageClick={handlePageClick}
+              />
+            </>
+          ) : (
+            <TableView
+              aggregatedData={aggregatedData}
               onDeleteCard={onDeleteCard}
-              onUpdateCard={onUpdateCard}
-              setAggregatedData={setAggregatedData}
             />
-            <YugiohPagination
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              totalItems={aggregatedData.length}
-              handlePageClick={handlePageClick}
-            />
-          </>
-        ) : (
-          <TableView
-            aggregatedData={aggregatedData}
-            onDeleteCard={onDeleteCard}
-          />
-        )}
+          )}
+        </Suspense>
       </div>
     </>
   );

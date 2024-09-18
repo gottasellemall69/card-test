@@ -30,10 +30,32 @@ export async function getStaticPaths() {
     { params: { cardSet: ['1991 MLB SCORE'] } },
     { params: { cardSet: ['1991 MLB Fleer'] } },
   ];
-  return { paths, fallback: 'blocking' }; // Set fallback to true or 'blocking' if you intend to produce paths on-demand
+  return { paths, fallback: true }; // Set fallback to true or 'blocking' if you intend to produce paths on-demand
 }
 
-export default function SportsPage() {
+export async function getStaticProps({ params }) {
+  if (params.cardSet) {
+    try {
+      const sportsData = await fetchSportsData(params.cardSet);
+      return {
+        props: {
+          sportsData,
+          cardSet: '',
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+  return {
+    props: {
+      sportsData: '',
+      cardSet: '',
+    },
+  };
+}
+
+const SportsPage = () => {
   const [sportsData, setSportsData] = useState([{}]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [selectedCardSet, setSelectedCardSet] = useState([]);
@@ -55,9 +77,8 @@ export default function SportsPage() {
   };
 
   useEffect(() => {
-    fetchSportsData(selectedCardSet, currentPage);
-    if (selectedCardSet) {
-
+    if (selectedCardSet.length > 0) { // Change condition to check for valid set
+      fetchSportsData(selectedCardSet, currentPage);
       setDataLoaded(true);
     }
   }, [selectedCardSet, currentPage]);
@@ -96,23 +117,4 @@ export default function SportsPage() {
     </>
   );
 };
-
-export async function getStaticProps({ params }) {
-  try {
-    const sportsData = await fetchSportsData(params.cardSet);
-    return {
-      props: {
-        sportsData,
-        cardSet: params.cardSet, // cardSet will be an array here
-      },
-    };
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    return {
-      props: {
-        sportsData: [{}],
-        cardSet: params.cardSet,
-      },
-    };
-  }
-};
+export default SportsPage;

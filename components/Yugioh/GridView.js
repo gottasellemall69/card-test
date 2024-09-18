@@ -1,4 +1,3 @@
-'use client';
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
