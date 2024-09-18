@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 
-const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: false });
+const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: true });
 export async function getStaticPaths() {
   const paths = [
     { params: { cardSet: ['1975 NBA Topps'] } },
@@ -36,8 +36,8 @@ export async function getStaticPaths() {
 export default function SportsPage() {
   const [sportsData, setSportsData] = useState([{}]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [selectedCardSet, setSelectedCardSet] = useState('');
-  const [currentPage, setCurrentPage] = useState('');
+  const [selectedCardSet, setSelectedCardSet] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 1;
 
   const fetchSportsData = async (selectedCardSet, currentPage) => {
@@ -110,7 +110,7 @@ export async function getStaticProps({ params }) {
     console.error('Error fetching data:', error);
     return {
       props: {
-        sportsData,
+        sportsData: [{}],
         cardSet: params.cardSet,
       },
     };
