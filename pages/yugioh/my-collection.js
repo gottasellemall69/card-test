@@ -4,7 +4,6 @@ import CardFilter from "@/components/Yugioh/CardFilter";
 import GridView from "@/components/Yugioh/GridView";
 import TableView from "@/components/Yugioh/TableView";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from "next/head";
 import { useCallback, useEffect, useState } from "react";
 
@@ -329,7 +328,6 @@ const MyCollectionPage = () => {
             onDeleteCard={onDeleteCard}
           />
         )}
-        <SpeedInsights />
       </div>
     </>
   );

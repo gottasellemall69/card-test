@@ -23,7 +23,7 @@ const Card = ({ cardData }) => {
         >
 
           <Image
-            priority={true}
+            quality={75}
             unoptimized={true}
             src={getLocalImagePath(cardData?.id)}
             alt={`Card Image - ${ cardData?.name }`}

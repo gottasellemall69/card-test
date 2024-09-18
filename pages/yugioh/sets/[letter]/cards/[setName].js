@@ -32,8 +32,6 @@ const CardsInSetPage = () => {
         <div className="w-full mx-auto gap-6 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {cards?.map((card) => (
             <Card
-              priority={true}
-              unoptimized={true}
               key={card.id}
               cardData={card}
             />

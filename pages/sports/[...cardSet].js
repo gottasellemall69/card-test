@@ -1,7 +1,6 @@
 'use client';
 // @/pages/sports/[...cardSet].js
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
@@ -35,10 +34,10 @@ export async function getStaticPaths() {
 }
 
 export default function SportsPage() {
-  const [sportsData, setSportsData] = useState([]);
+  const [sportsData, setSportsData] = useState([{}]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [selectedCardSet, setSelectedCardSet] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCardSet, setSelectedCardSet] = useState('');
+  const [currentPage, setCurrentPage] = useState('');
   const pageSize = 1;
 
   const fetchSportsData = async (selectedCardSet, currentPage) => {
@@ -94,7 +93,6 @@ export default function SportsPage() {
         setCurrentPage={setCurrentPage}
         pageSize={pageSize}
       />
-      <SpeedInsights />
     </>
   );
 };
@@ -112,7 +110,7 @@ export async function getStaticProps({ params }) {
     console.error('Error fetching data:', error);
     return {
       props: {
-        sportsData: [],
+        sportsData,
         cardSet: params.cardSet,
       },
     };

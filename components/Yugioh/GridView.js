@@ -77,7 +77,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="mx-auto w-full max-w-7xl sm:gap-10 lg:gap-3 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 mb-6">
+      <div className="mx-auto container w-fit max-w-7xl gap-4 sm:gap-10 lg:gap-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mb-6">
 
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
@@ -85,8 +85,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
             <div key={index} className="card mx-auto">
               <div className="wrapper mx-auto">
                 <Image
-                  priority
-                  loading={'eager'}
+                  priority={true}
                   unoptimized={true}
                   src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                   alt={`${ card?.productName }`}
@@ -116,8 +115,11 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
               <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
             </div>);
         })}
+      </div>
+      <div className='mx-auto z-50 align-top justify-center'>
         <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
       </div>
+
     </>
   );
 };
