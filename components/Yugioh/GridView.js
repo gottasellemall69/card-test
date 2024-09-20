@@ -83,16 +83,16 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
           return (
             <div key={index} className="card mx-auto">
               <div className="wrapper mx-auto">
-                <Image
-                  priority={true}
-                  unoptimized={true}
-                  src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
-                  alt={`${ card?.productName }`}
-                  quality={75}
-                  width={220}
-                  height={375}
-                  className="cover-image object-scale-down w-full h-auto object-center mx-auto"
-                />
+                <div className="cover-image object-scale-down w-full h-auto object-center mx-auto">
+                  <Image
+                    unoptimized={true}
+                    src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
+                    alt={`${ card?.productName }`}
+                    quality={75}
+                    width={220}
+                    height={375}
+                  />
+                </div>
                 <div className="black-overlay"></div>
                 <div className="details">
                   <div className="title text-2xl font-black text-filter outline-2 outline-black text-white">{card.productName}</div>

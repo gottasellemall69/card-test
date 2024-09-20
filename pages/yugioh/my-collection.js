@@ -3,6 +3,7 @@ import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohC
 import CardFilter from "@/components/Yugioh/CardFilter";
 import GridView from "@/components/Yugioh/GridView";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
+import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import Head from "next/head";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 const TableView = lazy(() => import("@/components/Yugioh/TableView"));
@@ -19,6 +20,19 @@ const MyCollectionPage = () => {
     key: "",
     direction: "",
   });
+
+  const handleSearch = (searchTerm) => {
+    const filteredData = aggregatedData.filter((card) =>
+      card.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.setName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.rarity.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.printing.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      card.condition.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setAggregatedData(filteredData);
+  };
+
   const [view, setView] = useState("grid"); // 'table' or 'grid'
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
@@ -38,7 +52,7 @@ const MyCollectionPage = () => {
     }
   }, [aggregatedData]);
 
-  useEffect(() => {
+  useMemo(() => {
     const fetchCardData = async () => {
       try {
         const response = await fetch('/api/Yugioh/countCards');
@@ -251,7 +265,10 @@ const MyCollectionPage = () => {
           <br />
           Hover over or tap the card image to view the details of the card.
         </p>
+
         <div className="flex flex-col sm:flex-row w-fit mx-auto sm:mx-0 sm:gap-10 align-baseline">
+
+
           <div className="float-left">
             <button
               type="button"
@@ -299,18 +316,23 @@ const MyCollectionPage = () => {
           </div>
         </div>
         <div className="mt-6">
+          <div className="float-end container mx-auto w-full max-w-xl place-self-center align-top text-black">
+            <YugiohSearchBar onSearch={handleSearch} />
+          </div>
           <div className="text-xl font-semibold p-2">
             Total Collection Value: ${subtotalMarketPrice}
           </div>
           <div className="text-xl font-semibold p-2">
             Cards in Collection: {totalCardCount}
           </div>
+
         </div>
         {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
         <Suspense fallback={<div>Loading...</div>}>
           {view === "grid" ? (
             <>
               <GridView
+                cards={aggregatedData}
                 aggregatedData={paginatedData}
                 onDeleteCard={onDeleteCard}
                 onUpdateCard={onUpdateCard}
@@ -325,6 +347,9 @@ const MyCollectionPage = () => {
             </>
           ) : (
             <TableView
+              handleSortChange={handleSortChange}
+              onUpdateCard={onUpdateCard}
+              cards={aggregatedData}
               aggregatedData={aggregatedData}
               onDeleteCard={onDeleteCard}
             />

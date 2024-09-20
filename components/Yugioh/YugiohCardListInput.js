@@ -110,7 +110,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
 
       const selectedData = Array.from(selectedRows).map((index) => matchedCardData[index]);
 
-      const collectionArray = selectedData.map(({ card, data }, index) => ({
+      const collectionArray = selectedData.map((({ card, data, index }) => ({
         productName: card?.productName,
         setName: card?.setName,
         number: card?.number,
@@ -119,7 +119,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
         condition: card?.condition,
         marketPrice: data?.marketPrice,
         'quantity': parseInt("1")
-      }));
+      })));
 
       // Send a POST request to the server to save the cards
       const response = await fetch('/api/Yugioh/cards', {
