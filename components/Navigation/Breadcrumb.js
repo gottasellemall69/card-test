@@ -44,7 +44,7 @@ export default function Breadcrumb() {
               <svg className="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
               </svg>
-              <Link href={`/yugioh/sets/${ query.letter }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+              <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/sets/${ query.letter }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
                 <span>Sets by Letter: </span> {query.letter}
               </Link>
             </div>
@@ -58,7 +58,7 @@ export default function Breadcrumb() {
               <svg className="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
               </svg>
-              <Link href={`/yugioh/sets/${ query.letter }/cards/${ query.setName }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+              <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${ query.letter }/cards/${ query.setName }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
                 <span>Cards in Set: </span> {query.setName}
               </Link>
             </div>
@@ -73,7 +73,7 @@ export default function Breadcrumb() {
                 <svg className="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                   <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
                 </svg>
-                <Link href={`/yugioh/sets/${ query.letter }/cards/${ query.set_name }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${ query.letter }/cards/${ query.set_name }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
                   <span>Cards in Set: </span> {query.set_name}
                 </Link>
               </div>
