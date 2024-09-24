@@ -1,94 +1,63 @@
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import useSWR from 'swr';
+
+const fetcher = (url) => fetch(url).then((res) => {
+  if (!res.ok) {
+    throw new Error('Failed to fetch data');
+  }
+  return res.json();
+});
 
 const CardDetails = () => {
   const router = useRouter();
   const { card, letter, setName } = router.query;
-  const [cardData, setCardData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  // Helper function to fetch card data
-  const fetchCardData = async (cardId) => {
-    try {
-      const res = await fetch(`/api/Yugioh/card/${ encodeURIComponent([cardId]) }`);
-      if (!res.ok) throw new Error('Failed to fetch');
-      return await res.json();
-    } catch (err) {
-      throw err;
-    }
-  };
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (!card) return; // Ensure we have a card ID from the query
-      setIsLoading(true);
-      try {
-        const cardDetails = await fetchCardData(card);
-        setCardData(cardDetails);
-      } catch (error) {
-        setError('Error fetching card data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, [card]);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // Use SWR for data fetching with the card ID
+  const { data: cardData, error } = useSWR(
+    card ? `/api/Yugioh/card/${ encodeURIComponent(card) }` : null,
+    fetcher
+  );
 
   if (error) {
-    return <div>{error}</div>;
+    return <div>Error loading card data.</div>;
   }
 
   if (!cardData) {
-    return <div>Card not found</div>;
+    return <div>Loading...</div>;
   }
 
   return (
     <>
       <Breadcrumb>
         <Link href="/yugioh">Alphabetical Index</Link>
-        <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/sets/${ letter }`}>Sets by Letter: {letter}</Link>
+        <Link href={`/yugioh/sets/${ letter }`}>Sets by Letter: {letter}</Link>
         {setName && (
-          <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${ letter }/cards/${ setName }`}>
+          <Link href={`/yugioh/sets/${ letter }/cards/${ setName }`}>
             Cards in Set: {setName}
           </Link>
         )}
         <span>Card Details: {card}</span>
       </Breadcrumb>
+
       <div key={cardData.id} className="text-pretty text-white p-6 rounded-md shadow-md mb-8">
-        <h1 className="text-2xl font-bold mb-4">
-          {cardData.name}
-        </h1>
+        <h1 className="text-2xl font-bold mb-4">{cardData.name}</h1>
+
         <p className="mb-2">
-          <span className="font-bold">
-            Type:
-          </span>
-          {cardData.type}
+          <span className="font-bold">Type:</span> {cardData.type}
         </p>
+
         <p className="mb-2 max-w-prose">
-          <span className="font-bold">
-            Description:
-          </span>
-          {cardData.desc}
+          <span className="font-bold">Description:</span> {cardData.desc}
         </p>
+
         <p className="mb-2">
-          <span className="font-bold">
-            Race:
-          </span>
-          {cardData.race}
+          <span className="font-bold">Race:</span> {cardData.race}
         </p>
+
         <p className="mb-4">
-          <span className="font-bold">
-            Archetype:
-          </span>
-          {cardData.archetype}
+          <span className="font-bold">Archetype:</span> {cardData.archetype}
         </p>
 
         <div className="mb-4 text-pretty">

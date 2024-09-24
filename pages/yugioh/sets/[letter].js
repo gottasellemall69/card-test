@@ -35,7 +35,7 @@ const SetsByLetterPage = () => {
         <div className="mx-5 flex-wrap grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row">
           {sets.map((set, index) => (
             <div key={index} className="p-5 text-white font-medium leading-5 w-7xl">
-              <Link className="w-fit hover:underline hover:font-semibold" rel="noopener noreferrer" href={`/yugioh/sets/${ letter }/cards/${ set.set_name }`}>{set.set_name}</Link>
+              <Link className="w-fit hover:underline hover:font-semibold" rel="noopener noreferrer" href="/yugioh/sets/[letter]/cards/[setName]" as={`/yugioh/sets/${ letter }/cards/${ set.set_name }`}>{set.set_name}</Link>
             </div>
           ))}
         </div>

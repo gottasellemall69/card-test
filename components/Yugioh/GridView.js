@@ -85,6 +85,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
               <div className="wrapper mx-auto">
                 <div className="cover-image object-scale-down w-full h-auto object-center mx-auto">
                   <Image
+                    priority
                     unoptimized={true}
                     src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                     alt={`${ card?.productName }`}

@@ -9,6 +9,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 const TableView = lazy(() => import("@/components/Yugioh/TableView"));
 
 const MyCollectionPage = () => {
+  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [aggregatedData, setAggregatedData] = useState([]);
@@ -22,6 +23,16 @@ const MyCollectionPage = () => {
   });
 
   const handleSearch = (searchTerm) => {
+    setSearchTerm(searchTerm);  // Update the state with the current search term
+
+    if (searchTerm === "") {
+      // If the search input is cleared, reset the aggregated data and pagination
+      fetchData();  // Fetch the original data
+      setCurrentPage(1);  // Reset pagination to page 1
+      return;
+    }
+
+    // Otherwise, filter the data based on the search term
     const filteredData = aggregatedData.filter((card) =>
       card.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.setName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -30,8 +41,10 @@ const MyCollectionPage = () => {
       card.printing.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.condition.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
     setAggregatedData(filteredData);
   };
+
 
   const [view, setView] = useState("grid"); // 'table' or 'grid'
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
@@ -39,8 +52,8 @@ const MyCollectionPage = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12); // Adjust the number based on your design
-  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState([]);
-  const [totalCardCount, setTotalCardCount] = useState([]);
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
+  const [totalCardCount, setTotalCardCount] = useState(0);
 
   useEffect(() => {
     if (Array.isArray(aggregatedData)) {
@@ -50,27 +63,26 @@ const MyCollectionPage = () => {
       );
       setSubtotalMarketPrice(subtotal.toFixed(2));
     }
-  }, [aggregatedData]);
+  }, []);
 
-  useMemo(() => {
-    const fetchCardData = async () => {
-      try {
-        const response = await fetch('/api/Yugioh/countCards');
-        const data = await response.json();
-        setTotalCardCount(data?.totalQuantity);
-        setSubtotalMarketPrice(data?.totalMarketPrice);
-      } catch (error) {
-        console.error("Error fetching card data:", error);
-      }
-    };
-    fetchCardData();
-  }, [totalCardCount, subtotalMarketPrice]); // should run only once on component mount
+  const fetchCardData = async () => {
+    try {
+      const response = await fetch('/api/Yugioh/countCards');
+      const data = await response.json();
+      setTotalCardCount(data?.totalQuantity);
+      setSubtotalMarketPrice(data?.totalMarketPrice);
+    } catch (error) {
+      console.error("Error fetching card data:", error);
+    }
+    await fetchCardData(totalCardCount, subtotalMarketPrice);
+  };
 
   const toggleFilterMenu = () => {
     setIsFilterMenuOpen(!isFilterMenuOpen);
   };
 
   const fetchData = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await fetch("/api/Yugioh/my-collection");
       if (!response.ok) {
@@ -82,11 +94,11 @@ const MyCollectionPage = () => {
       setAggregatedData(sortedData);
     } catch (error) {
       setError("Error fetching aggregated data:", error);
-    }
-    finally {
+    } finally {
       setIsLoading(false);
     }
   }, [filters, sortConfig]);
+
 
   useMemo(() => {
     fetchData();
@@ -332,7 +344,7 @@ const MyCollectionPage = () => {
           {view === "grid" ? (
             <>
               <GridView
-                cards={aggregatedData}
+                searchTerm={searchTerm}
                 aggregatedData={paginatedData}
                 onDeleteCard={onDeleteCard}
                 onUpdateCard={onUpdateCard}
@@ -349,7 +361,6 @@ const MyCollectionPage = () => {
             <TableView
               handleSortChange={handleSortChange}
               onUpdateCard={onUpdateCard}
-              cards={aggregatedData}
               aggregatedData={aggregatedData}
               onDeleteCard={onDeleteCard}
             />
