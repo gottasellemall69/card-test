@@ -2,6 +2,7 @@
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { fetchCardData } from '@/utils/api';
 import { organizeCardSets } from '@/utils/organizeCardSets';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -40,6 +41,7 @@ const SetsByLetterPage = () => {
           ))}
         </div>
       </div>
+      <SpeedInsights />
     </>
   );
 };

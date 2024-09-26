@@ -12,8 +12,9 @@ const Card = ({ cardData }) => {
     <>
       <div>
         <Link
+          as={`/yugioh/sets/${ letter }/cards/CardDetails`}
           href={{
-            pathname: `/yugioh/sets/${ letter }/cards/CardDetails`,
+            pathname: "/yugioh/sets/[letter]/cards/CardDetails",
             query: {
               card: cardData.id,
               set_name: setName,
@@ -21,18 +22,20 @@ const Card = ({ cardData }) => {
             }
           }}
         >
-
-          <Image
-            quality={75}
-            unoptimized={true}
-            src={getLocalImagePath(cardData?.id)}
-            alt={`Card Image - ${ cardData?.name }`}
-            width={275}
-            height={325}
-            className="w-full h-96 object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu"
-          />
+          <div className="w-full h-96 object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu">
+            <Image
+              priority={true}
+              quality={75}
+              unoptimized={true}
+              src={getLocalImagePath(cardData?.id)}
+              alt={`Card Image - ${ cardData?.name }`}
+              width={275}
+              height={325}
+            />
+          </div>
         </Link>
       </div>
+
     </>
   );
 };

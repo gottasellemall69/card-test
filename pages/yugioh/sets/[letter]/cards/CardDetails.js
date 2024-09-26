@@ -1,4 +1,5 @@
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
@@ -32,9 +33,9 @@ const CardDetails = () => {
     <>
       <Breadcrumb>
         <Link href="/yugioh">Alphabetical Index</Link>
-        <Link href={`/yugioh/sets/${ letter }`}>Sets by Letter: {letter}</Link>
+        <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/sets/${ letter }`}>Sets by Letter: {letter}</Link>
         {setName && (
-          <Link href={`/yugioh/sets/${ letter }/cards/${ setName }`}>
+          <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${ letter }/cards/${ setName }`}>
             Cards in Set: {setName}
           </Link>
         )}
@@ -84,6 +85,7 @@ const CardDetails = () => {
           <p><span className="font-bold">Coolstuffinc Price:</span> {cardData.card_prices?.coolstuffinc_price}</p>
         </div>
       </div>
+      <SpeedInsights />
     </>
   );
 };

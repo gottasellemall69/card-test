@@ -2,6 +2,7 @@
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
 import YugiohCardListInput from '@/components/Yugioh/YugiohCardListInput';
 import { setNameIdMap } from '@/utils/api';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
 import { useState } from 'react';
 
@@ -180,6 +181,7 @@ const Home = () => {
           />
         </div>
       </div>
+      <SpeedInsights />
     </>
   );
 };

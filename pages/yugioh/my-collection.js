@@ -4,6 +4,7 @@ import CardFilter from "@/components/Yugioh/CardFilter";
 import GridView from "@/components/Yugioh/GridView";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from "next/head";
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 const TableView = lazy(() => import("@/components/Yugioh/TableView"));
@@ -371,6 +372,7 @@ const MyCollectionPage = () => {
           )}
         </Suspense>
       </div>
+      <SpeedInsights />
     </>
   );
 };

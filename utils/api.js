@@ -81,7 +81,7 @@ export const updateCardPrices = async (setName, cardData) => {
 
 
 export async function fetchCardData() {
-  const url = "https://db.ygoprodeck.com/api/v7/cardinfo.php?tcgplayer_data=true";
+  const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?tcgplayer_data=true`;
   try {
     const response = await fetch(url);
     if (!response.ok) {

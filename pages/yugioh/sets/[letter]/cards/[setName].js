@@ -2,6 +2,7 @@
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import Card from '@/components/Yugioh/Card';
 import { fetchCardData } from '@/utils/api';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -32,12 +33,14 @@ const CardsInSetPage = () => {
         <div className="w-full mx-auto gap-6 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {cards?.map((card) => (
             <Card
+              priority
               key={card.id}
               cardData={card}
             />
           ))}
         </div>
       </div>
+      <SpeedInsights />
     </>
   );
 };
