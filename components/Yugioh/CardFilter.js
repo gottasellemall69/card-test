@@ -2,7 +2,7 @@
 const CardFilter = ({ updateFilters }) => {
   const createCheckbox = (id, label, value) => {
     const handleChange = () => {
-      const checked = event.target.checked;
+      const checked = EventTarget.checked;
       const filterType = id.split('-')[0];
 
       const values = Array.from(document.querySelectorAll(`input[id^="${ filterType }"]:checked`)).map((checkbox) => checkbox.value);
@@ -35,7 +35,7 @@ const CardFilter = ({ updateFilters }) => {
         id: 'rarity-filter',
         label: 'Rarity',
         values: [
-          "Common", "Common / Short Print", "Rare", "Super Rare", "Ultra Rare", "Secret Rare", "Prismatic Secret Rare", "Gold Rare", "Premium Gold Rare", "Shatterfoil Rare", "Mosaic Rare", "Starfoil Rare", "Ultimate Rare"
+          "Common / Short Print", "Rare", "Super Rare", "Ultra Rare", "Secret Rare", "Prismatic Secret Rare", "Gold Rare", "Premium Gold Rare", "Shatterfoil Rare", "Mosaic Rare", "Starfoil Rare", "Ultimate Rare"
         ],
       },
       {
@@ -50,7 +50,7 @@ const CardFilter = ({ updateFilters }) => {
     ];
 
     return (
-      <div id="filters-container">
+      <div id="filters-container" className="container grid grid-cols-2 grid-rows-subgrid p-2 gap-2 w-fit max-w-full">
         {filters.map((filter) => (
           <div key={filter.id} className="inline-block items-center text-base p-3 font-semibold mx-auto">
             {filter.label + ': '}

@@ -5,7 +5,7 @@ import GridView from "@/components/Yugioh/GridView";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import Head from "next/head";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 const TableView = lazy(() => import("@/components/Yugioh/TableView"));
 
 const MyCollectionPage = () => {
@@ -22,14 +22,14 @@ const MyCollectionPage = () => {
     direction: "",
   });
 
-  const handleSearch = (searchTerm) => {
+  const handleSearch = useCallback((searchTerm) => {
     setSearchTerm(searchTerm);  // Update the state with the current search term
+    setCurrentPage(1);
 
     if (searchTerm === "") {
       // If the search input is cleared, reset the aggregated data and pagination
       fetchData();  // Fetch the original data
       setCurrentPage(1);  // Reset pagination to page 1
-      return;
     }
 
     // Otherwise, filter the data based on the search term
@@ -43,7 +43,7 @@ const MyCollectionPage = () => {
     );
 
     setAggregatedData(filteredData);
-  };
+  });
 
 
   const [view, setView] = useState("grid"); // 'table' or 'grid'
@@ -52,30 +52,33 @@ const MyCollectionPage = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12); // Adjust the number based on your design
-  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
-  const [totalCardCount, setTotalCardCount] = useState(0);
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState('');
+  const [totalCardCount, setTotalCardCount] = useState('');
 
   useEffect(() => {
-    if (Array.isArray(aggregatedData)) {
+    const fetchCardData = async () => {
+      try {
+        const response = await fetch('/api/Yugioh/countCards');
+        const data = await response.json();
+        setTotalCardCount(data?.totalQuantity || 0);
+        setSubtotalMarketPrice(data?.totalMarketPrice || 0);
+      } catch (error) {
+        console.error("Error fetching card data:", error);
+      }
+    };
+
+    fetchCardData();
+  }, []);
+
+  useEffect(() => {
+    if (Array.isArray(aggregatedData) && aggregatedData.length) {
       const subtotal = aggregatedData.reduce(
-        (sum, card) => sum + card.marketPrice * card.quantity,
+        (sum, card) => sum + (card.marketPrice || 0) * (card.quantity || 0),
         0
       );
       setSubtotalMarketPrice(subtotal.toFixed(2));
     }
-  }, []);
-
-  const fetchCardData = async () => {
-    try {
-      const response = await fetch('/api/Yugioh/countCards');
-      const data = await response.json();
-      setTotalCardCount(data?.totalQuantity);
-      setSubtotalMarketPrice(data?.totalMarketPrice);
-    } catch (error) {
-      console.error("Error fetching card data:", error);
-    }
-    await fetchCardData(totalCardCount, subtotalMarketPrice);
-  };
+  }, [aggregatedData]);
 
   const toggleFilterMenu = () => {
     setIsFilterMenuOpen(!isFilterMenuOpen);
@@ -100,7 +103,7 @@ const MyCollectionPage = () => {
   }, [filters, sortConfig]);
 
 
-  useMemo(() => {
+  useEffect(() => {
     fetchData();
     if (isLoading) {
       return <div>Loading...</div>;
@@ -329,7 +332,9 @@ const MyCollectionPage = () => {
         </div>
         <div className="mt-6">
           <div className="float-end container mx-auto w-full max-w-xl place-self-center align-top text-black">
-            <YugiohSearchBar onSearch={handleSearch} />
+            <YugiohSearchBar
+              searchTerm={searchTerm}
+              onSearch={handleSearch} />
           </div>
           <div className="text-xl font-semibold p-2">
             Total Collection Value: ${subtotalMarketPrice}
@@ -344,7 +349,6 @@ const MyCollectionPage = () => {
           {view === "grid" ? (
             <>
               <GridView
-                searchTerm={searchTerm}
                 aggregatedData={paginatedData}
                 onDeleteCard={onDeleteCard}
                 onUpdateCard={onUpdateCard}
