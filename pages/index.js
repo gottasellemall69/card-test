@@ -165,7 +165,7 @@ const Home = () => {
         <div className="m-2 leading-5">
           <AlphabeticalIndex />
         </div>
-        <div className="mx-auto">
+        <div className="mx-auto container w-full max-w-7xl min-h-min">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}

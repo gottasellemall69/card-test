@@ -3,7 +3,7 @@
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: true });
 export async function getStaticPaths() {
@@ -62,7 +62,7 @@ const SportsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 1;
 
-  const fetchSportsData = async (selectedCardSet, currentPage) => {
+  const fetchSportsData = useCallback(async (selectedCardSet, currentPage) => {
     try {
       const response = await fetch(
         `/api/Sports/sportsData?cardSet=${ selectedCardSet }&page=${ currentPage }`
@@ -74,9 +74,9 @@ const SportsPage = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  };
+  }, []);
 
-  useEffect(() => {
+  useMemo(() => {
     if (selectedCardSet.length > 0) { // Change condition to check for valid set
       fetchSportsData(selectedCardSet, currentPage);
       setDataLoaded(true);
@@ -102,18 +102,20 @@ const SportsPage = () => {
           https://www.sportscardspro.com
         </a>
       </p>
-      <SportsTable
-        sportsData={sportsData}
-        dataLoaded={dataLoaded}
-        selectedCardSet={selectedCardSet}
-        setSelectedCardSet={(set) => {
-          setSelectedCardSet(set);
-          setCurrentPage(1); // Reset to first page when set changes
-        }}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        pageSize={pageSize}
-      />
+      <div className="mx-auto container w-full max-w-7xl min-h-min">
+        <SportsTable
+          sportsData={sportsData}
+          dataLoaded={dataLoaded}
+          selectedCardSet={selectedCardSet}
+          setSelectedCardSet={(set) => {
+            setSelectedCardSet(set);
+            setCurrentPage(1); // Reset to first page when set changes
+          }}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          pageSize={pageSize}
+        />
+      </div>
     </>
   );
 };

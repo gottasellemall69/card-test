@@ -1,13 +1,14 @@
 'use client';
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
-import GridView from "@/components/Yugioh/GridView";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import dynamic from 'next/dynamic';
 import Head from "next/head";
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 const TableView = lazy(() => import("@/components/Yugioh/TableView"));
+const GridView = dynamic(() => import('@/components/Yugioh/GridView'), { ssr: true });
 
 const MyCollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,17 +23,22 @@ const MyCollectionPage = () => {
     key: "",
     direction: "",
   });
+  const [view, setView] = useState("grid"); // 'table' or 'grid'
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12); // Adjust the number based on your design
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState('');
+  const [totalCardCount, setTotalCardCount] = useState('');
 
   const handleSearch = useCallback((searchTerm) => {
     setSearchTerm(searchTerm);  // Update the state with the current search term
     setCurrentPage(1);
-
     if (searchTerm === "") {
       // If the search input is cleared, reset the aggregated data and pagination
       fetchData();  // Fetch the original data
       setCurrentPage(1);  // Reset pagination to page 1
     }
-
     // Otherwise, filter the data based on the search term
     const filteredData = aggregatedData.filter((card) =>
       card.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -42,19 +48,8 @@ const MyCollectionPage = () => {
       card.printing.toLowerCase().includes(searchTerm.toLowerCase()) ||
       card.condition.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     setAggregatedData(filteredData);
-  });
-
-
-  const [view, setView] = useState("grid"); // 'table' or 'grid'
-  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12); // Adjust the number based on your design
-  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState('');
-  const [totalCardCount, setTotalCardCount] = useState('');
+  }, [aggregatedData]);
 
   useEffect(() => {
     const fetchCardData = async () => {
@@ -67,7 +62,6 @@ const MyCollectionPage = () => {
         console.error("Error fetching card data:", error);
       }
     };
-
     fetchCardData();
   }, []);
 
@@ -80,10 +74,6 @@ const MyCollectionPage = () => {
       setSubtotalMarketPrice(subtotal.toFixed(2));
     }
   }, [aggregatedData]);
-
-  const toggleFilterMenu = () => {
-    setIsFilterMenuOpen(!isFilterMenuOpen);
-  };
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -103,49 +93,35 @@ const MyCollectionPage = () => {
     }
   }, [filters, sortConfig]);
 
-
   useEffect(() => {
     fetchData();
-    if (isLoading) {
-      return <div>Loading...</div>;
-    }
-
-    if (error) {
-      return <div>{error}</div>;
-    }
-
-    if (!fetchData) {
-      return <div>Cards not found</div>;
-    }
-
   }, [fetchData]);
 
-  const applyFilters = (data) => {
+  const applyFilters = useCallback((data) => {
     if (filters.rarity.length === 0 && filters.condition.length === 0) {
       return data;
     }
     return data.filter((card) => {
       return (
         (filters.rarity.length === 0 || filters.rarity.includes(card.rarity)) &&
-        (filters.condition.length === 0 ||
-          filters.condition.includes(card.condition))
+        (filters.condition.length === 0 || filters.condition.includes(card.condition))
       );
     });
-  };
+  }, [filters]);
 
-  const handleFilterChange = (filterName, selectedOptions) => {
+  const handleFilterChange = useCallback((filterName, selectedOptions) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
       [filterName]: selectedOptions,
     }));
     setCurrentPage(1);
-  };
+  }, []);
 
-  const applySorting = (data) => {
+  const applySorting = useCallback((data) => {
     if (!sortConfig.key) {
       return data;
     }
-    const sortedData = [...data].sort((a, b) => {
+    return [...data].sort((a, b) => {
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === "ascending" ? -1 : 1;
       }
@@ -154,22 +130,14 @@ const MyCollectionPage = () => {
       }
       return 0;
     });
-    return sortedData;
-  };
+  }, [sortConfig]);
 
-  const handleSortChange = (sortKey) => {
+  const handleSortChange = useCallback((sortKey) => {
     setSortConfig((prevSortConfig) => ({
       key: sortKey,
-      direction:
-        prevSortConfig.key === sortKey &&
-          prevSortConfig.direction === "ascending"
-          ? "descending"
-          : "ascending",
+      direction: prevSortConfig.key === sortKey && prevSortConfig.direction === "ascending" ? "descending" : "ascending",
     }));
-  };
-
-
-
+  }, []);
 
   const onUpdateCard = useCallback(
     async (cardId, field, value) => {
@@ -246,15 +214,18 @@ const MyCollectionPage = () => {
   };
 
   // Get paginated data
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = aggregatedData.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return aggregatedData.slice(startIndex, startIndex + itemsPerPage);
+  }, [aggregatedData, currentPage, itemsPerPage]);
 
-  const handlePageClick = (page) => {
+  const handlePageClick = useCallback((page) => {
     setCurrentPage(page);
-  };
+  }, []);
+
+  const toggleFilterMenu = useCallback(() => {
+    setIsFilterMenuOpen((prevState) => !prevState);
+  }, []);
 
   return (
     <>
@@ -345,32 +316,34 @@ const MyCollectionPage = () => {
           </div>
 
         </div>
-        {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
-        <Suspense fallback={<div>Loading...</div>}>
-          {view === "grid" ? (
-            <>
-              <GridView
-                aggregatedData={paginatedData}
-                onDeleteCard={onDeleteCard}
+        <div className="mx-auto container w-full max-w-7xl min-h-min">
+          {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
+          <Suspense fallback={<div>Loading...</div>}>
+            {view === "grid" ? (
+              <>
+                <GridView
+                  aggregatedData={paginatedData}
+                  onDeleteCard={onDeleteCard}
+                  onUpdateCard={onUpdateCard}
+                  setAggregatedData={setAggregatedData}
+                />
+                <YugiohPagination
+                  currentPage={currentPage}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={aggregatedData.length}
+                  handlePageClick={handlePageClick}
+                />
+              </>
+            ) : (
+              <TableView
+                handleSortChange={handleSortChange}
                 onUpdateCard={onUpdateCard}
-                setAggregatedData={setAggregatedData}
+                aggregatedData={aggregatedData}
+                onDeleteCard={onDeleteCard}
               />
-              <YugiohPagination
-                currentPage={currentPage}
-                itemsPerPage={itemsPerPage}
-                totalItems={aggregatedData.length}
-                handlePageClick={handlePageClick}
-              />
-            </>
-          ) : (
-            <TableView
-              handleSortChange={handleSortChange}
-              onUpdateCard={onUpdateCard}
-              aggregatedData={aggregatedData}
-              onDeleteCard={onDeleteCard}
-            />
-          )}
-        </Suspense>
+            )}
+          </Suspense>
+        </div>
       </div>
       <SpeedInsights />
     </>
