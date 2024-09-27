@@ -4,12 +4,14 @@ import Notification from '@/components/Notification';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
 const LoadingSpinner = dynamic(() => import('@/components/LoadingSpinner'));
 const YugiohPagination = dynamic(() => import('@/components/Yugioh/YugiohPagination'));
 
 const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData }) => {
   const router = useRouter();
+
   const [notification, setNotification] = useState({
     show: false,
     message: ''
@@ -21,74 +23,63 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
   const [selectAllChecked, setSelectAllChecked] = useState(false);
 
   // Pagination handlers
-  const handlePageClick = (page) => {
+  const handlePageClick = useCallback((page) => {
     setCurrentPage(page);
-  };
+  }, []);
 
-  const handleSort = (key) => {
-    let direction = 'ascending';
-    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
+  const handleSort = useCallback((key) => {
+    setSortConfig((prevConfig) => {
+      let direction = 'ascending';
+      if (prevConfig.key === key && prevConfig.direction === 'ascending') {
+        direction = 'descending';
+      }
 
-    setSortConfig({ key, direction });
-
-    setMatchedCardData((prevData) => {
-      const sorted = [...prevData].sort((a, b) => {
-        const aValue = key === 'marketPrice' ? (a.data.marketPrice || 0) : a.card[key];
-        const bValue = key === 'marketPrice' ? (b.data.marketPrice || 0) : b.card[key];
-        if (aValue < bValue) {
-          return direction === 'ascending' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return direction === 'ascending' ? 1 : -1;
-        }
-        return 0;
+      setMatchedCardData((prevData) => {
+        const sorted = [...prevData].sort((a, b) => {
+          const aValue = key === 'marketPrice' ? (a.data?.marketPrice || 0) : a.card[key];
+          const bValue = key === 'marketPrice' ? (b.data?.marketPrice || 0) : b.card[key];
+          return aValue < bValue ? (direction === 'ascending' ? -1 : 1) : aValue > bValue ? (direction === 'ascending' ? 1 : -1) : 0;
+        });
+        return sorted;
       });
-      return sorted;
+
+      return { key, direction };
     });
-  };
+  }, [setMatchedCardData]);
 
   // Memoize sorted and paginated data
   const sortedAndPaginatedData = useMemo(() => {
     if (!Array.isArray(matchedCardData)) {
-      return (
-        { currentItems: [], totalCount: 0 }
-      );
+      return { currentItems: [], totalCount: 0 };
     }
 
     const sortedData = [...matchedCardData].sort((a, b) => {
       const aValue = sortConfig.key === 'marketPrice' ? (a.data?.marketPrice || 0) : a.card[sortConfig.key];
       const bValue = sortConfig.key === 'marketPrice' ? (b.data?.marketPrice || 0) : b.card[sortConfig.key];
-      if (aValue < bValue) {
-        return sortConfig.direction === 'ascending' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === 'ascending' ? 1 : -1;
-      }
-      return 0;
+      return aValue < bValue ? (sortConfig.direction === 'ascending' ? -1 : 1) : aValue > bValue ? (sortConfig.direction === 'ascending' ? 1 : -1) : 0;
     });
 
-    // Pagination calculation
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
     return { currentItems, totalCount: sortedData.length };
-  }, [matchedCardData, currentPage, sortConfig.key, sortConfig.direction]);
+  }, [matchedCardData, currentPage, sortConfig]);
 
   // Function to handle checkbox toggle
-  const toggleCheckbox = (index) => {
+  const toggleCheckbox = useCallback((index) => {
     const paginatedIndex = (currentPage - 1) * itemsPerPage + index;
-    const newSelectedRows = new Set(selectedRows);
-    if (newSelectedRows.has(paginatedIndex)) {
-      newSelectedRows.delete(paginatedIndex);
-    } else {
-      newSelectedRows.add(paginatedIndex);
-    }
-    setSelectedRows(newSelectedRows);
-  };
+    setSelectedRows((prevSelected) => {
+      const newSelectedRows = new Set(prevSelected);
+      if (newSelectedRows.has(paginatedIndex)) {
+        newSelectedRows.delete(paginatedIndex);
+      } else {
+        newSelectedRows.add(paginatedIndex);
+      }
+      return newSelectedRows;
+    });
+  }, [currentPage, itemsPerPage]);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     if (!selectAllChecked) {
       const allRowsIndexes = Array.from({ length: matchedCardData?.length }, (_, index) => index);
       setSelectedRows(new Set(allRowsIndexes));
@@ -96,21 +87,19 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
       setSelectedRows(new Set());
     }
     setSelectAllChecked(!selectAllChecked);
-  };
+  }, [selectAllChecked, matchedCardData]);
 
   // Function to handle adding selected rows to collection
-  const addToCollection = async () => {
+  const addToCollection = useCallback(async () => {
     try {
-      // Ensure selectedRows contains valid indices
       if (selectedRows.size === 0) {
         setNotification({ show: true, message: 'No cards were selected to add to the collection!' });
-        console.log('No cards selected to add to collection');
         return;
       }
 
       const selectedData = Array.from(selectedRows).map((index) => matchedCardData[index]);
 
-      const collectionArray = selectedData.map((({ card, data, index }) => ({
+      const collectionArray = selectedData.map(({ card, data }) => ({
         productName: card?.productName,
         setName: card?.setName,
         number: card?.number,
@@ -118,39 +107,31 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
         rarity: card?.rarity,
         condition: card?.condition,
         marketPrice: data?.marketPrice,
-        'quantity': parseInt("1")
-      })));
+        'quantity': 1
+      }));
 
-      // Send a POST request to the server to save the cards
       const response = await fetch('/api/Yugioh/cards', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ cards: collectionArray }), // Ensure cards data is included in the request body
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards: collectionArray }),
       });
 
-      // Check if the response is ok
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
-      // Parse the response data
-      const result = await response.json();
       setNotification({ show: true, message: 'Card(s) added to the collection!' });
-      console.log('Success:', result);
     } catch (error) {
       setNotification({ show: true, message: 'Card(s) failed to save!' });
       console.error('Failed to save the cards:', error);
     }
-  };
+  }, [selectedRows, matchedCardData]);
 
-  const handleGoToCollectionPage = () => {
+  const handleGoToCollectionPage = useCallback(() => {
     router.push('/yugioh/my-collection');
-  };
+  }, [router]);
 
-  // Function to convert data to CSV
-  const convertToCSV = (data) => {
+  const convertToCSV = useCallback((data) => {
     const headers = ["Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price"];
     const rows = data.map(({ card, data }) => [
       card?.productName,
@@ -162,15 +143,11 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
       data?.marketPrice
     ]);
 
-    let csvContent = "data:text/csv;charset=utf-8,"
-      + headers.join(",") + "\n"
-      + rows.map(e => e.join(",")).join("\n");
-
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
     return encodeURI(csvContent);
-  };
+  }, []);
 
-  // Function to download CSV
-  const downloadCSV = () => {
+  const downloadCSV = useCallback(() => {
     if (!matchedCardData || matchedCardData.length === 0) {
       setNotification({ show: true, message: 'No data available to download!' });
       return;
@@ -183,50 +160,37 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, [matchedCardData, convertToCSV]);
 
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <textarea
-          id="cardListInput"
-          className="w-full max-w-7xl mx-auto sm:mx-0 rounded-sm text-black flex flex-wrap text-nowrap h-72 resize-none justify-items-center p-2"
-          value={cardList}
-
-          onChange={(e) => setCardList(e.target.value)}
-          placeholder="Enter your list of cards..."
-        />
-        <button
-          className="border border-white rounded-lg px-2 py-2 mx-auto m-2 text-white font-bold hover:text-black hover:bg-white"
-          type="submit"
-        >
-          Submit
-        </button>
+        <div className="mx-auto text-black p-2">
+          <textarea
+            id="cardListInput"
+            className="w-full max-w-7xl rounded-lg flex flex-wrap text-nowrap resize-none justify-items-center h-48"
+            value={cardList}
+            onChange={(e) => setCardList(e.target.value)}
+            placeholder="Enter your list of cards..."
+          />
+          <button className="border border-white rounded-lg px-2 py-2 mx-auto m-2 text-white font-bold hover:text-black hover:bg-white" type="submit">
+            Submit
+          </button>
+        </div>
       </form>
       <>
         {isLoading && <LoadingSpinner />}
         {error && <p>{error}</p>}
         <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
-
         {sortedAndPaginatedData.currentItems.length > 0 && (
-
           <div className="block w-full overflow-x-auto max-h-[750px] overflow-y-auto mt-10">
-            <button
-              className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white"
-              onClick={downloadCSV}
-            >
+            <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={downloadCSV}>
               Download CSV
             </button>
-            <button
-              className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white"
-              onClick={addToCollection}
-            >
+            <button className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={addToCollection}>
               Add cards to collection
             </button>
-            <button
-              className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white"
-              onClick={handleGoToCollectionPage}
-            >
+            <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>
               View Collection
             </button>
 

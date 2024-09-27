@@ -137,7 +137,7 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <div className="my-10 text-pretty mx-auto w-full max-w-7xl">
+      <div className="mt-10 h-fit text-pretty mx-auto w-full max-w-7xl">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
         <div className="text-base italic font-medium mb-5 text-center sm:text-left">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
@@ -165,7 +165,7 @@ const Home = () => {
         <div className="m-2 leading-5">
           <AlphabeticalIndex />
         </div>
-        <div className="mx-auto container w-full max-w-7xl min-h-min">
+        <div className="mx-auto m-6">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}

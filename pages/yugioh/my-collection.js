@@ -256,7 +256,7 @@ const MyCollectionPage = () => {
         <div className="flex flex-col sm:flex-row w-fit mx-auto sm:mx-0 sm:gap-10 align-baseline">
 
 
-          <div className="float-left">
+          <div className="float-left space-x-2 sm:space-x-0 space-y-0 sm:space-y-2">
             <button
               type="button"
               onClick={() => setView("grid")}
@@ -303,7 +303,7 @@ const MyCollectionPage = () => {
           </div>
         </div>
         <div className="mt-6">
-          <div className="float-end container mx-auto w-full max-w-xl place-self-center align-top text-black">
+          <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
             <YugiohSearchBar
               searchTerm={searchTerm}
               onSearch={handleSearch} />
@@ -316,7 +316,7 @@ const MyCollectionPage = () => {
           </div>
 
         </div>
-        <div className="mx-auto container w-full max-w-7xl min-h-min">
+        <div className="mx-auto container w-fit">
           {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
           <Suspense fallback={<div>Loading...</div>}>
             {view === "grid" ? (

@@ -13,7 +13,7 @@ export default function Layout({ children }) {
   return (
     <div className="flex min-h-screen bg-black">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full' } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}>
+      <div className={`fixed border-2 border-zinc-700 inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full' } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}>
         <div className="flex items-center justify-between p-4 bg-blue-600">
           <h2 className="text-lg font-semibold text-white">WELCOME</h2>
           <button
@@ -52,8 +52,10 @@ export default function Layout({ children }) {
             ☰
           </button>
         </header>
-        <main className="p-4">
-          {children}
+        <main className="pb-10 bg-black min-h-screen">
+          <div className="px-3">
+            {children}
+          </div>
         </main>
       </div>
     </div>
