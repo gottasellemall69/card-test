@@ -77,7 +77,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="mx-auto container w-fit max-w-7xl gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mb-6">
+      <div className="mx-auto h-[700px] overflow-x-hidden overflow-y-auto w-fit max-w-7xl gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mb-6">
 
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);

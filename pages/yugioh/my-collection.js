@@ -321,18 +321,21 @@ const MyCollectionPage = () => {
                     searchTerm={searchTerm}
                     onSearch={handleSearch} />
                 </div>
-                <GridView
-                  aggregatedData={paginatedData}
-                  onDeleteCard={onDeleteCard}
-                  onUpdateCard={onUpdateCard}
-                  setAggregatedData={setAggregatedData}
-                />
+                <div className="container contents p-3 mx-auto">
+                  <GridView
+                    aggregatedData={paginatedData}
+                    onDeleteCard={onDeleteCard}
+                    onUpdateCard={onUpdateCard}
+                    setAggregatedData={setAggregatedData}
+                  />
+                </div>
                 <YugiohPagination
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   totalItems={aggregatedData.length}
                   handlePageClick={handlePageClick}
                 />
+
               </>
             ) : (
               <TableView
