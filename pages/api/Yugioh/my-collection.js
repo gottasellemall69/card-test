@@ -1,15 +1,15 @@
-import {MongoClient} from 'mongodb'
+import { MongoClient } from 'mongodb';
 
 export default async function handler(req, res) {
-  const client=new MongoClient(process.env.MONGODB_URI)
+  const client = new MongoClient(process.env.MONGODB_URI);
 
   try {
-    await client.connect()
-    const collection=client.db('cardPriceApp').collection('myCollection')
+    await client.connect();
+    const collection = client.db('cardPriceApp').collection('myCollection');
 
-    switch(req.method) {
+    switch (req.method) {
       case 'GET':
-        const agg=[
+        const agg = [
           {
             '$project': {
               '_id': '$_id',
@@ -29,27 +29,79 @@ export default async function handler(req, res) {
             }
           }
         ]
-
-        const cursor=collection.aggregate(agg)
-        const result=await cursor.toArray()
-        const modifiedResult=result.map((item) => {
+        [
+          {
+            '$sort': {
+              '_id': 1
+            }
+          }, {
+            '$group': {
+              '_id': '$_id',
+              'items': {
+                '$push': '$$ROOT'
+              }
+            }
+          }, {
+            '$project': {
+              'totalPages': {
+                '$ceil': {
+                  '$divide': [
+                    {
+                      '$size': '$items'
+                    }, 12
+                  ]
+                }
+              },
+              'items': 1
+            }
+          }, {
+            '$unwind': {
+              'path': '$items',
+              'includeArrayIndex': 'itemIndex'
+            }
+          }, {
+            '$group': {
+              '_id': {
+                '$floor': {
+                  '$divide': [
+                    '$itemIndex', 12
+                  ]
+                }
+              },
+              'pageItems': {
+                '$push': '$items'
+              }
+            }
+          }, {
+            '$project': {
+              'page': '$_id',
+              'items': '$pageItems'
+            }
+          }, {
+            '$sort': {
+              'page': 1
+            }
+          }
+        ];
+        const cursor = collection.aggregate(agg);
+        const result = await cursor.toArray();
+        const modifiedResult = result.map((item) => {
           return {
             _id: JSON.stringify(item._id),
             ...item
-          }
-        })
+          };
+        });
 
-        res.status(200).json(modifiedResult)
-        break
+        res.status(200).json(modifiedResult);
 
       default:
-        res.setHeader('Allow', ['GET'])
-        res.status(405).end(`Method ${ req.method } Not Allowed`)
+        res.setHeader('Allow', ['GET']);
+        res.status(405).end(`Method ${ req.method } Not Allowed`);
     }
-  } catch(error) {
-    console.error('Error executing aggregation query:', error)
-    res.status(500).json({message: 'Server error'})
+  } catch (error) {
+    console.error('Error executing aggregation query:', error);
+    res.status(500).json({ message: 'Server error' });
   } finally {
-    await client.close()
+    await client.close();
   }
 }

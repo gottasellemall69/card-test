@@ -1,4 +1,3 @@
-'use client';
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
@@ -303,11 +302,7 @@ const MyCollectionPage = () => {
           </div>
         </div>
         <div className="mt-6">
-          <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
-            <YugiohSearchBar
-              searchTerm={searchTerm}
-              onSearch={handleSearch} />
-          </div>
+
           <div className="text-xl font-semibold p-2">
             Total Collection Value: ${subtotalMarketPrice}
           </div>
@@ -321,6 +316,11 @@ const MyCollectionPage = () => {
           <Suspense fallback={<div>Loading...</div>}>
             {view === "grid" ? (
               <>
+                <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
+                  <YugiohSearchBar
+                    searchTerm={searchTerm}
+                    onSearch={handleSearch} />
+                </div>
                 <GridView
                   aggregatedData={paginatedData}
                   onDeleteCard={onDeleteCard}
