@@ -2,9 +2,9 @@
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-const GridView = memo(({ aggregatedData, onDeleteCard, onUpdateCard }) => {
+const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
@@ -77,7 +77,7 @@ const GridView = memo(({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="mx-auto max-h-[450px] overflow-x-hidden overflow-y-auto w-fit max-w-7xl gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mb-6">
+      <div className="mx-auto max-h-[550px] place-items-center overflow-x-hidden overflow-y-auto w-full gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-6">
 
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
@@ -123,6 +123,6 @@ const GridView = memo(({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
     </>
   );
-});
+};
 
 export default GridView;

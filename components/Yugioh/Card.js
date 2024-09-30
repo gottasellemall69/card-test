@@ -29,8 +29,8 @@ const Card = ({ cardData }) => {
               unoptimized={true}
               src={getLocalImagePath(cardData?.id)}
               alt={`Card Image - ${ cardData?.name }`}
-              width={275}
-              height={325}
+              width={240}
+              height={310}
             />
           </div>
         </Link>

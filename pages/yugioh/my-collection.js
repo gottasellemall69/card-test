@@ -317,7 +317,7 @@ const MyCollectionPage = () => {
         <Suspense fallback={<div>Loading...</div>}>
           {view === "grid" ? (
             <>
-              <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
+              <div className="container mx-auto place-self-center w-8/12 max-w-xl align-top text-black my-2">
                 <YugiohSearchBar
                   searchTerm={searchTerm}
                   onSearch={handleSearch} />
@@ -329,6 +329,7 @@ const MyCollectionPage = () => {
                   onUpdateCard={onUpdateCard}
                   setAggregatedData={setAggregatedData}
                 />
+
               </div>
               <YugiohPagination
                 currentPage={currentPage}

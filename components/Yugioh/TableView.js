@@ -1,7 +1,7 @@
 'use client';
-import { memo, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-const TableView = memo(({ aggregatedData }) => {
+const TableView = ({ aggregatedData }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
 
   const calculatePriceTrend = (previousPrice, currentPrice) => {
@@ -101,6 +101,6 @@ const TableView = memo(({ aggregatedData }) => {
       </div>
     </div>
   );
-});
+};
 
 export default TableView;
