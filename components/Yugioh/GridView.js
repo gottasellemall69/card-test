@@ -77,7 +77,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="mx-auto h-[700px] overflow-x-hidden overflow-y-auto w-fit max-w-7xl gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mb-6">
+      <div className="mx-auto max-h-[450px] overflow-x-hidden overflow-y-auto w-fit max-w-7xl gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mb-6">
 
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
@@ -87,13 +87,12 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                 <div>
                   <Image
                     priority
-                    className="cover-image object-scale-down w-full h-auto object-center mx-auto"
                     unoptimized={true}
                     src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                     alt={`${ card?.productName }`}
                     quality={75}
-                    width={275}
-                    height={325}
+                    width={240}
+                    height={310}
                   />
                 </div>
                 <div className="black-overlay"></div>

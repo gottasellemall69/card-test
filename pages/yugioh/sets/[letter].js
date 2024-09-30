@@ -31,7 +31,7 @@ const SetsByLetterPage = () => {
   // Memoize the sets to avoid re-calculating the set components on every render
   const memoizedSets = useMemo(() => {
     if (!sets || sets.length === 0) {
-      return <p>No sets available for this letter.</p>;
+      return <p>Loading...</p>;
     }
 
     return sets.map((set, index) => (

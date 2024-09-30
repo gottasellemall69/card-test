@@ -16,6 +16,7 @@ const YugiohSearchBar = ({ onSearch }) => {
   return (
     <div className="flex items-center justify-center mt-4">
       <input
+        id="YugiohSearchBar"
         type="text"
         className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
         placeholder="Search for a card..."

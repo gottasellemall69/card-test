@@ -1,3 +1,4 @@
+'use client';
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
@@ -7,7 +8,7 @@ import dynamic from 'next/dynamic';
 import Head from "next/head";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 const TableView = lazy(() => import("@/components/Yugioh/TableView"));
-const GridView = dynamic(() => import('@/components/Yugioh/GridView'), { ssr: true });
+const GridView = dynamic(() => import('@/components/Yugioh/GridView'), { ssr: false });
 
 const MyCollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -338,12 +339,19 @@ const MyCollectionPage = () => {
 
               </>
             ) : (
-              <TableView
-                handleSortChange={handleSortChange}
-                onUpdateCard={onUpdateCard}
-                aggregatedData={aggregatedData}
-                onDeleteCard={onDeleteCard}
-              />
+              <>
+                <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
+                  <YugiohSearchBar
+                    searchTerm={searchTerm}
+                    onSearch={handleSearch} />
+                </div>
+                <TableView
+                  handleSortChange={handleSortChange}
+                  onUpdateCard={onUpdateCard}
+                  aggregatedData={aggregatedData}
+                  onDeleteCard={onDeleteCard}
+                />
+              </>
             )}
           </Suspense>
         </div>
