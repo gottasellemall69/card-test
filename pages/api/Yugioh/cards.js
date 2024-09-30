@@ -1,4 +1,4 @@
-import { clientPromise } from '@/utils/mongo';
+import clientPromise from '@/utils/mongo';
 
 export default async function handler(req, res) {
   try {
