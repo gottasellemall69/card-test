@@ -66,7 +66,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   }, [aggregatedData, updateQuantity]);
 
 
-  const getFullImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, []); // Use WebP format for better compression
+  const getFullImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.webp`, []); // Use WebP format for better compression
 
   const getCardImage = useCallback((cardName) => {
     const cardInfo = cardData.find(item => item.name === cardName);
