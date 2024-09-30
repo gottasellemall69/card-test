@@ -2,9 +2,9 @@
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
-import { useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 
-const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
+const GridView = memo(({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
@@ -123,6 +123,6 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
     </>
   );
-};
+});
 
 export default GridView;

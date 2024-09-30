@@ -1,7 +1,7 @@
 :root
 {
-  --card-height: 325px;
-  --card-width: 275px;
+  --card-height: auto;
+  --card-width: auto;
 }
 
 *
