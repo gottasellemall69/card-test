@@ -312,49 +312,48 @@ const MyCollectionPage = () => {
           </div>
 
         </div>
-        <div className="mx-auto container w-fit">
-          {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
-          <Suspense fallback={<div>Loading...</div>}>
-            {view === "grid" ? (
-              <>
-                <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
-                  <YugiohSearchBar
-                    searchTerm={searchTerm}
-                    onSearch={handleSearch} />
-                </div>
-                <div className="container contents p-3 mx-auto">
-                  <GridView
-                    aggregatedData={paginatedData}
-                    onDeleteCard={onDeleteCard}
-                    onUpdateCard={onUpdateCard}
-                    setAggregatedData={setAggregatedData}
-                  />
-                </div>
-                <YugiohPagination
-                  currentPage={currentPage}
-                  itemsPerPage={itemsPerPage}
-                  totalItems={aggregatedData.length}
-                  handlePageClick={handlePageClick}
-                />
 
-              </>
-            ) : (
-              <>
-                <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
-                  <YugiohSearchBar
-                    searchTerm={searchTerm}
-                    onSearch={handleSearch} />
-                </div>
-                <TableView
-                  handleSortChange={handleSortChange}
-                  onUpdateCard={onUpdateCard}
-                  aggregatedData={aggregatedData}
+        {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
+        <Suspense fallback={<div>Loading...</div>}>
+          {view === "grid" ? (
+            <>
+              <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
+                <YugiohSearchBar
+                  searchTerm={searchTerm}
+                  onSearch={handleSearch} />
+              </div>
+              <div className="container contents p-3 mx-auto">
+                <GridView
+                  aggregatedData={paginatedData}
                   onDeleteCard={onDeleteCard}
+                  onUpdateCard={onUpdateCard}
+                  setAggregatedData={setAggregatedData}
                 />
-              </>
-            )}
-          </Suspense>
-        </div>
+              </div>
+              <YugiohPagination
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={aggregatedData.length}
+                handlePageClick={handlePageClick}
+              />
+
+            </>
+          ) : (
+            <>
+              <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
+                <YugiohSearchBar
+                  searchTerm={searchTerm}
+                  onSearch={handleSearch} />
+              </div>
+              <TableView
+                handleSortChange={handleSortChange}
+                onUpdateCard={onUpdateCard}
+                aggregatedData={aggregatedData}
+                onDeleteCard={onDeleteCard}
+              />
+            </>
+          )}
+        </Suspense>
       </div>
       <SpeedInsights />
     </>

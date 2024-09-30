@@ -8,8 +8,7 @@ export default async function handler(req, res) {
     const collection = client.db('cardPriceApp').collection('myCollection');
 
     switch (req.method) {
-      case 'GET': {
-        // Aggregation pipeline
+      case 'GET':
         const agg = [
           {
             '$project': {
@@ -25,69 +24,79 @@ export default async function handler(req, res) {
             }
           },
           {
-            '$sort': { '_id': 1 }
-          },
-          {
-            '$group': {
-              '_id': null,
-              'items': { '$push': '$$ROOT' }
+            '$sort': {
+              '_id': 1
             }
-          },
+          }
+        ]
+        [
           {
+            '$sort': {
+              '_id': 1
+            }
+          }, {
+            '$group': {
+              '_id': '$_id',
+              'items': {
+                '$push': '$$ROOT'
+              }
+            }
+          }, {
             '$project': {
               'totalPages': {
                 '$ceil': {
-                  '$divide': [{ '$size': '$items' }, 12]
+                  '$divide': [
+                    {
+                      '$size': '$items'
+                    }, 12
+                  ]
                 }
               },
               'items': 1
             }
-          },
-          {
+          }, {
             '$unwind': {
               'path': '$items',
               'includeArrayIndex': 'itemIndex'
             }
-          },
-          {
+          }, {
             '$group': {
               '_id': {
                 '$floor': {
-                  '$divide': ['$itemIndex', 12]
+                  '$divide': [
+                    '$itemIndex', 12
+                  ]
                 }
               },
-              'pageItems': { '$push': '$items' }
+              'pageItems': {
+                '$push': '$items'
+              }
             }
-          },
-          {
+          }, {
             '$project': {
               'page': '$_id',
               'items': '$pageItems'
             }
-          },
-          {
-            '$sort': { 'page': 1 }
+          }, {
+            '$sort': {
+              'page': 1
+            }
           }
         ];
-
         const cursor = collection.aggregate(agg);
         const result = await cursor.toArray();
-
-        // Modify the result to convert _id to string
         const modifiedResult = result.map((item) => {
           return {
-            _id: item._id.toString(), // Convert _id to string
+            _id: JSON.stringify(item._id),
             ...item
           };
         });
 
         res.status(200).json(modifiedResult);
-        break;
-      }
 
       default:
         res.setHeader('Allow', ['GET']);
-        res.status(405).end(`Method ${req.method} Not Allowed`);
+        res.status(405).end(`Method ${ req.method } Not Allowed`);
     }
   } catch (error) {
     console.error('Error executing aggregation query:', error);
