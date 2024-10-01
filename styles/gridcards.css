@@ -28,7 +28,7 @@
   aspect-ratio: 2 / 2;
   width: var(--card-width);
   height: var(--card-height);
-  object-fit: cover;
+  object-fit: scale-down;
   transition: opacity 0.5s ease-in-out;
 }
 

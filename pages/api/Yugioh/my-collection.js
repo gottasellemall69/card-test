@@ -25,7 +25,7 @@ export default async function handler(req, res) {
           },
           {
             '$sort': {
-              '_id': 1
+              '$_id': 1
             }
           }
         ]
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
             }
           }, {
             '$group': {
-              '_id': '$_id',
+              '$_id': 1,
               'items': {
                 '$push': '$$ROOT'
               }
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
             }
           }, {
             '$group': {
-              '_id': {
+              '$_id': {
                 '$floor': {
                   '$divide': [
                     '$itemIndex', 12
@@ -93,10 +93,6 @@ export default async function handler(req, res) {
         });
 
         res.status(200).json(modifiedResult);
-
-      default:
-        res.setHeader('Allow', ['GET']);
-        res.status(405).end(`Method ${ req.method } Not Allowed`);
     }
   } catch (error) {
     console.error('Error executing aggregation query:', error);
