@@ -84,8 +84,9 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
           return (
             <div key={index} className="card mx-auto">
               <div className="wrapper mx-auto">
-                <div>
+                <div >
                   <Image
+                    className="w-auto h-auto p-1"
                     priority
                     unoptimized={true}
                     src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder

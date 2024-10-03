@@ -1,11 +1,12 @@
 'use client';
 // @/pages/sports/[...cardSet].js
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import { useCallback, useMemo, useState } from 'react';
 
-const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: true });
+const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: false });
 export async function getStaticPaths() {
   const paths = [
     { params: { cardSet: ['1975 NBA Topps'] } },
@@ -40,7 +41,6 @@ export async function getStaticProps({ params }) {
       return {
         props: {
           sportsData,
-          cardSet: '',
         },
       };
     } catch (error) {
@@ -49,8 +49,7 @@ export async function getStaticProps({ params }) {
   }
   return {
     props: {
-      sportsData: '',
-      cardSet: '',
+      sportsData
     },
   };
 }
@@ -76,9 +75,9 @@ const SportsPage = () => {
     }
   }, []);
 
-  useMemo(() => {
+  useMemo(async () => {
     if (selectedCardSet.length > 0) { // Change condition to check for valid set
-      fetchSportsData(selectedCardSet, currentPage);
+      await fetchSportsData(selectedCardSet, currentPage);
       setDataLoaded(true);
     }
   }, [selectedCardSet, currentPage]);
@@ -102,7 +101,7 @@ const SportsPage = () => {
           https://www.sportscardspro.com
         </a>
       </p>
-      <div className="mx-auto container w-full max-w-7xl min-h-min">
+      <div className="mx-auto container content-center place-items-center w-full max-w-7xl min-h-min">
         <SportsTable
           sportsData={sportsData}
           dataLoaded={dataLoaded}
@@ -116,6 +115,7 @@ const SportsPage = () => {
           pageSize={pageSize}
         />
       </div>
+      <SpeedInsights />
     </>
   );
 };

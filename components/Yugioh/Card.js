@@ -12,7 +12,7 @@ const Card = ({ cardData }) => {
     <>
       <div>
         <Link
-          as={`/yugioh/sets/${ letter }/cards/CardDetails`}
+          as={`/yugioh/sets/${ letter }/cards/CardDetails?card=${ String(cardData.name) }`}
           href={{
             pathname: "/yugioh/sets/[letter]/cards/CardDetails",
             query: {
@@ -22,7 +22,7 @@ const Card = ({ cardData }) => {
             }
           }}
         >
-          <div className="w-full h-96 object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu">
+          <div className="object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu">
             <Image
               priority
               quality={75}

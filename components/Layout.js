@@ -26,17 +26,26 @@ export default function Layout({ children }) {
         <nav className="p-4">
           <ul>
             <li className="mb-2">
-              <Link href="/">
+              <Link
+                href="/"
+                rel="noopener noreferrer"
+              >
                 <span className="block p-2 text-gray-700 hover:bg-blue-200 rounded">Yu-Gi-Oh! Card Prices</span>
               </Link>
             </li>
             <li className="mb-2">
-              <Link href="/sports/cardSet">
+              <Link
+                href="/sports/cardSet"
+                rel="noopener noreferrer"
+              >
                 <span className="block p-2 text-gray-700 hover:bg-blue-200 rounded">Sports Card Prices</span>
               </Link>
             </li>
             <li className="mb-2">
-              <Link href="/yugioh/my-collection">
+              <Link
+                href="/yugioh/my-collection"
+                rel="noopener noreferrer"
+              >
                 <span className="block p-2 text-gray-700 hover:bg-blue-200 rounded">My Collection</span>
               </Link>
             </li>
@@ -46,14 +55,14 @@ export default function Layout({ children }) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        <header className="bg-blue-600 p-4 text-white sticky lg:hidden">
-          <h3 className="text-xl w-fit float-start font-black">CARD PRICE APP</h3>
-          <button className="float-end" onClick={toggleSidebar}>
+        <header className="bg-blue-600 p-1 text-white sticky lg:hidden">
+          <h3 className="p-2 m-2 text-xl w-fit float-start font-black">CARD PRICE APP</h3>
+          <button className="align-text-top float-end m-2 p-2" onClick={toggleSidebar}>
             ☰
           </button>
         </header>
         <main className="pb-10 bg-black min-h-screen">
-          <div className="px-3">
+          <div className="px-3 mx-auto">
             {children}
           </div>
         </main>

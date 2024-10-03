@@ -20,19 +20,18 @@ export default function Document() {
             "
         />
       </Head>
-      <body className="h-full w-full">
-        <div className="w-full transition-all main">
-
-          <div className="text-center sm:text-left">
-            <Main
-            />
+      <>
+        <body className="h-full w-full">
+          <div className="w-full transition-all main">
+            <div className="text-center sm:text-left">
+              <Main
+              />
+            </div>
           </div>
-        </div>
-
-        <NextScript />
-
+          <NextScript />
+        </body>
         <SpeedInsights />
-      </body>
+      </>
     </Html>
   );
 }
