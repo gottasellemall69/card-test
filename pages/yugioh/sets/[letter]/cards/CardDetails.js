@@ -35,9 +35,9 @@ const CardDetails = () => {
         <Link href="/yugioh">Alphabetical Index</Link>
         <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/${ letter }/sets`}>Sets by Letter: {letter}</Link>
         {setName && (
-          <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/${ letter }/sets/${ setName }/cards/`}>
+          <span>
             Cards in Set: {setName}
-          </Link>
+          </span>
         )}
         <span>Card Details: {card}</span>
       </Breadcrumb>

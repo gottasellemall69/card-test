@@ -6,8 +6,8 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useCallback, useMemo, useState } from 'react';
 
-const LoadingSpinner = dynamic(() => import('@/components/LoadingSpinner'));
-const YugiohPagination = dynamic(() => import('@/components/Yugioh/YugiohPagination'));
+const LoadingSpinner = dynamic(() => import('@/components/LoadingSpinner'),{ ssr: false });
+const YugiohPagination = dynamic(() => import('@/components/Yugioh/YugiohPagination'),{ ssr: false });
 
 const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, error, matchedCardData, setMatchedCardData }) => {
   const router = useRouter();
@@ -164,10 +164,13 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
+      <form
+        id="cardListInput"
+        onSubmit={handleSubmit}
+      >
         <div className="mx-auto text-black p-2">
           <textarea
-            id="cardListInput"
+            name="cardListInput"
             className="w-full max-w-7xl rounded-lg flex flex-wrap text-nowrap resize-none justify-items-center h-48"
             value={cardList}
             onChange={(e) => setCardList(e.target.value)}

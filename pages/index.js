@@ -1,10 +1,11 @@
 'use client';
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
-import YugiohCardListInput from '@/components/Yugioh/YugiohCardListInput';
+import dynamic from 'next/dynamic';
+const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'),{ ssr: false });
 import { setNameIdMap } from '@/utils/api';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 
 const exampleCardList =
@@ -24,7 +25,7 @@ const Home = () => {
   const [collection, setCollection] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [cardList, setCardList] = useState('');
-  const [matchedCardData, setMatchedCardData] = useState(null);
+  const [matchedCardData, setMatchedCardData] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -32,7 +33,7 @@ const Home = () => {
     setCardList(exampleCardList);
   };
   const fetchedSetData = {};
-  const fetchCardData = async (card) => {
+  const fetchCardData = useCallback(async (card) => {
     try {
       const { productName, setName, number, printing, rarity, condition } = card;
       // Get the numerical setNameId from the mapping
@@ -74,7 +75,7 @@ const Home = () => {
       console.error('Error fetching card data:', error);
       return { card, data: { marketPrice: parseFloat("0").toFixed(2) }, error: 'No market price available' };
     }
-  };
+  },[]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

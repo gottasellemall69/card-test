@@ -24,6 +24,7 @@ const Card = ({ cardData }) => {
         >
           <div className="object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu">
             <Image
+              className="object-scale-down object-center w-full h-full max-h-96"
               priority
               quality={75}
               unoptimized={true}

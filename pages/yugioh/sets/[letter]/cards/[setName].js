@@ -31,14 +31,16 @@ const CardsInSetPage = () => {
       <div>
         <h1 className="my-10 text-xl font-black">Cards in {decodeURIComponent(setName)}</h1>
         <div className="w-full place-items-center mx-auto gap-6 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {cards?.map((card) => (
-            <>
+         <>
+            {cards?.map((card) => (
+              
               <Card
                 key={card.id}
                 cardData={card}
               />
-            </>
+              
           ))}
+</>
         </div>
       </div>
       <SpeedInsights />

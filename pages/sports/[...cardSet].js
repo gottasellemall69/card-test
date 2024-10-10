@@ -49,7 +49,7 @@ export async function getStaticProps({ params }) {
   }
   return {
     props: {
-      sportsData
+      sportsData,
     },
   };
 }
@@ -101,7 +101,7 @@ const SportsPage = () => {
           https://www.sportscardspro.com
         </a>
       </p>
-      <div className="mx-auto container content-center place-items-center w-full max-w-7xl min-h-min">
+      <div className="mx-auto container content-center place-items-center w-full max-w-7xl h-fit">
         <SportsTable
           sportsData={sportsData}
           dataLoaded={dataLoaded}

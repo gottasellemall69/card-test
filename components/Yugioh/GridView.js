@@ -4,7 +4,7 @@ import cardData from '@/public/card-data/Yugioh/card_data';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
-const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
+const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
@@ -84,9 +84,9 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
           return (
             <div key={index} className="card mx-auto">
               <div className="wrapper mx-auto">
-                <div >
+                <div>
                   <Image
-                    className="w-auto h-auto p-1"
+                    className="object-scale-down object-center w-full h-full max-h-96"
                     priority
                     unoptimized={true}
                     src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
@@ -124,6 +124,6 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
     </>
   );
-};
+});
 
 export default GridView;
