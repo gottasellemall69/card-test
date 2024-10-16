@@ -77,7 +77,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="mx-auto max-h-[550px] place-items-center overflow-x-hidden overflow-y-auto w-full gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-6">
+      <div className="mx-auto sm:max-h-[600px] max-h-[400px] place-items-center overflow-x-hidden overflow-y-auto w-full gap-1 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-6">
 
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
@@ -97,7 +97,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   />
                 </div>
                 <div className="black-overlay"></div>
-                <div className="details">
+                <span className="details p-2">
                   <div className="title text-2xl font-black text-filter outline-2 outline-black text-white">{card.productName}</div>
                   <div>Set: {card.setName}</div>
                   <div>Number: {card.number}</div>
@@ -105,7 +105,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   <div>Printing: {card.printing}</div>
                   <div>Condition: {card.condition}</div>
                   <div>Market Price: ${card.marketPrice}</div>
-                </div>
+                </span>
               </div>
               <div className="text-sm font-medium text-gray-400 my-2.5">Quantity:
                 {edit[card._id] === 'quantity' ? (

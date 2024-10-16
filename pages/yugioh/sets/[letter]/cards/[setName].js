@@ -1,3 +1,4 @@
+"use client"
 // @/pages/yugioh/sets/[letter]/cards/[setName].js
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import Card from '@/components/Yugioh/Card';

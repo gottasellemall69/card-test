@@ -24,8 +24,8 @@ Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Li
 const Home = () => {
   const [collection, setCollection] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [cardList, setCardList] = useState('');
-  const [matchedCardData, setMatchedCardData] = useState('');
+  const [cardList, setCardList] = useState([]);
+  const [matchedCardData, setMatchedCardData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
