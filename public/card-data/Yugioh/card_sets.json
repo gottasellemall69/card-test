@@ -1,5 +1,5 @@
 [
-   {
+    {
       "setNameId": 126,
       "categoryId": 2,
       "name": "2003 Collectors Tin",
@@ -6512,6 +6512,17 @@
       "active": true
     },
     {
+      "setNameId": 23481,
+      "categoryId": 2,
+      "name": "25th Anniversary Tin: Dueling Mirrors",
+      "cleanSetName": "25th Anniversary Tin Dueling Mirrors",
+      "urlName": "25th-anniversary-tin-dueling-mirrors",
+      "abbreviation": "",
+      "releaseDate": "2024-09-20T00:00:00",
+      "isSupplemental": false,
+      "active": true
+    },
+    {
       "setNameId": 23484,
       "categoryId": 2,
       "name": "Speed Duel: Tournament Pack 7",
@@ -6530,6 +6541,17 @@
       "urlName": "ots-tournament-pack-25",
       "abbreviation": "OP25",
       "releaseDate": "2024-06-12T00:00:00",
+      "isSupplemental": false,
+      "active": true
+    },
+    {
+      "setNameId": 23539,
+      "categoryId": 2,
+      "name": "Rage of the Abyss",
+      "cleanSetName": "Rage of the Abyss",
+      "urlName": "rage-of-the-abyss",
+      "abbreviation": "ROTA",
+      "releaseDate": "2024-10-11T00:00:00",
       "isSupplemental": false,
       "active": true
     },
@@ -6565,5 +6587,16 @@
       "releaseDate": "2022-11-24T00:00:00",
       "isSupplemental": false,
       "active": true
+    },
+    {
+      "setNameId": 23657,
+      "categoryId": 2,
+      "name": "OTS Tournament Pack 26",
+      "cleanSetName": "OTS Tournament Pack 26",
+      "urlName": "ots-tournament-pack-26",
+      "abbreviation": "OP26",
+      "releaseDate": "2024-10-16T00:00:00",
+      "isSupplemental": false,
+      "active": true
     }
-]
+  ]

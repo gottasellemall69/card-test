@@ -1,4 +1,3 @@
-"use client"
 // @/pages/sets/[letter].js
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { fetchCardData } from '@/utils/api';

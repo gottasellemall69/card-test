@@ -1,4 +1,3 @@
-"use client"
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from 'next/link';
