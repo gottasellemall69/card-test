@@ -27,7 +27,7 @@ const MyCollectionPage = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12); // Adjust the number based on your design
-  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState('');
+  const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
   const [totalCardCount, setTotalCardCount] = useState('');
 
   const handleSearch = useCallback((searchTerm) => {
@@ -230,14 +230,14 @@ const MyCollectionPage = () => {
 
       <div className="w-full mx-auto mt-8">
         <h1 className="text-3xl font-semibold mb-6">My Collection</h1>
-        <p className="max-w-prose italic text-sm text-white mb-5">
+        <details className="italic text-sm text-white mb-5 max-w-[500px]">
           You can click on the number of the quantity field below the card image
           to manually update it, and clicking the delete button underneath the
           card will decrease the quantity by 1, or if there is only one card,
           will remove the card from the collection.
           <br />
           Hover over or tap the card image to view the details of the card.
-        </p>
+        </details>
 
         <div className="flex flex-col sm:flex-row w-fit mx-auto sm:mx-0 sm:gap-10 align-baseline">
 
@@ -300,21 +300,21 @@ const MyCollectionPage = () => {
          
             {view === "grid" ? (
               <>
-              
-                <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2 pb-5">
+              <Suspense fallback={<div>Loading...</div>}>
+                <div className="container mx-auto max-w-xl place-self-center align-top text-black my-2 pb-5">
                   <YugiohSearchBar
                     searchTerm={searchTerm}
                     onSearch={handleSearch} />
                 </div>
                 <div className="container contents p-3 mx-auto">
-                  <Suspense fallback={<div>Loading...</div>}>
+                  
                   <GridView
                     aggregatedData={paginatedData}
                     onDeleteCard={onDeleteCard}
                     onUpdateCard={onUpdateCard}
                     setAggregatedData={setAggregatedData}
                   />
-                  </Suspense>
+                 
                 </div>
                 <YugiohPagination
                   currentPage={currentPage}
@@ -322,12 +322,12 @@ const MyCollectionPage = () => {
                   totalItems={aggregatedData.length}
                   handlePageClick={handlePageClick}
                 />
-                
+                 </Suspense>
               </>
             ) : (
               <>
               <Suspense fallback={<div>Loading...</div>}>
-                <div className="container mx-auto w-11/12 max-w-xl place-self-center align-top text-black my-2">
+                <div className="container mx-auto max-w-xl place-self-center align-top text-black my-2">
                   <YugiohSearchBar
                     searchTerm={searchTerm}
                     onSearch={handleSearch} />

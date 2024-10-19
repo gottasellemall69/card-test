@@ -1,7 +1,7 @@
 'use client';
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
 import dynamic from 'next/dynamic';
-const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'),{ ssr: false });
+const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'),{ ssr: true });
 import { setNameIdMap } from '@/utils/api';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
@@ -140,7 +140,7 @@ const Home = () => {
       </Head>
       <div className="mt-10 h-fit text-pretty mx-auto w-full max-w-7xl">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
-        <div className="text-base italic font-medium mb-5 text-center sm:text-left">
+        <div className="text-base italic font-medium mb-5 text-center max-w-[750px] sm:text-left">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
           <ul className="my-2 list-none list-outside text-sm font-medium flex flex-wrap flex-col md:flex-row">
             <li>Near Mint+[Edition]</li>

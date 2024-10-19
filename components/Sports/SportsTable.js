@@ -5,7 +5,7 @@ import SportsPagination from '@/components/Sports/SportsPagination';
 import { useMemo, useState } from 'react';
 
 const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, startIndex }) => {
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'descending' });
   
 
   const memoizedCardSets = useMemo(() => [
@@ -80,13 +80,18 @@ const [currentPage, setCurrentPage] = useState(1);
     const endIndex = startIndex + itemsPerPage;
     return sortedData.slice(startIndex, endIndex);
   }, [sortedData, currentPage, itemsPerPage]);
+
+  const handleCardSetSelection = (cardSet) => {
+    setSelectedCardSet(cardSet);
+    setCurrentPage(1); // Reset to the first page
+  };
   return (
     <div className="max-w-7xl w-full mx-auto">
       <div className="w-fit inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
         <div className="w-full float-start text-black font-black">
           <CardSetButtons
             cardSets={memoizedCardSets}
-            onSelectCardSet={setSelectedCardSet}
+            onSelectCardSet={handleCardSetSelection}
           />
         </div>
 
@@ -178,7 +183,7 @@ const [currentPage, setCurrentPage] = useState(1);
       {dataLoaded && (
         <div className="mx-auto container w-fit">
           <SportsPagination
-          startIndex={startIndex}
+            startIndex={startIndex}
             paginatedData={paginatedData}
             pageSize={pageSize}
             currentPage={currentPage}
