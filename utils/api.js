@@ -1,64 +1,85 @@
-// @/utils/api.js
-import cardSetsData from '@/public/card-data/Yugioh/card_sets.json';
+const API_ENDPOINT = "https://mpapi.tcgplayer.com/v2/Catalog/SetNames?active=true&categoryId=2";
 
-// Parse card sets data from JSON file
-const cardSets = JSON.parse(JSON.stringify(cardSetsData));
-
-// Create a mapping between set names and numerical IDs
-const setNameIdMap = {};
-cardSets.forEach((set) => {
-  setNameIdMap[set.name] = set.setNameId;
-});
-
-// Export the mapping for external use if needed
-export { setNameIdMap };
-
+// Cache for set name to ID mapping and card data
+let setNameIdCache = null;
 const cardDataCache = {};
 
-export async function getCardData(setName) {
+// Fetches set data dynamically and builds setNameIdMap
+async function fetchSetData() {
+  if (setNameIdCache) return setNameIdCache;
+
   try {
-    // Check if data for the set is already cached
-    if (cardDataCache[setName]) {
-      console.log('Using cached data for set:', setName);
-      return cardDataCache[setName];
-    }
-
-    console.log('Fetching card data for set:', setName);
-    const setNameId = setNameIdMap[setName];
-    if (!setNameId) {
-      throw new Error('Set name not found in mapping');
-    }
-    const response = await fetch(`https://${ process.env.GET_CARD_DATA_API }/priceguide/set/${ setNameId }/cards/?rows=5000`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch card data');
-    }
+    const response = await fetch(API_ENDPOINT);
     const data = await response.json();
-    console.log('Received card data:', data);
 
-    // Store the fetched data in the cache
-    cardDataCache[setName] = data;
-    return data;
+    if (data.errors?.length > 0) {
+      console.error("Error fetching set data:", data.errors);
+      return null;
+    }
+
+    // Build the setNameIdMap from fetched data
+    setNameIdCache = data.results.reduce((map, set) => {
+      map[set.name] = set.setNameId;
+      return map;
+    }, {});
+
+    return setNameIdCache;
   } catch (error) {
-    console.error('Error fetching card data:', error);
+    console.error("Error fetching set data:", error);
     return null;
   }
 }
 
-export async function getCardSetsData() {
+// Export the mapping for external use
+export async function getSetNameIdMap() {
+  return await fetchSetData();
+}
+
+// Fetches card data for a specific set name
+export async function getCardData(setName) {
   try {
-    // Parse the card_sets.json data
-    const parsedData = JSON.parse(JSON.stringify(cardSetsData));
-    // Map setNameId to cleanSetName
-    const mappedData = parsedData.reduce((acc, curr) => {
-      acc[curr.setNameId] = curr.cleanSetName;
-      return acc;
-    }, {});
-    console.log('Card sets data parsed:', mappedData);
-    return mappedData;
+    // Get the setNameIdMap to retrieve the numerical ID for the set
+    const setNameIdMap = await getSetNameIdMap();
+    const setNameId = setNameIdMap[setName];
+
+    if (cardDataCache[setName]) {
+      console.log("Using cached data for set:", setName);
+      return cardDataCache[setName];
+    }
+
+    if (!setNameId) {
+      throw new Error("Set name not found in mapping");
+    }
+
+    console.log("Fetching card data for set:", setName);
+    const response = await fetch(
+      `https://${process.env.GET_CARD_DATA_API}/priceguide/set/${setNameId}/cards/?rows=5000`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch card data");
+    }
+
+    const data = await response.json();
+    console.log("Received card data:", data);
+
+    cardDataCache[setName] = data; // Cache the fetched data
+    return data;
   } catch (error) {
-    console.error('Error parsing card sets data:', error);
+    console.error("Error fetching card data:", error);
     return null;
   }
+}
+
+// Fetches and maps card set data (setNameId to cleanSetName)
+export async function getCardSetsData() {
+  const setNameIdMap = await getSetNameIdMap();
+  if (!setNameIdMap) return null;
+
+  return Object.entries(setNameIdMap).reduce((acc, [name, id]) => {
+    acc[id] = name;
+    return acc;
+  }, {});
 }
 
 export const updateCardPrices = async (setName, cardData) => {

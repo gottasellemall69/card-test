@@ -1,13 +1,12 @@
 'use client';
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
 import dynamic from 'next/dynamic';
-const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'),{ ssr: true });
-import { setNameIdMap } from '@/utils/api';
+const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'), { ssr: false });
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
-
+// Example card list data
 const exampleCardList =
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
 Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition
@@ -32,29 +31,45 @@ const Home = () => {
   const handleLoadExampleData = () => {
     setCardList(exampleCardList);
   };
+
   const fetchedSetData = {};
+  const [setNameIdMap, setSetNameIdMap] = useState({});
+
+  // Fetch setNameIdMap from the endpoint once on component mount
+  useEffect(() => {
+    const fetchSetNameIdMap = async () => {
+      try {
+        const response = await fetch('/api/Yugioh/setNameIdMap');
+        const data = await response.json();
+        setSetNameIdMap(data);
+      } catch (error) {
+        console.error("Failed to fetch setNameIdMap:", error);
+      }
+    };
+    fetchSetNameIdMap();
+  }, []);
+
   const fetchCardData = useCallback(async (card) => {
     try {
       const { productName, setName, number, printing, rarity, condition } = card;
-      // Get the numerical setNameId from the mapping
       const setNameId = setNameIdMap[setName];
       if (!setNameId) {
         throw new Error(`Numerical setNameId not found for set name: ${setName}`);
       }
-      // Check if set data is already fetched
-      if (!fetchedSetData[setNameId]) {  // Cache by setNameId instead of setName
+
+      if (!fetchedSetData[setNameId]) { 
         console.log('Fetching set data for ID:', setNameId);
-        const response = await fetch(`/api/Yugioh/cards/${setNameId}`);  // Use setNameId in the URL
+        const response = await fetch(`/api/Yugioh/cards/${setNameId}`); 
         if (!response.ok) {
           throw new Error(`Failed to fetch card data for set ID: ${setNameId}`);
         }
         const responseData = await response.json();
-        fetchedSetData[setNameId] = responseData; // Cache the fetched set data using setNameId
+        fetchedSetData[setNameId] = responseData; 
       } else {
         console.log('Using cached set data for ID:', setNameId);
       }
       const setCardData = fetchedSetData[setNameId];
-      // Find the matching card in the fetched set data
+
       const matchedCard = setCardData?.result.find((card) => {
         return (
           card.productName.includes(productName) &&
@@ -65,6 +80,7 @@ const Home = () => {
           card.condition.includes(condition)
         );
       });
+
       if (!matchedCard || !matchedCard?.marketPrice) {
         throw new Error('Market price data not found for the card');
       }
@@ -75,8 +91,7 @@ const Home = () => {
       console.error('Error fetching card data:', error);
       return { card, data: { marketPrice: parseFloat("0").toFixed(2) }, error: 'No market price available' };
     }
-  }, []);
-  
+  }, [setNameIdMap]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -85,10 +100,9 @@ const Home = () => {
     console.log('Form submitted');
     console.log('Card List:', cardList);
     console.log('Is loading:', isLoading);
+
     try {
-      // Split the card list and parse it into JSON
       const cards = cardList.trim().split('\n').map((cardLine) => {
-        // Use regular expression to handle escaped commas inside quotation marks
         const regex = /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
         const matches = [];
         let match;
@@ -98,30 +112,18 @@ const Home = () => {
         if (matches.length !== 6) {
           throw new Error('Invalid card format');
         }
-        const [
-          rawProductName,
-          setName,
-          number,
-          printing,
-          rarity,
-          condition
-        ] = matches.map((match) => match.trim());
-
-        // Remove quotation marks around productName if present
+        const [rawProductName, setName, number, printing, rarity, condition] = matches.map((match) => match.trim());
         const productName = rawProductName.replace(/^"|"$/g, '');
-
-        return ({ productName, setName, number, printing, rarity, condition });
+        return { productName, setName, number, printing, rarity, condition };
       });
+
       if (cards.length === 0) {
         throw new Error('Card list is empty');
       }
-      // Fetch card data for each card in batches
-      const fetchedCardData = await Promise.all(
-        cards.map((card) => fetchCardData(card))
-      );
+
+      const fetchedCardData = await Promise.all(cards.map((card) => fetchCardData(card)));
       console.log('Parsed cards:', cards);
       console.log('Fetched card data:', fetchedCardData);
-      // Update matched card data
       setMatchedCardData(fetchedCardData);
     } catch (error) {
       setError('Error fetching card data');
@@ -182,10 +184,12 @@ const Home = () => {
             setMatchedCardData={setMatchedCardData}
           />
         </div>
+        <div className="mb-8 max-w-7xl flex mx-auto">
+          <SpeedInsights />
+        </div>
       </div>
-      <SpeedInsights />
     </>
   );
-};
+}
 
 export default Home;
