@@ -39,21 +39,21 @@ const Home = () => {
       // Get the numerical setNameId from the mapping
       const setNameId = setNameIdMap[setName];
       if (!setNameId) {
-        throw new Error('Numerical setNameId not found for set name:', setName);
+        throw new Error(`Numerical setNameId not found for set name: ${setName}`);
       }
       // Check if set data is already fetched
-      if (!fetchedSetData[setName]) {
-        console.log('Fetching set data for:', setName);
-        const response = await fetch(`/api/Yugioh/cards/${ setNameId }`);
+      if (!fetchedSetData[setNameId]) {  // Cache by setNameId instead of setName
+        console.log('Fetching set data for ID:', setNameId);
+        const response = await fetch(`/api/Yugioh/cards/${setNameId}`);  // Use setNameId in the URL
         if (!response.ok) {
-          throw new Error('Failed to fetch card data for set:', setName);
+          throw new Error(`Failed to fetch card data for set ID: ${setNameId}`);
         }
         const responseData = await response.json();
-        fetchedSetData[setName] = responseData; // Cache the fetched set data
+        fetchedSetData[setNameId] = responseData; // Cache the fetched set data using setNameId
       } else {
-        console.log('Using cached set data for:', setName);
+        console.log('Using cached set data for ID:', setNameId);
       }
-      const setCardData = fetchedSetData[setName];
+      const setCardData = fetchedSetData[setNameId];
       // Find the matching card in the fetched set data
       const matchedCard = setCardData?.result.find((card) => {
         return (
@@ -75,7 +75,8 @@ const Home = () => {
       console.error('Error fetching card data:', error);
       return { card, data: { marketPrice: parseFloat("0").toFixed(2) }, error: 'No market price available' };
     }
-  },[]);
+  }, []);
+  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
