@@ -2,7 +2,7 @@
 import Link from 'next/link';
 
 const AlphabeticalIndex = () => {
-
+  
   const alphabet = '2ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
   return (

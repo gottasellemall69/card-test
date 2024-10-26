@@ -141,9 +141,9 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <div className="mt-10 h-fit text-pretty mx-auto w-full max-w-7xl">
+      <div className="mt-10 h-fit text-pretty mx-auto w-full max-w-7xl m-5">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
-        <div className="text-base italic font-medium mb-5 text-center max-w-[750px] sm:text-left">
+        <details className="text-base italic font-medium mb-5 text-center max-w-[750px] sm:text-left">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
           <ul className="my-2 list-none list-outside text-sm font-medium flex flex-wrap flex-col md:flex-row">
             <li>Near Mint+[Edition]</li>
@@ -152,6 +152,7 @@ const Home = () => {
             <li>Heavily Played+[Edition]</li>
             <li>Damaged+[Edition]</li>
           </ul>
+          </details>
           <p className="text-base leading-7 italic font-medium">
             Try it out:
             <br />
@@ -165,11 +166,11 @@ const Home = () => {
             <br />
             Browse sets by name by choosing the letter it starts with from the list below:
           </p>
-        </div>
-        <div className="m-2 leading-5">
+        
+        <div className="leading-5">
           <AlphabeticalIndex />
         </div>
-        <div className="mx-auto m-6">
+        <div className="mx-auto h-fit">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}
@@ -184,9 +185,7 @@ const Home = () => {
             setMatchedCardData={setMatchedCardData}
           />
         </div>
-        <div className="mb-8 max-w-7xl flex mx-auto">
-          <SpeedInsights />
-        </div>
+          <SpeedInsights></SpeedInsights>
       </div>
     </>
   );

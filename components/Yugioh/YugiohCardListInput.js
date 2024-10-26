@@ -163,30 +163,29 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
   }, [matchedCardData, convertToCSV]);
 
   return (
-    <>
+    <><>
       <form
         id="cardListInput"
         onSubmit={handleSubmit}
       >
-        <div className="mx-auto text-black p-2">
+        <div className="mx-auto text-black mx-2">
           <textarea
             name="cardListInput"
-            className="w-full max-w-7xl rounded-lg flex flex-wrap text-nowrap resize-none justify-items-center h-48"
+            className="w-full max-w-7xl rounded-lg flex flex-wrap text-nowrap resize-none h-48"
             value={cardList}
             onChange={(e) => setCardList(e.target.value)}
-            placeholder="Enter your list of cards..."
-          />
+            placeholder="Enter your list of cards..." />
           <button className="border border-white rounded-lg px-2 py-2 mx-auto m-2 text-white font-bold hover:text-black hover:bg-white" type="submit">
             Submit
           </button>
         </div>
       </form>
-      <>
+    </><>
         {isLoading && <LoadingSpinner />}
         {error && <p>{error}</p>}
         <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
         {sortedAndPaginatedData.currentItems.length > 0 && (
-          <div className="block w-full overflow-x-auto max-h-[750px] overflow-y-auto mt-10">
+          <div className="block max-h-fit mt-10 px-5">
             <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={downloadCSV}>
               Download CSV
             </button>
@@ -197,7 +196,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
               View Collection
             </button>
 
-            <table className="text-white items-center w-full max-w-7xl mx-auto border-collapse">
+            <table className="text-white items-center max-w-7xl mx-auto border-collapse overflow-x-auto overflow-y-auto">
 
               <thead className="p-1 bg-transparent">
                 <tr>
@@ -206,8 +205,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                     <input
                       type="checkbox"
                       checked={selectAllChecked}
-                      onChange={toggleSelectAll}
-                    />
+                      onChange={toggleSelectAll} />
                   </th>
                   <th
                     onClick={() => handleSort('productName')}
@@ -215,7 +213,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                     Name
                     {sortConfig.key === 'productName' && (
                       <span className="ml-1">
-                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
@@ -225,7 +223,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                     Set
                     {sortConfig.key === 'setName' && (
                       <span className="ml-1">
-                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
@@ -235,7 +233,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                     Number
                     {sortConfig.key === 'number' && (
                       <span className="ml-1">
-                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
@@ -246,17 +244,17 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                     Rarity
                     {sortConfig.key === 'rarity' && (
                       <span className="ml-1">
-                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
                   <th
                     onClick={() => handleSort('condition')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="stick top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
                     Condition
                     {sortConfig.key === 'condition' && (
                       <span className="ml-1">
-                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
@@ -266,7 +264,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                     Price
                     {sortConfig.key === 'marketPrice' && (
                       <span className="ml-1">
-                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-3 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-3 w-2 text-white font-black inline" />}
+                        {sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />}
                       </span>
                     )}
                   </th>
@@ -280,30 +278,26 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                       <input
                         type="checkbox"
                         checked={selectedRows.has((currentPage - 1) * itemsPerPage + index)}
-                        onChange={() => toggleCheckbox(index)}
-                      />
+                        onChange={() => toggleCheckbox(index)} />
                     </td>
                     <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
                     <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
                     <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
                     <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
                     <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
-                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${ data?.marketPrice }` : error}</td>
+                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${data?.marketPrice}` : error}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-
             <YugiohPagination
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
               totalItems={sortedAndPaginatedData.totalCount}
-              handlePageClick={handlePageClick}
-            />
+              handlePageClick={handlePageClick} />
           </div>
         )}
-      </>
-    </>
+      </></>
   );
 };
 
