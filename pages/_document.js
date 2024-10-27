@@ -12,16 +12,17 @@ export default function Document() {
         <meta
           httpEquiv="Content-Security-Policy"
           content="
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' infinite-api.tcgplayer.com card-test-ashy.vercel.app va.vercel-scripts.com db.ygoprodeck.com sportscardspro.com;
+              script-src 'self' 'unsafe-inline' 'unsafe-eval' mpapi.tcgplayer.com infinite-api.tcgplayer.com card-test-ashy.vercel.app va.vercel-scripts.com db.ygoprodeck.com sportscardspro.com;
               style-src 'self' 'unsafe-inline' card-test-ashy.vercel.app;
               img-src 'self' data:;
               object-src 'none';
-              default-src 'self' 'unsafe-inline' db.ygoprodeck.com sportscardspro.com card-test-ashy.vercel.app infinite-api.tcgplayer.com va.vercel-scripts.com;
+              default-src 'self' 'unsafe-inline' mpapi.tcgplayer.com db.ygoprodeck.com sportscardspro.com card-test-ashy.vercel.app infinite-api.tcgplayer.com va.vercel-scripts.com;
+            
             "
         />
       </Head>
       <>
-        <body className="h-fit w-full">
+        <body className="mx-auto w-full">
           <div className="w-full transition-all main">
             <div className="text-center sm:text-left">
               <Main

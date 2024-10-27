@@ -163,12 +163,12 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
   }, [matchedCardData, convertToCSV]);
 
   return (
-    <><>
+<>
       <form
         id="cardListInput"
         onSubmit={handleSubmit}
       >
-        <div className="mx-auto text-black mx-2">
+        <div className="mx-auto text-black">
           <textarea
             name="cardListInput"
             className="w-full max-w-7xl rounded-lg flex flex-wrap text-nowrap resize-none h-48"
@@ -180,7 +180,6 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
           </button>
         </div>
       </form>
-    </><>
         {isLoading && <LoadingSpinner />}
         {error && <p>{error}</p>}
         <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
@@ -195,13 +194,11 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
             <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>
               View Collection
             </button>
-
-            <table className="text-white items-center max-w-7xl mx-auto border-collapse overflow-x-auto overflow-y-auto">
-
+            <div className="block w-full overflow-x-auto max-h-[750px] overflow-y-auto">
+            <table className="text-white items-center w-full border-collapse">
               <thead className="p-1 bg-transparent">
                 <tr>
                   <th className="sticky px-1 top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-
                     <input
                       type="checkbox"
                       checked={selectAllChecked}
@@ -209,7 +206,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                   <th
                     onClick={() => handleSort('productName')}
-                    className="sticky top-0 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                     Name
                     {sortConfig.key === 'productName' && (
                       <span className="ml-1">
@@ -219,7 +216,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                   <th
                     onClick={() => handleSort('setName')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                     Set
                     {sortConfig.key === 'setName' && (
                       <span className="ml-1">
@@ -229,7 +226,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                   <th
                     onClick={() => handleSort('number')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                     Number
                     {sortConfig.key === 'number' && (
                       <span className="ml-1">
@@ -237,10 +234,9 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                       </span>
                     )}
                   </th>
-
                   <th
                     onClick={() => handleSort('rarity')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                     Rarity
                     {sortConfig.key === 'rarity' && (
                       <span className="ml-1">
@@ -250,7 +246,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                   <th
                     onClick={() => handleSort('condition')}
-                    className="stick top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                     Condition
                     {sortConfig.key === 'condition' && (
                       <span className="ml-1">
@@ -260,7 +256,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                   </th>
                   <th
                     onClick={() => handleSort('marketPrice')}
-                    className="sticky top-0  border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter cursor-pointer">
+                    className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                     Price
                     {sortConfig.key === 'marketPrice' && (
                       <span className="ml-1">
@@ -268,7 +264,6 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                       </span>
                     )}
                   </th>
-
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 text-black px-1 py-1 mx-auto">
@@ -280,16 +275,17 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
                         checked={selectedRows.has((currentPage - 1) * itemsPerPage + index)}
                         onChange={() => toggleCheckbox(index)} />
                     </td>
-                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.productName}</td>
-                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.setName}</td>
-                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.number}</td>
-                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.rarity}</td>
-                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{card?.condition}</td>
-                    <td className="border border-gray-800 my-1 break-words mx-1 p-1 text-xs font-medium text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${data?.marketPrice}` : error}</td>
+                    <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{card?.productName}</td>
+                    <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{card?.setName}</td>
+                    <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{card?.number}</td>
+                    <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{card?.rarity}</td>
+                    <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{card?.condition}</td>
+                    <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${data?.marketPrice}` : error}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
             <YugiohPagination
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
@@ -297,7 +293,7 @@ const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, e
               handlePageClick={handlePageClick} />
           </div>
         )}
-      </></>
+        </>
   );
 };
 

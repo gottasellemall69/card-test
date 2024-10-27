@@ -14,8 +14,8 @@
   width: var(--card-width);
   height: var(--card-height);
   position: relative;
-  display: inline-flex;
-  flex-direction: column;
+  display: inline-block;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
   perspective: -200px;

@@ -97,7 +97,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   />
                 </div>
                 <div className="black-overlay"></div>
-                <span className="details p-2">
+                <span className="mx-auto details p-2">
                   <h3 className="title text-xl font-black text-filter outline-2 outline-black text-white">{card.productName}</h3>
                   <div>Set: {card.setName}</div>
                   <div>Number: {card.number}</div>
@@ -107,14 +107,14 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   <div>Market Price: ${card.marketPrice}</div>
                 </span>
               </div>
-              <div className="text-sm font-medium text-gray-400 my-2.5">Quantity:
+              <div className="mx-auto text-sm font-medium text-gray-400 my-2.5">Quantity:
                 {edit[card._id] === 'quantity' ? (
                   <input type="number" name="quantity" value={editValues[card._id]?.quantity || ''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
                 ) : (
                   <span className='cursor-pointer rounded-sm mx-auto' onClick={() => handleEdit(card?._id, 'quantity')}> {card?.quantity}</span>
                 )}
               </div>
-              <button onClick={() => handleDelete(card._id)} className="text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
+              <button onClick={() => handleDelete(card._id)} className="mx-auto text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
             </div>);
         })}
       </div>

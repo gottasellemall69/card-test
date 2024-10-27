@@ -6,9 +6,9 @@ import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
 import Head from "next/head";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-const TableView = lazy(() => import("@/components/Yugioh/TableView"));
-const GridView = dynamic(() => import('@/components/Yugioh/GridView'),{ssr: true});
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+const TableView = dynamic(() => import("@/components/Yugioh/TableView"),{ssr: false});
+const GridView = dynamic(() => import('@/components/Yugioh/GridView'),{ssr: false});
 
 const MyCollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -345,7 +345,7 @@ const MyCollectionPage = () => {
           
         </div>
       </div>
-      <SpeedInsights />
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };
