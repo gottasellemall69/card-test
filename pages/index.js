@@ -1,7 +1,6 @@
-'use client';
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
 import dynamic from 'next/dynamic';
-const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'), { ssr: false });
+const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'), { ssr: true });
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
 import { useState, useCallback, useEffect } from 'react';

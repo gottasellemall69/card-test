@@ -1,4 +1,3 @@
-'use client'
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
@@ -7,8 +6,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
 import Head from "next/head";
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-const TableView = dynamic(() => import("@/components/Yugioh/TableView"),{ssr: false});
-const GridView = dynamic(() => import('@/components/Yugioh/GridView'),{ssr: false});
+const TableView = dynamic(() => import("@/components/Yugioh/TableView"),{ssr: true});
+const GridView = dynamic(() => import('@/components/Yugioh/GridView'),{ssr: true});
 
 const MyCollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -119,15 +118,14 @@ const MyCollectionPage = () => {
     });
   }, [sortConfig]);
 
-  const handleSortChange = useCallback((sortKey) => {
+  const handleSortChange = useCallback(async(sortKey) => {
     setSortConfig((prevSortConfig) => ({
       key: sortKey,
       direction: prevSortConfig.key === sortKey && prevSortConfig.direction === "ascending" ? "descending" : "ascending",
     }));
   }, []);
 
-  const onUpdateCard = useCallback(
-    async (cardId, field, value) => {
+  const onUpdateCard = useCallback(async (cardId, field, value) => {
       try {
         if (cardId && field && value !== undefined && value !== null) {
           const updateCard = { cardId, field, value };
@@ -158,8 +156,7 @@ const MyCollectionPage = () => {
     [fetchData]
   );
 
-  const onDeleteCard = useCallback(
-    async (cardId) => {
+  const onDeleteCard = useCallback(async (cardId) => {
       try {
         const response = await fetch(`/api/Yugioh/deleteCards`, {
           method: "DELETE",
@@ -240,68 +237,69 @@ const MyCollectionPage = () => {
           Hover over or tap the card image to view the details of the card.
         </details>
 
-        <div className="flex flex-col sm:flex-row w-fit mx-auto sm:mx-0 sm:gap-10 align-baseline">
-
-
-          <div className="float-left space-x-2 sm:space-x-0 space-y-0 sm:space-y-2">
-            <button
-              type="button"
-              onClick={() => setView("grid")}
-              className={`px-2 py-2 ${ view === "grid"
-                ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black font-bold bg-white hover:text-white hover:bg-black"
-                : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"
-                }`}
-            >
-              Grid View
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("table")}
-              className={`px-2 py-2 ${ view === "table"
-                ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black bg-white font-bold hover:text-white hover:bg-black"
-                : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"
-                }`}
-            >
-              Table View
-            </button>
-          </div>
-
-          <div className="float-right flex-wrap flex-row">
-            <button
-              onClick={toggleFilterMenu}
-              className="text-nowrap bg-white text-black font-bold m-1 px-2 py-2 rounded border border-zinc-400 hover:bg-black hover:text-white"
-            >
-              {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
-            </button>
-
-            <DownloadYugiohCSVButton
-              aggregatedData={aggregatedData}
-              userCardList={[]}
-            />
-
-            <button
-              disabled={true}
-              type="button"
-              onClick={onDeleteAllCards}
-              className="my-2 float-start flex-wrap text-sm border hover:cursor-not-allowed border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500"
-            >
-              Delete All Cards
-            </button>
-          </div>
-        </div>
-        <div className="mt-6">
-
-          <span className="text-xl font-semibold p-2">
-            Total Collection Value: ${subtotalMarketPrice}
-          </span>
-
-        </div>
         <div className="mx-auto container w-full">
           {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
          
             {view === "grid" ? (
               <>
               <Suspense fallback={<div>Loading...</div>}>
+              
+        <div className="flex flex-col sm:flex-row w-fit mx-auto sm:mx-0 sm:gap-10 align-baseline">
+
+
+<div className="float-left space-x-2 sm:space-x-0 space-y-0 sm:space-y-2">
+  <button
+    type="button"
+    onClick={() => setView("grid")}
+    className={`px-2 py-2 ${ view === "grid"
+      ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black font-bold bg-white hover:text-white hover:bg-black"
+      : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"
+      }`}
+  >
+    Grid View
+  </button>
+  <button
+    type="button"
+    onClick={() => setView("table")}
+    className={`px-2 py-2 ${ view === "table"
+      ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black bg-white font-bold hover:text-white hover:bg-black"
+      : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"
+      }`}
+  >
+    Table View
+  </button>
+</div>
+
+<div className="float-right flex-wrap flex-row">
+  <button
+    onClick={toggleFilterMenu}
+    className="text-nowrap bg-white text-black font-bold m-1 px-2 py-2 rounded border border-zinc-400 hover:bg-black hover:text-white"
+  >
+    {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
+  </button>
+
+  <DownloadYugiohCSVButton
+    aggregatedData={aggregatedData}
+    userCardList={[]}
+  />
+
+  <button
+    disabled={true}
+    type="button"
+    onClick={onDeleteAllCards}
+    className="my-2 float-start flex-wrap text-sm border hover:cursor-not-allowed border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500"
+  >
+    Delete All Cards
+  </button>
+</div>
+</div>
+<div className="mt-6">
+
+<span className="text-xl font-semibold p-2">
+  Total Collection Value: ${subtotalMarketPrice}
+</span>
+
+</div>
                 <div className="container mx-auto max-w-xl place-self-center align-top text-black my-2 pb-5">
                   <YugiohSearchBar
                     searchTerm={searchTerm}
