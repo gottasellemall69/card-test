@@ -24,11 +24,9 @@ export default function Document() {
       <>
         <body className="mx-auto w-full">
           <div className="w-full transition-all main">
-            <div className="text-center sm:text-left">
               <Main
               />
             </div>
-          </div>
           <NextScript />
         </body>
         <SpeedInsights />

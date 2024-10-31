@@ -76,7 +76,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="mx-auto pt-10 sm:max-h-[600px] max-h-[500px] place-items-center overflow-x-hidden overflow-y-auto w-full gap-10 sm:gap-2 lg:gap-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-6">
+      <div className="">
 
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
@@ -88,6 +88,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                     className="object-scale-down object-center w-full h-full max-h-96 mx-auto"
                     priority
                     unoptimized={true}
+                    rel='preload'
                     src={cardImages ? cardImages?.full : '/images/yugioh-card.png'} // Use WebP format for placeholder
                     alt={`${ card?.productName }`}
                     quality={75}
@@ -106,7 +107,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   <div>Market Price: ${card.marketPrice}</div>
                 </span>
               </div>
-              <div className='mx-auto inline-flex flex-wrap w-full'>
+              <span className='mx-auto inline-flex flex-wrap w-full'>
               <div className="float-start mx-auto text-sm font-medium text-gray-400">Quantity:
                 {edit[card._id] === 'quantity' ? (
                   <input type="number" name="quantity" value={editValues[card._id]?.quantity || ''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
@@ -115,7 +116,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                 )}
               </div>
               <button onClick={() => handleDelete(card._id)} className="float-end mx-auto text-red-500 font-medium text-sm hover:text-red-800">Delete</button>
-              </div>
+              </span>
             </div>);
         })}
       </div>

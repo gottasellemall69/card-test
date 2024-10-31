@@ -1,6 +1,7 @@
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
 import dynamic from 'next/dynamic';
-const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'), { ssr: true });
+const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput'), { ssr: false });
+const YugiohCardDataTable = dynamic(() => import('@/components/Yugioh/YugiohCardDataTable'), { ssr: false });
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
 import { useState, useCallback, useEffect } from 'react';
@@ -56,14 +57,14 @@ const Home = () => {
         throw new Error(`Numerical setNameId not found for set name: ${setName}`);
       }
 
-      if (!fetchedSetData[setNameId]) { 
+      if (!fetchedSetData[setNameId]) {
         console.log('Fetching set data for ID:', setNameId);
-        const response = await fetch(`/api/Yugioh/cards/${setNameId}`); 
+        const response = await fetch(`/api/Yugioh/cards/${setNameId}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch card data for set ID: ${setNameId}`);
         }
         const responseData = await response.json();
-        fetchedSetData[setNameId] = responseData; 
+        fetchedSetData[setNameId] = responseData;
       } else {
         console.log('Using cached set data for ID:', setNameId);
       }
@@ -140,36 +141,36 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <div className="mt-10 h-fit text-pretty mx-auto w-full max-w-7xl m-5">
+      <div className="">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
-        <details className="text-base italic font-medium mb-5 text-center max-w-[750px] sm:text-left">
+        <details className="">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
-          <ul className="my-2 list-none list-outside text-sm font-medium flex flex-wrap flex-col md:flex-row">
+          <ul className="">
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
             <li>Moderately Played+[Edition]</li>
             <li>Heavily Played+[Edition]</li>
             <li>Damaged+[Edition]</li>
           </ul>
-          </details>
-          <p className="text-base leading-7 italic font-medium">
-            Try it out:
-            <br />
-            <button
-              className="my-2 text-sm border border-white rounded-lg px-2 py-2 text-white font-bold hover:text-black hover:bg-white"
-              onClick={handleLoadExampleData}>
-              Load Example Data
-            </button>
-            <br />
-            OR:
-            <br />
-            Browse sets by name by choosing the letter it starts with from the list below:
-          </p>
-        
+        </details>
+        <div className="">
+          Try it out:
+          <br />
+          <button
+            className="my-2 text-sm border border-white rounded-lg px-2 py-2 text-white font-bold hover:text-black hover:bg-white"
+            onClick={handleLoadExampleData}>
+            Load Example Data
+          </button>
+          <br />
+          OR:
+          <br />
+          Browse sets by name by choosing the letter it starts with from the list below:
+        </div>
+
         <div className="leading-5">
           <AlphabeticalIndex />
         </div>
-        <div className="mx-auto h-fit">
+        <div className="">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}
@@ -184,8 +185,14 @@ const Home = () => {
             setMatchedCardData={setMatchedCardData}
           />
         </div>
-          <SpeedInsights></SpeedInsights>
+        <div className="">
+          <YugiohCardDataTable
+            matchedCardData={matchedCardData}
+            setMatchedCardData={setMatchedCardData}
+          />
+        </div>
       </div>
+      <SpeedInsights></SpeedInsights>
     </>
   );
 }
