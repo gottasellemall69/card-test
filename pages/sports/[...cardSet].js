@@ -101,7 +101,7 @@ const SportsPage = () => {
           https://www.sportscardspro.com
         </a>
       </p>
-      <div className="mx-auto container content-center place-items-center w-full max-w-7xl h-fit">
+      <div className="mx-auto container content-center place-items-center w-full max-w-7xl">
         <SportsTable
           sportsData={sportsData}
           dataLoaded={dataLoaded}
@@ -115,7 +115,7 @@ const SportsPage = () => {
           pageSize={pageSize}
         />
       </div>
-      <SpeedInsights />
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };

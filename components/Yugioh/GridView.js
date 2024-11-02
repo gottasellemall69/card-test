@@ -76,7 +76,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-      <div className="">
+      <div className="my-10 mx-auto">
 
         {memoizedAggregatedData?.map((card, index) => {
           const cardImages = getCardImage(card.productName);
@@ -108,7 +108,7 @@ const GridView = (({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                 </span>
               </div>
               <span className='mx-auto inline-flex flex-wrap w-full'>
-              <div className="float-start mx-auto text-sm font-medium text-gray-400">Quantity:
+              <div className="float-start text-sm font-medium text-gray-400">Quantity:
                 {edit[card._id] === 'quantity' ? (
                   <input type="number" name="quantity" value={editValues[card._id]?.quantity || ''} onChange={(e) => handleChange(e, card._id, 'quantity')} onBlur={() => handleSave(card._id, 'quantity')} />
                 ) : (

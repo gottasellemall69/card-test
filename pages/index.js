@@ -49,7 +49,7 @@ const Home = () => {
     fetchSetNameIdMap();
   }, []);
 
-  const fetchCardData = useCallback(async (card) => {
+  const fetchCardData = useCallback(async(card) => {
     try {
       const { productName, setName, number, printing, rarity, condition } = card;
       const setNameId = setNameIdMap[setName];

@@ -56,7 +56,7 @@ const SetsByLetterPage = () => {
           {memoizedSets}
         </div>
       </div>
-      <SpeedInsights />
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };

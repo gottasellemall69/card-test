@@ -5,7 +5,7 @@ export default function SetsPage() {
   return (
     <>
       <AlphabeticalIndex />
-      <SpeedInsights />
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };

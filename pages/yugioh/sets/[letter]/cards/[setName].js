@@ -43,7 +43,7 @@ const CardsInSetPage = () => {
 </>
         </div>
       </div>
-      <SpeedInsights />
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };

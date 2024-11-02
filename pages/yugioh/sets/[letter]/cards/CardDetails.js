@@ -86,7 +86,7 @@ const CardDetails = () => {
           <p><span className="font-bold">Coolstuffinc Price:</span> {cardData.card_prices?.coolstuffinc_price}</p>
         </div>
       </div>
-      <SpeedInsights />
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };
