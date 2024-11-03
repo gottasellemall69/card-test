@@ -26,7 +26,7 @@ const MyCollectionPage = () => {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12); // Adjust the number based on your design
+  const [itemsPerPage] = useState(10); // Adjust the number based on your design
   const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
 
   const handleSearch = useCallback((searchTerm) => {

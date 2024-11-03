@@ -1,7 +1,6 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Head, Html, Main, NextScript } from "next/document";
 
-
 export default function Document() {
   return (
     <Html lang="en" className="h-full bg-black">
@@ -17,16 +16,14 @@ export default function Document() {
               img-src 'self' data:;
               object-src 'none';
               default-src 'self' 'unsafe-inline' mpapi.tcgplayer.com db.ygoprodeck.com sportscardspro.com card-test-ashy.vercel.app infinite-api.tcgplayer.com va.vercel-scripts.com;
-            
             "
         />
       </Head>
       <>
-        <body className="mx-auto w-full">
-          <div className="w-full transition-all main">
-              <Main
-              />
-            </div>
+        <body className="mx-auto">
+          <div className="transition-all main mx-auto">
+            <Main />
+          </div>
           <NextScript />
         </body>
         <SpeedInsights />
