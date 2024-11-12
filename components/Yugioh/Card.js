@@ -25,13 +25,13 @@ const Card = ({ cardData }) => {
           <div className="object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu">
             <Image
               className="object-scale-down object-center w-full h-full max-h-96"
-              priority
+              priority={true}
               quality={75}
               unoptimized={true}
               src={getLocalImagePath(cardData?.id)}
               alt={`Card Image - ${ cardData?.name }`}
-              width={240}
-              height={310}
+              width={210}
+              height={320}
             />
           </div>
         </Link>

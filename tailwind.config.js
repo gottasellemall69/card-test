@@ -127,10 +127,21 @@ module.exports = {
           '0%': { transform: 'rotateY(180deg)' },
           '100%': { transform: 'rotateY(0deg)' },
         },
+        gradient: {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          },
+        },
       },
       animation: {
         flip: 'flip 0.6s forwards',
         'flip-back': 'flip-back 0.6s forwards',
+        gradient: 'gradient 15s ease infinite',
       },
     },
   },

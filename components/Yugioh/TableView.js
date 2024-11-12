@@ -43,7 +43,9 @@ const TableView = ({ aggregatedData }) => {
     return sortConfig.direction === 'ascending' ? '▲' : '▼';
   };
 
-  return (<>
+  return (
+  <>
+   <div className="glass overflow-x-auto">
     <table className="text-white items-center w-full border-collapse">
       <thead>
         <tr>
@@ -96,6 +98,7 @@ const TableView = ({ aggregatedData }) => {
         ))}
       </tbody>
     </table>
+    </div>
   </>
   );
 };

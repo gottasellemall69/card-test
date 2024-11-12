@@ -26,7 +26,7 @@ const MyCollectionPage = () => {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // Adjust the number based on your design
+  const [itemsPerPage] = useState(18); // Adjust the number based on your design
   const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
 
   const handleSearch = useCallback((searchTerm) => {
@@ -225,42 +225,23 @@ const MyCollectionPage = () => {
         <meta name="charset" content="UTF-8" />
       </Head>
 
-      <div className="mx-auto">
-        <h1 className="">My Collection</h1>
-        <details className="">
+
+      <header className="glass gap-2 mb-4">
+        <h1 className="text-3xl font-bold mb-4">My Collection</h1>
+        <span className="text-xl font-semibold p-2">
+                  Total Collection Value: ${subtotalMarketPrice}
+                </span>
+                </header>
+        <div className="text-center sm:text-left max-w-[750px]">
           You can click on the number of the quantity field below the card image
           to manually update it, and clicking the delete button underneath the
           card will decrease the quantity by 1, or if there is only one card,
           will remove the card from the collection.
           <br />
           Hover over or tap the card image to view the details of the card.
-        </details>
+        </div>
 
-        <div className="flex flex-wrap">
-          {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
-          <button
-                  type="button"
-                  onClick={() => setView("grid")}
-                  className={`px-2 py-2 ${view === "grid" ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black font-bold bg-white hover:text-white hover:bg-black" : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"}`}
-                >
-                  Grid View
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setView("table")}
-                  className={`px-2 py-2 ${view === "table" ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black bg-white font-bold hover:text-white hover:bg-black" : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"}`}
-                >
-                  Table View
-                </button>
-
-                <button
-                  type="button"
-                  onClick={toggleFilterMenu}
-                  className="text-nowrap bg-white text-black font-bold m-1 px-2 py-2 rounded border border-zinc-400 hover:bg-black hover:text-white"
-                >
-                  {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
-                </button>
-
+        <div className="flex gap-2 mb-4 glass">
                 <DownloadYugiohCSVButton
                   type="button"
                   aggregatedData={aggregatedData}
@@ -271,21 +252,49 @@ const MyCollectionPage = () => {
                   type="button"
                   disabled={true}
                   onClick={onDeleteAllCards}
-                  className="my-2 float-start flex-wrap text-sm border hover:cursor-not-allowed border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500"
+                  className="glass my-2 flex-wrap text-sm border hover:cursor-not-allowed border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500"
                 >
                   Delete All Cards
                 </button>
+</div>
+<div className="flex flex-wrap">
+          {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
+          <button
+                  type="button"
+                  onClick={() => setView("grid")}
+                  className={`glass px-2 py-2 ${view === "grid" ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black font-bold bg-white hover:text-white hover:bg-black" : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"}`}
+                >
+                  Grid View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setView("table")}
+                  className={`glass px-2 py-2 ${view === "table" ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black bg-white font-bold hover:text-white hover:bg-black" : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"}`}
+                >
+                  Table View
+                </button>
 
+                <button
+                  type="button"
+                  onClick={toggleFilterMenu}
+                  className="glass text-nowrap bg-white text-black font-bold m-1 px-2 py-2 rounded border border-zinc-400 hover:bg-black hover:text-white"
+                >
+                  {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
+                </button>
+                <div className="inline mx-auto text-black w-full max-w-[85%]">
+                  <YugiohSearchBar
+                    searchTerm={searchTerm}
+                    onSearch={handleSearch} />
+                </div>
 
-                <span className="text-xl font-semibold p-2 mx-auto">
-                  Total Collection Value: ${subtotalMarketPrice}
-                </span>
+                
               </div>
+              
+
+       
           {view === "grid" ? (
             <>
-                <YugiohSearchBar
-                  searchTerm={searchTerm}
-                  onSearch={handleSearch} />
+                
                 <GridView
                   aggregatedData={paginatedData}
                   onDeleteCard={onDeleteCard}
@@ -302,11 +311,7 @@ const MyCollectionPage = () => {
           ) : (
             <>
               <Suspense fallback={<div>Loading...</div>}>
-                <div className="text-black">
-                  <YugiohSearchBar
-                    searchTerm={searchTerm}
-                    onSearch={handleSearch} />
-                </div>
+                
                 <TableView
                   handleSortChange={handleSortChange}
                   onUpdateCard={onUpdateCard}
@@ -318,7 +323,7 @@ const MyCollectionPage = () => {
           )}
 
         
-      </div>
+
       <SpeedInsights></SpeedInsights>
     </>
   );
