@@ -13,28 +13,62 @@ img
   object-position: center;
 }
 
-:root
-{
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+:root {
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
 }
 
-@media (prefers-color-scheme: dark)
-{
-  :root
-  {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white;
   }
 }
 
-body
-{
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom,transparent,rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+@layer components {
+  .glass {
+    @apply backdrop-blur-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-xl shadow-xl;
+  }
+  
+  .card {
+    @apply glass w-[280px] h-[480px] m-4 p-4 inline-block transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+  }
+
+  .wrapper {
+    @apply relative w-[240px] h-[310px] rounded-lg overflow-hidden;
+  }
+
+  .cover-image {
+    @apply object-cover transition-transform duration-300 hover:scale-110;
+  }
+
+  .black-overlay {
+    @apply absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 hover:opacity-100;
+  }
+
+  .details {
+    @apply absolute bottom-0 left-0 right-0 bg-black/70 text-white transform translate-y-full transition-transform duration-300 hover:translate-y-0;
+  }
+
+  .wrapper:hover .details {
+    @apply translate-y-0;
+  }
+
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .pagination-container {
+    @apply glass p-4;
+  }
+
+  input[type="text"], input[type="number"] {
+    @apply glass text-white bg-transparent border-white/20 focus:border-white/40 focus:ring-purple-500/30;
+  }
+
+  .table-container {
+    @apply glass p-4 overflow-x-auto;
+  }
 }
 
 /* .card-container {

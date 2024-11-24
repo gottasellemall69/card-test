@@ -1,4 +1,3 @@
-// components/Layout.js
 import { useState } from 'react';
 import SideNav from '@/components/Navigation/SideNav';
 
@@ -10,13 +9,15 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex min-h-screen">
       {/* Sidebar */}
-      <div className={`fixed border-2 border-zinc-700 inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full' } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}>
-        <div className="flex items-center justify-between p-4 bg-blue-600">
-          <h2 className="text-lg font-semibold text-white">WELCOME</h2>
+      <div className={`fixed inset-y-0 left-0 z-30 w-64 glass transform ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}>
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-900/80 to-slate-900/80">
+          <h2 className="text-xl font-bold text-white text-shadow">WELCOME</h2>
           <button
-            className="lg:hidden text-white"
+            className="lg:hidden text-white hover:text-purple-200 transition-colors"
             onClick={toggleSidebar}
           >
             ✖
@@ -27,14 +28,19 @@ export default function Layout({ children }) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        <header className="bg-blue-600 p-1 text-white sticky lg:hidden">
-          <h3 className="p-2 m-2 text-xl w-fit float-start font-black">CARD PRICE APP</h3>
-          <button className="align-text-top float-end m-2 p-2" onClick={toggleSidebar}>
-            ☰
-          </button>
+        <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 sticky top-0 z-20 lg:hidden">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-bold text-white text-shadow">CARD PRICE APP</h3>
+            <button 
+              className="text-white hover:text-purple-200 transition-colors text-2xl"
+              onClick={toggleSidebar}
+            >
+              ☰
+            </button>
+          </div>
         </header>
-        <main className="pb-10 bg-black min-h-screen mx-auto">
-          <div className="px-3 mx-auto">
+        <main className="flex-1 p-6">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>
