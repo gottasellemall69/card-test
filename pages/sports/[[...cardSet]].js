@@ -1,12 +1,13 @@
 'use client';
-// @/pages/sports/[...cardSet].js
 import { fetchSportsData } from '@/pages/api/Sports/sportsData';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import { useCallback, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 
 const SportsTable = dynamic(() => import('@/components/Sports/SportsTable.js'), { ssr: false });
+
 export async function getStaticPaths() {
   const paths = [
     { params: { cardSet: ['1975 NBA Topps'] } },
@@ -31,7 +32,7 @@ export async function getStaticPaths() {
     { params: { cardSet: ['1991 MLB SCORE'] } },
     { params: { cardSet: ['1991 MLB Fleer'] } },
   ];
-  return { paths, fallback: true }; // Set fallback to true or 'blocking' if you intend to produce paths on-demand
+  return { paths, fallback: 'blocking' }; // Set fallback to true or 'blocking' if you intend to produce paths on-demand
 }
 
 export async function getStaticProps({ params }) {
@@ -49,16 +50,17 @@ export async function getStaticProps({ params }) {
   }
   return {
     props: {
-      sportsData,
+      sportsData: [],
     },
   };
 }
+
 
 const SportsPage = () => {
   const [sportsData, setSportsData] = useState([{}]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [selectedCardSet, setSelectedCardSet] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState([]);
   const pageSize = 1;
 
   const fetchSportsData = useCallback(async (selectedCardSet, currentPage) => {

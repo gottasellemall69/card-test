@@ -86,7 +86,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
               />
               <div className="black-overlay" />
               <div className="details p-4 space-y-2">
-                <h3 className="text-xl font-bold text-white text-shadow truncate">{card.productName}</h3>
+                <h3 className="text-xl font-bold text-white text-shadow text-wrap">{card.productName}</h3>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between"><span>Set:</span> <span>{card.setName}</span></div>
                   <div className="flex justify-between"><span>Number:</span> <span>{card.number}</span></div>

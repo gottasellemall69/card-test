@@ -9,13 +9,13 @@ export default function SideNav() {
       {/* Sidebar */}
 
         <nav className="p-4">
-          <ul>
+          <ul className='inset-2'>
             <li className="mb-2">
               <Link
                 href="/"
                 rel="noopener noreferrer"
               >
-                <span className="block p-2 text-white hover:bg-blue-200 hover:text-black rounded">Yu-Gi-Oh! Card Prices</span>
+                <span className="block p-2 text-gray-900 font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-to-bl from-transparent to-blue-200 hover:text-white rounded">Yu-Gi-Oh! Card Prices</span>
               </Link>
             </li>
             <li className="mb-2">
@@ -23,7 +23,7 @@ export default function SideNav() {
                 href="/sports/cardSet"
                 rel="noopener noreferrer"
               >
-                <span className="block p-2 text-white hover:bg-blue-200 hover:text-black rounded">Sports Card Prices</span>
+                <span className="block p-2 text-gray-900 font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-to-tr from-transparent to-blue-200 hover:text-white rounded">Sports Card Prices</span>
               </Link>
             </li>
             <li className="mb-2">
@@ -31,7 +31,7 @@ export default function SideNav() {
                 href="/yugioh/my-collection"
                 rel="noopener noreferrer"
               >
-                <span className="block p-2 text-white hover:bg-blue-200 hover:text-black rounded">My Collection</span>
+                <span className="block p-2 text-gray-900 font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-to-bl from-transparent to-blue-200 hover:text-white rounded">My Collection</span>
               </Link>
             </li>
           </ul>

@@ -3,8 +3,10 @@ import CardSetButtons from '@/components/Sports/Buttons/CardSetButtons';
 import SportsCSVButton from '@/components/Sports/Buttons/SportsCSVButton';
 import SportsPagination from '@/components/Sports/SportsPagination';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 
 const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, startIndex }) => {
+  const router = useRouter();
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'descending' });
   
 
@@ -184,6 +186,7 @@ const [currentPage, setCurrentPage] = useState(1);
         <div className="mx-auto container w-fit">
           <SportsPagination
             startIndex={startIndex}
+            cardsToRender={cardsToRender}
             paginatedData={paginatedData}
             pageSize={pageSize}
             currentPage={currentPage}
