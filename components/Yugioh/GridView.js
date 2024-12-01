@@ -1,9 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data';
 
 const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
+  const router = useRouter();
+  const { letter } = router.query;
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
@@ -71,8 +75,20 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 my-8">
       {memoizedAggregatedData.map((card) => {
         const cardImages = getCardImage(card.productName);
+        const cardInfo = cardData.find(item => item.name === card.productName);
         return (
           <div key={card._id} className="card group">
+                        <Link
+              href={{
+                pathname: "/yugioh/sets/[letter]/cards/CardDetails",
+                query: {
+                  card: cardInfo?.id,
+                  letter: letter,
+                  setName: card.setName
+                }
+              }}
+              as={`/yugioh/sets/${letter}/cards/CardDetails?card=${encodeURIComponent(card.productName)}`}
+            >
             <div className="wrapper">
               <Image
                 className="cover-image"
@@ -97,6 +113,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                 </div>
               </div>
             </div>
+          </Link>
             <div className="mt-6 flex justify-between items-center mb-6">
               <div className="text-sm">
                 <span className="text-white/60">Quantity: </span>
