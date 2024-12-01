@@ -141,6 +141,7 @@ const Home = () => {
         <meta name="description" content="Enter list of TCG cards, get data back" />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta name="charset" content="UTF-8" />
+        
       </Head>
       <div className="">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
@@ -193,6 +194,7 @@ const Home = () => {
           />
         </div>
       </div>
+
       <SpeedInsights></SpeedInsights>
     </>
   );

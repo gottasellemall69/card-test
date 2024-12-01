@@ -45,8 +45,8 @@ const TableView = ({ aggregatedData }) => {
 
   return (
   <>
-   <div className="glass overflow-x-auto">
-    <table className="text-white items-center w-full border-collapse">
+    <div className="container max-h-[450px] max-w-fit overflow-y-auto">
+    <table className="mx-auto mb-2">
       <thead>
         <tr>
           <th onClick={() => handleSort('quantity')} className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
@@ -82,17 +82,6 @@ const TableView = ({ aggregatedData }) => {
             <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{card?.rarity}</td>
             <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{card?.condition}</td>
             <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{card?.marketPrice}
-              {index > 0 && (
-                <div className="rounded inline ml-3 text-lg text-right">
-                  {calculatePriceTrend(sortedData[index - 1].marketPrice, card.marketPrice) === '+'
-                    ? <span className="text-emerald-500 text-2xl inline">↑</span>
-                    : calculatePriceTrend(sortedData[index - 1].marketPrice, card.marketPrice) === '-'
-                      ? <span className="text-rose-500 text-2xl inline">↓</span>
-                      : <span className="text-gray-500 text-2xl inline"></span>
-                  }
-                  {Math.abs((sortedData[index - 1].marketPrice - card.marketPrice).toFixed(3))}
-                </div>
-              )}
             </td>
           </tr>
         ))}
