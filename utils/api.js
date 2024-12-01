@@ -1,4 +1,4 @@
-const API_ENDPOINT = "https://mpapi.tcgplayer.com/v2/Catalog/SetNames?active=true&categoryId=2";
+const API_ENDPOINT = `https://${process.env.GET_CARD_SETS_API}/v2/Catalog/SetNames?active=true&categoryId=2`;
 
 // Cache for set name to ID mapping and card data
 let setNameIdCache = null;

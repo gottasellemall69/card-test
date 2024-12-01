@@ -68,7 +68,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
 
   return (
     <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 my-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 my-8">
       {memoizedAggregatedData.map((card) => {
         const cardImages = getCardImage(card.productName);
         return (
@@ -97,7 +97,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex justify-between items-center">
+            <div className="mt-6 flex justify-between items-center mb-6">
               <div className="text-sm">
                 <span className="text-white/60">Quantity: </span>
                 {edit[card._id] === 'quantity' ? (
