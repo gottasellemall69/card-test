@@ -102,7 +102,7 @@ const CardFilter = ({ updateFilters }) => {
             </div>
 
             {/* Filters content */}
-            <div className="overflow-y-auto h-[calc(100vh-100px)]">
+            <div className="overflow-y-auto h-[calc(100vh-115px)]">
               {renderFilters()}
             </div>
 

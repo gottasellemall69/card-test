@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 import Head from "next/head";
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 const TableView = dynamic(() => import("@/components/Yugioh/TableView"), { ssr: false });
-const GridView = dynamic(() => import('@/components/Yugioh/GridView'), { ssr: true });
+const GridView = dynamic(() => import('@/components/Yugioh/GridView'), { ssr: false });
 
 const MyCollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,7 +26,7 @@ const MyCollectionPage = () => {
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(18); // Adjust the number based on your design
+  const [itemsPerPage] = useState(20); // Adjust the number based on your design
   const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
 
   const handleSearch = useCallback((searchTerm) => {
@@ -35,7 +35,6 @@ const MyCollectionPage = () => {
     if (searchTerm === "") {
       // If the search input is cleared, reset the aggregated data and pagination
       fetchData();  // Fetch the original data
-      setCurrentPage(1);  // Reset pagination to page 1
     }
     // Otherwise, filter the data based on the search term
     const filteredData = aggregatedData.filter((card) =>
@@ -47,6 +46,7 @@ const MyCollectionPage = () => {
       card.condition.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setAggregatedData(filteredData);
+    setCurrentPage(1);  // Reset pagination to page 1
   }, [aggregatedData]);
 
 
@@ -226,22 +226,16 @@ const MyCollectionPage = () => {
       </Head>
 
 
-      <header className="glass gap-2 mb-4">
-        <h1 className="text-3xl font-bold mb-4">My Collection</h1>
-        <span className="text-xl font-semibold p-2">
-                  Total Collection Value: ${subtotalMarketPrice}
-                </span>
-                </header>
-        <div className="text-center sm:text-left max-w-[750px]">
-          You can click on the number of the quantity field below the card image
-          to manually update it, and clicking the delete button underneath the
-          card will decrease the quantity by 1, or if there is only one card,
-          will remove the card from the collection.
-          <br />
-          Hover over or tap the card image to view the details of the card.
-        </div>
+      <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 rounded-lg shadow-xl p-6 mb-8">
+      <h1 className="text-4xl font-bold text-white mb-4">My Collection</h1>
+      <div className="flex items-center space-x-2">
+        <span className="text-xl font-semibold text-white">Total Collection Value:</span>
+        <span className="text-2xl font-bold text-emerald-400">${subtotalMarketPrice}</span>
+      </div>
+    </header>
+        
 
-        <div className="flex gap-2 mb-4 glass">
+        <div className="flex flex-wrap my-4 glass max-w-7xl ">
                 <DownloadYugiohCSVButton
                   type="button"
                   aggregatedData={aggregatedData}
@@ -252,64 +246,77 @@ const MyCollectionPage = () => {
                   type="button"
                   disabled={true}
                   onClick={onDeleteAllCards}
-                  className="glass my-2 flex-wrap text-sm border hover:cursor-not-allowed border-red-500 rounded-lg px-2 py-2 mx-auto text-red-500 font-bold hover:text-white hover:bg-red-500"
-                >
+                  className="inline-flex items-center px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
                   Delete All Cards
                 </button>
-</div>
-<div className="flex flex-wrap">
-          {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
-          <button
-                  type="button"
-                  onClick={() => setView("grid")}
-                  className={`glass px-2 py-2 ${view === "grid" ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black font-bold bg-white hover:text-white hover:bg-black" : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"}`}
-                >
+
+
+                
+          </div>
+          <div className="flex flex-wrap gap-4 mb-6">
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => setView('grid')}
+          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
+            view === 'grid'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary hover:bg-secondary/80'
+          }`}
+        >
                   Grid View
                 </button>
                 <button
-                  type="button"
-                  onClick={() => setView("table")}
-                  className={`glass px-2 py-2 ${view === "table" ? "my-1 text-sm border border-white rounded-lg mx-auto sm:m-2 text-black bg-white font-bold hover:text-white hover:bg-black" : "relative bg-black text-white font-bold my-2 px-2 py-2 rounded border border-zinc-400 hover:bg-white hover:text-black"}`}
-                >
+          onClick={() => setView('table')}
+          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
+            view === 'table'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary hover:bg-secondary/80'
+          }`}
+        >
                   Table View
                 </button>
+                </div>
 
                 <button
-                  type="button"
-                  onClick={toggleFilterMenu}
-                  className="glass text-nowrap bg-white text-black font-bold m-1 px-2 py-2 rounded border border-zinc-400 hover:bg-black hover:text-white"
-                >
+        onClick={toggleFilterMenu}
+        className="inline-flex items-center px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+      >
+     
                   {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
+                  
                 </button>
-                <div className="inline mx-auto text-black w-full max-w-[85%]">
+                 {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />} 
+                </div>
+<div className="inline text-black">
                   <YugiohSearchBar
                     searchTerm={searchTerm}
                     onSearch={handleSearch} />
                 </div>
 
-                
-              </div>
               
 
        
-          {view === "grid" ? (
+          {!isLoading && view === "grid" ? (
             <>
-                
+                <Suspense fallback={<div>Loading...</div>}>
                 <GridView
                   aggregatedData={paginatedData}
                   onDeleteCard={onDeleteCard}
                   onUpdateCard={onUpdateCard}
                   setAggregatedData={setAggregatedData}
                 />
-                <YugiohPagination
+                <div className=" max-w-7xl mt-24">
+                  <YugiohPagination
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   totalItems={aggregatedData.length}
                   handlePageClick={handlePageClick}
-                />
+                /></div>
+                </Suspense>
             </>
           ) : (
-            <>
+
               <Suspense fallback={<div>Loading...</div>}>
                 
                 <TableView
@@ -319,7 +326,7 @@ const MyCollectionPage = () => {
                   onDeleteCard={onDeleteCard}
                 />
               </Suspense>
-            </>
+
           )}
 
         

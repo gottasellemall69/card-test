@@ -15,11 +15,11 @@ const YugiohSearchBar = ({ onSearch }) => {
 
   return (
     <div className="flex items-center justify-center my-8">
-      <div className="relative w-full max-w-2xl">
+      <div className="relative">
         <input
           id="YugiohSearchBar"
           type="text"
-          className="w-full px-6 py-4 glass text-lg placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+          className="px-6 py-4 glass text-lg placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
           placeholder="Search for a card..."
           value={searchTerm}
           onChange={handleInputChange}

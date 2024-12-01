@@ -9,11 +9,9 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen w-full mx-auto">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 glass transform ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}>
+      <div className={`fixed inset-y-0 left-0 z-30 max-w-72 glass transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0`}>
         <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-900/80 to-slate-900/80">
           <h2 className="text-xl font-bold text-white text-shadow">WELCOME</h2>
           <button
@@ -39,8 +37,8 @@ export default function Layout({ children }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="w-full max-w-fit mx-auto">
+          <div className="m-3 p-3 mx-auto">
             {children}
           </div>
         </main>
