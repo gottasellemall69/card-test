@@ -73,6 +73,13 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   return (
     <>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 my-8">
+      <div className="w-fit z-50 absolute mx-auto glass">
+      <Notification 
+        show={notification.show} 
+        setShow={(show) => setNotification((prev) => ({ ...prev, show }))} 
+        message={notification.message} 
+      />
+    </div>
       {memoizedAggregatedData.map((card) => {
         const cardImages = getCardImage(card.productName);
         const cardInfo = cardData.find(item => item.name === card.productName);
@@ -146,13 +153,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
         );
       })}
     </div>
-    <div className="fixed bottom-4 right-4 z-50">
-      <Notification 
-        show={notification.show} 
-        setShow={(show) => setNotification((prev) => ({ ...prev, show }))} 
-        message={notification.message} 
-      />
-    </div>
+    
   </>
   );
 };

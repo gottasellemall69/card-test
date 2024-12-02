@@ -26,7 +26,7 @@ export default function Layout({ children }) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 sticky top-0 z-20 lg:hidden">
+        <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 top-0 z-20 lg:hidden">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-bold text-white text-shadow">CARD PRICE APP</h3>
             <button 
@@ -37,8 +37,8 @@ export default function Layout({ children }) {
             </button>
           </div>
         </header>
-        <main className="w-full max-w-fit mx-auto">
-          <div className="m-3 p-3 mx-auto">
+        <main className="w-full max-w-[calc(100vw-10%)] mx-auto">
+          <div className="mx-auto">
             {children}
           </div>
         </main>

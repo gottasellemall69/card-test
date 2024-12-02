@@ -15,7 +15,7 @@ export default function SideNav() {
                 href="/"
                 rel="noopener noreferrer"
               >
-                <span className="block p-2 text-gray-100 font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-to-tr from-purple-400 to-blue-200 hover:text-white rounded">Yu-Gi-Oh! Card Prices</span>
+                <span className="block p-2 text-white bg-clip-padding font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-transparent from-purple-500 hover:text-white rounded">Yu-Gi-Oh! Card Prices</span>
               </Link>
             </li>
             <li className="mb-2">
@@ -23,7 +23,7 @@ export default function SideNav() {
                 href="/sports/cardSet"
                 rel="noopener noreferrer"
               >
-                <span className="block p-2 text-gray-100 font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-to-r from-purple-400 to-blue-200 hover:text-white rounded">Sports Card Prices</span>
+                <span className="block p-2 text-white bg-clip-padding font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-transparent from-purple-600 hover:text-white rounded">Sports Card Prices</span>
               </Link>
             </li>
             <li className="mb-2">
@@ -31,7 +31,7 @@ export default function SideNav() {
                 href="/yugioh/my-collection"
                 rel="noopener noreferrer"
               >
-                <span className="block p-2 text-gray-100 font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-to-br from-purple-400 to-blue-200 hover:text-white rounded">My Collection</span>
+                <span className="block p-2 text-white bg-clip-padding font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-transparent from-purple-500 hover:text-white rounded">My Collection</span>
               </Link>
             </li>
           </ul>

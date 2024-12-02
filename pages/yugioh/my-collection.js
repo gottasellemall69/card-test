@@ -1,13 +1,19 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Head from "next/head";
+import dynamic from "next/dynamic";
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import dynamic from 'next/dynamic';
-import Head from "next/head";
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-const TableView = dynamic(() => import("@/components/Yugioh/TableView"), { ssr: false });
-const GridView = dynamic(() => import('@/components/Yugioh/GridView'), { ssr: false });
+import { Suspense } from "react";
+
+const TableView = dynamic(() => import("@/components/Yugioh/TableView"), {
+  ssr: true,
+});
+const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
+  ssr: true,
+});
 
 const MyCollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,7 +108,7 @@ const MyCollectionPage = () => {
     setCurrentPage(1);
   }, []);
 
-  const applySorting = useCallback( (data) => {
+  const applySorting = useCallback((data) => {
     if (!sortConfig.key) {
       return data;
     }
@@ -117,14 +123,14 @@ const MyCollectionPage = () => {
     });
   }, [sortConfig]);
 
-  const handleSortChange = useCallback( (sortKey) => {
+  const handleSortChange = useCallback((sortKey) => {
     setSortConfig((prevSortConfig) => ({
       key: sortKey,
       direction: prevSortConfig.key === sortKey && prevSortConfig.direction === "ascending" ? "descending" : "ascending",
     }));
   }, []);
 
-  const onUpdateCard = useCallback(async (cardId, field, value) => {
+  const onUpdateCard = useCallback(async(cardId, field, value) => {
     try {
       if (cardId && field && value !== undefined && value !== null) {
         const updateCard = { cardId, field, value };
@@ -152,10 +158,10 @@ const MyCollectionPage = () => {
       console.error("Error updating card:", error);
     }
   },
-    [fetchData]
+    []
   );
 
-  const onDeleteCard = useCallback(async (cardId) => {
+  const onDeleteCard = useCallback(async(cardId) => {
     try {
       const response = await fetch(`/api/Yugioh/deleteCards`, {
         method: "DELETE",
@@ -175,7 +181,7 @@ const MyCollectionPage = () => {
       console.error("Error deleting card:", error);
     }
   },
-    [fetchData]
+    []
   );
 
   const onDeleteAllCards = async () => {
@@ -227,109 +233,109 @@ const MyCollectionPage = () => {
 
 
       <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 rounded-lg shadow-xl p-6 mb-8">
-      <h1 className="text-4xl font-bold text-white mb-4">My Collection</h1>
-      <div className="flex items-center space-x-2">
-        <span className="text-xl font-semibold text-white">Total Collection Value:</span>
-        <span className="text-2xl font-bold text-emerald-400">${subtotalMarketPrice}</span>
-      </div>
-    </header>
-        
-
-        <div className="flex flex-wrap my-4 glass max-w-7xl ">
-                <DownloadYugiohCSVButton
-                  type="button"
-                  aggregatedData={aggregatedData}
-                  userCardList={[]}
-                />
-
-                <button
-                  type="button"
-                  disabled={true}
-                  onClick={onDeleteAllCards}
-                  className="inline-flex items-center px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                  Delete All Cards
-                </button>
+        <h1 className="text-4xl font-bold text-white mb-4">My Collection</h1>
+        <div className="flex items-center space-x-2">
+          <span className="text-xl font-semibold text-white">Total Collection Value:</span>
+          <span className="text-2xl font-bold text-emerald-400">${subtotalMarketPrice}</span>
+        </div>
+      </header>
 
 
-                
-          </div>
-          <div className="flex flex-wrap gap-4 mb-6">
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-wrap my-4 glass max-w-7xl mx-auto">
+        <DownloadYugiohCSVButton
+          type="button"
+          aggregatedData={aggregatedData}
+          userCardList={[]}
+        />
+
         <button
-          onClick={() => setView('grid')}
-          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
-            view === 'grid'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary hover:bg-secondary/80'
-          }`}
+          type="button"
+          disabled={true}
+          onClick={onDeleteAllCards}
+          className="inline-flex items-center px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-                  Grid View
-                </button>
-                <button
-          onClick={() => setView('table')}
-          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
-            view === 'table'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary hover:bg-secondary/80'
-          }`}
+          Delete All Cards
+        </button>
+
+
+
+      </div>
+      <div className="flex flex-wrap gap-4 mb-6 glass max-w-7xl mx-auto">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setView('grid')}
+            className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${view === 'grid'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary hover:bg-secondary/80'
+              }`}
+          >
+            Grid View
+          </button>
+          <button
+            onClick={() => setView('table')}
+            className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${view === 'table'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary hover:bg-secondary/80'
+              }`}
+          >
+            Table View
+          </button>
+        </div>
+
+        <button
+          onClick={toggleFilterMenu}
+          className="inline-flex items-center px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
         >
-                  Table View
-                </button>
-                </div>
 
-                <button
-        onClick={toggleFilterMenu}
-        className="inline-flex items-center px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-      >
-     
-                  {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
-                  
-                </button>
-                 {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />} 
-                </div>
-<div className="inline text-black">
-                  <YugiohSearchBar
-                    searchTerm={searchTerm}
-                    onSearch={handleSearch} />
-                </div>
+          {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
 
-              
-
-       
-          {!isLoading && view === "grid" ? (
-            <>
-                <Suspense fallback={<div>Loading...</div>}>
-                <GridView
-                  aggregatedData={paginatedData}
-                  onDeleteCard={onDeleteCard}
-                  onUpdateCard={onUpdateCard}
-                  setAggregatedData={setAggregatedData}
-                />
-                <div className=" max-w-7xl mt-24">
-                  <YugiohPagination
-                  currentPage={currentPage}
-                  itemsPerPage={itemsPerPage}
-                  totalItems={aggregatedData.length}
-                  handlePageClick={handlePageClick}
-                /></div>
-                </Suspense>
-            </>
-          ) : (
-
-              <Suspense fallback={<div>Loading...</div>}>
-                
-                <TableView
-                  handleSortChange={handleSortChange}
-                  onUpdateCard={onUpdateCard}
-                  aggregatedData={aggregatedData}
-                  onDeleteCard={onDeleteCard}
-                />
-              </Suspense>
-
-          )}
-
+        </button>
         
+      </div>
+      {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
+      <div className="inline text-black w-96">
+        <YugiohSearchBar
+          searchTerm={searchTerm}
+          onSearch={handleSearch} />
+      </div>
+
+
+
+
+      {!isLoading && view === "grid" ? (
+<>
+          <div className="w-full max-w-7xl mx-auto">
+            <GridView
+              aggregatedData={paginatedData}
+              onDeleteCard={onDeleteCard}
+              onUpdateCard={onUpdateCard}
+              setAggregatedData={setAggregatedData}
+            />
+          </div>
+            <div className="w-fit mx-auto mt-24">
+              <YugiohPagination
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={aggregatedData.length}
+                handlePageClick={handlePageClick}
+              />
+              </div>
+              </>
+      ) : (
+
+        <Suspense fallback={<div>Loading...</div>}>
+
+          <TableView
+            handleSortChange={handleSortChange}
+            onUpdateCard={onUpdateCard}
+            aggregatedData={aggregatedData}
+            onDeleteCard={onDeleteCard}
+          />
+        </Suspense>
+
+      )}
+
+
 
       <SpeedInsights></SpeedInsights>
     </>

@@ -45,7 +45,7 @@ const TableView = ({ aggregatedData }) => {
 
   return (
   <>
-    <div className="container max-h-[450px] max-w-fit overflow-y-auto">
+    <div className="container max-h-[450px] w-full max-w-7xl overflow-y-auto overflow-x-hidden">
     <table className="mx-auto mb-2">
       <thead>
         <tr>
