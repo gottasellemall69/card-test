@@ -71,21 +71,18 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const memoizedAggregatedData = useMemo(() => aggregatedData, [aggregatedData]);
 
   return (
-    <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 my-8">
-      <div className="w-fit z-50 absolute mx-auto glass">
-      <Notification 
-        show={notification.show} 
-        setShow={(show) => setNotification((prev) => ({ ...prev, show }))} 
-        message={notification.message} 
+    <div className="flex flex-col gap-5 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <Notification
+        show={notification.show}
+        setShow={(show) => setNotification((prev) => ({ ...prev, show }))}
+        message={notification.message}
       />
-    </div>
       {memoizedAggregatedData.map((card) => {
         const cardImages = getCardImage(card.productName);
         const cardInfo = cardData.find(item => item.name === card.productName);
         return (
           <div key={card._id} className="card group">
-                        <Link
+            <Link
               href={{
                 pathname: "/yugioh/sets/[letter]/cards/CardDetails",
                 query: {
@@ -96,32 +93,32 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
               }}
               as={`/yugioh/sets/${letter}/cards/CardDetails?card=${encodeURIComponent(card.productName)}`}
             >
-            <div className="wrapper">
-              <Image
-                className="cover-image"
-                priority={true}
-                unoptimized={true}
-                src={cardImages ? cardImages.full : '/images/yugioh-card.png'}
-                alt={`${card.productName}`}
-                quality={75}
-                width={240}
-                height={310}
-              />
-              <div className="black-overlay" />
-              <div className="details p-4 space-y-2">
-                <h3 className="text-xl font-bold text-white text-shadow text-wrap">{card.productName}</h3>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between"><span>Set:</span> <span>{card.setName}</span></div>
-                  <div className="flex justify-between"><span>Number:</span> <span>{card.number}</span></div>
-                  <div className="flex justify-between"><span>Rarity:</span> <span>{card.rarity}</span></div>
-                  <div className="flex justify-between"><span>Printing:</span> <span>{card.printing}</span></div>
-                  <div className="flex justify-between"><span>Condition:</span> <span>{card.condition}</span></div>
-                  <div className="flex justify-between font-bold"><span>Price:</span> <span>${card.marketPrice}</span></div>
+              <div className="wrapper">
+                <Image
+                  className="cover-image"
+                  priority={true}
+                  unoptimized={true}
+                  src={cardImages ? cardImages.full : '/images/yugioh-card.png'}
+                  alt={`${card.productName}`}
+                  quality={75}
+                  width={240}
+                  height={310}
+                />
+                <div className="black-overlay" />
+                <div className="details p-3 space-y-2">
+                  <h3 className="text-xl font-bold text-white text-shadow text-wrap">{card.productName}</h3>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between"><span>Set:</span> <span>{card.setName}</span></div>
+                    <div className="flex justify-between"><span>Number:</span> <span>{card.number}</span></div>
+                    <div className="flex justify-between"><span>Rarity:</span> <span>{card.rarity}</span></div>
+                    <div className="flex justify-between"><span>Printing:</span> <span>{card.printing}</span></div>
+                    <div className="flex justify-between"><span>Condition:</span> <span>{card.condition}</span></div>
+                    <div className="flex justify-between font-bold"><span>Price:</span> <span>${card.marketPrice}</span></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
-            <div className="mt-6 flex justify-between items-center mb-6">
+            </Link>
+            <div className="mt-2 flex justify-between items-center mb-10">
               <div className="text-sm">
                 <span className="text-white/60">Quantity: </span>
                 {edit[card._id] === 'quantity' ? (
@@ -134,7 +131,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                     className="w-16 px-2 py-1 glass"
                   />
                 ) : (
-                  <span 
+                  <span
                     className="cursor-pointer hover:text-purple-300 transition-colors"
                     onClick={() => handleEdit(card._id, 'quantity')}
                   >
@@ -142,7 +139,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   </span>
                 )}
               </div>
-              <button 
+              <button
                 onClick={() => handleDelete(card._id)}
                 className="text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
               >
@@ -153,8 +150,6 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
         );
       })}
     </div>
-    
-  </>
   );
 };
 

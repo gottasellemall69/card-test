@@ -67,7 +67,7 @@ img
   }
 
   .table-container {
-    @apply glass p-4 overflow-x-auto;
+    @apply glass;
   }
 }
 

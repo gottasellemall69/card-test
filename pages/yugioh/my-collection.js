@@ -1,3 +1,4 @@
+"use client"
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
@@ -9,10 +10,10 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense } from "react";
 
 const TableView = dynamic(() => import("@/components/Yugioh/TableView"), {
-  ssr: true,
+  ssr: false,
 });
 const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
-  ssr: true,
+  ssr: false,
 });
 
 const MyCollectionPage = () => {
@@ -234,7 +235,7 @@ const MyCollectionPage = () => {
 
       <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 rounded-lg shadow-xl p-6 mb-8">
         <h1 className="text-4xl font-bold text-white mb-4">My Collection</h1>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center">
           <span className="text-xl font-semibold text-white">Total Collection Value:</span>
           <span className="text-2xl font-bold text-emerald-400">${subtotalMarketPrice}</span>
         </div>
@@ -293,7 +294,7 @@ const MyCollectionPage = () => {
         
       </div>
       {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
-      <div className="inline text-black w-96">
+      <div className="inline mx-auto text-black w-full">
         <YugiohSearchBar
           searchTerm={searchTerm}
           onSearch={handleSearch} />
@@ -324,13 +325,14 @@ const MyCollectionPage = () => {
       ) : (
 
         <Suspense fallback={<div>Loading...</div>}>
-
+<div className="w-full max-w-7xl mx-auto">
           <TableView
             handleSortChange={handleSortChange}
             onUpdateCard={onUpdateCard}
             aggregatedData={aggregatedData}
             onDeleteCard={onDeleteCard}
           />
+          </div>
         </Suspense>
 
       )}

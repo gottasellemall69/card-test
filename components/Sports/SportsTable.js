@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, startIndex }) => {
   const router = useRouter();
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'descending' });
-  
+
 
   const memoizedCardSets = useMemo(() => [
     '1975 NBA Topps',
@@ -61,7 +61,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, sta
     });
   }, [flatData, sortConfig]);
 
-  
+
   const calculateTotalPages = (totalData, pageSize) => {
     return Math.ceil(totalData / pageSize);
   };
@@ -72,7 +72,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, sta
 
 
   const cardsToRender = sortedData.slice(startIndex, startIndex + pageSize);
-const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 50;
   const totalData = sportsData?.length;
   const totalPages = calculateTotalPages(totalData, pageSize);
@@ -96,56 +96,55 @@ const [currentPage, setCurrentPage] = useState(1);
             onSelectCardSet={handleCardSetSelection}
           />
         </div>
-
-        <div className="w-full align-baseline float-start">
-          <SportsCSVButton sportsData={sportsData} />
-        </div>
       </div>
+
       {paginatedData && (
-        <div className="container max-h-[450px] overflow-y-auto w-full">
-          <table className="mx-auto mb-2 w-full">
-            <thead>
-              <tr>
-                <th
-                  scope="col"
-                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
-                  onClick={() => handleSort('productName')}
-                >
-                  Name {getSortIcon('productName')}
-                </th>
-                <th
-                  scope="col"
-                  className="hidden sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
-                  onClick={() => handleSort('consoleUri')}
-                >
-                  Set {getSortIcon('consoleUri')}
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
-                  onClick={() => handleSort('price1')}
-                >
-                  Ungraded {getSortIcon('price1')}
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
-                  onClick={() => handleSort('price3')}
-                >
-                  PSA 9 {getSortIcon('price3')}
-                </th>
-                <th
-                  scope="col"
-                  className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
-                  onClick={() => handleSort('price2')}
-                >
-                  PSA 10 {getSortIcon('price2')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="mx-auto overflow-x-hidden">
-            {paginatedData.map((product, index) => (
-       <tr key={product?.id || index}>
+        <><div className="w-full align-baseline float-start">
+          <SportsCSVButton sportsData={sportsData} />
+        </div><div className="container max-h-[450px] overflow-y-auto w-full">
+            <table className="mx-auto mb-2 w-full">
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                    onClick={() => handleSort('productName')}
+                  >
+                    Name {getSortIcon('productName')}
+                  </th>
+                  <th
+                    scope="col"
+                    className="hidden sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                    onClick={() => handleSort('consoleUri')}
+                  >
+                    Set {getSortIcon('consoleUri')}
+                  </th>
+                  <th
+                    scope="col"
+                    className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                    onClick={() => handleSort('price1')}
+                  >
+                    Ungraded {getSortIcon('price1')}
+                  </th>
+                  <th
+                    scope="col"
+                    className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                    onClick={() => handleSort('price3')}
+                  >
+                    PSA 9 {getSortIcon('price3')}
+                  </th>
+                  <th
+                    scope="col"
+                    className="sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer"
+                    onClick={() => handleSort('price2')}
+                  >
+                    PSA 10 {getSortIcon('price2')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="mx-auto overflow-x-hidden">
+                {paginatedData.map((product, index) => (
+                  <tr key={product?.id || index}>
                     <td
                       scope="row"
                       className="border border-gray-800 p-1 whitespace-wrap break-words text-center sm:text-left text-sm font-medium text-white"
@@ -178,10 +177,16 @@ const [currentPage, setCurrentPage] = useState(1);
                     </td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
-        </div>
+
+              </tbody>
+
+            </table>
+
+          </div>
+        </>
+
       )}
+
       {dataLoaded && (
         <div className="mx-auto container w-fit">
           <SportsPagination

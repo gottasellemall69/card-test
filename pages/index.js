@@ -143,9 +143,9 @@ const Home = () => {
         <meta name="charset" content="UTF-8" />
         
       </Head>
-      <div className="">
+      <div className="mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
-        <details className="">
+        <details className="mx-auto">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
           <ul className="">
             <li>Near Mint+[Edition]</li>

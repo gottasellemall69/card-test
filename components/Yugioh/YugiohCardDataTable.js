@@ -162,7 +162,8 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
       <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
 
             {sortedAndPaginatedData.currentItems.length > 0 && (
-                <><div className="max-h-fit w-[95%] mt-10">
+                <>
+                <div className="max-h-fit w-full mt-10">
                     <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={downloadCSV}>
                         Download CSV
                     </button>
@@ -172,7 +173,8 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                     <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>
                         View Collection
                     </button>
-                </div><div className="w-[95%] overflow-x-auto max-h-[750px] overflow-y-auto">
+                </div>
+                <div className="w-full overflow-x-auto max-h-[750px] overflow-y-auto">
                         <table className="text-white items-center w-full border-collapse">
                             <thead className="p-1 bg-transparent">
                                 <tr>
@@ -263,11 +265,13 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                                 ))}
                             </tbody>
                         </table>
-                    </div><YugiohPagination
+                    </div>
+                    <YugiohPagination
                         currentPage={currentPage}
                         itemsPerPage={itemsPerPage}
                         totalItems={sortedAndPaginatedData.totalCount}
-                        handlePageClick={handlePageClick} /></>
+                        handlePageClick={handlePageClick} />
+                        </>
             )}
         </div>
         
