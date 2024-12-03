@@ -5,9 +5,10 @@ import SportsPagination from '@/components/Sports/SportsPagination';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 
-const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, startIndex }) => {
+const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, startIndex, isLoading }) => {
   const router = useRouter();
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'descending' });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+  
 
 
   const memoizedCardSets = useMemo(() => [
@@ -32,7 +33,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, sta
     '1991 MLB Donruss',
     '1991 MLB SCORE',
     '1991 MLB Fleer'
-  ], []);
+  ], ['']);
 
   const flatData = sportsData.flatMap(item => item.products);
   const getSortIcon = (key) => {
@@ -46,20 +47,45 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, sta
     }
     setSortConfig({ key, direction });
   };
+
   const sortedData = useMemo(() => {
-    return flatData.sort((a, b) => {
-      const isNumeric = !isNaN(a[sortConfig.key]) && !isNaN(b[sortConfig.key]);
-      if (isNumeric) {
-        return sortConfig.direction === 'ascending'
-          ? parseFloat(a[sortConfig.key]) - parseFloat(b[sortConfig.key])
-          : parseFloat(b[sortConfig.key]) - parseFloat(a[sortConfig.key]);
+    const sortFunc = (a, b) => {
+      const valueA = a[sortConfig.key];
+      const valueB = b[sortConfig.key];
+  
+      // Check if the values are numeric
+      const isNumericA = !isNaN(parseFloat(valueA));
+      const isNumericB = !isNaN(parseFloat(valueB));
+  
+      // If both values are numeric, compare them directly
+      if (isNumericA && isNumericB) {
+        const numericA = parseFloat(valueA);
+        const numericB = parseFloat(valueB);
+        if (numericA < numericB) return -1;
+        if (numericA > numericB) return 1;
+        return 0;
+      }
+      // If only one value is numeric, consider the numeric value as "greater"
+      else if (isNumericA) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      } else if (isNumericB) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
+      // For non-numeric values, use localeCompare
+      else {
+        return (valueA || '').localeCompare(valueB || '');
+      }
+    };
+  
+    return [...flatData].sort((a, b) => {
+      if (sortConfig.direction === 'ascending') {
+        return sortFunc(a, b);
       } else {
-        return sortConfig.direction === 'ascending'
-          ? (a[sortConfig.key] || '').localeCompare(b[sortConfig.key] || '')
-          : (b[sortConfig.key] || '').localeCompare(a[sortConfig.key] || '');
+        return sortFunc(b, a);
       }
     });
   }, [flatData, sortConfig]);
+
 
 
   const calculateTotalPages = (totalData, pageSize) => {
@@ -87,6 +113,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, sta
     setSelectedCardSet(cardSet);
     setCurrentPage(1); // Reset to the first page
   };
+
   return (
     <div className="max-w-7xl w-full mx-auto">
       <div className="w-fit inline-flex flex-wrap flex-row place-content-stretch align-middle justify-stretch">
@@ -98,7 +125,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, sta
         </div>
       </div>
 
-      {paginatedData && (
+      {isLoading && paginatedData && (
         <><div className="w-full align-baseline float-start">
           <SportsCSVButton sportsData={sportsData} />
         </div><div className="container max-h-[450px] overflow-y-auto w-full">

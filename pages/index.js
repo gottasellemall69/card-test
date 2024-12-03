@@ -143,7 +143,7 @@ const Home = () => {
         <meta name="charset" content="UTF-8" />
         
       </Head>
-      <div className="mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
         <details className="mx-auto">
           Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
@@ -169,10 +169,10 @@ const Home = () => {
           Browse sets by name by choosing the letter it starts with from the list below:
         </div>
 
-        <div className="leading-5">
+        <div className="mx-auto w-full max-w-7xl leading-5">
           <AlphabeticalIndex />
         </div>
-        <div className="">
+        <div className="mx-auto w-full max-w-7xl">
           <YugiohCardListInput
             collection={collection}
             selectedRows={selectedRows}
@@ -187,7 +187,7 @@ const Home = () => {
             setMatchedCardData={setMatchedCardData}
           />
         </div>
-        <div className="">
+        <div className="mx-auto w-full max-w-7xl">
           <YugiohCardDataTable
             matchedCardData={matchedCardData}
             setMatchedCardData={setMatchedCardData}

@@ -57,13 +57,14 @@ export async function getStaticProps({ params }) {
 
 
 const SportsPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [sportsData, setSportsData] = useState([{}]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [selectedCardSet, setSelectedCardSet] = useState([]);
   const [currentPage, setCurrentPage] = useState([]);
   const pageSize = 1;
 
-  const fetchSportsData = useCallback(async (selectedCardSet, currentPage) => {
+  const fetchSportsData = useCallback(async(selectedCardSet, currentPage) => {
     try {
       const response = await fetch(
         `/api/Sports/sportsData?cardSet=${ selectedCardSet }&page=${ currentPage }`
@@ -81,6 +82,7 @@ const SportsPage = () => {
     if (selectedCardSet.length > 0) { // Change condition to check for valid set
       await fetchSportsData(selectedCardSet, currentPage);
       setDataLoaded(true);
+      setIsLoading(true);
     }
   }, [selectedCardSet, currentPage]);
 
@@ -106,6 +108,7 @@ const SportsPage = () => {
       <div className="mx-auto container content-center place-items-center w-full max-w-7xl">
         <SportsTable
           sportsData={sportsData}
+          isLoading={isLoading}
           dataLoaded={dataLoaded}
           selectedCardSet={selectedCardSet}
           setSelectedCardSet={(set) => {
