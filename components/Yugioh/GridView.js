@@ -87,11 +87,11 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                 pathname: "/yugioh/sets/[letter]/cards/CardDetails",
                 query: {
                   card: cardInfo?.id,
-                  letter: letter,
+                  letter: card.setName.charAt(0).toUpperCase(),
                   setName: card.setName
                 }
               }}
-              as={`/yugioh/sets/${letter}/cards/CardDetails?card=${encodeURIComponent(card.productName)}`}
+              as={`/yugioh/sets/${card.setName.charAt(0).toUpperCase()}/cards/CardDetails?card=${encodeURIComponent(card.productName)}`}
             >
               <div className="wrapper">
                 <Image

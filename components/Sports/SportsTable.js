@@ -33,7 +33,7 @@ const SportsTable = ({ sportsData, dataLoaded, setSelectedCardSet, pageSize, sta
     '1991 MLB Donruss',
     '1991 MLB SCORE',
     '1991 MLB Fleer'
-  ], ['']);
+  ], []);
 
   const flatData = sportsData.flatMap(item => item.products);
   const getSortIcon = (key) => {

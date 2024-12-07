@@ -40,7 +40,7 @@ const CardDetails = () => {
             Cards in Set: {setName}
           </span>
         )}
-        <span>Card Details: {card}</span>
+        <span>Card Details: {cardData.id}</span>
       </Breadcrumb>
 
       <div key={cardData.id} className="text-pretty text-white p-6 rounded-md shadow-md mb-8">
