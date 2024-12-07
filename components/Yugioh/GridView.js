@@ -99,6 +99,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   priority={true}
                   unoptimized={true}
                   src={cardImages ? cardImages.full : '/images/yugioh-card.png'}
+                  as={"image"}
                   alt={`${card.productName}`}
                   quality={75}
                   width={240}

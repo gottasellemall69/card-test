@@ -1,4 +1,3 @@
-"use client"
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
@@ -11,14 +10,16 @@ import { Suspense } from "react";
 
 const TableView = dynamic(() => import("@/components/Yugioh/TableView"), {
   ssr: false,
+  loading: () => <div className="w-full max-w-7xl mx-auto">Loading...</div>,
 });
 const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
   ssr: false,
+  loading: () => <div className="w-full max-w-7xl mx-auto">Loading...</div>,
 });
 
 const MyCollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [aggregatedData, setAggregatedData] = useState([]);
   const [filters, setFilters] = useState({
@@ -68,7 +69,6 @@ const MyCollectionPage = () => {
   }, [aggregatedData]);
 
   const fetchData = useCallback(async () => {
-    setIsLoading(true);
     try {
       const response = await fetch("/api/Yugioh/my-collection");
       if (!response.ok) {
@@ -299,19 +299,19 @@ const MyCollectionPage = () => {
           searchTerm={searchTerm}
           onSearch={handleSearch} />
       </div>
+      
 
-
-
-
-      {!isLoading && view === "grid" ? (
-<>
+{!isLoading && view === "grid" ? (
+  <>
           <div className="w-full max-w-7xl mx-auto">
+           
             <GridView
               aggregatedData={paginatedData}
               onDeleteCard={onDeleteCard}
               onUpdateCard={onUpdateCard}
               setAggregatedData={setAggregatedData}
             />
+            
           </div>
             <div className="w-fit mx-auto mt-24">
               <YugiohPagination
@@ -321,10 +321,8 @@ const MyCollectionPage = () => {
                 handlePageClick={handlePageClick}
               />
               </div>
-              </>
-      ) : (
-
-        <Suspense fallback={<div>Loading...</div>}>
+</>
+      ) : ( 
 <div className="w-full max-w-7xl mx-auto">
           <TableView
             handleSortChange={handleSortChange}
@@ -333,12 +331,7 @@ const MyCollectionPage = () => {
             onDeleteCard={onDeleteCard}
           />
           </div>
-        </Suspense>
-
-      )}
-
-
-
+     )}
       <SpeedInsights></SpeedInsights>
     </>
   );

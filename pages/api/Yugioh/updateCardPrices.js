@@ -1,36 +1,41 @@
-import {MongoClient} from 'mongodb'
+// pages/api/updatePrices.js
+import { MongoClient } from 'mongodb';
+import { clientPromise } from '@/utils/mongo';
 
-export default async function handler(req, res) {
-  if(req.method==='POST') {
-    const {setName, cardData}=req.body
+const updateCardPrices = async () => {
+    const db = await clientPromise();
+    const cardsCollection = db.collection('myCollection'); // Your collection name
 
-    // Validate the input data
-    if(typeof setName!=='string'||!Array.isArray(cardData)||cardData.some(card => typeof card.number!=='string'||typeof card.marketPrice!=='number')) {
-      return res.status(400).json({error: 'Invalid data'})
+    const cards = await cardsCollection.find({}).toArray(); // Fetch all cards from the collection
+
+    for (const card of cards) {
+        try {
+            const response = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(card.productName)}`);
+            const data = await response.json();
+            const cardData = data.data[0];
+
+            if (cardData) {
+                const newPrice = cardData.card_prices[0] ? parseFloat(cardData.card_prices[0].tcgplayer_price) : null;
+
+                // Prepare price trend
+                const priceTrend = {
+                    date: new Date(),
+                    price: newPrice,
+                };
+
+                // Update the card's market price and price history
+                await cardsCollection.updateOne(
+                    { _id: card._id },
+                    {
+                        $set: { marketPrice: newPrice }, // Update the current market price
+                        $push: { priceHistory: priceTrend }, // Add the new price trend to the history
+                    }
+                );
+            }
+        } catch (error) {
+            console.error(`Error fetching data for card ${card.productName}:`, error);
+        }
     }
+};
 
-    try {
-      const client=new MongoClient(process.env.MONGODB_URI)
-      await client.connect()
-      const db=client.db('cardPriceApp')
-      const collection=db.collection('myCollection')
-
-      // Update the prices for each card in the set
-      await Promise.all(cardData.map(async (card) => {
-        await collection.updateOne(
-          {setName: {$eq: setName}, number: {$eq: card.number}},
-          {$set: {marketPrice: card.marketPrice}},
-        )
-      }))
-
-      await client.close()
-
-      res.status(200).json({message: 'Prices updated successfully'})
-    } catch(error) {
-      console.error('Error updating prices:', error)
-      res.status(500).json({error: 'Internal server error'})
-    }
-  } else {
-    res.status(405).json({error: 'Method not allowed'})
-  }
-}
+export default updateCardPrices;
