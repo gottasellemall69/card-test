@@ -7,7 +7,7 @@ import cardData from '@/public/card-data/Yugioh/card_data';
 
 const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const router = useRouter();
-  const { letter } = router.query;
+  const { card } = router.query;
   const [edit, setEdit] = useState({});
   const [editValues, setEditValues] = useState({});
   const [notification, setNotification] = useState({ show: false, message: '' });
@@ -77,7 +77,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
         setShow={(show) => setNotification((prev) => ({ ...prev, show }))}
         message={notification.message}
       />
-      {memoizedAggregatedData.map((card) => {
+      {memoizedAggregatedData?.map((card) => {
         const cardImages = getCardImage(card.productName);
         const cardInfo = cardData.find(item => item.name === card.productName);
         return (
@@ -91,7 +91,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   setName: card.setName
                 }
               }}
-              as={`/yugioh/sets/${card.setName.charAt(0).toUpperCase()}/cards/CardDetails?card=${encodeURIComponent(card.productName)}`}
+              as={`/yugioh/sets/${card.setName.charAt(0).toUpperCase()}/cards/CardDetails?card=${encodeURIComponent(card)}`}
             >
               <div className="wrapper">
                 <Image
@@ -99,7 +99,6 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   priority={true}
                   unoptimized={true}
                   src={cardImages ? cardImages.full : '/images/yugioh-card.png'}
-                  as={"image"}
                   alt={`${card.productName}`}
                   quality={75}
                   width={240}

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-export default function Breadcrumb() {
+const Breadcrumb=() => {
   const router = useRouter();
   const { pathname, isReady, query } = router;
 
@@ -93,4 +93,5 @@ export default function Breadcrumb() {
       </ol>
     </nav>
   );
-}
+};
+export default Breadcrumb;

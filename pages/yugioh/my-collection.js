@@ -1,3 +1,4 @@
+'use client'
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
@@ -10,18 +11,19 @@ import { Suspense } from "react";
 
 const TableView = dynamic(() => import("@/components/Yugioh/TableView"), {
   ssr: false,
-  loading: () => <div className="w-full max-w-7xl mx-auto">Loading...</div>,
 });
 const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
   ssr: false,
   loading: () => <div className="w-full max-w-7xl mx-auto">Loading...</div>,
 });
 
-const MyCollectionPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [aggregatedData, setAggregatedData] = useState([]);
+
+const MyCollectionPage = ({ error }) => {
+  // States for managing data and UI
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [initialData, setInitialData] = useState([]);
+  const [aggregatedData, setAggregatedData] = useState(initialData || []);
   const [filters, setFilters] = useState({
     rarity: [],
     condition: [],
@@ -30,35 +32,14 @@ const MyCollectionPage = () => {
     key: "",
     direction: "",
   });
-  const [view, setView] = useState("grid"); // 'table' or 'grid'
+  const [view, setView] = useState("grid");
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20); // Adjust the number based on your design
+  const [itemsPerPage] = useState(20);
   const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
 
-  const handleSearch = useCallback((searchTerm) => {
-    setSearchTerm(searchTerm);  // Update the state with the current search term
-    setCurrentPage(1);
-    if (searchTerm === "") {
-      // If the search input is cleared, reset the aggregated data and pagination
-      fetchData();  // Fetch the original data
-    }
-    // Otherwise, filter the data based on the search term
-    const filteredData = aggregatedData.filter((card) =>
-      card.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.setName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.rarity.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.printing.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.condition.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setAggregatedData(filteredData);
-    setCurrentPage(1);  // Reset pagination to page 1
-  }, [aggregatedData]);
-
-
-  useEffect(() => {
+   // Update subtotal market price when aggregatedData changes
+   useEffect(() => {
     if (Array.isArray(aggregatedData) && aggregatedData.length) {
       const subtotal = aggregatedData.reduce(
         (sum, card) => sum + (card.marketPrice || 0) * (card.quantity || 0),
@@ -67,6 +48,90 @@ const MyCollectionPage = () => {
       setSubtotalMarketPrice(subtotal.toFixed(2));
     }
   }, [aggregatedData]);
+
+  // Handle search functionality
+  const handleSearch = useCallback((searchTerm) => {
+    setSearchTerm(searchTerm);
+    setCurrentPage(1);
+    if (searchTerm === "") {
+      // Reset to initial data if the search is cleared
+      setAggregatedData(initialData);
+    } else {
+      const filteredData = initialData.filter((card) =>
+        ["productName", "setName", "number", "rarity", "printing", "condition"]
+          .some((key) => card[key]?.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      setAggregatedData(filteredData);
+    }
+  }, [initialData]);
+  
+
+  // Apply filters to the data
+  const applyFilters = useCallback(
+    (data) => {
+      if (!filters.rarity.length && !filters.condition.length) return data;
+      return data.filter((card) => {
+        return (
+          (!filters.rarity.length || filters.rarity.includes(card.rarity)) &&
+          (!filters.condition.length || filters.condition.includes(card.condition))
+        );
+      });
+    },
+    [filters]
+  );
+
+  // Handle filter changes
+  const handleFilterChange = useCallback(
+    (filterName, selectedOptions) => {
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        [filterName]: selectedOptions,
+      }));
+      setCurrentPage(1);
+    },
+    []
+  );
+
+  // Apply sorting to the data
+  const applySorting = useCallback(
+    (data) => {
+      if (!sortConfig.key) return data;
+      return [...data].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === "ascending" ? 1 : -1;
+        }
+        return 0;
+      });
+    },
+    [sortConfig]
+  );
+
+  // Handle sorting change
+  const handleSortChange = useCallback(
+    (sortKey) => {
+      setSortConfig((prevSortConfig) => ({
+        key: sortKey,
+        direction:
+          prevSortConfig.key === sortKey && prevSortConfig.direction === "ascending"
+            ? "descending"
+            : "ascending",
+      }));
+    },
+    []
+  );
+
+  // Paginate the data
+  const paginatedData = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return aggregatedData.slice(startIndex, startIndex + itemsPerPage);
+  }, [aggregatedData, currentPage, itemsPerPage]);
+
+  const handlePageClick = useCallback((page) => setCurrentPage(page), []);
+
+  const toggleFilterMenu = useCallback(() => setIsFilterMenuOpen((prev) => !prev), []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -77,59 +142,19 @@ const MyCollectionPage = () => {
       const data = await response.json();
       const filteredData = applyFilters(data);
       const sortedData = applySorting(filteredData);
+      setInitialData(data); // Store the unfiltered data
       setAggregatedData(sortedData);
     } catch (error) {
       setError("Error fetching aggregated data:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [filters, sortConfig]);
+  }, [filters, sortConfig]);  
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const applyFilters = useCallback((data) => {
-    if (filters.rarity.length === 0 && filters.condition.length === 0) {
-      return data;
-    }
-    return data.filter((card) => {
-      return (
-        (filters.rarity.length === 0 || filters.rarity.includes(card.rarity)) &&
-        (filters.condition.length === 0 || filters.condition.includes(card.condition))
-      );
-    });
-  }, [filters]);
-
-  const handleFilterChange = useCallback((filterName, selectedOptions) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      [filterName]: selectedOptions,
-    }));
-    setCurrentPage(1);
-  }, []);
-
-  const applySorting = useCallback((data) => {
-    if (!sortConfig.key) {
-      return data;
-    }
-    return [...data].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? -1 : 1;
-      }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === "ascending" ? 1 : -1;
-      }
-      return 0;
-    });
-  }, [sortConfig]);
-
-  const handleSortChange = useCallback((sortKey) => {
-    setSortConfig((prevSortConfig) => ({
-      key: sortKey,
-      direction: prevSortConfig.key === sortKey && prevSortConfig.direction === "ascending" ? "descending" : "ascending",
-    }));
-  }, []);
 
   const onUpdateCard = useCallback(async(cardId, field, value) => {
     try {
@@ -203,20 +228,6 @@ const MyCollectionPage = () => {
     }
   };
 
-  // Get paginated data
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return aggregatedData.slice(startIndex, startIndex + itemsPerPage);
-  }, [aggregatedData, currentPage, itemsPerPage]);
-
-  const handlePageClick = useCallback((page) => {
-    setCurrentPage(page);
-  }, []);
-
-  const toggleFilterMenu = useCallback(() => {
-    setIsFilterMenuOpen((prevState) => !prevState);
-  }, []);
-
   return (
     <>
       <Head>
@@ -231,17 +242,15 @@ const MyCollectionPage = () => {
         />
         <meta name="charset" content="UTF-8" />
       </Head>
-
-
       <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 rounded-lg shadow-xl p-6 mb-8">
         <h1 className="text-4xl font-bold text-white mb-4">My Collection</h1>
         <div className="flex items-center">
           <span className="text-xl font-semibold text-white">Total Collection Value:</span>
-          <span className="text-2xl font-bold text-emerald-400">${subtotalMarketPrice}</span>
+          <span className="text-2xl font-bold text-emerald-400">
+            ${subtotalMarketPrice}
+          </span>
         </div>
       </header>
-
-
       <div className="flex flex-wrap my-4 glass max-w-7xl mx-auto">
         <DownloadYugiohCSVButton
           type="button"
@@ -324,12 +333,14 @@ const MyCollectionPage = () => {
 </>
       ) : ( 
 <div className="w-full max-w-7xl mx-auto">
+  <Suspense fallback={<p>Loading...</p>}>
           <TableView
             handleSortChange={handleSortChange}
             onUpdateCard={onUpdateCard}
             aggregatedData={aggregatedData}
             onDeleteCard={onDeleteCard}
           />
+  </Suspense>
           </div>
      )}
       <SpeedInsights></SpeedInsights>

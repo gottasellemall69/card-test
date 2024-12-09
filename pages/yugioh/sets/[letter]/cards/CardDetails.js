@@ -35,12 +35,9 @@ const CardDetails = () => {
       <Breadcrumb>
         <Link href="/yugioh">Alphabetical Index</Link>
         <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/${ letter }/sets`}>Sets by Letter: {letter}</Link>
-        {setName && (
-          <span>
-            Cards in Set: {setName}
-          </span>
-        )}
-        <span>Card Details: {cardData.id}</span>
+        <Link href={"/yugioh/sets/[letter]/cards/[setName]"}as={`/yugioh/sets/${letter}/cards/${setName}`}>Cards in Set: {setName}</Link> 
+        <span className='text-black'>Card Details: {cardData.cardId}</span>
+        
       </Breadcrumb>
 
       <div key={cardData.id} className="text-pretty text-white p-6 rounded-md shadow-md mb-8">
