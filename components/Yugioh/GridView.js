@@ -82,6 +82,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
         const cardInfo = cardData.find(item => item.name === card.productName);
         return (
           <div key={card._id} className="card group">
+           <div className="wrapper">
             <Link
               href={{
                 pathname: "/yugioh/sets/[letter]/cards/CardDetails",
@@ -91,9 +92,9 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   setName: card.setName
                 }
               }}
-              as={`/yugioh/sets/${card.setName.charAt(0).toUpperCase()}/cards/CardDetails?card=${encodeURIComponent(card)}`}
+              as={`/yugioh/sets/${card.setName.charAt(0).toUpperCase()}/cards/CardDetails?card=${encodeURIComponent(card.productName)}`}
             >
-              <div className="wrapper">
+              
                 <Image
                   className="cover-image"
                   priority={true}
@@ -115,9 +116,9 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                     <div className="flex justify-between"><span>Condition:</span> <span>{card.condition}</span></div>
                     <div className="flex justify-between font-bold"><span>Price:</span> <span>${card.marketPrice}</span></div>
                   </div>
-                </div>
+                
               </div>
-            </Link>
+            </Link></div>
             <div className="mt-2 flex justify-between items-center mb-10">
               <div className="text-sm">
                 <span className="text-white/60">Quantity: </span>

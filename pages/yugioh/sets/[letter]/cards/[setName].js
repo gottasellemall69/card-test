@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 const CardsInSetPage = () => {
   const [cards, setCards] = useState([]);
   const router = useRouter();
-  const { setName } = router.query;
+  const { card, setName } = router.query;
 
   useEffect(() => {
     const loadData = async () => {
@@ -23,7 +23,7 @@ const CardsInSetPage = () => {
     if (setName) {
       loadData();
     }
-  }, [setName]);
+  }, [card, setName]);
 
   return (
     <>

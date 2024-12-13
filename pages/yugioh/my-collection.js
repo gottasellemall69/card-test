@@ -35,7 +35,7 @@ const MyCollectionPage = ({ error }) => {
   const [view, setView] = useState("grid");
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
+  const [itemsPerPage] = useState(12);
   const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
 
    // Update subtotal market price when aggregatedData changes
@@ -251,7 +251,7 @@ const MyCollectionPage = ({ error }) => {
           </span>
         </div>
       </header>
-      <div className="flex flex-wrap my-4 glass max-w-7xl mx-auto">
+      <div className="my-4 glass max-w-7xl mx-auto">
         <DownloadYugiohCSVButton
           type="button"
           aggregatedData={aggregatedData}
@@ -303,7 +303,7 @@ const MyCollectionPage = ({ error }) => {
         
       </div>
       {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
-      <div className="inline mx-auto text-black w-full">
+      <div className="mx-auto text-black w-full max-w-7xl">
         <YugiohSearchBar
           searchTerm={searchTerm}
           onSearch={handleSearch} />
@@ -312,17 +312,8 @@ const MyCollectionPage = ({ error }) => {
 
 {!isLoading && view === "grid" ? (
   <>
-          <div className="w-full max-w-7xl mx-auto">
-           
-            <GridView
-              aggregatedData={paginatedData}
-              onDeleteCard={onDeleteCard}
-              onUpdateCard={onUpdateCard}
-              setAggregatedData={setAggregatedData}
-            />
-            
-          </div>
-            <div className="w-fit mx-auto mt-24">
+          
+           <div className="w-fit mx-auto mt-12">
               <YugiohPagination
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
@@ -330,6 +321,14 @@ const MyCollectionPage = ({ error }) => {
                 handlePageClick={handlePageClick}
               />
               </div>
+              <div className="w-full max-w-7xl mx-auto mb-24 pb-12 max-h-[750px] overflow-y-scroll">
+            <GridView
+              aggregatedData={paginatedData}
+              onDeleteCard={onDeleteCard}
+              onUpdateCard={onUpdateCard}
+              setAggregatedData={setAggregatedData}
+            />
+          </div>
 </>
       ) : ( 
 <div className="w-full max-w-7xl mx-auto">

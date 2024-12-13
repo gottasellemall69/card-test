@@ -37,7 +37,7 @@ export default function Layout({ children }) {
             </button>
           </div>
         </header>
-        <main className="p-5 w-full max-w-[100vw] mx-auto">
+        <main className="min-h-fit p-5 w-full max-w-[100vw] mx-auto">
           <div className="mx-auto">
             {children}
           </div>
