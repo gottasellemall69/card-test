@@ -19,6 +19,7 @@ export default async function handler(req, res) {
               'printing': '$printing',
               'rarity': '$rarity',
               'condition': '$condition',
+              'oldPrice': '$oldPrice',
               'marketPrice': '$marketPrice',
               'quantity': '$quantity'
             }

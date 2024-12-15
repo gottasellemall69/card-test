@@ -21,8 +21,10 @@ export default async function handler(req, res) {
           },
           update: {
             $inc: { quantity: card.quantity },
+            $set: { oldPrice: null },
             $setOnInsert: {
               marketPrice: card.marketPrice,
+              priceHistory: [],
             },
           },
           upsert: true,

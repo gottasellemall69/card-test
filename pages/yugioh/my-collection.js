@@ -149,7 +149,7 @@ const MyCollectionPage = ({ error }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, sortConfig]);  
+  }, [applyFilters, applySorting]);  
 
   useEffect(() => {
     fetchData();
@@ -321,7 +321,7 @@ const MyCollectionPage = ({ error }) => {
                 handlePageClick={handlePageClick}
               />
               </div>
-              <div className="w-full max-w-7xl mx-auto mb-24 pb-12 max-h-[750px] overflow-y-scroll">
+              <div className="w-full max-w-7xl mx-auto mb-24 pb-12 max-h-screen">
             <GridView
               aggregatedData={paginatedData}
               onDeleteCard={onDeleteCard}

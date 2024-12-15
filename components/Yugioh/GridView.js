@@ -114,6 +114,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                     <div className="flex justify-between"><span>Rarity:</span> <span>{card.rarity}</span></div>
                     <div className="flex justify-between"><span>Printing:</span> <span>{card.printing}</span></div>
                     <div className="flex justify-between"><span>Condition:</span> <span>{card.condition}</span></div>
+                    <div className="flex justify-between font-bold"><span>Old Price:</span> <span>${card.oldPrice}</span></div>
                     <div className="flex justify-between font-bold"><span>Price:</span> <span>${card.marketPrice}</span></div>
                   </div>
                 
