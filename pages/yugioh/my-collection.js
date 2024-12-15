@@ -321,7 +321,7 @@ const MyCollectionPage = ({ error }) => {
                 handlePageClick={handlePageClick}
               />
               </div>
-              <div className="w-full max-w-7xl mx-auto mb-24 pb-12 max-h-screen">
+              <div className="w-full max-w-7xl mx-auto mb-24 pb-12 min-h-screen">
             <GridView
               aggregatedData={paginatedData}
               onDeleteCard={onDeleteCard}
