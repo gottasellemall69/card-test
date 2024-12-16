@@ -174,8 +174,16 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                         View Collection
                     </button>
                 </div>
-                <div className="w-full overflow-x-auto max-h-[750px] overflow-y-auto">
-                        <table className="text-white items-center w-full border-collapse">
+                <div className="w-full -mt-5">
+                <div className="w-full  mx-auto">
+                    <YugiohPagination
+                        currentPage={currentPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={sortedAndPaginatedData.totalCount}
+                        handlePageClick={handlePageClick}
+                    />
+              </div>
+                        <table className="text-white -mt-5 mb-10 items-center w-full border-collapse">
                             <thead className="p-1 bg-transparent">
                                 <tr>
                                     <th className="sticky px-1 top-0 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
@@ -266,15 +274,9 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                             </tbody>
                         </table>
                     </div>
-                    <YugiohPagination
-                        currentPage={currentPage}
-                        itemsPerPage={itemsPerPage}
-                        totalItems={sortedAndPaginatedData.totalCount}
-                        handlePageClick={handlePageClick} />
-                        </>
+                </>
             )}
         </div>
-        
     );
 };
 

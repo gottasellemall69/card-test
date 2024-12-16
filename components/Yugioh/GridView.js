@@ -71,7 +71,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const memoizedAggregatedData = useMemo(() => aggregatedData, [aggregatedData]);
 
   return (
-    <div className="flex flex-col gap-5 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="mx-auto flex flex-wrap flex-col gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
       <Notification
         show={notification.show}
         setShow={(show) => setNotification((prev) => ({ ...prev, show }))}
@@ -102,8 +102,8 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   src={cardImages ? cardImages.full : '/images/yugioh-card.png'}
                   alt={`${card.productName}`}
                   quality={75}
-                  width={240}
-                  height={310}
+                  width={210}
+                  height={320}
                 />
                 <div className="black-overlay" />
                 <div className="details p-3 space-y-2">

@@ -25,7 +25,7 @@
 
 .cover-image
 {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 21 / 34;
   max-width: 100%;
   width: var(--card-width);
   max-height: auto;
