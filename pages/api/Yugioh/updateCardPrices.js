@@ -18,24 +18,35 @@ const updateCardPrices = async () => {
       const cardData = data.data?.[0];
 
       if (cardData) {
-        const newPrice = cardData.card_prices?.[0]?.tcgplayer_price ? parseFloat(cardData.card_prices[0].tcgplayer_price) : null;
-
-        // Update the database
-        await cardsCollection.updateOne(
-          { _id: card._id },
-          {
-            $set: {
-              marketPrice: newPrice,
-              oldPrice: card.marketPrice, // Save the old price
-            },
-            $push: {
-              priceHistory: {
-                date: new Date(),
-                price: newPrice,
-              }, // Add to price history
-            },
-          }
+        // Match the specific set details (e.g., set_code or set_name)
+        const matchingSet = cardData.card_sets?.find(
+          (set) => set.set_code === card.number // Compare with your saved setCode
         );
+
+        if (matchingSet) {
+          const newPrice = matchingSet.set_price ? parseFloat(matchingSet.set_price) : null;
+
+          // Update the database
+          await cardsCollection.updateOne(
+            { _id: card._id },
+            {
+              $set: {
+                marketPrice: newPrice,
+                oldPrice: card.marketPrice, // Save the old price
+              },
+              $push: {
+                priceHistory: {
+                  date: new Date(),
+                  price: newPrice,
+                }, // Add to price history
+              },
+            }
+          );
+        } else {
+          console.warn(`No matching set found for card: ${card.productName}`);
+        }
+      } else {
+        console.warn(`Card data not found for: ${card.productName}`);
       }
     } catch (error) {
       console.error(`Error updating card ${card.productName}:`, error);
@@ -46,9 +57,14 @@ const updateCardPrices = async () => {
 };
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    await updateCardPrices();
-    res.status(200).json({ message: 'Card prices updated successfully' });
+  if (req.method === 'GET') {
+    try {
+      await updateCardPrices();
+      res.status(200).json({ message: 'Card prices updated successfully' });
+    } catch (error) {
+      console.error('Error updating card prices:', error);
+      res.status(500).json({ error: 'Failed to update card prices' });
+    }
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }
