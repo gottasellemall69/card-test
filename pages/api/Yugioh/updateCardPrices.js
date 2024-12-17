@@ -13,14 +13,14 @@ const updateCardPrices = async () => {
   for (const card of cards) {
     try {
       // Fetch updated card price
-      const response = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(card.productName)}`);
+      const response = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${encodeURIComponent(card.productName)}&tcgplayer_data=true`);
       const data = await response.json();
       const cardData = data.data?.[0];
 
       if (cardData) {
         // Match the specific set details (e.g., set_code or set_name)
         const matchingSet = cardData.card_sets?.find(
-          (set) => set.set_code === card.number // Compare with your saved setCode
+          (set) => set.set_code === card.number || set.set_name === card.setName // Compare with your saved setCode
         );
 
         if (matchingSet) {

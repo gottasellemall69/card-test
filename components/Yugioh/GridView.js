@@ -119,7 +119,8 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   </div>
                 
               </div>
-            </Link></div>
+            </Link>
+            </div>
             <div className="mt-2 flex justify-between items-center mb-10">
               <div className="text-sm">
                 <span className="text-white/60">Quantity: </span>

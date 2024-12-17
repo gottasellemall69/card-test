@@ -158,24 +158,14 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
     }, [matchedCardData, convertToCSV]);
 
     return (
-        <div>
+        <div className="mx-auto w-full max-w-7xl mb-10">
       <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
 
             {sortedAndPaginatedData.currentItems.length > 0 && (
                 <>
-                <div className="max-h-fit w-full mt-10">
-                    <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={downloadCSV}>
-                        Download CSV
-                    </button>
-                    <button className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={addToCollection}>
-                        Add cards to collection
-                    </button>
-                    <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>
-                        View Collection
-                    </button>
-                </div>
+
                 <div className="w-full -mt-5">
-                <div className="w-full  mx-auto">
+                <div className="w-fit mx-auto">
                     <YugiohPagination
                         currentPage={currentPage}
                         itemsPerPage={itemsPerPage}
@@ -183,7 +173,7 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                         handlePageClick={handlePageClick}
                     />
               </div>
-                        <table className="text-white -mt-5 mb-10 items-center w-full border-collapse">
+                        <table className="text-white -mt-5 items-center w-full border-collapse">
                             <thead className="p-1 bg-transparent">
                                 <tr>
                                     <th className="sticky px-1 top-0 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
@@ -271,8 +261,21 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                                         <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{data?.marketPrice !== undefined ? `${data?.marketPrice}` : error}</td>
                                     </tr>
                                 ))}
+
                             </tbody>
+
                         </table>
+                        <div className="max-h-fit w-full">
+                    <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={downloadCSV}>
+                        Download CSV
+                    </button>
+                    <button className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={addToCollection}>
+                        Add cards to collection
+                    </button>
+                    <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>
+                        View Collection
+                    </button>
+                </div>
                     </div>
                 </>
             )}
