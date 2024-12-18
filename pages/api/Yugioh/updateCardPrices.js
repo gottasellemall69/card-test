@@ -1,7 +1,7 @@
 // /pages/api/updatePrices.js
 import { MongoClient } from 'mongodb';
 
-const updateCardPrices = async () => {
+export default async function updateCardPrices() {
   const client = new MongoClient(process.env.MONGODB_URI);
   await client.connect();
   const db = client.db('cardPriceApp');
@@ -55,17 +55,3 @@ const updateCardPrices = async () => {
 
   await client.close();
 };
-
-export default async function handler(req, res) {
-  if (req.method === 'GET') {
-    try {
-      await updateCardPrices();
-      res.status(200).json({ message: 'Card prices updated successfully' });
-    } catch (error) {
-      console.error('Error updating card prices:', error);
-      res.status(500).json({ error: 'Failed to update card prices' });
-    }
-  } else {
-    res.status(405).json({ error: 'Method not allowed' });
-  }
-}

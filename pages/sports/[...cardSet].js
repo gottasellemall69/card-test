@@ -41,7 +41,7 @@ export async function getStaticProps({ params }) {
       const sportsData = await fetchSportsData(params.cardSet);
       return {
         props: {
-          sportsData,
+          sportsData
         },
       };
     } catch (error) {
@@ -50,7 +50,7 @@ export async function getStaticProps({ params }) {
   }
   return {
     props: {
-      sportsData: [],
+      sportsData: [cardSet],
     },
   };
 }
