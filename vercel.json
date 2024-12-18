@@ -1,13 +1,21 @@
 {
-  "crons": {
-    "path": "api/cron",
-    "schedule": "0 0 * * *"
-  },
-  "functions": {
+    "crons": [{
+      "path": "/api/cron",
+      "schedule": "0 0 * * *"
+    }],
+
+    "functions": {
     "api/Yugioh/updateCardPrices.js": {
       "memory": 1024,
       "maxDuration": 60
-    }
-  },
-  "framework": "nextjs" 
+
+    },
+    
+  "api/*.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+
+  "framework": "nextjs"
+  }
 }
