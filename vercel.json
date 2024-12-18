@@ -1,10 +1,10 @@
 {
   "crons": [{
-    "path": "api/cron.js",
+    "path": "/api/cron.js",
     "schedule": "0 0 * * *"
   }],
   "functions": {
-    "api/Yugioh/updateCardPrices.js": {
+    "/api/Yugioh/updateCardPrices.js": {
       "memory": 3009,
       "maxDuration": 60
     }
