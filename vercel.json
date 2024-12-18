@@ -3,15 +3,11 @@
     "path": "/pages/api/cron.js",
     "schedule": "0 0 * * *"
   }],
-  "functions": {
+  "functions": [{
     "/api/Yugioh/updateCardPrices.js": {
       "memory": 3009,
       "maxDuration": 60
     }
-  },
-  "api/*.js": {
-    "memory": 3009,
-    "maxDuration": 60
-  },
-  "framework": "nextjs"
+  }],
+  "framework": "nextjs" 
 }
