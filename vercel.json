@@ -1,6 +1,6 @@
 {
   "crons": [{
-    "path": "/api/cron.js",
+    "path": "/pages/api/cron.js",
     "schedule": "0 0 * * *"
   }],
   "functions": {
