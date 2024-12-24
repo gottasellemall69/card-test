@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import SideNav from '@/components/Navigation/SideNav';
+import { UserProvider } from '@auth0/nextjs-auth0/client';
 
 export default function Layout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
