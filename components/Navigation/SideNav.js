@@ -20,7 +20,7 @@ export default function SideNav() {
             </li>
             <li className="mb-2">
               <Link
-                href="/sports"
+                href="/sports/cardSet"
                 rel="noopener noreferrer"
               >
                 <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial from-fuchsia-700 to-inherit hover:text-white rounded">Sports Card Prices</span>

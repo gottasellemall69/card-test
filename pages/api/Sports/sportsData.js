@@ -1,6 +1,30 @@
-export function getSportsUrls(cardSet: string): string[] {
+// @/pages/api/sportsData.page.js
+export default async function handler(req, res) {
+  try {
+    const cardSet = req.query.cardSet || '';
+    const sportsData = await fetchSportsData(cardSet);
+    res.status(200).json(sportsData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+export async function fetchSportsData(cardSet) {
+  const sportsUrls = getSportsUrls(cardSet);
+  const dataPromises = sportsUrls?.map(async (url) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch data from ${ url }`);
+    }
+    return response.json();
+  });
+  return await Promise.all(dataPromises);
+}
+export function getSportsUrls(cardSet) {
   const cursor = 0;
-  
+  // Modify this function to return the appropriate URLs based on the selected card set
+  // Example: For '1990 Hoops', return URLs for 1990 Hoops cards
   switch (cardSet) {
     case '1975 NBA Topps':
       return [
@@ -311,7 +335,6 @@ export function getSportsUrls(cardSet: string): string[] {
         `https://www.sportscardspro.com/console/baseball-cards-1991-fleer?sort=model-number&model-number=&rookies-only=false&exclude-variants=false&cursor=${ cursor + 750 }&format=json`,
       ];
     default:
-      console.error('Unknown cardSet:', cardSet);
       return [];
   }
 }
