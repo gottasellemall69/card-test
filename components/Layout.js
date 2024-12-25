@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import SideNav from '@/components/Navigation/SideNav';
+import SideNav from 'D:/CSVParse/venv/env/card-test/components/Navigation/SideNav';
 
 export default function Layout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

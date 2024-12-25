@@ -1,5 +1,5 @@
 // /pages/api/cron.js
-import updateCardPrices from '@/pages/api/Yugioh/updateCardPrices';
+import updateCardPrices from 'D:/CSVParse/venv/env/card-test/pages/api/Yugioh/updateCardPrices.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {

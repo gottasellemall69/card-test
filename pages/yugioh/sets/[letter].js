@@ -1,7 +1,7 @@
 // @/pages/sets/[letter].js
-import Breadcrumb from '@/components/Navigation/Breadcrumb';
-import { fetchCardData } from '@/utils/api';
-import { organizeCardSets } from '@/utils/organizeCardSets';
+import Breadcrumb from 'D:/CSVParse/venv/env/card-test/components/Navigation/Breadcrumb';
+import { fetchCardData } from 'D:/CSVParse/venv/env/card-test/utils/api';
+import { organizeCardSets } from 'D:/CSVParse/venv/env/card-test/utils/organizeCardSets';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from 'next/link';
 import { useRouter } from 'next/router';

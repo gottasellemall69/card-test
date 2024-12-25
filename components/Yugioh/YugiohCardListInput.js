@@ -1,11 +1,11 @@
 'use client';
 // @/components/YugiohCardListInput.js
-import Notification from '@/components/Notification';
+import Notification from 'D:/CSVParse/venv/env/card-test/components/Notification.js';
 import dynamic from 'next/dynamic';
 
 import { useCallback, useState } from 'react';
 
-const LoadingSpinner = dynamic(() => import('@/components/LoadingSpinner'), { ssr: false });
+const LoadingSpinner = dynamic(() => import('D:/CSVParse/venv/env/card-test/components/LoadingSpinner.js'), { ssr: false });
 
 const YugiohCardListInput = ({ cardList, setCardList, handleSubmit, isLoading, error }) => {
 

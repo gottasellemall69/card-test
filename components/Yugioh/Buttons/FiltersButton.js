@@ -1,4 +1,4 @@
-import CardFilter from '@/components/Yugioh/CardFilter';
+import CardFilter from 'D:/CSVParse/venv/env/card-test/components/Yugioh/CardFilter.js';
 import { useState } from 'react';
 
 const FiltersButton = ({ updateFilters }) => {

@@ -1,7 +1,7 @@
 // @/pages/yugioh/sets/[letter]/cards/[setName].js
-import Breadcrumb from '@/components/Navigation/Breadcrumb';
-import Card from '@/components/Yugioh/Card';
-import { fetchCardData } from '@/utils/api';
+import Breadcrumb from 'D:/CSVParse/venv/env/card-test/components/Navigation/Breadcrumb';
+import Card from 'D:/CSVParse/venv/env/card-test/components/Yugioh/Card';
+import { fetchCardData } from 'D:/CSVParse/venv/env/card-test/utils/api';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';

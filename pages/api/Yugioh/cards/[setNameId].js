@@ -1,5 +1,5 @@
 // @/pages/api/Yugioh/cards/[setNameId].js
-import { getCardData, getSetNameIdMap } from '@/utils/api';
+import { getCardData, getSetNameIdMap } from 'D:/CSVParse/venv/env/card-test/utils/api.js';
 
 export default async function handler(req, res) {
   const { setNameId } = req.query;
