@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getSportsUrls } from 'D:/CSVParse/venv/env/card-test/utils/sportsUrls';
+import { getSportsUrls } from '@/utils/sportsUrls';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

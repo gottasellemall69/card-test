@@ -1,5 +1,5 @@
 // src/services/cardStorage.ts
-import { SelectedCard } from 'D:/CSVParse/venv/env/card-test/types/Card';
+import { SelectedCard } from '@/types/Card';
 
 const STORAGE_KEY = 'selectedCards';
 

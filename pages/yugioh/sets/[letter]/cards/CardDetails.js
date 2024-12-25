@@ -1,5 +1,5 @@
 "use client"
-import Breadcrumb from 'D:/CSVParse/venv/env/card-test/components/Navigation/Breadcrumb';
+import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from 'next/link';
 import { useRouter } from 'next/router';

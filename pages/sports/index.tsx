@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSportsData } from 'D:/CSVParse/venv/env/card-test/hooks/useSportsData';
-import SportsTable from 'D:/CSVParse/venv/env/card-test/components/Sports/SportsTable';
-import CardSetSelector from 'D:/CSVParse/venv/env/card-test/components/Sports/CardSetSelector';
+import { useSportsData } from '@/hooks/useSportsData';
+import SportsTable from '@/components/Sports/SportsTable';
+import CardSetSelector from '@/components/Sports/CardSetSelector';
 import Link from 'next/link';
 import Head from 'next/head';
-import { CARD_SETS } from 'D:/CSVParse/venv/env/card-test/constants/cardSets';
+import { CARD_SETS } from '@/constants/cardSets';
 
 export default function Home() {
   const [selectedCardSet, setSelectedCardSet] = useState(CARD_SETS[0]);

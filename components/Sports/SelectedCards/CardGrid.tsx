@@ -1,7 +1,7 @@
 // src/components/SelectedCards/CardGrid.tsx
 import React from 'react';
-import { SelectedCard } from 'D:/CSVParse/venv/env/card-test/types/Card';
-import CardGridItem from 'D:/CSVParse/venv/env/card-test/components/Sports/SelectedCards/CardGridItem';
+import { SelectedCard } from '@/types/Card';
+import CardGridItem from '@/components/Sports/SelectedCards/CardGridItem';
 
 interface CardGridProps {
   cards: SelectedCard[];

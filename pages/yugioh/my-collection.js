@@ -2,17 +2,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
-import DownloadYugiohCSVButton from "D:/CSVParse/venv/env/card-test/components/Yugioh/Buttons/DownloadYugiohCSVButton";
-import CardFilter from "D:/CSVParse/venv/env/card-test/components/Yugioh/CardFilter";
-import YugiohPagination from "D:/CSVParse/venv/env/card-test/components/Yugioh/YugiohPagination";
-import YugiohSearchBar from "D:/CSVParse/venv/env/card-test/components/Yugioh/YugiohSearchBar";
+import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
+import CardFilter from "@/components/Yugioh/CardFilter";
+import YugiohPagination from "@/components/Yugioh/YugiohPagination";
+import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense } from "react";
 
-const TableView = dynamic(() => import("D:/CSVParse/venv/env/card-test/components/Yugioh/TableView"), {
+const TableView = dynamic(() => import("@/components/Yugioh/TableView"), {
   ssr: false,
 });
-const GridView = dynamic(() => import("D:/CSVParse/venv/env/card-test/components/Yugioh/GridView"), {
+const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
   ssr: false,
   loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
 });

@@ -1,5 +1,5 @@
 // src/utils/sortUtils.ts
-import { SelectedCard } from 'D:/CSVParse/venv/env/card-test/types/Card';
+import { SelectedCard } from '@/types/Card';
 
 export const sortCards = (cards: SelectedCard[], sortBy: string): SelectedCard[] => {
   const [field, direction] = sortBy.split('-');

@@ -1,10 +1,10 @@
 // src/pages/selected-cards.tsx
 import React, { useState, useEffect } from 'react';
-import { cardStorage } from 'D:/CSVParse/venv/env/card-test/services/cardStorage';
-import { SelectedCard } from 'D:/CSVParse/venv/env/card-test/types/Card';
-import CardGrid from 'D:/CSVParse/venv/env/card-test/components/Sports/SelectedCards/CardGrid';
-import FilterBar from 'D:/CSVParse/venv/env/card-test/components/Sports/SelectedCards/FilterBar';
-import { sortCards } from 'D:/CSVParse/venv/env/card-test/utils/sortUtils';
+import { cardStorage } from '@/services/cardStorage';
+import { SelectedCard } from '@/types/Card';
+import CardGrid from '@/components/Sports/SelectedCards/CardGrid';
+import FilterBar from '@/components/Sports/SelectedCards/FilterBar';
+import { sortCards } from '@/utils/sortUtils';
 import Head from 'next/head';
 import Link from 'next/link';
 

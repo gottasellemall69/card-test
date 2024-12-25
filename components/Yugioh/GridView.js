@@ -2,8 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import Notification from 'D:/CSVParse/venv/env/card-test/components/Notification';
-import cardData from 'D:/CSVParse/venv/env/card-test/public/card-data/Yugioh/card_data.json';
+import Notification from '@/components/Notification';
+import cardData from '@/public/card-data/Yugioh/card_data.json';
 
 const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
   const router = useRouter();

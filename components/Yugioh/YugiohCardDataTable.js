@@ -2,8 +2,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import dynamic from 'next/dynamic';
-import Notification from 'D:/CSVParse/venv/env/card-test/components/Notification.js';
-const YugiohPagination = dynamic(() => import('D:/CSVParse/venv/env/card-test/components/Yugioh/YugiohPagination.js'), { ssr: false });
+import Notification from '@/components/Notification.js';
+const YugiohPagination = dynamic(() => import('@/components/Yugioh/YugiohPagination.js'), { ssr: false });
 
 const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
     const router = useRouter();

@@ -1,5 +1,5 @@
 import React from 'react';
-import {CARD_SETS} from 'D:/CSVParse/venv/env/card-test/constants/cardSets';
+import {CARD_SETS} from '@/constants/cardSets';
 
 interface CardSetSelectorProps {
   value: string;

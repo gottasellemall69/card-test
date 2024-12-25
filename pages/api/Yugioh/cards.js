@@ -1,4 +1,4 @@
-import clientPromise from 'D:/CSVParse/venv/env/card-test/utils/mongo.js';
+import clientPromise from '@/utils/mongo.js';
 
 export default async function handler(req, res) {
   try {

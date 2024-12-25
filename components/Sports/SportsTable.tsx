@@ -1,12 +1,12 @@
 import React from 'react';
-import TableHeader from 'D:/CSVParse/venv/env/card-test/components/Sports/TableHeader';
-import { TableRow } from 'D:/CSVParse/venv/env/card-test/components/Sports/TableComponents/TableRow';
-import { useSorting } from 'D:/CSVParse/venv/env/card-test/hooks/useSorting';
-import { usePagination } from 'D:/CSVParse/venv/env/card-test/hooks/usePagination';
-import { useSelectedCards } from 'D:/CSVParse/venv/env/card-test/hooks/useSelectedCards';
-import SportsCSVButton from 'D:/CSVParse/venv/env/card-test/components/Sports/Buttons/SportsCSVButton';
-import SportsPagination from 'D:/CSVParse/venv/env/card-test/components/Sports/SportsPagination';
-import { Card } from 'D:/CSVParse/venv/env/card-test/types/Card';
+import TableHeader from '@/components/Sports/TableHeader';
+import { TableRow } from '@/components/Sports/TableComponents/TableRow';
+import { useSorting } from '@/hooks/useSorting';
+import { usePagination } from '@/hooks/usePagination';
+import { useSelectedCards } from '@/hooks/useSelectedCards';
+import SportsCSVButton from '@/components/Sports/Buttons/SportsCSVButton';
+import SportsPagination from '@/components/Sports/SportsPagination';
+import { Card } from '@/types/Card';
 
 interface SportsTableProps {
   sportsData: any[];

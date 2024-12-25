@@ -1,6 +1,6 @@
 // src/components/Sports/TableRow.tsx
 import React from 'react';
-import { Card } from 'D:/CSVParse/venv/env/card-test/types/Card';
+import { Card } from '@/types/Card';
 
 interface TableRowProps {
   product: Card;

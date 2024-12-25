@@ -1,6 +1,6 @@
 // src/components/Sports/SelectedCardsPanel.tsx
 import React from 'react';
-import { SelectedCard } from 'D:/CSVParse/venv/env/card-test/types/Card';
+import { SelectedCard } from '@/types/Card';
 
 interface SelectedCardsPanelProps {
   selectedCards: SelectedCard[];

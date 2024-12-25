@@ -1,7 +1,7 @@
 // src/hooks/useSelectedCards.ts
 import { useState, useCallback } from 'react';
-import { Card, SelectedCard } from 'D:/CSVParse/venv/env/card-test/types/Card';
-import { cardStorage } from 'D:/CSVParse/venv/env/card-test/services/cardStorage';
+import { Card, SelectedCard } from '@/types/Card';
+import { cardStorage } from '@/services/cardStorage';
 
 export const useSelectedCards = () => {
   const [selectedCards, setSelectedCards] = useState<SelectedCard[]>(() => {

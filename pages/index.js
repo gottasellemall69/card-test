@@ -1,8 +1,8 @@
 'use client'
-import AlphabeticalIndex from 'D:/CSVParse/venv/env/card-test/components/Yugioh/AlphabeticalIndex.js';
+import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex.js';
 import dynamic from 'next/dynamic';
-const YugiohCardListInput = dynamic(() => import('D:/CSVParse/venv/env/card-test/components/Yugioh/YugiohCardListInput.js'), { ssr: false });
-const YugiohCardDataTable = dynamic(() => import('D:/CSVParse/venv/env/card-test/components/Yugioh/YugiohCardDataTable.js'), { ssr: false });
+const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput.js'), { ssr: false });
+const YugiohCardDataTable = dynamic(() => import('@/components/Yugioh/YugiohCardDataTable.js'), { ssr: false });
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
 import { useState, useCallback, useEffect } from 'react';

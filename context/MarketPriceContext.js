@@ -1,4 +1,4 @@
-import { getCardData, updateCardPrices } from 'D:/CSVParse/venv/env/card-test/utils/api.js'; // Assuming updateCardPrices is a new API function to update prices in MongoDB
+import { getCardData, updateCardPrices } from '@/utils/api.js'; // Assuming updateCardPrices is a new API function to update prices in MongoDB
 import { createContext, useCallback, useContext } from 'react';
 
 const MarketPriceContext = createContext();

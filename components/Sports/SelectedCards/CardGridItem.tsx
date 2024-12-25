@@ -1,7 +1,7 @@
 // src/components/SelectedCards/CardGridItem.tsx
 import React from 'react';
-import { SelectedCard } from 'D:/CSVParse/venv/env/card-test/types/Card';
-import { formatDate } from 'D:/CSVParse/venv/env/card-test/utils/dateUtils';
+import { SelectedCard } from '@/types/Card';
+import { formatDate } from '@/utils/dateUtils';
 
 interface CardGridItemProps {
   card: SelectedCard;
