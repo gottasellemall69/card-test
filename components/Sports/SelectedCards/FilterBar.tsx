@@ -12,7 +12,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   searchTerm,
 }) => {
   return (
-    <div className="bg-gray-800 p-4 rounded-lg mb-4 flex flex-col md:flex-row gap-4">
+    <div className="bg-transparent glass p-4 rounded-lg mb-4 flex flex-col md:flex-row gap-4">
       <div className="flex-1">
         <input
           type="text"
@@ -26,7 +26,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
       <div className="flex-shrink-0">
         <select
           onChange={(e) => onSortChange(e.target.value)}
-          className="px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          className="px-4 py-2 rounded-lg bg-white glass text-black border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         >
           <option value="dateAdded-desc">Newest First</option>
           <option value="dateAdded-asc">Oldest First</option>

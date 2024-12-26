@@ -20,6 +20,7 @@ const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
 
 const MyCollectionPage = ({ error }) => {
   // States for managing data and UI
+  const [isUpdatingPrices, setIsUpdatingPrices] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [initialData, setInitialData] = useState([]);
@@ -48,6 +49,23 @@ const MyCollectionPage = ({ error }) => {
       setSubtotalMarketPrice(subtotal.toFixed(2));
     }
   }, [aggregatedData]);
+
+  const handleUpdatePrices = useCallback(async () => {
+    setIsUpdatingPrices(true);
+    try {
+      const response = await fetch("/api/Yugioh/updateCardPrices", { method: "POST" });
+      if (!response.ok) {
+        throw new Error("Failed to update card prices.");
+      }
+      const result = await response.json();
+      alert(`Prices updated successfully: ${result.message}`);
+    } catch (error) {
+      console.error("Error updating card prices:", error);
+      alert("An error occurred while updating prices. Please try again later.");
+    } finally {
+      setIsUpdatingPrices(false);
+    }
+  }, []);
 
   // Handle search functionality
   const handleSearch = useCallback((searchTerm) => {
@@ -257,7 +275,15 @@ const MyCollectionPage = ({ error }) => {
           aggregatedData={aggregatedData}
           userCardList={[]}
         />
-
+        <button
+          onClick={handleUpdatePrices}
+          disabled={isUpdatingPrices}
+          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
+            isUpdatingPrices ? "bg-gray-500 cursor-not-allowed" : "bg-primary hover:bg-primary/80"
+          }`}
+        >
+          {isUpdatingPrices ? "Updating Prices..." : "Update Prices"}
+        </button>
         <button
           type="button"
           disabled={true}

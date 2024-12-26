@@ -16,9 +16,9 @@
     "strict": false,
     "noEmit": true,
     "incremental": true,
-    "module": "esnext",
+    "module": "NodeNext",
     "esModuleInterop": true,
-    "moduleResolution": "node10",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve"

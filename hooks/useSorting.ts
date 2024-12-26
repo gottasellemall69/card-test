@@ -16,7 +16,7 @@ export const useSorting = <T extends Record<string, any>>(data: T[]) => {
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
     }
-    setSortConfig( {key, direction: null});
+    setSortConfig( {key, direction});
   };
 
   const sortedData = useMemo(() => {
