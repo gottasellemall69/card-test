@@ -21,7 +21,7 @@ export default function Document() {
       </Head>
       <>
         <body className="mx-auto">
-          <div className="transition-all main mx-auto">
+          <div className="transition-all main mx-auto min-h-screen">
             <Main />
           </div>
           <NextScript />

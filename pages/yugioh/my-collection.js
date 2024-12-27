@@ -50,22 +50,7 @@ const MyCollectionPage = ({ error }) => {
     }
   }, [aggregatedData]);
 
-  const handleUpdatePrices = useCallback(async () => {
-    setIsUpdatingPrices(true);
-    try {
-      const response = await fetch("/api/Yugioh/updateCardPrices", { method: "POST" });
-      if (!response.ok) {
-        throw new Error("Failed to update card prices.");
-      }
-      const result = await response.json();
-      alert(`Prices updated successfully: ${result.message}`);
-    } catch (error) {
-      console.error("Error updating card prices:", error);
-      alert("An error occurred while updating prices. Please try again later.");
-    } finally {
-      setIsUpdatingPrices(false);
-    }
-  }, []);
+
 
   // Handle search functionality
   const handleSearch = useCallback((searchTerm) => {
@@ -173,6 +158,26 @@ const MyCollectionPage = ({ error }) => {
     fetchData();
   }, [fetchData]);
 
+  const handleUpdatePrices = useCallback(async () => {
+    setIsUpdatingPrices(true);
+    try {
+      const response = await fetch('/api/Yugioh/updateCardPrices', { method: 'POST' });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update card prices.');
+      }
+  
+      const result = await response.json();
+  
+      alert(`Prices updated successfully.`);
+      await fetchData(); // Refresh collection data to reflect updated prices
+    } catch (error) {
+      console.error('Error updating card prices:', error);
+      alert('An error occurred while updating prices. Please try again later.');
+    } finally {
+      setIsUpdatingPrices(false);
+    }
+  }, [fetchData]);  
 
   const onUpdateCard = useCallback(async(cardId, field, value) => {
     try {
@@ -275,15 +280,23 @@ const MyCollectionPage = ({ error }) => {
           aggregatedData={aggregatedData}
           userCardList={[]}
         />
-        <button
-          onClick={handleUpdatePrices}
-          disabled={isUpdatingPrices}
-          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
-            isUpdatingPrices ? "bg-gray-500 cursor-not-allowed" : "bg-primary hover:bg-primary/80"
-          }`}
-        >
-          {isUpdatingPrices ? "Updating Prices..." : "Update Prices"}
-        </button>
+        <div>
+    <button
+      onClick={handleUpdatePrices}
+      disabled={isUpdatingPrices}
+      className={`flex flex-row items-center px-4 py-2 rounded-lg ${
+        isUpdatingPrices ? 'bg-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary/80'
+      }`}
+    >
+      {isUpdatingPrices ? 'Updating Prices...' : 'Update Prices'}
+    </button>
+
+    {isUpdatingPrices && (
+      <p className="text-sm text-white-600 mt-2">
+        Prices are being updated. This may take a few minutes...
+      </p>
+    )}
+  </div>
         <button
           type="button"
           disabled={true}
@@ -347,7 +360,7 @@ const MyCollectionPage = ({ error }) => {
                 handlePageClick={handlePageClick}
               />
               </div>
-              <div className="w-full max-w-7xl mx-auto mb-24 pb-12 min-h-screen">
+              <div className="w-full mx-auto mb-24 min-h-screen">
             <GridView
               aggregatedData={paginatedData}
               onDeleteCard={onDeleteCard}
@@ -355,6 +368,14 @@ const MyCollectionPage = ({ error }) => {
               setAggregatedData={setAggregatedData}
             />
           </div>
+          <div className="w-fit mx-auto mb-12">
+              <YugiohPagination
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={aggregatedData.length}
+                handlePageClick={handlePageClick}
+              />
+              </div>
 </>
       ) : ( 
 <div className="w-full max-w-7xl mx-auto">
