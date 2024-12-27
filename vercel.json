@@ -1,10 +1,10 @@
 {
     "functions": {
-      "/api/Yugioh/updateCardPrices": {
+      "api/Yugioh/updateCardPrices": {
         "memory": 1024,
         "maxDuration": 60
       },
-      "/api/Yugioh/updateCardPrices.js": {
+      "api/Yugioh/updateCardPrices.js": {
         "memory": 1024,
         "maxDuration": 60
       }
