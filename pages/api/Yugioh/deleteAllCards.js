@@ -1,3 +1,4 @@
+// pages\api\Yugioh\deleteAllCards.js
 import {MongoClient} from 'mongodb'
 
 export default async function handler(req, res) {

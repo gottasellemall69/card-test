@@ -6,7 +6,9 @@ const cardDataCache = {};
 
 // Fetches set data dynamically and builds setNameIdMap
 async function fetchSetData() {
-  if (setNameIdCache) return setNameIdCache;
+  if (setNameIdCache) {
+    return setNameIdCache;
+}
 
   try {
     const response = await fetch(API_ENDPOINT);
@@ -84,21 +86,34 @@ export async function getCardSetsData() {
 
 export const updateCardPrices = async (setName, cardData) => {
   try {
+    const token = localStorage.getItem("token"); // Retrieve the token from local storage
+    if (!token) {
+      throw new Error("User is not authenticated.");
+    }
+
     const response = await fetch('/api/Yugioh/updateCardPrices', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Include the token for authentication
       },
       body: JSON.stringify({ setName, cardData }),
     });
 
     if (!response.ok) {
+      console.error("Response status:", response.status);
+      console.error("Response body:", await response.text());
       throw new Error('Failed to update card prices');
     }
+
+    console.log("Prices updated successfully for:", setName);
+    return await response.json(); // Return the response for further processing if needed
   } catch (error) {
     console.error('Error updating card prices:', error);
+    throw error; // Re-throw the error for upstream handling
   }
 };
+
 
 
 export async function fetchCardData() {

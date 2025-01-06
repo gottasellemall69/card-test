@@ -1,3 +1,4 @@
+// components\Yugioh\YugiohCardDataTable.js
 import React, { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';

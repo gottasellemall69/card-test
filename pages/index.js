@@ -1,3 +1,4 @@
+// pages\index.js
 'use client'
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex.js';
 import dynamic from 'next/dynamic';
@@ -12,14 +13,7 @@ const exampleCardList =
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
 Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition
 Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition
-Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition
-Rank-Up-Magic Argent Chaos Force,Brothers of Legend,BROL-EN091,1st Edition,Ultra Rare,Near Mint 1st Edition
-Autorokket Dragon,Circuit Break,CIBR-EN010,1st Edition,Super Rare,Near Mint 1st Edition
-World Legacy Trap Globe,Circuit Break,CIBR-EN074,1st Edition,Super Rare,Near Mint 1st Edition
-Quiet Life,Circuit Break,CIBR-EN096,1st Edition,Super Rare,Near Mint 1st Edition
-Parallel Port Armor,Circuit Break,CIBR-ENSE4,Limited,Super Rare,Near Mint Limited
-The Terminus of the Burning Abyss,Crossed Souls,CROS-EN085,1st Edition,Ultra Rare,Near Mint 1st Edition
-Wind-Up Zenmaines,2012 Collectors Tin,CT09-EN008,Limited,Super Rare,Near Mint Limited`;
+Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition`;
 
 const Home = () => {
   const [collection, setCollection] = useState([]);
@@ -145,17 +139,25 @@ const Home = () => {
       </Head>
       <div className="w-full max-w-7xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
-        <details className="mx-auto">
-          Enter a comma-separated (CSV format) list of cards below in the order of [Name][Set][Number][Edition][Rarity][Condition] where the possible conditions are:
-          <ul className="">
+        <header className="text-center sm:w-full sm:text-left text-pretty">
+          Enter a comma-separated (CSV format) list of cards below in the order of:
+          <br />
+          <br />
+          <span className='font-black underline underline-offset-auto'>
+          [Name],[Set],[Number],[Edition],[Rarity],[Condition]
+          </span>
+          <br />
+          <br />
+          where the possible conditions are:
+          <ul className="w-full max-w-prose text-center sm:text-left text-pretty">
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
             <li>Moderately Played+[Edition]</li>
             <li>Heavily Played+[Edition]</li>
             <li>Damaged+[Edition]</li>
           </ul>
-        </details>
-        <div className="">
+        </header>
+        <div className="w-full max-w-prose text-center sm:text-left text-pretty">
           Try it out:
           <br />
           <button

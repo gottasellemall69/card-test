@@ -1,8 +1,28 @@
-import { MongoClient } from 'mongodb';
+// pages\api\Yugioh\my-collection.js
+import { MongoClient } from "mongodb";
+import jwt from "jsonwebtoken";
 
 export default async function handler(req, res) {
-  const client = new MongoClient(process.env.MONGODB_URI);
+  // Check if the request includes an Authorization header
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized: No token provided" });
+  }
 
+  const token = authHeader.split(" ")[1]; // Extract the token from the header
+
+  let decodedToken;
+  try {
+    // Verify the token
+    decodedToken = jwt.verify(token, process.env.JWT_SECRET); // Ensure `JWT_SECRET` is set in your .env file
+  } catch (error) {
+    console.error("Invalid token:", error);
+    return res.status(401).json({ error: "Unauthorized: Invalid token" });
+  }
+
+  const userId = decodedToken.username; // Use the username from the token payload as the user identifier
+
+  const client=new MongoClient(process.env.MONGODB_URI)
   try {
     await client.connect();
     const collection = client.db('cardPriceApp').collection('myCollection');
@@ -10,6 +30,9 @@ export default async function handler(req, res) {
     switch (req.method) {
       case 'GET':
         const agg = [
+          {
+            '$match': userId, // Only fetch documents for the logged-in user
+          },
           {
             '$project': {
               '_id': '$_id',
@@ -84,6 +107,7 @@ export default async function handler(req, res) {
             }
           }
         ];
+
         const cursor = collection.aggregate(agg);
         const result = await cursor.toArray();
         const modifiedResult = result.map((item) => {

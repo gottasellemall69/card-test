@@ -1,5 +1,6 @@
-// /lib/updateCardPricesLogic.js
+// /utils/updateCardPricesLogic.js
 import { MongoClient } from 'mongodb';
+import jwt from "jsonwebtoken";
 
 const RARITY_NORMALIZATION_MAP = {
   'Common': 'Common',
@@ -30,7 +31,28 @@ function normalizeRarity(rarity) {
   return normalized || rarity;
 }
 
-export default async function updateCardPricesLogic() {
+export default async function updateCardPricesLogic(authorizationHeader) {
+  if (!authorizationHeader) {
+    throw new Error("Authorization token is required.");
+  }
+
+  const token = authorizationHeader.split(" ")[1];
+  if (!token) {
+    throw new Error("Invalid authorization format.");
+  }
+
+  let decodedToken;
+  let userId;
+    try {
+      // Verify the token
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET); // Ensure `JWT_SECRET` is set in your .env file
+    } catch (error) {
+      console.error("Invalid token:", error);
+      return res.status(401).json({ error: "Unauthorized: Invalid token" });
+    }
+  
+     userId = decodedToken.username; // Use the username from the token payload as the user identifier
+
   const client = new MongoClient(process.env.MONGODB_URI);
 
   try {
@@ -38,7 +60,7 @@ export default async function updateCardPricesLogic() {
     const db = client.db('cardPriceApp');
     const cardsCollection = db.collection('myCollection');
 
-    const cards = await cardsCollection.find({}).toArray();
+    const cards = await cardsCollection.find({ userId }).toArray();
     const updateResults = [];
 
     for (const card of cards) {
@@ -67,16 +89,19 @@ export default async function updateCardPricesLogic() {
           const newPrice = matchingSet.set_price ? parseFloat(matchingSet.set_price) : null;
 
           const result = await cardsCollection.updateOne(
-            { _id: card._id },
             {
-              $set: {
-                marketPrice: newPrice,
-                oldPrice: card.marketPrice,
+              '$match': userId, // Only fetch documents for the logged-in user
+            },
+            { '_id': card._id, userId},
+            {
+              '$set': {
+                'marketPrice': newPrice,
+                'oldPrice': card.marketPrice,
               },
-              $push: {
-                priceHistory: {
-                  date: new Date(),
-                  price: newPrice,
+              '$push': {
+                'priceHistory': {
+                  'date': new Date(),
+                  'price': newPrice,
                 },
               },
             }
