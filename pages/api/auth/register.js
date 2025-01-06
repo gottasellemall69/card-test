@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     const db = client.db("cardPriceApp");
 
     // Check if the user already exists
-    const existingUser = await db.collection("users").findOne({ username, userId });
+    const existingUser = await db.collection("users").findOne({ username: { $eq: username }, userId });
     if (existingUser) {
       return res.status(400).json({ error: "Username already exists" });
     }
