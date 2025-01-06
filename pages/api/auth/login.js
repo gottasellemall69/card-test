@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const db = client.db("cardPriceApp");
 
     // Find the user
-    const user = await db.collection("users").findOne({ username });
+    const user = await db.collection("users").findOne({ username: { $eq: username } });
     if (!user) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
