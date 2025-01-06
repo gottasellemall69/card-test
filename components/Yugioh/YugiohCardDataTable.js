@@ -93,6 +93,12 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                 return;
             }
 
+    const token = localStorage.getItem("token");
+        if (!token) {
+            setNotification({ show: true, message: "You must be logged in to add cards." });
+            return;
+            }
+
             const selectedData = Array.from(selectedRows).map((index) => matchedCardData[index]);
 
             const collectionArray = selectedData.map(({ card, data }) => ({
@@ -108,12 +114,15 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
 
             const response = await fetch('/api/Yugioh/cards', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
                 body: JSON.stringify({ cards: collectionArray }),
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error("Failed to add cards to the collection.");
             }
 
             setNotification({ show: true, message: 'Card(s) added to the collection!' });

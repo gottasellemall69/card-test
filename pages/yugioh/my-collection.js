@@ -345,7 +345,7 @@ const MyCollectionPage = ({ error }) => {
         </div>
         <button
           type="button"
-          disabled={true}
+          disabled={false}
           onClick={onDeleteAllCards}
           className="inline-flex items-center px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >

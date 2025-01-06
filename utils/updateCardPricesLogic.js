@@ -45,13 +45,14 @@ export default async function updateCardPricesLogic(authorizationHeader) {
   let userId;
     try {
       // Verify the token
-      decodedToken = jwt.verify(token, process.env.JWT_SECRET); // Ensure `JWT_SECRET` is set in your .env file
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decodedToken.username; // Use the username from the token payload as the user identifier
     } catch (error) {
       console.error("Invalid token:", error);
       return res.status(401).json({ error: "Unauthorized: Invalid token" });
     }
   
-     userId = decodedToken.username; // Use the username from the token payload as the user identifier
+     
 
   const client = new MongoClient(process.env.MONGODB_URI);
 
@@ -60,7 +61,7 @@ export default async function updateCardPricesLogic(authorizationHeader) {
     const db = client.db('cardPriceApp');
     const cardsCollection = db.collection('myCollection');
 
-    const cards = await cardsCollection.find({ userId }).toArray();
+    const cards = await cardsCollection.find({userId}).toArray();
     const updateResults = [];
 
     for (const card of cards) {
@@ -89,25 +90,22 @@ export default async function updateCardPricesLogic(authorizationHeader) {
           const newPrice = matchingSet.set_price ? parseFloat(matchingSet.set_price) : null;
 
           const result = await cardsCollection.updateOne(
+            { _id: card._id, userId },
             {
-              '$match': userId, // Only fetch documents for the logged-in user
-            },
-            { '_id': card._id, userId},
-            {
-              '$set': {
-                'marketPrice': newPrice,
-                'oldPrice': card.marketPrice,
+              $set: {
+                marketPrice: newPrice,
+                oldPrice: card.marketPrice,
               },
-              '$push': {
-                'priceHistory': {
-                  'date': new Date(),
-                  'price': newPrice,
+              $push: {
+                priceHistory: {
+                  date: new Date(),
+                  price: newPrice,
                 },
               },
             }
           );
 
-          updateResults.push({ cardId: card._id, newPrice, result });
+          updateResults.push({ cardId: card._id, newPrice, modifiedCount: result.modifiedCount });
         } else {
           console.warn(
             `No matching set found for card: ${card.productName} (Set: ${card.setName}, Number: ${card.number}, Rarity: ${card.rarity})`

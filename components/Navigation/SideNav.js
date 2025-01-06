@@ -1,8 +1,31 @@
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function SideNav() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check authentication state on component mount
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+
+    // Add event listener for localStorage changes
+    const handleStorageChange = () => {
+      const updatedToken = localStorage.getItem("token");
+      setIsAuthenticated(!!updatedToken);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup event listener on unmount
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token"); // Clear the token from local storage
+    setIsAuthenticated(false); // Update authentication state
     window.location.href = "/login"; // Redirect to the login page
   };
 
@@ -32,15 +55,17 @@ export default function SideNav() {
               </span>
             </Link>
           </li>
-          {/* Logout Button */}
-          <li className="mt-4">
-            <button
-              onClick={handleLogout}
-              className="block w-full text-left p-2 text-white bg-clip-padding font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-red-700 from-zinc-800 hover:text-white rounded"
-            >
-              Logout
-            </button>
-          </li>
+          {/* Logout Button: Render only if authenticated */}
+          {isAuthenticated && (
+            <li className="mt-4">
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left p-2 text-white bg-clip-padding font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-red-700 from-zinc-800 hover:text-white rounded"
+              >
+                Logout
+              </button>
+            </li>
+          )}
         </ul>
       </nav>
     </>

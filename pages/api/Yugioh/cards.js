@@ -1,4 +1,5 @@
 // pages\api\Yugioh\cards.js
+import jwt from "jsonwebtoken";
 import clientPromise from '@/utils/mongo.js';
 
 export default async function handler(req, res) {
@@ -8,11 +9,33 @@ export default async function handler(req, res) {
     const collection = db.collection('myCollection');
 
     if (req.method === 'POST') {
+      const authorizationHeader = req.headers.authorization;
+
+      if (!authorizationHeader) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      // Extract and verify token
+      const token = authorizationHeader.split(" ")[1];
+      let decodedToken;
+      try {
+        decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      } catch (error) {
+        console.error("Invalid token:", error);
+        return res.status(401).json({ error: "Unauthorized: Invalid token" });
+      }
+
+      const userId = decodedToken.username;
       const { cards } = req.body;
+
+      if (!cards || cards.length === 0) {
+        return res.status(400).json({ error: "No cards provided." });
+      }
 
       const bulkOps = cards.map((card) => ({
         updateOne: {
           filter: {
+            userId,
             productName: card.productName,
             setName: card.setName,
             number: card.number,
