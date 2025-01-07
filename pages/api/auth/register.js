@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const usersCollection = db.collection("users");
 
     // Check if the username already exists
-    const existingUser = await usersCollection.findOne({ username });
+    const existingUser = await usersCollection.findOne({ username: { $eq: username } });
     if (existingUser) {
       return res.status(409).json({ message: "Username is already taken." });
     }
