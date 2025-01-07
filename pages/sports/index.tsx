@@ -25,11 +25,11 @@ export default function Home() {
         <meta name="description" content="Browse and collect sports cards" />
       </Head>
 
-      <div className="min-h-screen bg-transparent text-white">
+      <div className="h-fit bg-transparent text-white">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <h1 className="text-3xl font-bold">Sports Card Browser</h1>
-            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+            <div className="mx-auto sm:mx-0 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
               <CardSetSelector 
                 value={selectedCardSet}
                 onChange={handleCardSetChange}

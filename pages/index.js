@@ -49,14 +49,14 @@ const Home = () => {
       const { productName, setName, number, printing, rarity, condition } = card;
       const setNameId = setNameIdMap[setName];
       if (!setNameId) {
-        throw new Error(`Numerical setNameId not found for set name: ${setName}`);
+        console.error(`Numerical setNameId not found for set name: ${setName}`);
       }
 
       if (!fetchedSetData[setNameId]) {
         console.log('Fetching set data for ID:', setNameId);
         const response = await fetch(`/api/Yugioh/cards/${setNameId}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch card data for set ID: ${setNameId}`);
+          console.error(`Failed to fetch card data for set ID: ${setNameId}`);
         }
         const responseData = await response.json();
         fetchedSetData[setNameId] = responseData;
@@ -77,7 +77,7 @@ const Home = () => {
       });
 
       if (!matchedCard || !matchedCard?.marketPrice) {
-        throw new Error('Market price data not found for the card');
+        console.error('Market price data not found for the card');
       }
       const marketPrice = matchedCard?.marketPrice !== undefined ? matchedCard.marketPrice : parseFloat("0").toFixed(2);
       console.log('Matched card:', matchedCard);
@@ -105,7 +105,7 @@ const Home = () => {
           matches.push(match[1] || match[2]);
         }
         if (matches.length !== 6) {
-          throw new Error('Invalid card format');
+          alert('Invalid card format');
         }
         const [rawProductName, setName, number, printing, rarity, condition] = matches.map((match) => match.trim());
         const productName = rawProductName.replace(/^"|"$/g, '');
@@ -113,7 +113,7 @@ const Home = () => {
       });
 
       if (cards.length === 0) {
-        throw new Error('Card list is empty');
+        alert('Card list is empty');
       }
 
       const fetchedCardData = await Promise.all(cards.map((card) => fetchCardData(card)));

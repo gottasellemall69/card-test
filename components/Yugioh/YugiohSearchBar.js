@@ -4,7 +4,7 @@ const YugiohSearchBar = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
 
-  const handleInputChange = (event) => {
+  const handleInputChange = async(event) => {
     const value = event.target.value;
     setSearchTerm(value);
     if (value === '') {

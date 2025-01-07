@@ -1,3 +1,4 @@
+'use client'
 // pages\yugioh\my-collection.js
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Suspense } from "react";
@@ -125,7 +126,7 @@ const MyCollectionPage = ({ error }) => {
  
 
   // Handle search functionality
-  const handleSearch = useCallback((searchTerm) => {
+  const handleSearch = useCallback(async(searchTerm) => {
     setSearchTerm(searchTerm);
     setCurrentPage(1);
     if (searchTerm === "") {
@@ -142,7 +143,7 @@ const MyCollectionPage = ({ error }) => {
 
   // Handle filter changes
   const handleFilterChange = useCallback(
-    (filterName, selectedOptions) => {
+    async(filterName, selectedOptions) => {
       setFilters((prevFilters) => ({
         ...prevFilters,
         [filterName]: selectedOptions,
@@ -154,7 +155,7 @@ const MyCollectionPage = ({ error }) => {
 
   // Handle sorting change
   const handleSortChange = useCallback(
-    (sortKey) => {
+    async(sortKey) => {
       setSortConfig((prevSortConfig) => ({
         key: sortKey,
         direction:
@@ -166,8 +167,8 @@ const MyCollectionPage = ({ error }) => {
     []
   );
 
-  const handlePageClick = useCallback((page) => setCurrentPage(page), []);
-  const toggleFilterMenu = useCallback(() => setIsFilterMenuOpen((prev) => !prev), []);
+  const handlePageClick = useCallback(async(page) => setCurrentPage(page), []);
+  const toggleFilterMenu = useCallback(async() => setIsFilterMenuOpen((prev) => !prev), []);
 
   // Update subtotal market price when aggregatedData changes
   useEffect(() => {
@@ -213,20 +214,28 @@ const MyCollectionPage = ({ error }) => {
 
   const onUpdateCard = useCallback(async (cardId, field, value) => {
     try {
+      if (!token) {
+        alert("You must be logged in to update cards.");
+        return;
+      }
+  
       if (cardId && field && value !== undefined && value !== null) {
         const updateCard = { cardId, field, value };
         const response = await fetch("/api/Yugioh/updateCards", {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Include the user's token
           },
           body: JSON.stringify(updateCard),
         });
+  
         if (!response.ok) {
           throw new Error("Failed to update card");
         }
-        await fetchData();
+  
         const updatedCard = await response.json();
+        await fetchData(); // Refresh data after the update
         setAggregatedData((currentData) =>
           currentData.map((card) =>
             card._id === cardId ? { ...card, ...updatedCard } : card
@@ -238,50 +247,62 @@ const MyCollectionPage = ({ error }) => {
     } catch (error) {
       console.error("Error updating card:", error);
     }
-  },
-    [fetchData]
-  );
-
+  }, [fetchData, token]);
+  
   const onDeleteCard = useCallback(async (cardId) => {
     try {
+      if (!token) {
+        alert("You must be logged in to delete cards.");
+        return;
+      }
+  
       const response = await fetch(`/api/Yugioh/deleteCards`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Include the user's token
         },
-        body: JSON.stringify({ cardId: cardId }),
+        body: JSON.stringify({ cardId }),
       });
+  
       if (!response.ok) {
         throw new Error("Failed to delete card");
       }
-      await fetchData();
+  
+      await fetchData(); // Refresh data after deletion
       setAggregatedData((currentData) =>
         currentData.filter((card) => card._id !== cardId)
       );
     } catch (error) {
       console.error("Error deleting card:", error);
     }
-  },
-    [fetchData]
-  );
-
-  const onDeleteAllCards = async () => {
+  }, [fetchData, token]);
+  
+  const onDeleteAllCards = useCallback(async () => {
     try {
+      if (!token) {
+        alert("You must be logged in to delete all cards.");
+        return;
+      }
+  
       const response = await fetch(`/api/Yugioh/deleteAllCards`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Include the user's token
         },
       });
+  
       if (!response.ok) {
         throw new Error("Failed to delete all cards");
       }
-      await fetchData();
+  
+      await fetchData(); // Refresh data after deletion
       setAggregatedData([]);
     } catch (error) {
       console.error("Error deleting all cards:", error);
     }
-  };
+  }, [fetchData, token]);
 
  // Paginate the data
   const paginatedData = useMemo(() => {
@@ -322,16 +343,10 @@ const MyCollectionPage = ({ error }) => {
         </div>
       </header>
       <div className="my-4 glass max-w-7xl mx-auto">
-        <DownloadYugiohCSVButton
-          type="button"
-          aggregatedData={aggregatedData}
-          userCardList={[]}
-        />
-        <div>
-          <button
+       <button
             onClick={handleUpdatePrices}
             disabled={isUpdatingPrices}
-            className={`bg-white text-black font-bold m-1 px-2 py-2 text-nowrap rounded-lg border border-zinc-400 hover:bg-black hover:text-white ${isUpdatingPrices ? 'bg-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary/80'
+            className={` bg-white text-black font-bold m-1 px-2 py-2 text-nowrap rounded-lg border border-zinc-400 hover:bg-black hover:text-white ${isUpdatingPrices ? 'bg-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary/80'
               }`}
           >
             {isUpdatingPrices ? 'Updating Prices...' : 'Update Prices'}
@@ -342,16 +357,15 @@ const MyCollectionPage = ({ error }) => {
               Prices are being updated. This may take a few minutes...
             </p>
           )}
-        </div>
-        <button
+          <button
           type="button"
           disabled={false}
           onClick={onDeleteAllCards}
-          className="inline-flex items-center px-4 py-2 rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="float-right inline-flex flex-wrap items-center px-2 py-2 m-1 rounded-lg bg-red-800 text-white hover:text-black hover:bg-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Delete All Cards
         </button>
-
+       
 
 
       </div>
@@ -359,18 +373,18 @@ const MyCollectionPage = ({ error }) => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setView('grid')}
-            className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${view === 'grid'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary hover:bg-secondary/80'
+            className={`inline-flex items-center px-2 py-2 rounded-lg transition-colors ${view === 'grid'
+              ? 'bg-black text-white'
+              : 'bg-white text-black hover:bg-black/80 hover:text-white/80'
               }`}
           >
             Grid View
           </button>
           <button
             onClick={() => setView('table')}
-            className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${view === 'table'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary hover:bg-secondary/80'
+            className={`inline-flex items-center px-2 py-2 rounded-lg transition-colors ${view === 'table'
+              ? 'bg-black text-white'
+              : 'bg-white text-black hover:bg-black/80 hover:text-white/80'
               }`}
           >
             Table View
@@ -379,13 +393,18 @@ const MyCollectionPage = ({ error }) => {
 
         <button
           onClick={toggleFilterMenu}
-          className="inline-flex items-center px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+          className="inline-flex items-center px-2 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
         >
 
           {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
 
         </button>
 
+        <DownloadYugiohCSVButton
+          type="button"
+          aggregatedData={aggregatedData}
+          userCardList={[]}
+        />
       </div>
       {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
       <div className="mx-auto text-black w-full max-w-7xl">
@@ -406,7 +425,7 @@ const MyCollectionPage = ({ error }) => {
               handlePageClick={handlePageClick}
             />
           </div>
-          <div className="w-full mx-auto mb-24 min-h-screen">
+          <div className="w-full mx-auto mb-24 h-fit">
             <GridView
               aggregatedData={paginatedData}
               onDeleteCard={onDeleteCard}

@@ -63,7 +63,7 @@ const SportsTable: React.FC<SportsTableProps> = ({
             <SportsCSVButton sportsData={sportsData} />
           </div>
 
-          <div className="container max-h-[450px] overflow-y-auto w-full">
+          <div className="container h-fit max-h-[750px] overflow-y-auto w-full">
             <table className="mx-auto mb-2 w-full">
               <thead>
                 <tr>
