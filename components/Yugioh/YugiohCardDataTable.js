@@ -168,7 +168,7 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
     }, [matchedCardData, convertToCSV]);
 
     return (
-        <div className="mx-auto w-full max-w-7xl mb-10">
+        <div className="mx-auto w-full mb-10">
       <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
 
             {sortedAndPaginatedData.currentItems.length > 0 && (
@@ -183,7 +183,7 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                         handlePageClick={handlePageClick}
                     />
               </div>
-                        <table className="text-white -mt-5 items-center w-full border-collapse">
+                        <table className="text-white items-center w-full border-collapse">
                             <thead className="p-1 bg-transparent">
                                 <tr>
                                     <th className="sticky px-1 top-0 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">

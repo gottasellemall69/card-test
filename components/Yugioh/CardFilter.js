@@ -80,7 +80,7 @@ const CardFilter = ({ updateFilters }) => {
     <>
       {/* Button to trigger the modal */}
       <button
-        className="p-2 text-white bg-blue-500 hover:bg-blue-600 rounded"
+        className="p-2 font-semibold text-black bg-white hover:bg-black hover:text-white rounded"
         onClick={() => setIsModalOpen(true)}
       >
         Open Filters
@@ -92,13 +92,14 @@ const CardFilter = ({ updateFilters }) => {
           {/* Slide-over panel */}
           <div className="w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
             {/* Close button */}
-            <div className="align-middle justify-start flex p-4 border-b">
-              <h2 className="text-lg font-bold">Filters</h2>
+            <div className=" justify-start flex border-b">
+              
               <button
-                className="text-red-600 hover:text-red-800"
+                id="cardFilterX"
+                className="text-red-600 hover:text-red-800 font-extrabold px-4"
                 onClick={() => setIsModalOpen(false)}
               >
-                Close
+                X
               </button>
             </div>
 

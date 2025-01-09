@@ -137,7 +137,7 @@ const Home = () => {
         <meta name="charset" content="UTF-8" />
         
       </Head>
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto min-h-screen">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
         <header className="text-center sm:w-full sm:text-left text-pretty">
           Enter a comma-separated (CSV format) list of cards below in the order of:

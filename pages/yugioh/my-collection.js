@@ -43,7 +43,7 @@ const MyCollectionPage = ({ error }) => {
   const [itemsPerPage] = useState(12);
   const [subtotalMarketPrice, setSubtotalMarketPrice] = useState(0);
 
-// Effect to check authentication
+  // Effect to check authentication
   useEffect(() => {
     const validateAuth = async () => {
       const storedToken = localStorage.getItem("token");
@@ -60,7 +60,7 @@ const MyCollectionPage = ({ error }) => {
     validateAuth();
   }, [router]);
 
- // Apply filters to the data
+  // Apply filters to the data
   const applyFilters = useCallback(
     (data) => {
       if (!filters.rarity.length && !filters.condition.length) return data;
@@ -91,7 +91,7 @@ const MyCollectionPage = ({ error }) => {
     [sortConfig]
   );
 
-  
+
 
   const fetchData = useCallback(async () => {
     if (!token) return;
@@ -119,14 +119,14 @@ const MyCollectionPage = ({ error }) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-    fetchData();
+      fetchData();
     }
-  }, [isAuthenticated,fetchData]);
+  }, [isAuthenticated, fetchData]);
 
- 
+
 
   // Handle search functionality
-  const handleSearch = useCallback(async(searchTerm) => {
+  const handleSearch = useCallback(async (searchTerm) => {
     setSearchTerm(searchTerm);
     setCurrentPage(1);
     if (searchTerm === "") {
@@ -143,7 +143,7 @@ const MyCollectionPage = ({ error }) => {
 
   // Handle filter changes
   const handleFilterChange = useCallback(
-    async(filterName, selectedOptions) => {
+    async (filterName, selectedOptions) => {
       setFilters((prevFilters) => ({
         ...prevFilters,
         [filterName]: selectedOptions,
@@ -155,7 +155,7 @@ const MyCollectionPage = ({ error }) => {
 
   // Handle sorting change
   const handleSortChange = useCallback(
-    async(sortKey) => {
+    async (sortKey) => {
       setSortConfig((prevSortConfig) => ({
         key: sortKey,
         direction:
@@ -167,8 +167,8 @@ const MyCollectionPage = ({ error }) => {
     []
   );
 
-  const handlePageClick = useCallback(async(page) => setCurrentPage(page), []);
-  const toggleFilterMenu = useCallback(async() => setIsFilterMenuOpen((prev) => !prev), []);
+  const handlePageClick = useCallback(async (page) => setCurrentPage(page), []);
+  const toggleFilterMenu = useCallback(async () => setIsFilterMenuOpen((prev) => !prev), []);
 
   // Update subtotal market price when aggregatedData changes
   useEffect(() => {
@@ -218,7 +218,7 @@ const MyCollectionPage = ({ error }) => {
         alert("You must be logged in to update cards.");
         return;
       }
-  
+
       if (cardId && field && value !== undefined && value !== null) {
         const updateCard = { cardId, field, value };
         const response = await fetch("/api/Yugioh/updateCards", {
@@ -229,11 +229,11 @@ const MyCollectionPage = ({ error }) => {
           },
           body: JSON.stringify(updateCard),
         });
-  
+
         if (!response.ok) {
           throw new Error("Failed to update card");
         }
-  
+
         const updatedCard = await response.json();
         await fetchData(); // Refresh data after the update
         setAggregatedData((currentData) =>
@@ -248,14 +248,14 @@ const MyCollectionPage = ({ error }) => {
       console.error("Error updating card:", error);
     }
   }, [fetchData, token]);
-  
+
   const onDeleteCard = useCallback(async (cardId) => {
     try {
       if (!token) {
         alert("You must be logged in to delete cards.");
         return;
       }
-  
+
       const response = await fetch(`/api/Yugioh/deleteCards`, {
         method: "DELETE",
         headers: {
@@ -264,11 +264,11 @@ const MyCollectionPage = ({ error }) => {
         },
         body: JSON.stringify({ cardId }),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to delete card");
       }
-  
+
       await fetchData(); // Refresh data after deletion
       setAggregatedData((currentData) =>
         currentData.filter((card) => card._id !== cardId)
@@ -277,14 +277,14 @@ const MyCollectionPage = ({ error }) => {
       console.error("Error deleting card:", error);
     }
   }, [fetchData, token]);
-  
+
   const onDeleteAllCards = useCallback(async () => {
     try {
       if (!token) {
         alert("You must be logged in to delete all cards.");
         return;
       }
-  
+
       const response = await fetch(`/api/Yugioh/deleteAllCards`, {
         method: "DELETE",
         headers: {
@@ -292,11 +292,11 @@ const MyCollectionPage = ({ error }) => {
           Authorization: `Bearer ${token}`, // Include the user's token
         },
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to delete all cards");
       }
-  
+
       await fetchData(); // Refresh data after deletion
       setAggregatedData([]);
     } catch (error) {
@@ -304,7 +304,7 @@ const MyCollectionPage = ({ error }) => {
     }
   }, [fetchData, token]);
 
- // Paginate the data
+  // Paginate the data
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return aggregatedData.slice(startIndex, startIndex + itemsPerPage);
@@ -333,7 +333,8 @@ const MyCollectionPage = ({ error }) => {
         />
         <meta name="charset" content="UTF-8" />
       </Head>
-      <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 rounded-lg shadow-xl p-6 mb-8">
+
+      <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 rounded-lg shadow-xl p-6 mb-8 glass">
         <h1 className="text-4xl font-bold text-white mb-4">My Collection</h1>
         <div className="flex items-center">
           <span className="text-xl font-semibold text-white">Total Collection Value:</span>
@@ -342,81 +343,72 @@ const MyCollectionPage = ({ error }) => {
           </span>
         </div>
       </header>
-      <div className="my-4 glass max-w-7xl mx-auto">
-       <button
-            onClick={handleUpdatePrices}
-            disabled={isUpdatingPrices}
-            className={` bg-white text-black font-bold m-1 px-2 py-2 text-nowrap rounded-lg border border-zinc-400 hover:bg-black hover:text-white ${isUpdatingPrices ? 'bg-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary/80'
-              }`}
-          >
-            {isUpdatingPrices ? 'Updating Prices...' : 'Update Prices'}
-          </button>
+  <div className="flex flex-wrap gap-4 mb-6 glass max-w-7xl">
+   
+    <button
+      onClick={() => setView('grid')}
+      className={`float-start inline-flex items-center px-2 py-2 rounded-lg transition-colors ${view === 'grid' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/80 hover:text-white/80'}`}
+      id="grid">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fill-current w-4 h-4 mr-2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      <span>Grid View</span>
+    </button>
+    <button
+      onClick={() => setView('table')}
+      className={`float-start inline-flex items-center px-2 py-2 rounded-lg transition-colors ${view === 'table' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/80 hover:text-white/80'}`}
+      id="table">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="fill-current w-4 h-4 mr-2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      <span>Table View</span>
+    </button>
 
-          {isUpdatingPrices && (
-            <p className="text-sm text-white-600 mt-2">
-              Prices are being updated. This may take a few minutes...
-            </p>
-          )}
-          <button
-          type="button"
-          disabled={false}
-          onClick={onDeleteAllCards}
-          className="float-right inline-flex flex-wrap items-center px-2 py-2 m-1 rounded-lg bg-red-800 text-white hover:text-black hover:bg-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Delete All Cards
-        </button>
-       
-
-
-      </div>
-      <div className="flex flex-wrap gap-4 mb-6 glass max-w-7xl mx-auto">
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setView('grid')}
-            className={`inline-flex items-center px-2 py-2 rounded-lg transition-colors ${view === 'grid'
-              ? 'bg-black text-white'
-              : 'bg-white text-black hover:bg-black/80 hover:text-white/80'
-              }`}
-          >
-            Grid View
-          </button>
-          <button
-            onClick={() => setView('table')}
-            className={`inline-flex items-center px-2 py-2 rounded-lg transition-colors ${view === 'table'
-              ? 'bg-black text-white'
-              : 'bg-white text-black hover:bg-black/80 hover:text-white/80'
-              }`}
-          >
-            Table View
-          </button>
-        </div>
 
         <button
-          onClick={toggleFilterMenu}
-          className="inline-flex items-center px-2 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+          onClick={handleUpdatePrices}
+          disabled={isUpdatingPrices}
+          className={`float-start bg-white text-black font-bold m-1 px-2 py-2 text-nowrap rounded-lg border border-zinc-400 hover:bg-black hover:text-white ${isUpdatingPrices ? 'bg-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary/80'
+            }`}
         >
-
-          {isFilterMenuOpen ? "Close Filter" : "Open Filter"}
-
+          {isUpdatingPrices ? 'Updating Prices...' : 'Update Prices'}
         </button>
-
-        <DownloadYugiohCSVButton
-          type="button"
-          aggregatedData={aggregatedData}
-          userCardList={[]}
+        {isUpdatingPrices && (
+          <p className="text-sm text-white-600 mt-2">
+            Prices are being updated. This may take a few minutes...
+          </p>
+        )} 
+      <DownloadYugiohCSVButton
+            type="button"
+            aggregatedData={aggregatedData}
+            userCardList={[]}
         />
-      </div>
-      {isFilterMenuOpen && <CardFilter updateFilters={handleFilterChange} />}
+        
+      <button
+        type="button"
+        disabled={false}
+        onClick={onDeleteAllCards}
+        className="float-start inline-flex flex-wrap items-center px-2 py-2 m-1 rounded-lg bg-red-800 text-white hover:text-black hover:bg-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          Delete All Cards
+      </button>
+     
+ 
+ 
+ 
+ </div>
+<CardFilter
+     className="float-end contain-inline-size"
+  updateFilters={handleFilterChange}
+  toggleFilterMenu={toggleFilterMenu} />
+
+
       <div className="mx-auto text-black w-full max-w-7xl">
         <YugiohSearchBar
           searchTerm={searchTerm}
           onSearch={handleSearch} />
       </div>
 
-
+      
       {!isLoading && view === "grid" ? (
-        <>
+        <main>
 
+ 
           <div className="w-fit mx-auto mt-12">
             <YugiohPagination
               currentPage={currentPage}
@@ -425,7 +417,7 @@ const MyCollectionPage = ({ error }) => {
               handlePageClick={handlePageClick}
             />
           </div>
-          <div className="w-full mx-auto mb-24 h-fit">
+          <div className="w-full mx-auto mb-24 min-h-screen">
             <GridView
               aggregatedData={paginatedData}
               onDeleteCard={onDeleteCard}
@@ -441,7 +433,7 @@ const MyCollectionPage = ({ error }) => {
               handlePageClick={handlePageClick}
             />
           </div>
-        </>
+        </main>
       ) : (
         <div className="w-full max-w-7xl mx-auto">
           <Suspense fallback={<p>Loading...</p>}>
@@ -455,6 +447,7 @@ const MyCollectionPage = ({ error }) => {
         </div>
       )}
       <SpeedInsights></SpeedInsights>
+
     </>
   );
 };

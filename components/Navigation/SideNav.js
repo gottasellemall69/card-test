@@ -9,17 +9,15 @@ export default function SideNav() {
     const token = localStorage.getItem("token");
     setIsAuthenticated(!!token);
 
-    // Add event listener for localStorage changes
-    const handleStorageChange = () => {
+    // Poll for token changes as a fallback for storage updates in the same tab
+    const tokenPollInterval = setInterval(() => {
       const updatedToken = localStorage.getItem("token");
       setIsAuthenticated(!!updatedToken);
-    };
+    }, 500); // Check every 500ms
 
-    window.addEventListener("storage", handleStorageChange);
-
-    // Cleanup event listener on unmount
+    // Cleanup interval on component unmount
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(tokenPollInterval);
     };
   }, []);
 
@@ -31,7 +29,6 @@ export default function SideNav() {
 
   return (
     <>
-      {/* Sidebar */}
       <nav className="p-4">
         <ul className="inset-2">
           <li className="mb-2">
