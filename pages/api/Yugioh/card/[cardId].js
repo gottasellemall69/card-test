@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Card not found" });
     }
 
-    const card = data.data[0]; // Assuming the first item is the desired one
+    const card = data?.data[0]; // Assuming the first item is the desired one
     const formattedCard = {
       id: card.id,
       name: card.name,
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
         set_url: set.set_url
       })),
       card_images: card.card_images.map(image => ({
-        id: image.id,
+        id: card.id,
         image_url: image.image_url,
         image_url_small: image.image_url_small,
         image_url_cropped: image.image_url_cropped

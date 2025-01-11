@@ -12,7 +12,7 @@ const Card = ({ cardData }) => {
     <>
       <div>
         <Link
-          as={`/yugioh/sets/${ letter }/cards/CardDetails?card=${ String(cardData.name) }`}
+          as={`/yugioh/sets/${ letter }/cards/CardDetails?card=${ String(encodeURIComponent(cardData.name)) }`}
           href={{
             pathname: "/yugioh/sets/[letter]/cards/CardDetails",
             query: {

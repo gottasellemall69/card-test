@@ -1,3 +1,4 @@
+// pages\yugioh\sets\[letter]\cards\CardDetails.js
 "use client"
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -36,7 +37,7 @@ const CardDetails = () => {
         <Link href="/yugioh">Alphabetical Index</Link>
         <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/${ letter }/sets`}>Sets by Letter: {letter}</Link>
         <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${letter}/cards/${setName}`}>Cards in Set: {setName}</Link> 
-        <span className='text-black'>Card Details: {cardData}</span>
+        <div><p><span className='text-black'>Card Details: {cardData.name}</span></p></div>
         
       </Breadcrumb>
 
@@ -63,7 +64,7 @@ const CardDetails = () => {
           <h2 className="text-lg font-bold mb-2">Set Details</h2>
           <ul className="flex flex-col sm:flex-row sm:inline-flex flex-wrap">
             {cardData.card_sets?.map((set, index) => (
-              <li key={`${ set.set_code }-${ index }`} className="m-2 p-2 divide-y divide-x divide-x-reverse">
+              <li key={`${ set.set_code }-${ index }`} className="m-2 p-2 divide-y divide-x-reverse">
                 <p><span className="font-bold">Card Number:</span> {set.set_code}</p>
                 <p><span className="font-bold">Set Name:</span> {set.set_name}</p>
                 <p><span className="font-bold">Rarity:</span> {set.set_rarity}</p>

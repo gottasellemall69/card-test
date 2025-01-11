@@ -11,13 +11,14 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const authorizationHeader = req.headers.authorization;
 
-      if (!authorizationHeader) {
+      if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
       // Extract and verify token
       const token = authorizationHeader.split(" ")[1];
       let decodedToken;
+
       try {
         decodedToken = jwt.verify(token, process.env.JWT_SECRET);
       } catch (error) {
@@ -44,10 +45,11 @@ export default async function handler(req, res) {
             condition: card.condition,
           },
           update: {
-            $inc: { quantity: card.quantity },
+            $inc: { quantity: card.quantity || 1 },
             $set: { oldPrice: null },
             $setOnInsert: {
-              marketPrice: card.marketPrice,
+              marketPrice: card.marketPrice || 0,
+              userId
             },
           },
           upsert: true,
