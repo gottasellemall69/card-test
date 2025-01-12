@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -25,7 +26,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch(`/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -50,6 +51,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-transparent">
       <h1 className="text-3xl font-bold mb-6">Register</h1>
       <form
+        id="reg-form"
         onSubmit={handleSubmit}
         className="bg-transparent glass shadow-lg rounded-lg p-6 w-full max-w-md"
       >
@@ -60,11 +62,12 @@ export default function RegisterPage() {
             Username
           </label>
           <input
+            id="reg-name"
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full px-3 py-2 border rounded-lg"
-            required
+            required={true}
           />
         </div>
         <div className="mb-4">
@@ -72,11 +75,12 @@ export default function RegisterPage() {
             Password
           </label>
           <input
+            id="reg-pass"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full px-3 py-2 border rounded-lg text-black"
-            required
+            required={true}
           />
         </div>
         <div className="mb-6">
@@ -84,14 +88,16 @@ export default function RegisterPage() {
             Confirm Password
           </label>
           <input
+            id="reg-confirm"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full px-3 py-2 border rounded-lg text-black"
-            required
+            required={true}
           />
         </div>
         <button
+          id="reg-button"
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
         >
@@ -100,9 +106,9 @@ export default function RegisterPage() {
       </form>
       <p className="mt-4">
         Already have an account?{" "}
-        <a href="/login" className="text-orange-400 underline">
+        <Link href="/login" className="text-orange-400 underline">
           Log in here
-        </a>
+        </Link>
       </p>
     </div>
   );

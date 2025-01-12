@@ -34,7 +34,7 @@ const Home = () => {
   useEffect(() => {
     const fetchSetNameIdMap = async () => {
       try {
-        const response = await fetch('/api/Yugioh/setNameIdMap');
+        const response = await fetch(encodeURI(`/api/Yugioh/setNameIdMap`));
         const data = await response.json();
         setSetNameIdMap(data);
       } catch (error) {
