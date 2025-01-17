@@ -1,4 +1,3 @@
-// @/pages/sets/[letter].js
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { fetchCardData } from '@/utils/api';
 import { organizeCardSets } from '@/utils/organizeCardSets';
@@ -39,7 +38,7 @@ const SetsByLetterPage = () => {
         <Link
           className="w-fit hover:underline hover:font-semibold"
           rel="noopener noreferrer"
-          href="/yugioh/sets/[letter]/cards/[setName]"
+          href="/yugioh/sets/[letter]/cards/[setName]" passHref
           as={`/yugioh/sets/${ letter }/cards/${ set.set_name }`}>
           {set.set_name}
         </Link>

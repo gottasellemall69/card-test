@@ -26,7 +26,7 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await fetch(`/api/auth/register`, {
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -106,7 +106,9 @@ export default function RegisterPage() {
       </form>
       <p className="mt-4">
         Already have an account?{" "}
-        <Link href="/login" className="text-orange-400 underline">
+        <Link
+          href="/login" passHref
+          className="text-orange-400 underline">
           Log in here
         </Link>
       </p>

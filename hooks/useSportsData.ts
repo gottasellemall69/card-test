@@ -10,7 +10,7 @@ export const useSportsData = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/Sports/sportsData?cardSet=${encodeURIComponent(cardSet)}`);
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Sports/sportsData?cardSet=${encodeURIComponent(cardSet)}`);
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }

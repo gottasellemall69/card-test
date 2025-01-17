@@ -1,4 +1,3 @@
-// pages/api/Yugioh/card/[cardId].js
 export default async function handler(req, res) {
   const { cardId } = req.query;
 

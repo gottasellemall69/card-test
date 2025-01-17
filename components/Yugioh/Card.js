@@ -1,4 +1,3 @@
-// @/components/Card.js
 import Image from "next/image";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -20,7 +19,7 @@ const Card = ({ cardData }) => {
               set_name: setName,
               letter: letter
             }
-          }}
+          }} passHref
         >
           <div className="object-center object-scale-down hover:transition-transform hover:scale-105 hover:duration-100 hover:ease-in-out hover:will-change-transform hover:transform-gpu">
             <Image

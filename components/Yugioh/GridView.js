@@ -1,4 +1,3 @@
-// components\Yugioh\GridView.js
 import { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -92,7 +91,7 @@ const GridView = ({ aggregatedData, onDeleteCard, onUpdateCard }) => {
                   letter: card.setName.charAt(0).toUpperCase(),
                   setName: card.setName
                 }
-              }}
+              }} passHref
               as={`/yugioh/sets/${card.setName.charAt(0).toUpperCase()}/cards/CardDetails?card=${encodeURIComponent(card.productName)}`}
             >
               

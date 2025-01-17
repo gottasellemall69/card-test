@@ -1,4 +1,3 @@
-// src/components/SelectedCards/CardGridItem.tsx
 import React from 'react';
 import { SelectedCard } from '@/types/Card';
 import { formatDate } from '@/utils/dateUtils';

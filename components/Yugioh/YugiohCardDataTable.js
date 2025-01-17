@@ -16,7 +16,7 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
     const [notification, setNotification] = useState({
         show: false,
         message: ''
-      });
+    });
 
     // Handlers for pagination, sorting, and selections...
     const handlePageClick = useCallback((page) => {
@@ -93,10 +93,10 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                 return;
             }
 
-    const token = localStorage.getItem("token");
-        if (!token) {
-            setNotification({ show: true, message: "You must be logged in to add cards." });
-            return;
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setNotification({ show: true, message: "You must be logged in to add cards." });
+                return;
             }
 
             const selectedData = Array.from(selectedRows).map((index) => matchedCardData[index]);
@@ -112,12 +112,12 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                 'quantity': 1
             }));
 
-            const response = await fetch('/api/Yugioh/cards', {
+            const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/cards`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                  },
+                },
                 body: JSON.stringify({ cards: collectionArray }),
             });
 
@@ -169,20 +169,19 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
 
     return (
         <div className="mx-auto w-full mb-10">
-      <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
+            <Notification show={notification.show} setShow={(show) => setNotification({ ...notification, show })} message={notification.message} />
 
             {sortedAndPaginatedData.currentItems.length > 0 && (
                 <>
-
-                <div className="w-full -mt-5">
-                <div className="w-fit mx-auto">
-                    <YugiohPagination
-                        currentPage={currentPage}
-                        itemsPerPage={itemsPerPage}
-                        totalItems={sortedAndPaginatedData.totalCount}
-                        handlePageClick={handlePageClick}
-                    />
-              </div>
+                    <div className="w-full -mt-5">
+                        <div className="w-fit mx-auto">
+                            <YugiohPagination
+                                currentPage={currentPage}
+                                itemsPerPage={itemsPerPage}
+                                totalItems={sortedAndPaginatedData.totalCount}
+                                handlePageClick={handlePageClick}
+                            />
+                        </div>
                         <table className="text-white items-center w-full border-collapse">
                             <thead className="p-1 bg-transparent">
                                 <tr>
@@ -276,16 +275,16 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
 
                         </table>
                         <div className="max-h-fit w-full">
-                    <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={downloadCSV}>
-                        Download CSV
-                    </button>
-                    <button className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={addToCollection}>
-                        Add cards to collection
-                    </button>
-                    <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>
-                        View Collection
-                    </button>
-                </div>
+                            <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={downloadCSV}>
+                                Download CSV
+                            </button>
+                            <button className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={addToCollection}>
+                                Add cards to collection
+                            </button>
+                            <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={handleGoToCollectionPage}>
+                                View Collection
+                            </button>
+                        </div>
                     </div>
                 </>
             )}

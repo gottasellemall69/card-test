@@ -1,4 +1,4 @@
-import { getCardData, updateCardPrices } from '@/utils/api.js'; // Assuming updateCardPrices is a new API function to update prices in MongoDB
+import { getCardData, updateCardPrices } from '@/utils/api.js';
 import { createContext, useCallback, useContext } from 'react';
 
 const MarketPriceContext = createContext();

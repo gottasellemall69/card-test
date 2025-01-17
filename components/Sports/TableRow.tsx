@@ -1,4 +1,3 @@
-// src/components/Sports/TableRow.tsx
 import React from 'react';
 import { Card } from '@/types/Card';
 

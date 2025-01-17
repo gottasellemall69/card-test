@@ -3,8 +3,8 @@ import { useState } from "react";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState([]);
-  const [password, setPassword] = useState([]);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const router = useRouter();
 
@@ -12,8 +12,13 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
 
+    if (!username || !password) {
+      setError("Username and password are required.");
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/auth/login`, {
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -77,7 +82,9 @@ export default function LoginPage() {
       </form>
       <p className="mt-4 text-white">
         Don't have an account?{" "}
-        <Link href="/register" className="text-orange-300 underline">
+        <Link
+          href="/register" passHref
+          className="text-orange-300 underline">
           Register here
         </Link>
       </p>

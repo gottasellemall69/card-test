@@ -1,4 +1,3 @@
-// src/components/Sports/SelectedCardsPanel.tsx
 import React from 'react';
 import { SelectedCard } from '@/types/Card';
 

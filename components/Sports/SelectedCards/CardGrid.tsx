@@ -1,4 +1,3 @@
-// src/components/SelectedCards/CardGrid.tsx
 import React from 'react';
 import { SelectedCard } from '@/types/Card';
 import CardGridItem from '@/components/Sports/SelectedCards/CardGridItem';

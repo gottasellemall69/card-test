@@ -1,4 +1,3 @@
-// @/pages/api/Yugioh/setNameIdMap.js
 import { getSetNameIdMap } from '@/utils/api.js';
 
 export default async function handler(req, res) {

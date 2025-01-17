@@ -1,4 +1,3 @@
-// src/pages/selected-cards.tsx
 import React, { useState, useEffect } from 'react';
 import { cardStorage } from '@/services/cardStorage';
 import { SelectedCard } from '@/types/Card';
@@ -43,7 +42,7 @@ const SelectedCardsPage = () => {
   return (
     <>
       <Head>
-        <title>Selected Cards Collection</title>
+        <title>Sports Card Collection</title>
         <meta name="description" content="View your selected sports cards collection" />
       </Head>
 
@@ -52,14 +51,14 @@ const SelectedCardsPage = () => {
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Your Card Collection</h1>
             <Link
-              href="/sports"
+              href="/sports" passHref
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Back to Search
             </Link>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4 text-black">
             <FilterBar
               onSortChange={handleSort}
               onSearch={handleSearch}

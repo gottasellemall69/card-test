@@ -62,7 +62,15 @@ const SportsTable: React.FC<SportsTableProps> = ({
           <div className="w-full align-baseline float-start">
             <SportsCSVButton sportsData={sportsData} />
           </div>
-
+{dataLoaded && totalPages > 1 && (
+            <div className="mx-auto container max-w-7xl place-content-evenly">
+              <SportsPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+              />
+            </div>
+          )}
           <div className="container h-fit max-h-[750px] overflow-y-auto w-full">
             <table className="mx-auto mb-2 w-full">
               <thead>
@@ -114,15 +122,7 @@ const SportsTable: React.FC<SportsTableProps> = ({
             </table>
           </div>
 
-          {dataLoaded && totalPages > 1 && (
-            <div className="mx-auto container w-fit">
-              <SportsPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={onPageChange}
-              />
-            </div>
-          )}
+          
         </div>
       </div>
     </div>

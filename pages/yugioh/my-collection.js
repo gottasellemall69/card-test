@@ -1,5 +1,4 @@
-'use client'
-// pages\yugioh\my-collection.js
+"use client"
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Suspense } from "react";
 import { useRouter } from "next/router";
@@ -12,7 +11,7 @@ import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const TableView = dynamic(() => import("@/components/Yugioh/TableView"), { ssr: true });
+const TableView = dynamic(() => import("@/components/Yugioh/TableView"), { ssr: false });
 const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
   ssr: true,
   loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
@@ -52,7 +51,7 @@ const MyCollectionPage = ({ error }) => {
         return;
       }
 
-      // Simulate token validation or call an API if needed
+      // Simulate token validation or call an ${ process.env.NEXT_PUBLIC_API_URL } if needed
       setToken(storedToken);
       setIsAuthenticated(true);
     };
@@ -96,7 +95,7 @@ const MyCollectionPage = ({ error }) => {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch("/api/Yugioh/my-collection", {
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/my-collection`, {
         headers: {
           method: "GET",
           Authorization: `Bearer ${token}`,
@@ -189,7 +188,7 @@ const MyCollectionPage = ({ error }) => {
 
     setIsUpdatingPrices(true);
     try {
-      const response = await fetch('/api/Yugioh/updateCardPrices', {
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/updateCardPrices`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -221,7 +220,7 @@ const MyCollectionPage = ({ error }) => {
 
       if (cardId && field && value !== undefined && value !== null) {
         const updateCard = { cardId, field, value };
-        const response = await fetch("/api/Yugioh/updateCards", {
+        const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/updateCards`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -256,7 +255,7 @@ const MyCollectionPage = ({ error }) => {
         return;
       }
 
-      const response = await fetch(`/api/Yugioh/deleteCards`, {
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/deleteCards`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -285,7 +284,7 @@ const MyCollectionPage = ({ error }) => {
         return;
       }
 
-      const response = await fetch(`/api/Yugioh/deleteAllCards`, {
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/deleteAllCards`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

@@ -1,4 +1,3 @@
-// src/hooks/useSelectedCards.ts
 import { useState, useCallback } from 'react';
 import { Card, SelectedCard } from '@/types/Card';
 import { cardStorage } from '@/services/cardStorage';

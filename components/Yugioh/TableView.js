@@ -1,4 +1,3 @@
-// components\Yugioh\TableView.js
 import { useMemo, useState } from 'react';
 
 const TableView = ({ aggregatedData }) => {

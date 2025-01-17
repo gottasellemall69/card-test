@@ -1,5 +1,4 @@
-// pages\index.js
-'use client'
+"use client"
 import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex.js';
 import dynamic from 'next/dynamic';
 const YugiohCardListInput = dynamic(() => import('@/components/Yugioh/YugiohCardListInput.js'), { ssr: false });
@@ -34,7 +33,7 @@ const Home = () => {
   useEffect(() => {
     const fetchSetNameIdMap = async () => {
       try {
-        const response = await fetch(encodeURI(`/api/Yugioh/setNameIdMap`));
+        const response = await fetch(encodeURI(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/setNameIdMap`));
         const data = await response.json();
         setSetNameIdMap(data);
       } catch (error) {
@@ -44,7 +43,7 @@ const Home = () => {
     fetchSetNameIdMap();
   }, []);
 
-  const fetchCardData = useCallback(async(card) => {
+  const fetchCardData = useCallback(async(card, setCache) => {
     try {
       const { productName, setName, number, printing, rarity, condition } = card;
       const setNameId = setNameIdMap[setName];
@@ -52,32 +51,34 @@ const Home = () => {
         console.error(`Numerical setNameId not found for set name: ${setName}`);
       }
 
-      if (!fetchedSetData[setNameId]) {
+      if (!setCache[setNameId]) {
         console.log('Fetching set data for ID:', setNameId);
-        const response = await fetch(`/api/Yugioh/cards/${setNameId}`);
+        const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/cards/${setNameId}`);
         if (!response.ok) {
           console.error(`Failed to fetch card data for set ID: ${setNameId}`);
+          return { card, data: null, error: `Failed to fetch set data for ID: ${setNameId}` };
         }
         const responseData = await response.json();
-        fetchedSetData[setNameId] = responseData;
+        setCache[setNameId] = responseData;
       } else {
         console.log('Using cached set data for ID:', setNameId);
       }
-      const setCardData = fetchedSetData[setNameId];
+      const setCardData = setCache[setNameId];
 
-      const matchedCard = setCardData?.result.find((card) => {
+      const matchedCard = setCardData?.result.find((setCard) => {
         return (
-          card.productName.includes(productName) &&
-          card.set.includes(setName) &&
-          card.number.includes(number) &&
-          card.printing.includes(printing) &&
-          card.rarity.includes(rarity) &&
-          card.condition.includes(condition)
+          setCard.productName.includes(productName) &&
+          setCard.set.includes(setName) &&
+          setCard.number.includes(number) &&
+          setCard.printing.includes(printing) &&
+          setCard.rarity.includes(rarity) &&
+          setCard.condition.includes(condition)
         );
       });
 
       if (!matchedCard || !matchedCard?.marketPrice) {
         console.error('Market price data not found for the card');
+        return { card, data: { marketPrice: parseFloat("0").toFixed(2) }, error: 'Market price not found.' };
       }
       const marketPrice = matchedCard?.marketPrice !== undefined ? matchedCard.marketPrice : parseFloat("0").toFixed(2);
       console.log('Matched card:', matchedCard);
@@ -88,6 +89,25 @@ const Home = () => {
     }
   }, [setNameIdMap]);
 
+  const processBatches = async (items, batchSize, asyncCallback) => {
+    const results = [];
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      console.log(`Processing batch: ${i / batchSize + 1}`);
+      const batchResults = await Promise.all(batch.map(async (item) => {
+        try {
+          return await asyncCallback(item);
+        } catch (error) {
+          console.error('Error processing item:', item, error);
+          return { item, data: null, error: error.message };
+        }
+      })
+    );
+      results.push(...batchResults);
+    }
+    return results;
+  };
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsLoading(true);
@@ -95,6 +115,8 @@ const Home = () => {
     console.log('Form submitted');
     console.log('Card List:', cardList);
     console.log('Is loading:', isLoading);
+
+    const setCache = {};
 
     try {
       const cards = cardList.trim().split('\n').map((cardLine) => {
@@ -114,9 +136,11 @@ const Home = () => {
 
       if (cards.length === 0) {
         alert('Card list is empty');
+        return;
       }
 
-      const fetchedCardData = await Promise.all(cards.map((card) => fetchCardData(card)));
+      const batchSize = 50;
+      const fetchedCardData = await processBatches(cards, batchSize, (card) => fetchCardData(card, setCache));
       console.log('Parsed cards:', cards);
       console.log('Fetched card data:', fetchedCardData);
       setMatchedCardData(fetchedCardData);
@@ -139,17 +163,18 @@ const Home = () => {
       </Head>
       <div className="w-full max-w-7xl mx-auto min-h-screen">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
-        <header className="text-center sm:w-full sm:text-left text-pretty">
+        <header className="text-center sm:w-full sm:text-left text-pretty pb-3">
           Enter a comma-separated (CSV format) list of cards below in the order of:
           <br />
           <br />
           <span className='font-black underline underline-offset-auto'>
           [Name],[Set],[Number],[Edition],[Rarity],[Condition]
-          </span>
+          </span> 
           <br />
-          <br />
-          where the possible conditions are:
-          <ul className="w-full max-w-prose text-center sm:text-left text-pretty">
+          <p className="py-3">where the possible conditions are:</p> 
+         
+          <ul className="w-full max-w-prose text-center sm:text-left text-ellipsis columns-2 space-y-1 font-semibold">
+           
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
             <li>Moderately Played+[Edition]</li>

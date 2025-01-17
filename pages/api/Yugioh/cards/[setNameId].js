@@ -1,4 +1,3 @@
-// @/pages/api/Yugioh/cards/[setNameId].js
 import { getCardData, getSetNameIdMap } from '@/utils/api.js';
 
 export default async function handler(req, res) {

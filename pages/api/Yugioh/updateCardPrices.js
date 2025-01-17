@@ -1,4 +1,3 @@
-// /pages/api/updateCardPrices.js
 import updateCardPricesLogic from '@/utils/updateCardPricesLogic'; // Move core logic to a separate file for reusability
 
 export default async function handler(req, res) {

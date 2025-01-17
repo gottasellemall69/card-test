@@ -1,5 +1,4 @@
 'use client';
-// @/components/YugiohCardListInput.js
 import Notification from '@/components/Notification.js';
 import dynamic from 'next/dynamic';
 

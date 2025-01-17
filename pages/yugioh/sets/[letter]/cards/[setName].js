@@ -1,4 +1,3 @@
-// @/pages/yugioh/sets/[letter]/cards/[setName].js
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import Card from '@/components/Yugioh/Card';
 import { fetchCardData } from '@/utils/api';
@@ -52,7 +51,7 @@ const CardsInSetPage = () => {
     try {
       const { set, rarity, printing } = selectedOptions;
 
-      const response = await fetch("/api/Yugioh/cards", {
+      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/cards`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

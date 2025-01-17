@@ -35,8 +35,8 @@ export default function Home() {
                 onChange={handleCardSetChange}
               />
               <Link
-                href="/sports/selected-cards"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
+                href="/sports/selected-cards" passHref
+                className="px-4 py-2 bg-white text-black rounded-lg hover:bg-black hover:text-white transition-colors text-center"
               >
                 View Collection
               </Link>

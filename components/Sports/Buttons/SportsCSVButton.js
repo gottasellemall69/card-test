@@ -1,5 +1,3 @@
-// @/components/Sports/Buttons/SportsCSVButton.js
-
 const SportsCSVButton = ({ sportsData }) => {
   const downloadCSV = () => {
     const csvHeader = "Name,Set,Ungraded,PSA 9,PSA 10";

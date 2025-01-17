@@ -16,7 +16,7 @@ export const useSorting = <T extends Record<string, any>>(data: T[]) => {
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
     }
-    setSortConfig( {key, direction: 'ascending'});
+    setSortConfig( {key, direction: null});
   };
 
   const sortedData = useMemo(() => {
@@ -38,7 +38,7 @@ export const useSorting = <T extends Record<string, any>>(data: T[]) => {
       }
       
       if (isNumericA) return sortConfig.direction === 'ascending' ? -1 : 1;
-      if (isNumericB) return sortConfig.direction === 'ascending' ? 1 : -1;
+      if (isNumericB) return sortConfig.direction === 'descending' ? 1 : -1;
       
       const result = String(valueA || '').localeCompare(String(valueB || ''));
       return sortConfig.direction === 'ascending' ? result : -result;

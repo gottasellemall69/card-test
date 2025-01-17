@@ -11,7 +11,7 @@ const CardSetSelector: React.FC<CardSetSelectorProps> = ({ value, onChange }) =>
     <select 
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full md:w-auto px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+      className="w-full md:w-auto px-4 py-2 bg-white text-black font-semibold rounded-lg border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
     >
       {CARD_SETS.map((set) => (
         <option key={set} value={set}>

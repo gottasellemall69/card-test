@@ -1,4 +1,3 @@
-// src/components/Sports/TableComponents/TableHeader.tsx
 import React from 'react';
 
 interface TableHeaderProps {

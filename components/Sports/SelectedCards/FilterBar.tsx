@@ -19,7 +19,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           placeholder="Search cards..."
           value={searchTerm}
           onChange={(e) => onSearch(e.target.value)}
-          className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          className="w-full px-4 py-2 rounded-lg text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         />
       </div>
       

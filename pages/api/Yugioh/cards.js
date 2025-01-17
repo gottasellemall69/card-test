@@ -1,4 +1,3 @@
-// pages\api\Yugioh\cards.js
 import jwt from "jsonwebtoken";
 import clientPromise from '@/utils/mongo.js';
 

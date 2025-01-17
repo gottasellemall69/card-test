@@ -1,4 +1,3 @@
-// pages\yugioh\sets\[letter]\cards\CardDetails.js
 "use client"
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -19,7 +18,7 @@ const CardDetails = () => {
 
   // Use SWR for data fetching with the card ID
   const { data: cardData, error } = useSWR(
-    card ? `/api/Yugioh/card/${ encodeURIComponent(card) }` : null,
+    card ? `/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/card/${ encodeURIComponent(card) }` : null,
     fetcher
   );
 
@@ -34,32 +33,46 @@ const CardDetails = () => {
   return (
     <>
       <Breadcrumb>
-        <Link href="/yugioh">Alphabetical Index</Link>
-        <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/${ letter }/sets`}>Sets by Letter: {letter}</Link>
-        <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${letter}/cards/${setName}`}>Cards in Set: {setName}</Link> 
-        <div><p><span className='text-black'>Card Details: {cardData.name}</span></p></div>
-        
+        <Link
+          href="/yugioh" passHref
+        >
+          Alphabetical Index
+        </Link>
+        <Link
+          href={"/yugioh/sets/[letter]"} passHref
+          as={`/yugioh/${ letter }/sets`}
+        >
+          Sets by Letter: {letter}
+        </Link>
+        <Link
+          href={"/yugioh/sets/[letter]/cards/[setName]"} passHref
+          as={`/yugioh/sets/${letter}/cards/${setName}`}
+        >
+          Cards in Set: {setName}
+        </Link> 
+        <div>
+          <p>
+            <span className='text-black'>
+              Card Details: {cardData.name}
+            </span>
+          </p>
+        </div>
       </Breadcrumb>
 
       <div key={cardData.id} className="text-pretty text-white p-6 rounded-md shadow-md mb-8">
         <h1 className="text-2xl font-bold mb-4">{cardData.name}</h1>
-
         <p className="mb-2">
           <span className="font-bold">Type:</span> {cardData.type}
         </p>
-
         <p className="mb-2 max-w-prose">
           <span className="font-bold">Description:</span> {cardData.desc}
         </p>
-
         <p className="mb-2">
           <span className="font-bold">Race:</span> {cardData.race}
         </p>
-
         <p className="mb-4">
           <span className="font-bold">Archetype:</span> {cardData.archetype}
         </p>
-
         <div className="mb-4 text-pretty">
           <h2 className="text-lg font-bold mb-2">Set Details</h2>
           <ul className="flex flex-col sm:flex-row sm:inline-flex flex-wrap">
