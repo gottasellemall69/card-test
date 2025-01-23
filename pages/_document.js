@@ -13,7 +13,7 @@ export default function Document() {
           content="
               script-src 'self' 'unsafe-inline' 'unsafe-eval' mpapi.tcgplayer.com infinite-api.tcgplayer.com card-test-ashy.vercel.app va.vercel-scripts.com db.ygoprodeck.com sportscardspro.com;
               style-src 'self' 'unsafe-inline' card-test-ashy.vercel.app;
-              img-src 'self' data:;
+              img-src 'self' images.ygoprodeck.com data:;
               object-src 'none';
               default-src 'self' 'unsafe-inline' mpapi.tcgplayer.com db.ygoprodeck.com sportscardspro.com card-test-ashy.vercel.app infinite-api.tcgplayer.com va.vercel-scripts.com;
             "

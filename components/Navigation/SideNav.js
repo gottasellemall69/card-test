@@ -39,6 +39,13 @@ export default function SideNav() {
             </Link>
           </li>
           <li className="mb-2">
+            <Link href="/yugioh/deck-builder" rel="noopener noreferrer">
+              <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-zinc-700 from-purple-800 hover:text-white rounded">
+                Yu-Gi-Oh! Deck Builder
+              </span>
+            </Link>
+          </li>
+          <li className="mb-2">
             <Link href="/sports" rel="noopener noreferrer">
               <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-zinc-700 from-purple-800 hover:text-white rounded">
                 Sports Card Prices
@@ -52,6 +59,7 @@ export default function SideNav() {
               </span>
             </Link>
           </li>
+
           {/* Logout Button: Render only if authenticated */}
           {isAuthenticated && (
             <li className="mt-4">

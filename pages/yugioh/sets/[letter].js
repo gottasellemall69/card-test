@@ -1,3 +1,4 @@
+"use client"
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import { fetchCardData } from '@/utils/api';
 import { organizeCardSets } from '@/utils/organizeCardSets';

@@ -1,3 +1,4 @@
+"use client"
 import Breadcrumb from '@/components/Navigation/Breadcrumb';
 import Card from '@/components/Yugioh/Card';
 import { fetchCardData } from '@/utils/api';

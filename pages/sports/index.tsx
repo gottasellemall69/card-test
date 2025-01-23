@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, useEffect } from 'react';
 import { useSportsData } from '@/hooks/useSportsData';
 import SportsTable from '@/components/Sports/SportsTable';
