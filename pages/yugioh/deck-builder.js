@@ -7,6 +7,7 @@ export default function Home() {
   const [extraDeck, setExtraDeck] = useState([]);
   const [error, setError] = useState(null);
   const [archetypeSuggestions, setArchetypeSuggestions] = useState(null);
+  const [deckWarnings, setDeckWarnings] = useState([]);
 
   const searchCards = async () => {
     setError(null);
@@ -39,25 +40,67 @@ export default function Home() {
     }
   };
 
+  const validateDeck = (deck, extraDeck) => {
+    const warnings = [];
+    const mainDeckCount = deck.filter((card) => card !== null).length;
+    const extraDeckCount = extraDeck.length;
+
+    if (mainDeckCount < 40) warnings.push('Main Deck must have at least 40 cards.');
+    if (mainDeckCount > 60) warnings.push('Main Deck cannot exceed 60 cards.');
+    if (extraDeckCount > 15) warnings.push('Extra Deck cannot exceed 15 cards.');
+
+    const cardCounts = {};
+    [...deck, ...extraDeck].forEach((card) => {
+      if (card) {
+        cardCounts[card.id] = (cardCounts[card.id] || 0) + 1;
+        if (cardCounts[card.id] > 3) {
+          warnings.push(`${card.name} exceeds the maximum of 3 copies allowed.`);
+        }
+      }
+    });
+
+    setDeckWarnings(warnings);
+  };
+
   const addToDeck = (card) => {
     const deckCopy = [...deck];
-    const emptySlot = deckCopy.findIndex((slot) => slot === null);
-
-    if (emptySlot !== -1) {
-      deckCopy[emptySlot] = card;
-      setDeck(deckCopy);
-    } else if (extraDeck.length < 15) {
-      setExtraDeck((prevExtraDeck) => [...prevExtraDeck, card]);
+    const isExtraDeckType = ["Fusion", "Synchro", "XYZ", "Link"].some((type) =>
+      card.type.includes(type)
+    );
+  
+    if (isExtraDeckType) {
+      // Add to Extra Deck if it's a valid extra deck card type
+      if (extraDeck.length < 15) {
+        setExtraDeck((prevExtraDeck) => [...prevExtraDeck, card]);
+      } else {
+        setDeckWarnings((prev) => [...prev, "Extra Deck is full. Cannot add more cards."]);
+      }
+    } else {
+      // Add to Main Deck if not an extra deck card type
+      const emptySlot = deckCopy.findIndex((slot) => slot === null);
+      if (emptySlot !== -1) {
+        deckCopy[emptySlot] = card;
+        setDeck(deckCopy);
+      } else {
+        setDeckWarnings((prev) => [...prev, "Main Deck is full. Cannot add more cards."]);
+      }
     }
+  
+    validateDeck(deckCopy, extraDeck);
   };
+  
+  
 
   const removeFromDeck = (index, isExtraDeck = false) => {
     if (isExtraDeck) {
-      setExtraDeck((prevExtraDeck) => prevExtraDeck.filter((_, i) => i !== index));
+      const updatedExtraDeck = extraDeck.filter((_, i) => i !== index);
+      setExtraDeck(updatedExtraDeck);
+      validateDeck(deck, updatedExtraDeck);
     } else {
       const deckCopy = [...deck];
       deckCopy[index] = null;
       setDeck(deckCopy);
+      validateDeck(deckCopy, extraDeck);
     }
   };
 
@@ -70,12 +113,22 @@ export default function Home() {
         {/* Deck Panel */}
         <div className="flex-1 glass p-4 shadow overflow-auto">
           <h2 className="text-2xl font-bold text-white">Deck</h2>
+          <p className="text-sm text-white">Main Deck: {deck.filter((card) => card !== null).length}/60 | Extra Deck: {extraDeck.length}/15</p>
+          {deckWarnings.length > 0 && (
+            <div className="mt-2 text-red-700 font-semibold">
+              {deckWarnings.map((warning, idx) => (
+                <p key={idx}>{warning}</p>
+              ))}
+            </div>
+          )}
+          {/* Main Deck */}
+          <div className="mt-4">
+    <h3 className="text-xl font-bold">Main Deck</h3>
           <div className="grid grid-cols-8 gap-2 mt-4">
             {deck.map((slot, index) => (
               <div
                 key={index}
-                className="w-20 h-28 bg-white flex items-center justify-center border border-gray-400 rounded"
-              >
+                className="w-20 h-28 bg-white flex items-center justify-center border border-gray-400 rounded">
                 {slot ? (
                   <>
                   <img
@@ -100,16 +153,16 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
 
-          {extraDeck.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-bold text-white">Extra Deck</h3>
-              <div className="grid grid-cols-8 gap-2 mt-2">
-                {extraDeck.map((card, index) => (
-                  <div
-                    key={index}
-                    className="w-20 h-28 bg-gray-200 flex items-center justify-center border border-gray-400 rounded"
-                  >
+  {/* Extra Deck */}
+  <div className="mt-8">
+    <h3 className="text-xl font-bold">Extra Deck</h3>
+    <div className="grid grid-cols-8 gap-2 mt-2">
+      {extraDeck.map((card, index) => (
+        <div
+          key={index}
+          className="w-20 h-28 bg-gray-200 flex flex-col items-center justify-center border border-gray-400 rounded">
                     <img
                       src={card.card_images[0].image_url}
                       alt={card.name}
@@ -117,8 +170,8 @@ export default function Home() {
                       height={112}
                       className="rounded w-full h-fit object-scale-down"
                     />
-                                    <button
-                    onClick={() => removeFromDeck(index)}
+                  <button
+                    onClick={() => removeFromDeck(index, true)}
                     className="text-red-700 absolute z-50 text-4xl outline-2 outline-white outline-offset-1  font-black"
                   >
                     X
@@ -127,7 +180,6 @@ export default function Home() {
                 ))}
               </div>
             </div>
-          )}
         </div>
 
         {/* Split Pane: Search and Archetype Suggestions */}
@@ -165,8 +217,14 @@ export default function Home() {
                     width={240}
                     height={320}
                     className="rounded w-fit h-48"
-                    unoptimized={true}
+                    unoptimized
                   />
+                  <button
+                    onClick={() => addToDeck(cards.searchedCard)}
+                    className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  >
+                    Add to Deck
+                  </button>
                 </div>
               </div>
             )}
@@ -176,9 +234,9 @@ export default function Home() {
           <div className="flex-1 glass p-4 ">
             <h2 className="text-2xl font-bold text-white">Archetype Suggestions</h2>
             {archetypeSuggestions && archetypeSuggestions.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-[400px]">
-                {archetypeSuggestions.map((card) => (
-                  <div key={card.id} className="p-4 bg-white rounded shadow">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-[400px]">
+                {archetypeSuggestions.map((card, index) => (
+                  <div key={(card.id, index)} className="p-4 bg-white rounded shadow">
                     <p><strong>Name:</strong> {card.name}</p>
                     <p><strong>Archetype:</strong> {card.archetype}</p>
                     <img
@@ -187,7 +245,7 @@ export default function Home() {
                       width={120}
                       height={160}
                       className="rounded w-fit h-48"
-                      unoptimized={true}
+                      unoptimized
                     />
                     <button
                       onClick={() => addToDeck(card)}
