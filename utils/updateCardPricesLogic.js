@@ -14,6 +14,7 @@ const RARITY_NORMALIZATION_MAP = {
   'Starfoil Rare': 'Starfoil Rare',
   'Mosaic Rare': 'Mosaic Rare',
   'Shatterfoil Rare': 'Shatterfoil Rare',
+  "Collector's Rare": "Collector's Rare",
   'Starlight Rare': 'Starlight Rare',
   'Ghost Rare': 'Ghost Rare',
   'Gold Rare': 'Gold Rare',

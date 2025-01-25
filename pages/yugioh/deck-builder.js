@@ -67,7 +67,7 @@ export default function Home() {
     const isExtraDeckType = ["Fusion", "Synchro", "XYZ", "Link"].some((type) =>
       card.type.includes(type)
     );
-  
+
     if (isExtraDeckType) {
       // Add to Extra Deck if it's a valid extra deck card type
       if (extraDeck.length < 15) {
@@ -85,11 +85,11 @@ export default function Home() {
         setDeckWarnings((prev) => [...prev, "Main Deck is full. Cannot add more cards."]);
       }
     }
-  
+
     validateDeck(deckCopy, extraDeck);
   };
-  
-  
+
+
 
   const removeFromDeck = (index, isExtraDeck = false) => {
     if (isExtraDeck) {
@@ -123,63 +123,63 @@ export default function Home() {
           )}
           {/* Main Deck */}
           <div className="mt-4">
-    <h3 className="text-xl font-bold">Main Deck</h3>
-          <div className="grid grid-cols-8 gap-2 mt-4">
-            {deck.map((slot, index) => (
-              <div
-                key={index}
-                className="w-20 h-28 bg-white flex items-center justify-center border border-gray-400 rounded">
-                {slot ? (
-                  <>
+            <h3 className="text-xl font-bold">Main Deck</h3>
+            <div className="grid grid-cols-8 gap-2 mt-4">
+              {deck.map((slot, index) => (
+                <div
+                  key={index}
+                  className="w-20 h-28 bg-white flex items-center justify-center border border-gray-400 rounded">
+                  {slot ? (
+                    <>
+                      <img
+                        src={slot.card_images[0].image_url}
+                        alt={slot.name}
+                        width={80}
+                        height={112}
+                        className="rounded w-full h-fit object-scale-down"
+                      />
+                      <>
+                        <button
+                          onClick={() => removeFromDeck(index)}
+                          className="text-red-700 absolute z-50 text-4xl outline-2 outline-white outline-offset-1  font-black"
+                        >
+                          X
+                        </button>
+                      </>
+                    </>
+                  ) : (
+                    <span className="text-gray-500">Empty</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Extra Deck */}
+          <div className="mt-8">
+            <h3 className="text-xl font-bold">Extra Deck</h3>
+            <div className="grid grid-cols-8 gap-2 mt-2">
+              {extraDeck.map((card, index) => (
+                <div
+                  key={index}
+                  className="w-20 h-28 bg-gray-200 flex flex-col items-center justify-center border border-gray-400 rounded">
                   <img
-                    src={slot.card_images[0].image_url}
-                    alt={slot.name}
+                    src={card.card_images[0].image_url}
+                    alt={card.name}
                     width={80}
                     height={112}
                     className="rounded w-full h-fit object-scale-down"
                   />
-                  <>
-                <button
-                    onClick={() => removeFromDeck(index)}
-                    className="text-red-700 absolute z-50 text-4xl outline-2 outline-white outline-offset-1  font-black"
-                  >
-                    X
-                  </button>
-                  </>
-                  </>
-                ) : (
-                  <span className="text-gray-500">Empty</span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-  {/* Extra Deck */}
-  <div className="mt-8">
-    <h3 className="text-xl font-bold">Extra Deck</h3>
-    <div className="grid grid-cols-8 gap-2 mt-2">
-      {extraDeck.map((card, index) => (
-        <div
-          key={index}
-          className="w-20 h-28 bg-gray-200 flex flex-col items-center justify-center border border-gray-400 rounded">
-                    <img
-                      src={card.card_images[0].image_url}
-                      alt={card.name}
-                      width={80}
-                      height={112}
-                      className="rounded w-full h-fit object-scale-down"
-                    />
                   <button
                     onClick={() => removeFromDeck(index, true)}
                     className="text-red-700 absolute z-50 text-4xl outline-2 outline-white outline-offset-1  font-black"
                   >
                     X
                   </button>
-                  </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
+          </div>
         </div>
 
         {/* Split Pane: Search and Archetype Suggestions */}
@@ -209,23 +209,26 @@ export default function Home() {
               <div className="mt-4">
                 <h3 className="text-xl font-semibold text-white">Searched Card</h3>
                 <div className="p-4 bg-transparent text-white rounded shadow mb-4">
-                  <p><strong>Name:</strong> {cards.searchedCard.name}</p>
-                  <p><strong>Archetype:</strong> {cards.searchedCard.archetype}</p>
                   <img
                     src={cards.searchedCard.card_images[0].image_url}
                     alt={cards.searchedCard.name}
                     width={240}
                     height={320}
-                    className="rounded w-fit h-48"
-                    unoptimized
+                    className="rounded w-fit h-48 content-around"
                   />
+                  <p><strong>Name:</strong> {cards.searchedCard.name}</p>
+                  <p><strong>Archetype:</strong> {cards.searchedCard.archetype}</p>
+                  <p><strong>Text:</strong> {cards.searchedCard.desc}</p>
+                  
+                  
+                  
                   <button
                     onClick={() => addToDeck(cards.searchedCard)}
                     className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                   >
                     Add to Deck
                   </button>
-                </div>
+                  </div>
               </div>
             )}
           </div>
@@ -234,19 +237,20 @@ export default function Home() {
           <div className="flex-1 glass p-4 ">
             <h2 className="text-2xl font-bold text-white">Archetype Suggestions</h2>
             {archetypeSuggestions && archetypeSuggestions.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-[400px]">
+              <div className="inline-grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-[400px]">
                 {archetypeSuggestions.map((card, index) => (
                   <div key={(card.id, index)} className="p-4 bg-white rounded shadow">
-                    <p><strong>Name:</strong> {card.name}</p>
-                    <p><strong>Archetype:</strong> {card.archetype}</p>
                     <img
                       src={card.card_images[0].image_url}
                       alt={card.name}
                       width={120}
                       height={160}
-                      className="rounded w-fit h-48"
-                      unoptimized
+                      className="flex-wrap rounded w-fit h-48 content-around"
                     />
+                    <p><strong>Name:</strong> {card.name}</p>
+                    <p><strong>Archetype:</strong> {card.archetype}</p>
+                    <p><strong>Text:</strong> {card.desc}</p>
+                    
                     <button
                       onClick={() => addToDeck(card)}
                       className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
