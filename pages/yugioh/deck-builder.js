@@ -1,18 +1,21 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-export default function Home() {
-  const [search, setSearch] = useState('');
+export default function DeckBuilder() {
+  const [search, setSearch] = useState("");
   const [cards, setCards] = useState(null);
   const [deck, setDeck] = useState(Array(40).fill(null));
   const [extraDeck, setExtraDeck] = useState([]);
   const [error, setError] = useState(null);
   const [archetypeSuggestions, setArchetypeSuggestions] = useState(null);
   const [deckWarnings, setDeckWarnings] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); // For archetype filtering
 
   const searchCards = async () => {
     setError(null);
     try {
-      const response = await fetch(`/api/Yugioh/cards/recommendations?search=${search}`);
+      const response = await fetch(
+        `/api/Yugioh/cards/recommendations?search=${encodeURIComponent(search)}`
+      );
       const data = await response.json();
 
       if (!response.ok) {
@@ -22,21 +25,32 @@ export default function Home() {
         setCards(data);
         if (data.searchedCard?.archetype) {
           fetchArchetypeSuggestions(data.searchedCard.archetype);
+        } else {
+          setArchetypeSuggestions(null); // No archetype, clear suggestions
         }
       }
     } catch (err) {
-      setError('Failed to fetch cards');
+      setError("Failed to fetch cards");
     }
   };
 
   const fetchArchetypeSuggestions = async (archetype) => {
     try {
-      const response = await fetch(`/api/Yugioh/cards/recommendations?archetype=${archetype}`);
+      const response = await fetch(
+        `/api/Yugioh/cards/recommendations?archetype=${encodeURIComponent(
+          archetype
+        )}`
+      );
       const data = await response.json();
-      setArchetypeSuggestions(data.relatedCards);
+
+      if (!response.ok || !data.relatedCards || data.relatedCards.length === 0) {
+        setArchetypeSuggestions(null); // No related cards found
+      } else {
+        setArchetypeSuggestions(data.relatedCards); // Populate archetype suggestions
+      }
     } catch (err) {
-      console.error('Failed to fetch archetype suggestions:', err);
-      setArchetypeSuggestions(null);
+      console.error("Failed to fetch archetype suggestions:", err);
+      setArchetypeSuggestions(null); // Handle error gracefully
     }
   };
 
@@ -45,9 +59,12 @@ export default function Home() {
     const mainDeckCount = deck.filter((card) => card !== null).length;
     const extraDeckCount = extraDeck.length;
 
-    if (mainDeckCount < 40) warnings.push('Main Deck must have at least 40 cards.');
-    if (mainDeckCount > 60) warnings.push('Main Deck cannot exceed 60 cards.');
-    if (extraDeckCount > 15) warnings.push('Extra Deck cannot exceed 15 cards.');
+    if (mainDeckCount < 40)
+      warnings.push("Main Deck must have at least 40 cards.");
+    if (mainDeckCount > 60)
+      warnings.push("Main Deck cannot exceed 60 cards.");
+    if (extraDeckCount > 15)
+      warnings.push("Extra Deck cannot exceed 15 cards.");
 
     const cardCounts = {};
     [...deck, ...extraDeck].forEach((card) => {
@@ -69,27 +86,29 @@ export default function Home() {
     );
 
     if (isExtraDeckType) {
-      // Add to Extra Deck if it's a valid extra deck card type
       if (extraDeck.length < 15) {
         setExtraDeck((prevExtraDeck) => [...prevExtraDeck, card]);
       } else {
-        setDeckWarnings((prev) => [...prev, "Extra Deck is full. Cannot add more cards."]);
+        setDeckWarnings((prev) => [
+          ...prev,
+          "Extra Deck is full. Cannot add more cards.",
+        ]);
       }
     } else {
-      // Add to Main Deck if not an extra deck card type
       const emptySlot = deckCopy.findIndex((slot) => slot === null);
       if (emptySlot !== -1) {
         deckCopy[emptySlot] = card;
         setDeck(deckCopy);
       } else {
-        setDeckWarnings((prev) => [...prev, "Main Deck is full. Cannot add more cards."]);
+        setDeckWarnings((prev) => [
+          ...prev,
+          "Main Deck is full. Cannot add more cards.",
+        ]);
       }
     }
 
     validateDeck(deckCopy, extraDeck);
   };
-
-
 
   const removeFromDeck = (index, isExtraDeck = false) => {
     if (isExtraDeck) {
@@ -104,6 +123,9 @@ export default function Home() {
     }
   };
 
+  const filteredArchetypeSuggestions = archetypeSuggestions?.filter((card) =>
+    card.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-6 glass min-h-screen text-black">
@@ -205,7 +227,7 @@ export default function Home() {
 
             {error && <p className="text-red-500 mt-4">{error}</p>}
 
-            {cards && (
+            {cards && cards.searchedCard && (
               <div className="mt-4">
                 <h3 className="text-xl font-semibold text-white">Searched Card</h3>
                 <div className="p-4 bg-transparent text-white rounded shadow mb-4">
@@ -219,16 +241,13 @@ export default function Home() {
                   <p><strong>Name:</strong> {cards.searchedCard.name}</p>
                   <p><strong>Archetype:</strong> {cards.searchedCard.archetype}</p>
                   <p><strong>Text:</strong> {cards.searchedCard.desc}</p>
-                  
-                  
-                  
                   <button
                     onClick={() => addToDeck(cards.searchedCard)}
                     className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                   >
                     Add to Deck
                   </button>
-                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -236,28 +255,41 @@ export default function Home() {
           {/* Archetype Suggestions Panel */}
           <div className="flex-1 glass p-4 ">
             <h2 className="text-2xl font-bold text-white">Archetype Suggestions</h2>
-            {archetypeSuggestions && archetypeSuggestions.length > 0 ? (
+            {archetypeSuggestions && archetypeSuggestions.length > 0 && (
+              <div className="mt-4">
+                <input
+                  type="text"
+                  placeholder="Search within archetype..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 text-black rounded-lg border border-gray-300"
+                />
+              </div>
+            )}
+            {filteredArchetypeSuggestions && filteredArchetypeSuggestions.length > 0 ? (
               <div className="inline-grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-[400px]">
-                {archetypeSuggestions.map((card, index) => (
-                  <div key={(card.id, index)} className="p-4 bg-white rounded shadow">
-                    <img
-                      src={card.card_images[0].image_url}
-                      alt={card.name}
-                      width={120}
-                      height={160}
-                      className="flex-wrap rounded w-fit h-48 content-around"
-                    />
-                    <p><strong>Name:</strong> {card.name}</p>
-                    <p><strong>Archetype:</strong> {card.archetype}</p>
-                    <p><strong>Text:</strong> {card.desc}</p>
-                    
-                    <button
-                      onClick={() => addToDeck(card)}
-                      className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                    >
-                      Add to Deck
-                    </button>
-                  </div>
+                {filteredArchetypeSuggestions.map((card, index) => (
+                  <>
+                    <div key={(card.id || index)} className="w-full p-2 bg-white rounded shadow">
+                      <button
+                        onClick={() => addToDeck(card)}
+                        className="mt-4 align-top px-1 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Add to Deck
+                      </button>
+                      <img
+                        src={card.card_images[0].image_url}
+                        alt={card.name}
+                        width={120}
+                        height={160}
+                        className="m-2 rounded w-fit object-contain max-h-48 float-left ..." />
+
+                      <p><strong>Name:</strong> {card.name}</p>
+                      <p className="text-sm mt-1"><strong className="text-base">Archetype:</strong> {card.archetype} </p>
+                      <p className="text-sm mt-1"><strong className="text-base">Text:</strong> {card.desc}</p>
+                    </div>
+                  </>
+
                 ))}
               </div>
             ) : (
