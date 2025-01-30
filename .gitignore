@@ -43,4 +43,7 @@ server/changeStreamHandler.js
 /rift
 prompt
 /.gpteng
-repomix-output.txt
+repomix-output.*
+/public/card-data/
+/public/images/
+robots.txt

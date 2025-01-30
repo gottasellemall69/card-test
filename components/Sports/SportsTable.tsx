@@ -26,7 +26,7 @@ const SportsTable: React.FC<SportsTableProps> = ({
  const flatData = React.useMemo(() => {
     if (!Array.isArray(sportsData)) return [];
     return sportsData.flatMap(item => 
-      Array.isArray(item.products) ? item.products.map(product => ({
+      Array.isArray(item.products) ? item.products.map((product: { id: any; productName: any; consoleUri: any; }) => ({
         ...product,
         id: product.id || `${product.productName}-${product.consoleUri}`
       })) : []

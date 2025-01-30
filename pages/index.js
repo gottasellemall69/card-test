@@ -214,7 +214,7 @@ const Home = () => {
             setMatchedCardData={setMatchedCardData}
           />
         </div>
-        <div className="mx-auto w-fit max-w-7xl">
+        <div className="mx-auto w-full max-w-7xl">
           <YugiohCardDataTable
             matchedCardData={matchedCardData}
             setMatchedCardData={setMatchedCardData}

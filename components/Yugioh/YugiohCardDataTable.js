@@ -147,10 +147,13 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
             card?.condition,
             data?.marketPrice
         ]);
-
-        const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+    
+        const csvContent = "data:text/csv;charset=utf-8," + headers.join("|") + "\n" + 
+            rows.map(row => row.map(value => `"${value}"`).join("|")).join("\n");
+    
         return encodeURI(csvContent);
     }, []);
+    
 
     const downloadCSV = useCallback(() => {
         if (!matchedCardData || matchedCardData.length === 0) {
@@ -161,7 +164,7 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
         const csvContent = convertToCSV(matchedCardData);
         const link = document.createElement("a");
         link.setAttribute("href", csvContent);
-        link.setAttribute("download", "yugioh_cards.csv");
+        link.setAttribute("download", "yugioh_card_prices.csv");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

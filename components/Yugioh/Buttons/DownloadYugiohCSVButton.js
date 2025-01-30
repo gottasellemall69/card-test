@@ -1,8 +1,7 @@
-
 const DownloadYugiohCSVButton = ({ aggregatedData, userCardList }) => {
   const downloadCSV = () => {
     try {
-      const csvHeader = '"Name","Set","Number","Printing","Rarity","Condition","Price","Quantity"';
+      const csvHeader = '"Name"|"Set"|"Number"|"Printing"|"Rarity"|"Condition"|"Price"|"Quantity"';
       const csvData = aggregatedData?.map((card) => {
         const productName = card?.productName || '';
         const userCard = userCardList?.filter((entry) =>
@@ -25,7 +24,7 @@ const DownloadYugiohCSVButton = ({ aggregatedData, userCardList }) => {
           `"${ card?.condition.replace(/"/g, '""') || '' }"`,
           `"${ card?.marketPrice ? card.marketPrice.toString().replace(/"/g, '""') : '' }"`,
           `"${ card?.quantity ? card.quantity.toString().replace(/"/g, '""') : '' }"`
-        ].join(',');
+        ].join('|');  // Updated delimiter
       }).join("\n");
 
       const csvContent = `${ csvHeader }\n${ csvData }`;
@@ -34,7 +33,7 @@ const DownloadYugiohCSVButton = ({ aggregatedData, userCardList }) => {
 
       const element = document.createElement('a');
       element.href = url;
-      element.download = 'card_data.csv';
+      element.download = 'yugioh_card_collection.csv';
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
