@@ -18,7 +18,7 @@ const CardDetails = () => {
 
   // Use SWR for data fetching with the card ID
   const { data: cardData, error } = useSWR(
-    card ? `/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/card/${ encodeURIComponent(card) }` : null,
+    card ? `/${ process.env.API_URL }/Yugioh/card/${ encodeURIComponent(card) }` : null,
     fetcher
   );
 

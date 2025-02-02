@@ -52,7 +52,7 @@ const CardsInSetPage = () => {
     try {
       const { set, rarity, printing } = selectedOptions;
 
-      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/cards`, {
+      const response = await fetch(`/${ process.env.API_URL }/Yugioh/cards`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

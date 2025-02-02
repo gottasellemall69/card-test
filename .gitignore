@@ -44,6 +44,5 @@ server/changeStreamHandler.js
 prompt
 /.gpteng
 repomix-output.*
-/public/card-data/
-/public/images/
+/public/*
 robots.txt

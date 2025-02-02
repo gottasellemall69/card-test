@@ -112,7 +112,7 @@ const YugiohCardDataTable = ({ matchedCardData, setMatchedCardData }) => {
                 'quantity': 1
             }));
 
-            const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Yugioh/cards`, {
+            const response = await fetch(`/${ process.env.API_URL }/Yugioh/cards`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
