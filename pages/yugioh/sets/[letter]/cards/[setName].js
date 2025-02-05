@@ -6,6 +6,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
+
+
 const CardsInSetPage = () => {
   const [cards, setCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -52,7 +54,7 @@ const CardsInSetPage = () => {
     try {
       const { set, rarity, printing } = selectedOptions;
 
-      const response = await fetch(`/${ process.env.API_URL }/Yugioh/cards`, {
+      const response = await fetch(`/api/Yugioh/cards`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

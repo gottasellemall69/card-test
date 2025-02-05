@@ -6,9 +6,14 @@ const AlphabeticalIndex = () => {
 
   return (
     <>
-      <div className="w-full max-w-7xl my-10 m-2">
-        <h1 className="text-xl font-semibold mb-4">Alphabetical Index</h1>
-        <div className="flex flex-wrap gap-2 place-content-center md:text-nowrap">
+      <div className="w-full max-w-7xl my-10 m-2 mx-auto">
+        <div className="glass w-7xl p-2">
+          <h1 className="text-2xl font-semibold mb-4">Alphabetical Index</h1>
+        <p className="text-base text-gray-300 italic text-pretty">Browse Yu-Gi-Oh! sets by letter...</p>
+        </div>
+        
+        <div className="mt-5 flex flex-wrap gap-2 place-content-center md:text-nowrap">
+         
           {alphabet.split('').map((letter) => (
             <Link
               href={"/yugioh/sets/[letter]"} passHref

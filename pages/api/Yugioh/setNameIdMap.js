@@ -1,4 +1,4 @@
-import { getSetNameIdMap } from '@/utils/api.js';
+import { getSetNameIdMap } from '@/utils/api';
 
 export default async function handler(req, res) {
   const setNameIdMap = await getSetNameIdMap();

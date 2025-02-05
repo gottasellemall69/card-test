@@ -18,6 +18,7 @@ const GridView = dynamic(() => import("@/components/Yugioh/GridView"), {
 });
 
 
+
 const MyCollectionPage = ({ error }) => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,7 +52,7 @@ const MyCollectionPage = ({ error }) => {
         return;
       }
 
-      // Simulate token validation or call an ${ process.env.API_URL } if needed
+      // Simulate token validation or call an ${ process.env.NEXT_PUBLIC_API_URL } if needed
       setToken(storedToken);
       setIsAuthenticated(true);
     };
@@ -95,7 +96,7 @@ const MyCollectionPage = ({ error }) => {
   const fetchData = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await fetch(`/${ process.env.API_URL }/Yugioh/my-collection`, {
+      const response = await fetch(`/api/Yugioh/my-collection`, {
         headers: {
           method: "GET",
           Authorization: `Bearer ${token}`,
@@ -188,7 +189,7 @@ const MyCollectionPage = ({ error }) => {
 
     setIsUpdatingPrices(true);
     try {
-      const response = await fetch(`/${ process.env.API_URL }/Yugioh/updateCardPrices`, {
+      const response = await fetch(`/api/Yugioh/updateCardPrices`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -220,7 +221,7 @@ const MyCollectionPage = ({ error }) => {
 
       if (cardId && field && value !== undefined && value !== null) {
         const updateCard = { cardId, field, value };
-        const response = await fetch(`/${ process.env.API_URL }/Yugioh/updateCards`, {
+        const response = await fetch(`/api/Yugioh/updateCards`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -255,7 +256,7 @@ const MyCollectionPage = ({ error }) => {
         return;
       }
 
-      const response = await fetch(`/${ process.env.API_URL }/Yugioh/deleteCards`, {
+      const response = await fetch(`/api/Yugioh/deleteCards`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -284,7 +285,7 @@ const MyCollectionPage = ({ error }) => {
         return;
       }
 
-      const response = await fetch(`/${ process.env.API_URL }/Yugioh/deleteAllCards`, {
+      const response = await fetch(`/api/Yugioh/deleteAllCards`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
 
+
+
 const fetcher = (url) => fetch(url).then((res) => {
   if (!res.ok) {
     throw new Error('Failed to fetch data');
@@ -18,7 +20,7 @@ const CardDetails = () => {
 
   // Use SWR for data fetching with the card ID
   const { data: cardData, error } = useSWR(
-    card ? `/${ process.env.API_URL }/Yugioh/card/${ encodeURIComponent(card) }` : null,
+    card ? `/api/Yugioh/card/${ encodeURIComponent(card) }` : null,
     fetcher
   );
 

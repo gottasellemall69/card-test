@@ -2,6 +2,8 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import Link from "next/link";
 
+
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +20,7 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch(`/${ process.env.API_URL }/auth/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

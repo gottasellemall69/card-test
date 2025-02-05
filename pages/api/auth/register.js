@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import bcrypt from "bcryptjs";
+import bcrypt, { encodeBase64 } from "bcryptjs";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     })();
 
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(encodeBase64(password), 10);
 
     // Insert the new user
     const result = await usersCollection.insertOne({

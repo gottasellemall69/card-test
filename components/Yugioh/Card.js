@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 const Card = ({ cardData }) => {
   const router = useRouter();
   const { letter, setName, card } = router.query;
-  const getLocalImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.webp`, []);
+  const getLocalImagePath = useCallback((cardId) => `/images/yugiohImages/${ String(cardId) }.jpg`, []);
   return (
     <>
       <div>

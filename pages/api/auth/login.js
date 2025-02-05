@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: 86400 }
     );
 
     res.status(200).json({ token });

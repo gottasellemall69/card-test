@@ -33,7 +33,7 @@ const Home = () => {
   useEffect(() => {
     const fetchSetNameIdMap = async () => {
       try {
-        const response = await fetch(encodeURI(`/${ process.env.API_URL }/Yugioh/setNameIdMap`));
+        const response = await fetch(`/api/Yugioh/setNameIdMap`);
         const data = await response.json();
         setSetNameIdMap(data);
       } catch (error) {
@@ -53,7 +53,7 @@ const Home = () => {
 
       if (!setCache[setNameId]) {
         console.log('Fetching set data for ID:', setNameId);
-        const response = await fetch(`/${ process.env.API_URL }/Yugioh/cards/${setNameId}`);
+        const response = await fetch(`/api/Yugioh/cards/${setNameId}`);
         if (!response.ok) {
           console.error(`Failed to fetch card data for set ID: ${setNameId}`);
           return { card, data: null, error: `Failed to fetch set data for ID: ${setNameId}` };
