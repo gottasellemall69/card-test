@@ -44,5 +44,3 @@ server/changeStreamHandler.js
 prompt
 /.gpteng
 repomix-output.*
-/public/*
-robots.txt
