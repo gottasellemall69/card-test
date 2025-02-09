@@ -40,7 +40,7 @@ export default function RegisterPage() {
         setSuccess("Registration successful! Redirecting to login...");
         setTimeout(() => {
           router.push("/login");
-        }, 2000); // Redirect after 2 seconds
+        }, 500);
       } else {
         setError(data.error || "Registration failed. Please try again.");
       }
