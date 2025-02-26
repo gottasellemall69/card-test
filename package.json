@@ -16,7 +16,7 @@
         "@tailwindcss/forms": "^0.5.10",
         "@vercel/speed-insights": "^1.2.0",
         "bcryptjs": "^2.4.3",
-        "framer-motion": "^11.18.2",
+        "framer-motion": "^12.4.7",
         "isotope-layout": "^3.0.6",
         "jsonwebtoken": "^9.0.2",
         "mongodb": "^6.13.1",
