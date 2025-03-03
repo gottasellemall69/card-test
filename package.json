@@ -20,7 +20,7 @@
         "isotope-layout": "^3.0.6",
         "jsonwebtoken": "^9.0.2",
         "mongodb": "^6.13.1",
-        "next": "^15.1.7",
+        "next": "^15.2.0",
         "next-auth": "^4.24.11",
         "node-cron": "^3.0.3",
         "npm": "^11.1.0",
