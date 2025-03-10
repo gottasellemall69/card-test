@@ -5,43 +5,52 @@ export default async function handler( req, res ) {
         return res.status( 405 ).json( { error: "Method not allowed" } );
     }
 
-    const { cardId } = req.query;
-    const { price } = req.body;
+    const { cardId, setCode, setEdition, price } = req.body;
 
-    if ( !cardId || !price ) {
-        return res.status( 400 ).json( { error: "Missing required parameters" } );
+    if ( !cardId || !setCode || !setEdition || price == null ) {
+        return res.status( 400 ).json( { error: "Missing parameters" } );
     }
 
+    const client = new MongoClient( process.env.MONGODB_URI );
+
     try {
-        const client = new MongoClient( process.env.MONGODB_URI );
         await client.connect();
         const db = client.db( "cardPriceApp" );
+        const collection = db.collection( "priceHistory" );
 
-        // Check existing price history
-        const priceHistoryDoc = await db.collection( "priceHistory" ).findOne( { cardId } );
+        const now = new Date();
+        const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
-        // If no history, create new entry
-        if ( !priceHistoryDoc ) {
-            await db.collection( "priceHistory" ).insertOne( {
+        const existingRecord = await collection.findOne( { cardId, productName, setName, setCode, rarity, setEdition, condition } );
+
+        if ( !existingRecord ) {
+            await collection.insertOne( {
                 cardId,
-                history: [ { date: new Date().toISOString(), price } ],
+                productName,
+                setName,
+                setCode,
+                rarity,
+                setEdition,
+                condition,
+                history: [ { date: now.toISOString(), price } ],
             } );
         } else {
-            // Add new price entry only if it's different from the last recorded price
-            const lastEntry = priceHistoryDoc.history[ 0 ];
+            const lastEntry = existingRecord.history[ existingRecord.history.length - 1 ];
+            const lastUpdate = new Date( lastEntry.date );
 
-            if ( !lastEntry || lastEntry.price !== price ) {
-                await db.collection( "priceHistory" ).updateOne(
-                    { cardId },
-                    { $push: { history: { date: new Date().toISOString(), price } } }
+            if ( now - lastUpdate >= TWELVE_HOURS ) {
+                await collection.updateOne(
+                    { cardId, productName, setName, setCode, rarity, setEdition, condition },
+                    { $push: { history: { date: now.toISOString(), price } } }
                 );
             }
         }
 
-        await client.close();
-        res.status( 200 ).json( { message: "Price history updated successfully" } );
+        res.status( 200 ).json( { message: "Price updated" } );
     } catch ( error ) {
         console.error( "Database Error:", error );
         res.status( 500 ).json( { error: "Internal Server Error" } );
+    } finally {
+        await client.close();
     }
 }

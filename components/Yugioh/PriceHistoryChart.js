@@ -1,23 +1,17 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function PriceHistoryChart( { priceHistory = [] } ) {
     if ( !Array.isArray( priceHistory ) || priceHistory.length === 0 ) {
-        return <p className="text-white">Loading price history...</p>;
+        return <p className="text-center text-gray-400">No price history available.</p>;
     }
 
-    // Format data for better display
-    const formattedData = priceHistory.map( entry => ( {
-        date: new Date( entry.date ).toLocaleDateString(),
-        price: entry.price,
-    } ) );
-
     return (
-        <ResponsiveContainer className={ " text-black" } width="100%" height={ 450 }>
-            <LineChart data={ formattedData }>
+        <ResponsiveContainer className={ "glass text-shadow align-middle" } width="100%" height={ 350 }>
+            <LineChart data={ priceHistory }>
                 <XAxis dataKey="date" tick={ { fill: "white" } } />
                 <YAxis tick={ { fill: "white" } } />
                 <Tooltip />
-                <Line type="monotone" dataKey="price" stroke="#40c528" />
+                <Line type="monotone" dataKey="price" stroke="#8884d8" />
             </LineChart>
         </ResponsiveContainer>
     );
