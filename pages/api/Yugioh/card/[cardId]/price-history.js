@@ -3,8 +3,10 @@ import { MongoClient } from "mongodb";
 const client = new MongoClient( process.env.MONGODB_URI );
 
 export default async function handler( req, res ) {
-    const { cardId } = req.query;
-    const setCode = req.query.set;
+    const { cardId, setCode } = req.query;
+    if (typeof cardId !== "string" || typeof setCode !== "string") {
+        return res.status(400).json({ error: "Invalid card ID or set code" });
+    }
 
     if ( !cardId || !setCode ) {
         return res.status( 400 ).json( { error: "Missing card ID or set code" } );
@@ -16,7 +18,7 @@ export default async function handler( req, res ) {
         const collection = db.collection( "priceHistory" );
 
         // Fetch existing price history
-        const history = await collection.findOne( { cardId, setCode } );
+        const history = await collection.findOne( { cardId: { $eq: cardId }, setCode: { $eq: setCode } } );
 
         if ( history ) {
             const lastUpdate = new Date( history.lastUpdated );
@@ -46,7 +48,7 @@ export default async function handler( req, res ) {
 
         // Update or insert price history
         await collection.updateOne(
-            { cardId, setCode },
+            { cardId: { $eq: cardId }, setCode: { $eq: setCode } },
             {
                 $set: { lastUpdated: new Date().toISOString() },
                 $push: { history: { $each: [ newPriceEntry ], $position: 0 } },
