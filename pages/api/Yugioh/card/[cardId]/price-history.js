@@ -1,49 +1,66 @@
 import { MongoClient } from "mongodb";
 
-export default async function handler( req, res ) {
-    const { cardId } = req.query;
+const client = new MongoClient( process.env.MONGODB_URI );
 
-    if ( !cardId ) {
-        return res.status( 400 ).json( { error: "Missing card ID" } );
+export default async function handler( req, res ) {
+    const { cardId, setCode } = req.query;
+    if (typeof cardId !== "string" || typeof setCode !== "string") {
+        return res.status(400).json({ error: "Invalid card ID or set code" });
+    }
+
+    if ( !cardId || !setCode ) {
+        return res.status( 400 ).json( { error: "Missing card ID or set code" } );
     }
 
     try {
-        const client = new MongoClient( process.env.MONGODB_URI );
         await client.connect();
         const db = client.db( "cardPriceApp" );
+        const collection = db.collection( "priceHistory" );
 
-        // 🔍 Check if price history exists
-        let priceHistoryDoc = await db.collection( "priceHistory" ).findOne( { cardId } );
+        // Fetch existing price history
+        const history = await collection.findOne( { cardId: { $eq: cardId }, setCode: { $eq: setCode } } );
 
-        if ( !priceHistoryDoc ) {
-            console.log( `⚠️ No price history found for ${ cardId }, fetching current price...` );
+        if ( history ) {
+            const lastUpdate = new Date( history.lastUpdated );
+            const now = new Date();
 
-            // 🔄 Fetch the current price from external API
-            const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ cardId }&tcgplayer_data=true`;
-            const response = await fetch( url );
-            const data = await response.json();
-
-            if ( !data || !data.data || data.data.length === 0 ) {
-                return res.status( 404 ).json( { error: "Card not found" } );
+            // Check if 12 hours have passed since last update
+            if ( ( now - lastUpdate ) / ( 1000 * 60 * 60 ) < 12 ) {
+                return res.status( 200 ).json( { priceHistory: history.history } );
             }
-
-            const card = data.data[ 0 ];
-            const initialPrice = parseFloat( card.card_sets?.set_price || "0" );
-
-            // 🆕 Store the new price history entry
-            priceHistoryDoc = {
-                cardId,
-                history: [ { date: new Date().toISOString(), price: initialPrice } ],
-            };
-
-            await db.collection( "priceHistory" ).insertOne( priceHistoryDoc );
-            console.log( `✅ Created initial price history for ${ cardId }` );
         }
 
-        await client.close();
-        res.status( 200 ).json( { priceHistory: priceHistoryDoc.history } );
+        // Fetch current price from API
+        const response = await fetch( `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ cardId }&tcgplayer_data=true` );
+        const data = await response.json();
+
+        if ( !data.data || data.data.length === 0 ) {
+            return res.status( 404 ).json( { error: "Card not found" } );
+        }
+
+        // Find the selected set's price
+        const selectedSet = data.data[ 0 ].card_sets.find( ( set ) => set.set_code === setCode );
+        if ( !selectedSet ) {
+            return res.status( 404 ).json( { error: "Set not found for this card" } );
+        }
+
+        const newPriceEntry = { date: new Date().toISOString(), price: parseFloat( selectedSet.set_price ) || 0 };
+
+        // Update or insert price history
+        await collection.updateOne(
+            { cardId: { $eq: cardId }, setCode: { $eq: setCode } },
+            {
+                $set: { lastUpdated: new Date().toISOString() },
+                $push: { history: { $each: [ newPriceEntry ], $position: 0 } },
+            },
+            { upsert: true }
+        );
+
+        res.status( 200 ).json( { priceHistory: history ? [ ...history.history, newPriceEntry ] : [ newPriceEntry ] } );
     } catch ( error ) {
-        console.error( "❌ Database Error:", error );
+        console.error( "Database Error:", error );
         res.status( 500 ).json( { error: "Internal Server Error" } );
+    } finally {
+        await client.close();
     }
 }
