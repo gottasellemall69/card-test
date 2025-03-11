@@ -21,7 +21,7 @@ export default async function handler( req, res ) {
         const now = new Date();
         const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
-        const existingRecord = await collection.findOne( { cardId, productName, setName, setCode, rarity, setEdition, condition } );
+        const existingRecord = await collection.findOne( { cardId: { $eq: cardId }, productName, setName, setCode: { $eq: setCode }, rarity, setEdition: { $eq: setEdition }, condition } );
 
         if ( !existingRecord ) {
             await collection.insertOne( {
@@ -40,7 +40,7 @@ export default async function handler( req, res ) {
 
             if ( now - lastUpdate >= TWELVE_HOURS ) {
                 await collection.updateOne(
-                    { cardId, productName, setName, setCode, rarity, setEdition, condition },
+                    { cardId: { $eq: cardId }, productName, setName, setCode: { $eq: setCode }, rarity, setEdition: { $eq: setEdition }, condition },
                     { $push: { history: { date: now.toISOString(), price } } }
                 );
             }
