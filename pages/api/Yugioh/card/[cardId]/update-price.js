@@ -1,56 +1,54 @@
 import { MongoClient } from "mongodb";
 
 export default async function handler( req, res ) {
+    console.log( "🚀 API endpoint hit for cardId:", req.query.cardId ); // Add this log to see if the cardId is correctly parsed
     if ( req.method !== "POST" ) {
-        return res.status( 405 ).json( { error: "Method not allowed" } );
+        return res.status( 405 ).json( { error: "Method Not Allowed" } );
     }
 
-    const { cardId, setCode, setEdition, price } = req.body;
+    const { cardId, card, set, rarity, newPrice } = req.body;
 
-    if ( !cardId || !setCode || !setEdition || price == null ) {
-        return res.status( 400 ).json( { error: "Missing parameters" } );
+    console.log( "🔍 Received price update request:", req.body );
+
+    if ( !card || !set || !rarity || !printing || !newPrice ) {
+        return res.status( 400 ).json( {
+            error: "Missing required fields",
+            missingFields: {
+                cardId: cardId,
+                newPrice: newPrice || "MISSING",
+            },
+        } );
     }
-
-    const client = new MongoClient( process.env.MONGODB_URI );
 
     try {
+        const client = new MongoClient( process.env.MONGODB_URI );
         await client.connect();
         const db = client.db( "cardPriceApp" );
-        const collection = db.collection( "priceHistory" );
 
-        const now = new Date();
-        const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+        const priceHistoryCollection = db.collection( "priceHistory" );
 
-        const existingRecord = await collection.findOne( { cardId: { $eq: cardId }, productName, setName, setCode: { $eq: setCode }, rarity, setEdition: { $eq: setEdition }, condition } );
+        const priceHistoryDoc = await priceHistoryCollection.findOne( { cardId } );
 
-        if ( !existingRecord ) {
-            await collection.insertOne( {
-                cardId,
-                productName,
-                setName,
-                setCode,
-                rarity,
-                setEdition,
-                condition,
-                history: [ { date: now.toISOString(), price } ],
-            } );
-        } else {
-            const lastEntry = existingRecord.history[ existingRecord.history.length - 1 ];
-            const lastUpdate = new Date( lastEntry.date );
-
-            if ( now - lastUpdate >= TWELVE_HOURS ) {
-                await collection.updateOne(
-                    { cardId: { $eq: cardId }, productName, setName, setCode: { $eq: setCode }, rarity, setEdition: { $eq: setEdition }, condition },
-                    { $push: { history: { date: now.toISOString(), price } } }
-                );
-            }
+        if ( !priceHistoryDoc ) {
+            return res.status( 404 ).json( { error: "Card price history not found" } );
         }
 
-        res.status( 200 ).json( { message: "Price updated" } );
-    } catch ( error ) {
-        console.error( "Database Error:", error );
-        res.status( 500 ).json( { error: "Internal Server Error" } );
-    } finally {
+        const updatedHistory = [
+            ...priceHistoryDoc.history,
+            { date: new Date().toISOString(), price: parseFloat( newPrice ) },
+        ];
+
+        await priceHistoryCollection.updateOne(
+            { cardId },
+            { $set: { price: updatedHistory } }
+        );
+
+        console.log( `✅ Price updated for ${ card }: $${ newPrice }` );
+
         await client.close();
+        res.status( 200 ).json( { message: "Price updated successfully", updatedHistory } );
+    } catch ( error ) {
+        console.error( "❌ Update Price Error:", error );
+        res.status( 500 ).json( { error: "Internal Server Error" } );
     }
 }

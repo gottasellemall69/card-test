@@ -1,66 +1,63 @@
+// pages/api/Yugioh/card/[cardId]/price-history.js
 import { MongoClient } from "mongodb";
 
-const client = new MongoClient( process.env.MONGODB_URI );
-
 export default async function handler( req, res ) {
-    const { cardId, setCode } = req.query;
-    if (typeof cardId !== "string" || typeof setCode !== "string") {
-        return res.status(400).json({ error: "Invalid card ID or set code" });
-    }
+    const { cardId, setName, number } = req.query;
 
-    if ( !cardId || !setCode ) {
-        return res.status( 400 ).json( { error: "Missing card ID or set code" } );
+    if ( !cardId ) {
+        return res.status( 400 ).json( { error: "Missing card ID" } );
     }
 
     try {
+        const client = new MongoClient( process.env.MONGODB_URI );
         await client.connect();
         const db = client.db( "cardPriceApp" );
-        const collection = db.collection( "priceHistory" );
 
-        // Fetch existing price history
-        const history = await collection.findOne( { cardId: { $eq: cardId }, setCode: { $eq: setCode } } );
+        // 🔍 Check if price history exists
+        let priceHistoryDoc = await db.collection( "priceHistory" ).findOne( { cardId } );
 
-        if ( history ) {
-            const lastUpdate = new Date( history.lastUpdated );
-            const now = new Date();
+        if ( !priceHistoryDoc ) {
+            console.log( `⚠️ No price history found for ${ cardId }, fetching current price...` );
 
-            // Check if 12 hours have passed since last update
-            if ( ( now - lastUpdate ) / ( 1000 * 60 * 60 ) < 12 ) {
-                return res.status( 200 ).json( { priceHistory: history.history } );
+            // 🔄 Fetch the current price from external API
+            const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ cardId }&tcgplayer_data=true`;
+            const response = await fetch( url );
+            const data = await response.json();
+
+            if ( !data || !data.data || data.data.length === 0 ) {
+                await client.close();
+                return res.status( 404 ).json( { error: "Card not found" } );
             }
+
+            const card = data.data[ 0 ]; // Extract first item
+            const initialPrice = parseFloat( card.card_prices?.[ 0 ]?.tcgplayer_price || 0 );
+            const rarity = card.card_sets?.[ 0 ]?.set_rarity || "Unknown";
+            const printing = card.card_sets?.[ 0 ]?.set_edition || "Unknown Edition";
+
+            if ( isNaN( initialPrice ) ) {
+                console.error( "❌ Failed to extract a valid price." );
+                await client.close();
+                return res.status( 500 ).json( { error: "Invalid price data" } );
+            }
+
+            // 🆕 Store the new price history entry
+            priceHistoryDoc = {
+                cardId,
+                setName,
+                number,
+                rarity,
+                printing,
+                history: [ { date: new Date().toISOString(), price: initialPrice } ],
+            };
+
+            await db.collection( "priceHistory" ).insertOne( priceHistoryDoc );
+            console.log( `✅ Created initial price history for ${ cardId }` );
         }
 
-        // Fetch current price from API
-        const response = await fetch( `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ cardId }&tcgplayer_data=true` );
-        const data = await response.json();
-
-        if ( !data.data || data.data.length === 0 ) {
-            return res.status( 404 ).json( { error: "Card not found" } );
-        }
-
-        // Find the selected set's price
-        const selectedSet = data.data[ 0 ].card_sets.find( ( set ) => set.set_code === setCode );
-        if ( !selectedSet ) {
-            return res.status( 404 ).json( { error: "Set not found for this card" } );
-        }
-
-        const newPriceEntry = { date: new Date().toISOString(), price: parseFloat( selectedSet.set_price ) || 0 };
-
-        // Update or insert price history
-        await collection.updateOne(
-            { cardId: { $eq: cardId }, setCode: { $eq: setCode } },
-            {
-                $set: { lastUpdated: new Date().toISOString() },
-                $push: { history: { $each: [ newPriceEntry ], $position: 0 } },
-            },
-            { upsert: true }
-        );
-
-        res.status( 200 ).json( { priceHistory: history ? [ ...history.history, newPriceEntry ] : [ newPriceEntry ] } );
-    } catch ( error ) {
-        console.error( "Database Error:", error );
-        res.status( 500 ).json( { error: "Internal Server Error" } );
-    } finally {
         await client.close();
+        res.status( 200 ).json( { priceHistory: priceHistoryDoc.history } );
+    } catch ( error ) {
+        console.error( "❌ Database Error:", error );
+        res.status( 500 ).json( { error: "Internal Server Error" } );
     }
 }

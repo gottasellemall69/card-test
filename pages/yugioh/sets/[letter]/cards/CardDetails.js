@@ -1,100 +1,131 @@
 "use client";
 import { useEffect, useState } from "react";
+import Breadcrumb from "@/components/Navigation/Breadcrumb";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import useSWR from "swr";
-import Breadcrumb from '@/components/Navigation/Breadcrumb';
+import useSWR, { mutate } from "swr";
 import PriceHistoryChart from "@/components/Yugioh/PriceHistoryChart";
 
-const fetcher = async ( url ) => {
-  const res = await fetch( url );
-  if ( !res.ok ) throw new Error( "Failed to fetch data" );
-  return res.json();
-};
+const fetcher = ( url ) => fetch( url ).then( ( res ) => res.json() );
 
 const CardDetails = () => {
   const router = useRouter();
-  const { card, letter, setName } = router.query;
-  const [ selectedSet, setSelectedSet ] = useState( "" );
+  const { card, name, letter, setName } = router.query;
+  const cardId = card?.toString();
 
-  // Fetch card details
+  // ✅ Fetch card data
   const { data: cardData, error: cardError } = useSWR(
-    card ? `/api/Yugioh/card/${ encodeURIComponent( card ) }` : null,
+    card ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }` : null,
     fetcher
   );
 
-  // Fetch price history for selected set
-  const { data: priceHistoryData, error: priceError } = useSWR(
-    card && selectedSet
-      ? `/api/Yugioh/card/${ encodeURIComponent( card ) }/price-history?set=${ encodeURIComponent( selectedSet ) }`
-      : null,
+  // ✅ Fetch price history
+  const { data: priceHistoryData } = useSWR(
+    cardId ? `/api/Yugioh/card/${ cardId }/price-history` : null,
     fetcher
   );
+
+  const [ hasStoredPrice, setHasStoredPrice ] = useState( false );
 
   useEffect( () => {
-    if ( cardData?.card_sets?.length > 0 ) {
-      setSelectedSet( cardData.card_sets[ 0 ]?.set_code );
+    const storePrice = async () => {
+      console.log( "🔍 cardData before sending request:", cardData );
+
+      if ( !cardData || !cardData.id ) {
+        console.error( "❌ cardData is missing or undefined!" );
+        return;
+      }
+
+      // Extract correct set details from first available set
+      const firstSet = cardData?.card_sets?.[ 0 ] || {};
+      const price = parseFloat( cardData?.card_prices?.[ 0 ]?.tcgplayer_price || 0 );
+
+      // Check if the price is valid
+      if ( isNaN( price ) || price === 0 ) {
+        console.error( "❌ Invalid price, skipping update:", price );
+        return;
+      }
+
+      const priceUpdatePayload = {
+        cardId: cardData.id,
+        newPrice: price,
+      };
+
+      console.log( "📤 Sending price update payload:", priceUpdatePayload );
+
+      try {
+        const response = await fetch( `/api/Yugioh/card/${ cardId }/update-price`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify( priceUpdatePayload ),
+        } );
+
+        const data = await response.json();
+
+        if ( response.ok ) {
+          console.log( "✅ Price updated." );
+          setHasStoredPrice( true );
+        } else {
+          console.error( "❌ Failed to update price:", data.error );
+        }
+      } catch ( error ) {
+        console.error( "❌ Error updating price:", error );
+      }
+    };
+
+    if ( !hasStoredPrice && cardData ) {
+      storePrice();
     }
-  }, [ cardData ] );
+  }, [ cardData, hasStoredPrice ] );
 
   if ( cardError ) return <div>Error loading card data.</div>;
-  if ( !cardData ) return <div>Loading...</div>;
+  if ( !cardData ) return <div>Loading card data...</div>;
 
   return (
-    <div>
-      <div>
-        <Breadcrumb>
-          <Link href="/yugioh">Alphabetical Index</Link>
-          <Link href={ `/yugioh/${ letter }/sets` }>Sets by Letter: { letter }</Link>
-          <Link href={ `/yugioh/sets/${ letter }/cards/${ setName }` }>Cards in Set: { setName }</Link>
-          <div><p><span className="text-black">Card Details: { cardData.name }</span></p></div>
-        </Breadcrumb>
-      </div>
+    <>
+      <Breadcrumb>
+        <Link href="/yugioh">Alphabetical Index</Link>
+        <Link href={ `/yugioh/${ letter }/sets` }>Sets by Letter: { letter }</Link>
+        <Link href={ `/yugioh/sets/${ letter }/cards/${ setName }` }>Cards in Set: { setName }</Link>
+        <div><p><span className="text-black">Card Details: { cardData.name }</span></p></div>
+      </Breadcrumb>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
         <div className="p-6 text-white rounded-md shadow-md glass text-shadow">
           <h1 className="text-2xl font-bold mb-4">{ cardData.name }</h1>
-          <p><strong>Type:</strong> { cardData.type }</p>
-          <p><strong>Description:</strong> { cardData.desc }</p>
-          <p><strong>Race:</strong> { cardData.race }</p>
-          <p><strong>Archetype:</strong> { cardData.archetype || "N/A" }</p>
-
-          {/* 🔹 Display All Sets and Prices */ }
-          <div className="mt-4 hidden">
-            <h2 className="text-lg font-bold">Available Sets</h2>
-            <ul className="list-disc pl-5">
-              { cardData.card_sets?.map( ( set ) => (
-                <li key={ `${ set.set_code }-${ set.set_edition }` }>
-                  <span className="font-semibold">{ set.set_name }</span> ({ set.set_code } - { set.set_edition }) -:
-                  <span className="ml-2 text-green-400">${ set.set_price || "N/A" }</span>
-                </li>
-              ) ) }
-            </ul>
-          </div>
-
-          {/* 🔹 Set Selector */ }
-          <div className="mt-4">
-            <label className="font-bold">Select Set:</label>
-            <select
-              className="ml-2 p-2 bg-gray-800 text-white border rounded w-full max-w-fit"
-              value={ selectedSet }
-              onChange={ ( e ) => setSelectedSet( e.target.value ) }
-            >
-              { cardData.card_sets.map( ( set ) => (
-                <option key={ `${ set.set_code }-${ set.set_edition }` } value={ set.set_code }>
-                  { set.set_name } ({ set.set_code } - { set.set_edition })
-                </option>
-              ) ) }
-            </select>
-          </div>
-
-
+          <p><span className="font-bold">Type:</span> { cardData.type }</p>
+          <p><span className="font-bold">Description:</span> { cardData.desc }</p>
+          <p><span className="font-bold">Race:</span> { cardData.race }</p>
+          <p><span className="font-bold">Archetype:</span> { cardData.archetype }</p>
+          <h2 className="text-lg font-bold mt-4">Set Details</h2>
+          <ul className='text-nowrap inline-flex flex-wrap flex-col sm:flex-row gap-5'>
+            { cardData.card_sets?.map( ( set, index ) => (
+              <li key={ index }>
+                <p><span className="font-bold">Set:</span> { set.set_name }</p>
+                <p><span className="font-bold">Number:</span> { set.set_code }</p>
+                <p className="border-b-2 border-b-white divide-y-2 w-[80%] pb-2">
+                  <span className="font-bold mb-2.5">Price:</span>
+                  { cardData?.card_prices?.[ 0 ]?.tcgplayer_price ? (
+                    `$${ cardData.card_prices[ 0 ].tcgplayer_price }`
+                  ) : (
+                    "N/A"
+                  ) }
+                </p>
+              </li>
+            ) ) }
+          </ul>
         </div>
-        {/* 🔹 Display the Price History Chart */ }
-        <PriceHistoryChart className="place-content-center align-middle justify-stretch h-[55%]" priceHistory={ priceHistoryData?.priceHistory || [] } />
+
+        {/* ✅ Price History Chart Panel */ }
+        <div className="p-6 glass rounded-md shadow-md">
+          <h2 className="text-lg font-bold mb-2 text-white">Price History</h2>
+          <PriceHistoryChart priceHistory={ priceHistoryData?.priceHistory || [] } />
+        </div>
       </div>
 
-    </div>
-
+      <SpeedInsights />
+    </>
   );
 };
 
