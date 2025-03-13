@@ -7,7 +7,7 @@ import cardData from '@/public/card-data/Yugioh/card_data.json';
 
 const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const router = useRouter();
-  const { card } = router.query;
+  const { cardId, card, setName } = router.query;
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
@@ -92,7 +92,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                     setName: card.setName
                   }
                 } } passHref
-                as={ `/yugioh/sets/${ card.setName.charAt( 0 ).toUpperCase() }/cards/CardDetails?card=${ encodeURIComponent( card.productName ) }` }
+                as={ `/yugioh/sets/${ card.setName.charAt( 0 ).toUpperCase() }/cards/CardDetails?card=${ encodeURIComponent( String( card.productName ) ) }` }
               >
 
                 <Image

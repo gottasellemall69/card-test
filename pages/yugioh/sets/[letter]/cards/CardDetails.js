@@ -11,8 +11,11 @@ const fetcher = ( url ) => fetch( url ).then( ( res ) => res.json() );
 
 const CardDetails = () => {
   const router = useRouter();
-  const { card, name, letter, setName } = router.query;
+  const { card, name, letter, set_name, setName, edition } = router.query;
   const cardId = card?.toString();
+
+  // ✅ Ensure query parameters are set correctly
+  const decodedSetName = set_name ? encodeURIComponent( set_name ) : "Unknown Set";
 
   // ✅ Fetch card data
   const { data: cardData, error: cardError } = useSWR(
@@ -20,64 +23,36 @@ const CardDetails = () => {
     fetcher
   );
 
-  // ✅ Fetch price history
-  const { data: priceHistoryData } = useSWR(
-    cardId ? `/api/Yugioh/card/${ cardId }/price-history` : null,
-    fetcher
-  );
-
-  const [ hasStoredPrice, setHasStoredPrice ] = useState( false );
+  // ✅ State for Selected Card Version
+  const [ selectedVersion, setSelectedVersion ] = useState( "" );
 
   useEffect( () => {
-    const storePrice = async () => {
-      console.log( "🔍 cardData before sending request:", cardData );
-
-      if ( !cardData || !cardData.id ) {
-        console.error( "❌ cardData is missing or undefined!" );
-        return;
+    if ( cardData?.card_sets ) {
+      const savedVersion = localStorage.getItem( `selectedVersion-${ cardId }` );
+      if ( savedVersion && cardData.card_sets.some( set => `${ set.set_name } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === savedVersion ) ) {
+        setSelectedVersion( savedVersion );
+      } else {
+        const defaultVersion = `${ cardData.card_sets[ 0 ].set_name } - ${ cardData.card_sets[ 0 ].set_rarity } - ${ cardData.card_sets[ 0 ].set_edition || "Unknown Edition" }`;
+        setSelectedVersion( defaultVersion );
+        localStorage.setItem( `selectedVersion-${ cardId }`, defaultVersion );
       }
-
-      // Extract correct set details from first available set
-      const firstSet = cardData?.card_sets?.[ 0 ] || {};
-      const price = parseFloat( cardData?.card_prices?.[ 0 ]?.tcgplayer_price || 0 );
-
-      // Check if the price is valid
-      if ( isNaN( price ) || price === 0 ) {
-        console.error( "❌ Invalid price, skipping update:", price );
-        return;
-      }
-
-      const priceUpdatePayload = {
-        cardId: cardData.id,
-        newPrice: price,
-      };
-
-      console.log( "📤 Sending price update payload:", priceUpdatePayload );
-
-      try {
-        const response = await fetch( `/api/Yugioh/card/${ cardId }/update-price`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify( priceUpdatePayload ),
-        } );
-
-        const data = await response.json();
-
-        if ( response.ok ) {
-          console.log( "✅ Price updated." );
-          setHasStoredPrice( true );
-        } else {
-          console.error( "❌ Failed to update price:", data.error );
-        }
-      } catch ( error ) {
-        console.error( "❌ Error updating price:", error );
-      }
-    };
-
-    if ( !hasStoredPrice && cardData ) {
-      storePrice();
     }
-  }, [ cardData, hasStoredPrice ] );
+  }, [ cardData, cardId ] );
+
+  // ✅ Handle version selection change
+  const handleVersionChange = ( e ) => {
+    const newVersion = e.target.value;
+    setSelectedVersion( newVersion );
+    localStorage.setItem( `selectedVersion-${ cardId }`, newVersion );
+  };
+
+  // ✅ Fetch price history for selected version
+  const { data: priceHistoryData } = useSWR(
+    cardId && selectedVersion
+      ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }`
+      : null,
+    fetcher
+  );
 
   if ( cardError ) return <div>Error loading card data.</div>;
   if ( !cardData ) return <div>Loading card data...</div>;
@@ -87,7 +62,7 @@ const CardDetails = () => {
       <Breadcrumb>
         <Link href="/yugioh">Alphabetical Index</Link>
         <Link href={ `/yugioh/${ letter }/sets` }>Sets by Letter: { letter }</Link>
-        <Link href={ `/yugioh/sets/${ letter }/cards/${ setName }` }>Cards in Set: { setName }</Link>
+        <Link href={ `/yugioh/sets/${ letter }/cards/${ setName }` }>Cards in Set: { decodedSetName }</Link>
         <div><p><span className="text-black">Card Details: { cardData.name }</span></p></div>
       </Breadcrumb>
 
@@ -98,29 +73,35 @@ const CardDetails = () => {
           <p><span className="font-bold">Description:</span> { cardData.desc }</p>
           <p><span className="font-bold">Race:</span> { cardData.race }</p>
           <p><span className="font-bold">Archetype:</span> { cardData.archetype }</p>
+
+          {/* 🔹 Combined Dropdown for Set, Rarity, and Edition */ }
           <h2 className="text-lg font-bold mt-4">Set Details</h2>
-          <ul className='text-nowrap inline-flex flex-wrap flex-col sm:flex-row gap-5'>
-            { cardData.card_sets?.map( ( set, index ) => (
-              <li key={ index }>
-                <p><span className="font-bold">Set:</span> { set.set_name }</p>
-                <p><span className="font-bold">Number:</span> { set.set_code }</p>
-                <p className="border-b-2 border-b-white divide-y-2 w-[80%] pb-2">
-                  <span className="font-bold mb-2.5">Price:</span>
-                  { cardData?.card_prices?.[ 0 ]?.tcgplayer_price ? (
-                    `$${ cardData.card_prices[ 0 ].tcgplayer_price }`
-                  ) : (
-                    "N/A"
-                  ) }
-                </p>
-              </li>
-            ) ) }
-          </ul>
+          <div className="mb-3">
+            <label className="block text-sm font-bold">Select Version:</label>
+            <select className="text-black p-2 rounded-md w-full" value={ selectedVersion } onChange={ handleVersionChange }>
+              { cardData.card_sets?.map( ( set, index ) => (
+                <option key={ index } value={ `${ set.set_name } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` }>
+                  { set.set_name } - { set.set_rarity } - { set.set_edition || "Unknown Edition" }
+                </option>
+              ) ) }
+            </select>
+          </div>
+
+          <p className="border-b-2 border-b-white divide-y-2 w-[80%] pb-2">
+            <span className="font-bold mb-2.5">Price:</span> $
+            { cardData.card_sets?.find( set =>
+              `${ set.set_name } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === selectedVersion
+            )?.set_price || "N/A" }
+          </p>
         </div>
 
         {/* ✅ Price History Chart Panel */ }
         <div className="p-6 glass rounded-md shadow-md">
           <h2 className="text-lg font-bold mb-2 text-white">Price History</h2>
-          <PriceHistoryChart priceHistory={ priceHistoryData?.priceHistory || [] } />
+          <PriceHistoryChart
+            priceHistory={ priceHistoryData?.priceHistory || [] }
+            selectedVersion={ selectedVersion }
+          />
         </div>
       </div>
 

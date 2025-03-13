@@ -1,17 +1,17 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-const Breadcrumb=() => {
+const Breadcrumb = () => {
   const router = useRouter();
-  const { pathname, isReady, query } = router;
+  const { pathname, isReady, query, setName, set_name } = router;
 
-  if (!isReady) return null;
+  if ( !isReady ) return null;
 
   return (
     <nav className="flex flex-wrap whitespace-break-spaces border-2 border-zinc-200 bg-white rounded-sm w-full" aria-label="Breadcrumb">
       <ol role="list" className="mx-auto sm:mx-0 sm:float-start flex flex-wrap text-wrap w-fit space-x-4 px-4 sm:px-6 lg:px-8">
 
-        {/* Home */}
+        {/* Home */ }
         <li className="flex">
           <div className="flex items-center">
             <Link href="/" className="text-gray-400 hover:text-gray-500">
@@ -23,8 +23,8 @@ const Breadcrumb=() => {
           </div>
         </li>
 
-        {/* Alphabetical Index */}
-        {pathname.startsWith('/yugioh/sets') && (
+        {/* Alphabetical Index */ }
+        { pathname.startsWith( '/yugioh/sets' ) && (
           <li className="flex">
             <div className="flex items-center">
               <svg className="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
@@ -35,46 +35,46 @@ const Breadcrumb=() => {
               </Link>
             </div>
           </li>
-        )}
+        ) }
 
-        {/* Sets by Letter */}
-        {pathname.startsWith('/yugioh/sets') && query.letter && (
+        {/* Sets by Letter */ }
+        { pathname.startsWith( '/yugioh/sets' ) && query.letter && (
           <li className="flex">
             <div className="flex items-center">
               <svg className="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
               </svg>
-              <Link href={"/yugioh/sets/[letter]"} as={`/yugioh/sets/${ query.letter }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                <span>Sets by Letter: </span> {query.letter}
+              <Link href={ "/yugioh/sets/[letter]" } as={ `/yugioh/sets/${ query.letter }` } className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                <span>Sets by Letter: </span> { query.letter }
               </Link>
             </div>
           </li>
-        )}
+        ) }
 
-        {/* Cards in Set */}
-        {pathname.startsWith('/yugioh/sets/[letter]/cards') && query.letter && query.setName && (
+        {/* Cards in Set */ }
+        { pathname.startsWith( '/yugioh/sets/[letter]/cards' ) && query.letter && query.setName && (
           <li className="flex">
             <div className="flex items-center">
               <svg className="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                 <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
               </svg>
-              <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${ query.letter }/cards/${ query.setName }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                <span>Cards in Set: </span> {query.setName}
+              <Link href={ "/yugioh/sets/[letter]/cards/[setName]" } as={ `/yugioh/sets/${ query.letter }/cards/${ query.setName }` } className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                <span>Cards in Set: </span> { query.setName }
               </Link>
             </div>
           </li>
-        )}
+        ) }
 
-        {/* Card Details */}
-        {pathname.startsWith('/yugioh/sets/') && query.card && query.letter && query.set_name && (
+        {/* Card Details */ }
+        { pathname.startsWith( '/yugioh/sets/' ) && query.card && query.letter && query.set_name && (
           <div className="flex flex-wrap flex-row">
             <li className="flex">
               <div className="flex items-center">
                 <svg className="h-full w-6 flex-shrink-0 text-gray-200" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                   <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
                 </svg>
-                <Link href={"/yugioh/sets/[letter]/cards/[setName]"} as={`/yugioh/sets/${ query.letter }/cards/${ query.set_name }`} className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                  <span>Cards in Set: </span> {query.set_name}
+                <Link href={ "/yugioh/sets/[letter]/cards/[setName]" } as={ `/yugioh/sets/${ query.letter }/cards/${ query.set_name }` } className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+                  <span>Cards in Set: </span> { query.set_name }
                 </Link>
               </div>
             </li>
@@ -84,12 +84,12 @@ const Breadcrumb=() => {
                   <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
                 </svg>
                 <span className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                  Card Details: {query.card}
+                  Card Details: { query.card }
                 </span>
               </div>
             </li>
           </div>
-        )}
+        ) }
       </ol>
     </nav>
   );
