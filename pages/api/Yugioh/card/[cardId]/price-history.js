@@ -13,7 +13,7 @@ export default async function handler( req, res ) {
         const db = client.db( "cardPriceApp" );
 
         let priceHistoryDoc = await db.collection( "priceHistory" ).findOne( {
-            cardId, setName: set, rarity, edition
+            cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, edition: { $eq: edition }
         } );
 
         if ( !priceHistoryDoc ) {
