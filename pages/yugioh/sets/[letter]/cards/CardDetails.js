@@ -9,6 +9,11 @@ import PriceHistoryChart from "@/components/Yugioh/PriceHistoryChart";
 
 const fetcher = ( url ) => fetch( url ).then( ( res ) => res.json() );
 
+const isValidCardId = (cardId) => {
+  const cardIdPattern = /^[a-zA-Z0-9_-]+$/; // Adjust the pattern as needed
+  return cardIdPattern.test(cardId);
+};
+
 const CardDetails = () => {
   const router = useRouter();
   const { card, name, letter, setName } = router.query;
@@ -55,6 +60,10 @@ const CardDetails = () => {
       console.log( "📤 Sending price update payload:", priceUpdatePayload );
 
       try {
+        if (!isValidCardId(cardId)) {
+          console.error("❌ Invalid cardId:", cardId);
+          return;
+        }
         const response = await fetch( `/api/Yugioh/card/${ cardId }/update-price`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
