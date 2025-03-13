@@ -27,7 +27,7 @@ export default async function handler( req, res ) {
 
         const priceHistoryCollection = db.collection( "priceHistory" );
 
-        const priceHistoryDoc = await priceHistoryCollection.findOne( { cardId } );
+        const priceHistoryDoc = await priceHistoryCollection.findOne( { cardId: { $eq: cardId } } );
 
         if ( !priceHistoryDoc ) {
             return res.status( 404 ).json( { error: "Card price history not found" } );
@@ -39,7 +39,7 @@ export default async function handler( req, res ) {
         ];
 
         await priceHistoryCollection.updateOne(
-            { cardId },
+            { cardId: { $eq: cardId } },
             { $set: { price: updatedHistory } }
         );
 
