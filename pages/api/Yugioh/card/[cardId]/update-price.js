@@ -19,7 +19,7 @@ export default async function handler( req, res ) {
         const priceHistoryCollection = db.collection( "priceHistory" );
 
         const existingDoc = await priceHistoryCollection.findOne( {
-            cardId, setName, rarity, edition
+            cardId: { $eq: cardId }, setName: { $eq: setName }, rarity: { $eq: rarity }, edition: { $eq: edition }
         } );
 
         if ( !existingDoc ) {
@@ -33,7 +33,7 @@ export default async function handler( req, res ) {
             await priceHistoryCollection.insertOne( newDoc );
         } else {
             await priceHistoryCollection.updateOne(
-                { cardId, setName, rarity, edition },
+                { cardId: { $eq: cardId }, setName: { $eq: setName }, rarity: { $eq: rarity }, edition: { $eq: edition } },
                 { $push: { history: { date: new Date().toISOString(), price: parseFloat( newPrice ) } } },
                 { $upsert: true },
 
