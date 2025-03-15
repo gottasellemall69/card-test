@@ -5,21 +5,21 @@ import { useCallback } from 'react';
 
 const Card = ( { cardData } ) => {
   const router = useRouter();
-  const { cardId, letter } = router.query;
+  const { cardId, letter, setName, rarity, edition } = router.query;
 
   const getLocalImagePath = useCallback( ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, [] );
 
   return (
     <div>
       <Link
-        as={ `/yugioh/sets/${ letter }/cards/CardDetails?card=${ encodeURIComponent( cardId ) }&set_name=${ encodeURIComponent( cardData.card_sets.set_name || "Unknown" ) }&rarity=${ encodeURIComponent( cardData.card_sets.rarity || "Unknown" ) }&edition=${ encodeURIComponent( cardData.card_sets.edition || "Unknown" ) }` }
+        as={ `/yugioh/sets/${ encodeURIComponent( letter ) }/cards/CardDetails` }
         href={ {
           pathname: "/yugioh/sets/[letter]/cards/CardDetails",
           query: {
             card: cardData.id,
-            set_name: cardData.card_sets.set_name || "Unknown",
-            rarity: cardData.card_sets.rarity || "Unknown",
-            edition: cardData.card_sets.edition || "Unknown",
+            set_name: setName || "Unknown",
+            rarity: rarity || "Unknown",
+            edition: edition || "Unknown",
             letter: letter
           }
         } }

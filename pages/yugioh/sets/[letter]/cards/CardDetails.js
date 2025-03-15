@@ -11,7 +11,7 @@ const fetcher = ( url ) => fetch( url ).then( ( res ) => res.json() );
 
 const CardDetails = () => {
   const router = useRouter();
-  const { card, name, letter, set_name, setName, edition } = router.query;
+  const { card, name, letter, set_name, rarity, edition } = router.query;
   const cardId = card?.toString();
 
   // ✅ Ensure query parameters are set correctly
@@ -62,9 +62,14 @@ const CardDetails = () => {
       <Breadcrumb>
         <Link href="/yugioh">Alphabetical Index</Link>
         <Link href={ `/yugioh/${ letter }/sets` }>Sets by Letter: { letter }</Link>
-        <Link href={ `/yugioh/sets/${ letter }/cards/${ setName }` }>Cards in Set: { decodedSetName }</Link>
-        <div><p><span className="text-black">Card Details: { cardData.name }</span></p></div>
+        <Link href={ `/yugioh/sets/${ letter }/cards/${ encodeURIComponent( set_name ) }` }>
+          Cards in Set: { decodeURIComponent( set_name ) }
+        </Link>
+        <div>
+          <p><span className="text-black">Card Details: { cardData.name }</span></p>
+        </div>
       </Breadcrumb>
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
         <div className="p-6 text-white rounded-md shadow-md glass text-shadow">
