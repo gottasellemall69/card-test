@@ -21,8 +21,12 @@ export default async function handler( req, res ) {
         } );
 
         // Fetch price history from "myCollection" (user-specific data)
+        if (typeof cardId !== "string") {
+            await client.close();
+            return res.status(400).json({ error: "Invalid cardId" });
+        }
         const userHistoryDoc = await db.collection( "myCollection" ).findOne(
-            { _id: cardId },
+            { _id: { $eq: cardId } },
             { projection: { priceHistory: 1 } }
         );
 
