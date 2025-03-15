@@ -5,49 +5,49 @@ import Link from "next/link";
 
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [ username, setUsername ] = useState( "" );
+  const [ password, setPassword ] = useState( "" );
+  const [ error, setError ] = useState( null );
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async ( e ) => {
     e.preventDefault();
-    setError(null);
+    setError( null );
 
-    if (!username || !password) {
-      setError("Username and password are required.");
+    if ( !username || !password ) {
+      setError( "Username and password are required." );
       return;
     }
 
     try {
-      const response = await fetch(`/api/auth/login`, {
+      const response = await fetch( `/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+        body: JSON.stringify( { username, password } ),
+      } );
 
       const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        router.push("/yugioh/my-collection");
+      if ( response.ok ) {
+        localStorage.setItem( "token", data.token );
+        router.push( "/yugioh/my-collection" );
       } else {
-        setError(data.error || "Login failed. Please try again.");
+        setError( data.error || "Login failed. Please try again." );
       }
-    } catch (err) {
-      setError("An unexpected error occurred.");
+    } catch ( err ) {
+      setError( "An unexpected error occurred." );
     }
   };
 
   return (
-    <div className="text-black min-h-screen flex flex-col items-center justify-center bg-transparent">
+    <div className="text-black min-h-screen flex flex-col items-center justify-center bg-transparent glass text-shadow">
       <h1 className="text-3xl text-white font-bold mb-6">Login</h1>
       <form
         id="login-form"
-        onSubmit={handleSubmit}
+        onSubmit={ handleSubmit }
         className="bg-transparent border text-black shadow-lg rounded-lg p-6 w-full max-w-md glass"
       >
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        { error && <p className="text-red-500 text-sm mb-4">{ error }</p> }
         <div className="mb-4 text-black">
           <label className="block text-white text-sm font-bold mb-2">
             Username
@@ -55,10 +55,10 @@ export default function LoginPage() {
           <input
             id="username"
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={ username }
+            onChange={ ( e ) => setUsername( e.target.value ) }
             className="w-full px-3 py-2 border border-black rounded-lg text-black"
-            required={true}
+            required={ true }
           />
         </div>
         <div className="mb-6">
@@ -68,10 +68,10 @@ export default function LoginPage() {
           <input
             id="pass"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={ password }
+            onChange={ ( e ) => setPassword( e.target.value ) }
             className="w-full px-3 py-2 border rounded-lg text-black"
-            required={true}
+            required={ true }
           />
         </div>
         <button
@@ -83,7 +83,7 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="mt-4 text-white">
-        Don't have an account?{" "}
+        Don't have an account?{ " " }
         <Link
           href="/register" passHref
           className="text-orange-300 underline">

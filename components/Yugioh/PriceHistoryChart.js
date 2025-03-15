@@ -1,19 +1,20 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export default function PriceHistoryChart( { priceHistory, selectedVersion } ) {
     if ( !Array.isArray( priceHistory ) || priceHistory.length === 0 ) {
         return <p className="text-white">No price history available for this version.</p>;
     }
 
-    // Format data for better display
-    const formattedData = priceHistory.map( entry => ( {
-        date: new Date( entry.date ).toLocaleDateString(),
-        price: entry.price,
-    } ) );
+    // Ensure data is sorted and formatted correctly
+    const formattedData = priceHistory
+        .map( entry => ( {
+            date: new Date( entry.date ).toLocaleDateString(), // Convert to readable date
+            price: entry.price,
+        } ) )
+        .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) ); // Ensure chronological order
 
     return (
         <div>
-            {/* Chart Title Displaying the Selected Version */ }
             <h3 className="text-white text-lg font-bold mb-2">
                 Price History for: { selectedVersion }
             </h3>

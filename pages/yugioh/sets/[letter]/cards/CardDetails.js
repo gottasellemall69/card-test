@@ -1,3 +1,5 @@
+// pages\yugioh\sets\[letter]\cards\CardDetails.js
+
 "use client";
 import { useEffect, useState } from "react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
@@ -53,6 +55,7 @@ const CardDetails = () => {
       : null,
     fetcher
   );
+
 
   if ( cardError ) return <div>Error loading card data.</div>;
   if ( !cardData ) return <div>Loading card data...</div>;

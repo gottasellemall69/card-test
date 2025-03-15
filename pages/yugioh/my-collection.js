@@ -162,7 +162,12 @@ const MyCollectionPage = ( { error } ) => {
     []
   );
 
-  const handlePageClick = useCallback( async ( page ) => setCurrentPage( page ), [] );
+  const handlePageClick = useCallback( ( page ) => {
+    const totalPages = Math.ceil( aggregatedData.length / itemsPerPage );
+    if ( page < 1 || page > totalPages ) return; // Prevent invalid pages
+    setCurrentPage( page );
+  }, [ aggregatedData, itemsPerPage ] );
+
   const toggleFilterMenu = useCallback( async () => setIsFilterMenuOpen( ( prev ) => !prev ), [] );
 
   // Update subtotal market price when aggregatedData changes
@@ -332,7 +337,7 @@ const MyCollectionPage = ( { error } ) => {
           </span>
         </div>
       </header>
-      <div className="flex flex-wrap gap-4 mb-6 glass max-w-7xl">
+      <div className="flex flex-wrap gap-4 mb-6 px-2 py-2 glass max-w-7xl z-0">
         <button
           onClick={ () => setView( 'grid' ) }
           className={ `float-start inline-flex items-center px-2 py-2 rounded-lg transition-colors ${ view === 'grid' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/80 hover:text-white/80' }` }
@@ -347,6 +352,7 @@ const MyCollectionPage = ( { error } ) => {
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="fill-current w-4 h-4 mr-2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
           <span>Table View</span>
         </button>
+
         <button
           onClick={ handleUpdatePrices }
           disabled={ isUpdatingPrices }
@@ -365,6 +371,7 @@ const MyCollectionPage = ( { error } ) => {
           aggregatedData={ aggregatedData }
           userCardList={ [] }
         />
+
         <button
           type="button"
           disabled={ false }
@@ -374,10 +381,11 @@ const MyCollectionPage = ( { error } ) => {
         </button>
       </div>
       <CardFilter
-        className="float-end contain-inline-size"
+        className="float-end z-50 relative "
         updateFilters={ handleFilterChange }
-        toggleFilterMenu={ toggleFilterMenu } />
-      <div className="mx-auto text-black w-full max-w-7xl">
+        toggleFilterMenu={ toggleFilterMenu }
+      />
+      <div className="mx-auto text-black w-full max-w-7xl z-0">
         <YugiohSearchBar
           searchTerm={ searchTerm }
           onSearch={ handleSearch } />
@@ -392,7 +400,7 @@ const MyCollectionPage = ( { error } ) => {
               handlePageClick={ handlePageClick }
             />
           </div>
-          <div className="w-full mx-auto mb-24 min-h-screen">
+          <div className="w-full mx-auto mb-24 min-h-screen z-0">
             <GridView
               aggregatedData={ paginatedData.map( card => ( {
                 ...card,
@@ -405,7 +413,7 @@ const MyCollectionPage = ( { error } ) => {
               setAggregatedData={ setAggregatedData }
             />
           </div>
-          <div className="w-fit mx-auto mb-12">
+          <div className="w-fit mx-auto mb-12 z-0">
             <YugiohPagination
               currentPage={ currentPage }
               itemsPerPage={ itemsPerPage }
