@@ -28,12 +28,6 @@ export default async function handler( req, res ) {
         set_edition: set.set_edition || "Unknown Edition",
         set_price: set.set_price
       } ) ) || [],
-      card_images: card.card_images.map( image => ( {
-        id: card.id,
-        image_url: image.image_url,
-        image_url_small: image.image_url_small,
-        image_url_cropped: image.image_url_cropped
-      } ) ),
       card_prices: card.card_prices?.[ 0 ] || {}
     };
 

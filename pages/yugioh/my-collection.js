@@ -17,7 +17,7 @@ const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
   loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
 } );
 
-const MyCollectionPage = ( { error } ) => {
+const MyCollection = ( { error } ) => {
   const router = useRouter();
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
   const [ token, setToken ] = useState( null );
@@ -52,7 +52,7 @@ const MyCollectionPage = ( { error } ) => {
         router.push( "/login" );
         return;
       }
-      // Simulate token validation or call an ${ process.env.NEXT_PUBLIC_API_URL } if needed
+
       setToken( storedToken );
       setIsAuthenticated( true );
     };
@@ -381,9 +381,11 @@ const MyCollectionPage = ( { error } ) => {
         </button>
       </div>
       <CardFilter
-        className="float-end z-50 relative "
+        className="float-end z-50 relative"
         updateFilters={ handleFilterChange }
         toggleFilterMenu={ toggleFilterMenu }
+        isFilterMenuOpen={ isFilterMenuOpen }
+        setIsFilterMenuOpen={ setIsFilterMenuOpen }
       />
       <div className="mx-auto text-black w-full max-w-7xl z-0">
         <YugiohSearchBar
@@ -444,4 +446,4 @@ const MyCollectionPage = ( { error } ) => {
   );
 };
 
-export default MyCollectionPage;
+export default MyCollection;

@@ -1,26 +1,25 @@
 import CardFilter from '@/components/Yugioh/CardFilter.js';
 import { useState } from 'react';
 
-const FiltersButton = ({ updateFilters }) => {
-  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+const FiltersButton = () => {
+  const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
 
   const openFilterMenu = () => {
-    setIsFilterMenuOpen(true);
+    setIsFilterMenuOpen( true );
   };
 
   const closeFilterMenu = () => {
-    setIsFilterMenuOpen(false);
+    setIsFilterMenuOpen( false );
   };
 
   return (
     <>
-      <button id="filterBtn" onClick={openFilterMenu}>Filter</button>
-      {isFilterMenuOpen && (
+      <button id="filterBtn" onClick={ openFilterMenu }>Filter</button>
+      { isFilterMenuOpen && (
         <div id="filterMenu">
-          <button id="closeFilterBtn" onClick={closeFilterMenu}>Close</button>
-          <CardFilter updateFilters={updateFilters} />
+          <button id="closeFilterBtn" onClick={ closeFilterMenu }>Close</button>
         </div>
-      )}
+      ) }
     </>
   );
 };

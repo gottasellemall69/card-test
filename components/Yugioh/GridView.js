@@ -20,7 +20,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
     }
   };
 
-  const handleChange = ( e, cardId, field ) => {
+  const handleChange = async ( e, cardId, field ) => {
     const { value } = e.target;
     setEditValues( ( prev ) => ( {
       ...prev,

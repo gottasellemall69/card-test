@@ -106,7 +106,9 @@ const CardsInSetPage = () => {
               key={ card.id }
               className={ `p-4 border rounded shadow transition-transform transform duration-300` }
             >
-              <Card cardData={ card } />
+              <Card
+                cardData={ card }
+              />
               { isAuthenticated && (
                 <button
                   className="mt-2 w-full px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
