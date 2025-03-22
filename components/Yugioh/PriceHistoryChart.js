@@ -1,6 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-export default function PriceHistoryChart( { priceHistory, selectedVersion } ) {
+export default function PriceHistoryChart( { selectedVersion, priceHistory } ) {
     if ( !Array.isArray( priceHistory ) || priceHistory.length === 0 ) {
         return <p className="text-white">No price history available for this version.</p>;
     }
@@ -8,10 +8,11 @@ export default function PriceHistoryChart( { priceHistory, selectedVersion } ) {
     // Ensure data is sorted and formatted correctly
     const formattedData = priceHistory
         .map( entry => ( {
-            date: new Date( entry.date ).toLocaleDateString(), // Convert to readable date
-            price: entry.price,
+            date: new Date( entry.date ).toLocaleDateString( "en-US", { month: "short", day: "numeric" } ), // Ex: Mar 17
+            price: entry.price
         } ) )
-        .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) ); // Ensure chronological order
+        .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) );
+
 
     return (
         <div>

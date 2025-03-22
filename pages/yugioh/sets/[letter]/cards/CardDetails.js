@@ -106,10 +106,8 @@ const CardDetails = () => {
         {/* ✅ Price History Chart Panel */ }
         <div className="p-6 glass rounded-md shadow-md">
           <h2 className="text-lg font-bold mb-2 text-white">Price History</h2>
-          <PriceHistoryChart
-            priceHistory={ priceHistoryData?.priceHistory || [] }
-            selectedVersion={ selectedVersion }
-          />
+          <PriceHistoryChart priceHistory={ priceHistoryData?.priceHistory || [] } selectedVersion={ selectedVersion } />
+
         </div>
       </div>
 
