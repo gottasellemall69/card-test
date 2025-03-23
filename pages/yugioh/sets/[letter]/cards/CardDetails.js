@@ -48,13 +48,20 @@ const CardDetails = () => {
     localStorage.setItem( `selectedVersion-${ cardId }`, newVersion );
   };
 
-  // ✅ Fetch price history for selected version
-  const { data: priceHistoryData } = useSWR(
+  const { data: priceHistoryData, mutate } = useSWR(
     cardId && selectedVersion
       ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }`
       : null,
     fetcher
   );
+
+  // 🔄 Force a re-fetch when the selected version changes
+  useEffect( () => {
+    if ( selectedVersion ) {
+      mutate();
+    }
+  }, [ selectedVersion, mutate ] );
+
 
 
   if ( cardError ) return <div>Error loading card data.</div>;

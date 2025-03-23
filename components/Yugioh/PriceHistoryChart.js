@@ -6,12 +6,13 @@ export default function PriceHistoryChart( { selectedVersion, priceHistory } ) {
     }
 
     // Ensure data is sorted and formatted correctly
-    const formattedData = priceHistory
+    const formattedData = [ ...priceHistory ]
         .map( entry => ( {
+            rawDate: new Date( entry.date ), // Keep raw date for sorting
             date: new Date( entry.date ).toLocaleDateString( "en-US", { month: "short", day: "numeric" } ), // Ex: Mar 17
             price: entry.price
         } ) )
-        .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) );
+        .sort( ( a, b ) => a.rawDate - b.rawDate ); // Sort using raw dates
 
 
     return (

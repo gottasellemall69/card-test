@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+
 export default async function handler( req, res ) {
     const { cardId, set, rarity, edition } = req.query;
 
@@ -13,13 +14,13 @@ export default async function handler( req, res ) {
 
         // Fetch user-specific price history from "myCollection"
         const userDoc = await db.collection( "myCollection" ).findOne(
-            { setName: set, rarity, printing: edition },
-            { projection: { priceHistory: 1, _id: 0 } }
+            { setName: { $eq: set }, rarity: { $eq: rarity }, printing: { $eq: edition } },
+            { projection: { priceHistory: 1 } }
         );
 
         // Fetch global price history from "priceHistory"
         const globalDoc = await db.collection( "priceHistory" ).findOne(
-            { cardId, setName: set, rarity, edition },
+            { cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, printing: { $eq: edition } },
             { projection: { history: 1, _id: 0 } }
         );
 
@@ -35,10 +36,55 @@ export default async function handler( req, res ) {
             } ) )
             .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) );
 
+        // If no history exists, fetch price from YGOPRODeck API and create entry
+        if ( combinedHistory.length === 0 ) {
+            console.log( `🔍 No price history found for ${ cardId }. Fetching initial price...` );
+
+            const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent( cardId ) }&tcgplayer_data=true`;
+            const response = await fetch( url );
+            const data = await response.json(); // Wait for response before accessing data
+
+            if ( !data?.data || data.data.length === 0 ) {
+                await client.close();
+                return res.status( 404 ).json( { error: "Card not found in external API" } );
+            }
+
+            const card = data.data[ 0 ];
+            const matchingSet = card?.card_sets?.find(
+                ( s ) => s.set_name === set && s.set_rarity === rarity && s.set_edition === edition
+            );
+
+            if ( !matchingSet || !matchingSet.set_price ) {
+                await client.close();
+                return res.status( 404 ).json( { error: "Set price not available" } );
+            }
+
+            const initialPrice = parseFloat( matchingSet.set_price );
+
+            if ( isNaN( initialPrice ) ) {
+                console.error( "❌ Invalid price detected." );
+                await client.close();
+                return res.status( 500 ).json( { error: "Invalid price data" } );
+            }
+
+            // Create initial price history entry
+            const newEntry = { date: new Date().toISOString(), price: initialPrice };
+
+            await db.collection( "priceHistory" ).insertOne( {
+                cardId,
+                setName: set,
+                rarity,
+                edition,
+                history: [ newEntry ]
+            } );
+
+            combinedHistory = [ newEntry ]; // Update history for response
+        }
+
         await client.close();
-        return res.status( 200 ).json( { priceHistory: combinedHistory } );
+        res.status( 200 ).json( { priceHistory: combinedHistory } );
     } catch ( error ) {
         console.error( "❌ Database Error:", error );
-        return res.status( 500 ).json( { error: "Internal Server Error" } );
+        res.status( 500 ).json( { error: "Internal Server Error" } );
     }
 }
