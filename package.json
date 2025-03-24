@@ -31,7 +31,7 @@
         "react-table": "^7.8.0",
         "react-window": "^1.8.11",
         "recharts": "^2.15.1",
-        "repomix": "^0.2.43",
+        "repomix": "^0.3.0",
         "swr": "^2.3.3"
     },
     "devDependencies": {
