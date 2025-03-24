@@ -1,7 +1,7 @@
 // pages\yugioh\sets\[letter]\cards\CardDetails.js
 
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Link from "next/link";
@@ -48,19 +48,18 @@ const CardDetails = () => {
     localStorage.setItem( `selectedVersion-${ cardId }`, newVersion );
   };
 
-  const { data: priceHistoryData, mutate } = useSWR(
+  const { data: priceHistoryData } = useSWR(
     cardId && selectedVersion
       ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }`
       : null,
     fetcher
   );
 
-  // 🔄 Force a re-fetch when the selected version changes
-  useEffect( () => {
-    if ( selectedVersion ) {
-      mutate();
+  useMemo( () => {
+    if ( cardId && selectedVersion ) {
+      mutate( `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }` );
     }
-  }, [ selectedVersion, mutate ] );
+  }, [ selectedVersion, cardId ] );
 
 
 

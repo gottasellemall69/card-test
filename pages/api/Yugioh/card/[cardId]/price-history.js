@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient } from "mongodb";
 
 export default async function handler( req, res ) {
     const { cardId, set, rarity, edition } = req.query;
@@ -14,13 +14,13 @@ export default async function handler( req, res ) {
 
         // Fetch user-specific price history from "myCollection"
         const userDoc = await db.collection( "myCollection" ).findOne(
-            { setName: { $eq: set }, rarity: { $eq: rarity }, printing: { $eq: edition } },
-            { projection: { priceHistory: 1 } }
+            { setName: set, rarity, printing: edition },
+            { projection: { priceHistory: 1, _id: 0 } }
         );
 
         // Fetch global price history from "priceHistory"
         const globalDoc = await db.collection( "priceHistory" ).findOne(
-            { cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, printing: { $eq: edition } },
+            { cardId, setName: set, rarity, edition },
             { projection: { history: 1, _id: 0 } }
         );
 
@@ -36,15 +36,15 @@ export default async function handler( req, res ) {
             } ) )
             .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) );
 
-        // If no history exists, fetch price from YGOPRODeck API and create entry
+        // ✅ If no history exists, fetch price from YGOPRODeck API
         if ( combinedHistory.length === 0 ) {
             console.log( `🔍 No price history found for ${ cardId }. Fetching initial price...` );
 
             const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent( cardId ) }&tcgplayer_data=true`;
             const response = await fetch( url );
-            const data = await response.json(); // Wait for response before accessing data
+            const data = await response.json();
 
-            if ( !data?.data || data.data.length === 0 ) {
+            if ( !data?.data || data?.data.length === 0 ) {
                 await client.close();
                 return res.status( 404 ).json( { error: "Card not found in external API" } );
             }
@@ -67,7 +67,7 @@ export default async function handler( req, res ) {
                 return res.status( 500 ).json( { error: "Invalid price data" } );
             }
 
-            // Create initial price history entry
+            // ✅ Create initial price history entry
             const newEntry = { date: new Date().toISOString(), price: initialPrice };
 
             await db.collection( "priceHistory" ).insertOne( {
@@ -79,6 +79,42 @@ export default async function handler( req, res ) {
             } );
 
             combinedHistory = [ newEntry ]; // Update history for response
+        } else {
+            // ✅ Fetch the latest price if the last recorded date is not today
+            const lastEntry = combinedHistory[ combinedHistory.length - 1 ];
+            const lastEntryDate = new Date( lastEntry.date ).toISOString().split( "T" )[ 0 ];
+            const todayDate = new Date().toISOString().split( "T" )[ 0 ];
+
+            if ( lastEntryDate !== todayDate ) {
+                console.log( `🔍 Fetching latest price for ${ cardId }...` );
+
+                const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent( cardId ) }&tcgplayer_data=true`;
+                const response = await fetch( url );
+                const data = await response.json();
+
+                if ( data?.data?.length > 0 ) {
+                    const card = data.data[ 0 ];
+                    const matchingSet = card?.card_sets?.find(
+                        ( s ) => s.set_name === set && s.set_rarity === rarity && s.set_edition === edition
+                    );
+
+                    if ( matchingSet?.set_price ) {
+                        const latestPrice = parseFloat( matchingSet.set_price );
+
+                        if ( !isNaN( latestPrice ) ) {
+                            console.log( `✅ Adding new price entry for ${ todayDate }: $${ latestPrice }` );
+
+                            await db.collection( "priceHistory" ).updateOne(
+                                { cardId, setName: set, rarity, edition },
+                                { $push: { history: { date: new Date().toISOString(), price: latestPrice } } },
+                                { upsert: true }
+                            );
+
+                            combinedHistory.push( { date: todayDate, price: latestPrice } );
+                        }
+                    }
+                }
+            }
         }
 
         await client.close();
