@@ -14,13 +14,13 @@ export default async function handler( req, res ) {
 
         // Fetch user-specific price history from "myCollection"
         const userDoc = await db.collection( "myCollection" ).findOne(
-            { setName: set, rarity, printing: edition },
+            { setName: { $eq: set }, rarity: { $eq: rarity }, printing: { $eq: edition } },
             { projection: { priceHistory: 1, _id: 0 } }
         );
 
         // Fetch global price history from "priceHistory"
         const globalDoc = await db.collection( "priceHistory" ).findOne(
-            { cardId, setName: set, rarity, edition },
+            { cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, edition: { $eq: edition } },
             { projection: { history: 1, _id: 0 } }
         );
 
