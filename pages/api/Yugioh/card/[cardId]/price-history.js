@@ -1,7 +1,10 @@
 import { MongoClient } from "mongodb";
 
 export default async function handler( req, res ) {
-    const { cardId, set, rarity, edition } = req.query;
+    let { cardId, set, rarity, edition } = req.query;
+    if (typeof cardId !== "string") {
+        return res.status(400).json({ error: "Invalid cardId parameter" });
+    }
 
     if ( !cardId || !set || !rarity || !edition ) {
         return res.status( 400 ).json( { error: "Missing parameters: cardId, set, rarity, edition" } );
@@ -20,7 +23,7 @@ export default async function handler( req, res ) {
 
         // Fetch global price history from "priceHistory"
         const globalDoc = await db.collection( "priceHistory" ).findOne(
-            { cardId, setName: set, rarity, edition },
+            { cardId: { $eq: cardId }, setName: set, rarity, edition },
             { projection: { history: 1, _id: 0 } }
         );
 
