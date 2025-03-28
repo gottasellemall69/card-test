@@ -105,7 +105,7 @@ export default async function handler( req, res ) {
                             console.log( `✅ Adding new price entry for ${ todayDate }: $${ latestPrice }` );
 
                             await db.collection( "priceHistory" ).updateOne(
-                                { cardId, setName: set, rarity, edition },
+                                { cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, edition: { $eq: edition } },
                                 { $push: { history: { date: new Date().toISOString(), price: latestPrice } } },
                                 { upsert: true }
                             );
