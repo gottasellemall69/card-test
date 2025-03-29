@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const AlphabeticalIndex = () => {
 
@@ -26,6 +27,7 @@ const AlphabeticalIndex = () => {
           ) ) }
         </div>
       </div>
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };

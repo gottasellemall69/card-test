@@ -10,13 +10,16 @@ export default function Document() {
         <meta name="charSet" content="UTF-8" />
         <meta
           httpEquiv="Content-Security-Policy"
-          content="
-              script-src 'self' 'unsafe-inline' 'unsafe-eval' mpapi.tcgplayer.com infinite-api.tcgplayer.com card-test-ashy.vercel.app va.vercel-scripts.com db.ygoprodeck.com sportscardspro.com;
-              style-src 'self' 'unsafe-inline' card-test-ashy.vercel.app;
-              img-src 'self' images.ygoprodeck.com data:;
-              object-src 'none';
-              default-src 'self' 'unsafe-inline' mpapi.tcgplayer.com db.ygoprodeck.com sportscardspro.com card-test-ashy.vercel.app infinite-api.tcgplayer.com va.vercel-scripts.com;
-            "
+          content="script-src 'self' 'unsafe-inline' 'unsafe-eval' mpapi.tcgplayer.com infinite-api.tcgplayer.com card-test-ashy.vercel.app va.vercel-scripts.com db.ygoprodeck.com sportscardspro.com;
+                   style-src 'self' 'unsafe-inline' card-test-ashy.vercel.app;
+                   img-src 'self' images.ygoprodeck.com data:;
+                   object-src 'none';
+                   default-src 'self' 'unsafe-inline' mpapi.tcgplayer.com db.ygoprodeck.com sportscardspro.com card-test-ashy.vercel.app infinite-api.tcgplayer.com va.vercel-scripts.com;
+                   font-src 'self';
+                   base-uri 'self';
+                   form-action 'self';
+                   upgrade-insecure-requests;
+                  "
         />
       </Head>
       <>
@@ -26,7 +29,7 @@ export default function Document() {
           </div>
           <NextScript />
         </body>
-        <SpeedInsights />
+        <SpeedInsights></SpeedInsights>
       </>
     </Html>
   );

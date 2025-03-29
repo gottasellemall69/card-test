@@ -1,5 +1,6 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useSportsData } from '@/hooks/useSportsData';
 import SportsTable from '@/components/Sports/SportsTable';
 import CardSetSelector from '@/components/Sports/CardSetSelector';
@@ -8,15 +9,15 @@ import Head from 'next/head';
 import { CARD_SETS } from '@/constants/cardSets';
 
 export default function Home() {
-  const [selectedCardSet, setSelectedCardSet] = useState(CARD_SETS[0]);
+  const [ selectedCardSet, setSelectedCardSet ] = useState( CARD_SETS[ 0 ] );
   const { isLoading, sportsData, dataLoaded, error, fetchData } = useSportsData();
 
-  useEffect(() => {
-    fetchData(selectedCardSet, 1);
-  }, [selectedCardSet, fetchData]);
+  useEffect( () => {
+    fetchData( selectedCardSet, 1 );
+  }, [ selectedCardSet, fetchData ] );
 
-  const handleCardSetChange = (cardSet: string) => {
-    setSelectedCardSet(cardSet);
+  const handleCardSetChange = ( cardSet: string ) => {
+    setSelectedCardSet( cardSet );
   };
 
   return (
@@ -31,7 +32,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <h1 className="text-3xl font-bold">Sports Card Browser</h1>
             <div className="mx-auto sm:mx-0 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-              <CardSetSelector 
+              <CardSetSelector
                 value={selectedCardSet}
                 onChange={handleCardSetChange}
               />
@@ -59,6 +60,7 @@ export default function Home() {
           />
         </div>
       </div>
+      <SpeedInsights></SpeedInsights>
     </>
   );
 }

@@ -117,7 +117,7 @@ const CardDetails = () => {
         </div>
       </div>
 
-      <SpeedInsights />
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };

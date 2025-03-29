@@ -1,5 +1,6 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { cardStorage } from '@/services/cardStorage';
 import { SelectedCard } from '@/types/Card';
 import CardGrid from '@/components/Sports/SelectedCards/CardGrid';
@@ -9,36 +10,36 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 const SelectedCardsPage = () => {
-  const [cards, setCards] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('dateAdded-desc');
+  const [ cards, setCards ] = useState( [] );
+  const [ searchTerm, setSearchTerm ] = useState( '' );
+  const [ sortBy, setSortBy ] = useState( 'dateAdded-desc' );
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
+  useEffect( () => {
+    if ( typeof window !== 'undefined' ) {
       const loadedCards = cardStorage.loadCards();
-      setCards(loadedCards);
+      setCards( loadedCards );
     }
-  }, []);
+  }, [] );
 
-  const handleRemoveCard = (cardId: string) => {
-    const updatedCards = cards.filter(card => card.id !== cardId);
-    setCards(updatedCards);
-    cardStorage.saveCards(updatedCards);
+  const handleRemoveCard = ( cardId: string ) => {
+    const updatedCards = cards.filter( card => card.id !== cardId );
+    setCards( updatedCards );
+    cardStorage.saveCards( updatedCards );
   };
 
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
+  const handleSearch = ( term: string ) => {
+    setSearchTerm( term );
   };
 
-  const handleSort = (value: string) => {
-    setSortBy(value);
+  const handleSort = ( value: string ) => {
+    setSortBy( value );
   };
 
-  const filteredCards = cards.filter(card =>
-    card.productName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCards = cards.filter( card =>
+    card.productName.toLowerCase().includes( searchTerm.toLowerCase() )
   );
 
-  const sortedCards = sortCards(filteredCards, sortBy);
+  const sortedCards = sortCards( filteredCards, sortBy );
 
   return (
     <>
@@ -75,6 +76,7 @@ const SelectedCardsPage = () => {
           </div>
         </div>
       </div>
+      <SpeedInsights></SpeedInsights>
     </>
   );
 };

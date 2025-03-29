@@ -33,35 +33,35 @@ export default function SideNav() {
         <ul className="inset-2">
           <li className="mb-2">
             <Link href="/" rel="noopener noreferrer">
-              <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-zinc-300 bg-gradient-radial to-zinc-700 from-purple-800 hover:text-white rounded">
+              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Yu-Gi-Oh! Card Prices
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/yugioh/sets/set-index" rel="noopener noreferrer">
-              <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 bg-gradient-radial to-zinc-700 from-purple-800 hover:text-white rounded">
+              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Browse Yu-Gi-Oh! Sets
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/yugioh/deck-builder" rel="noopener noreferrer">
-              <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-zinc-300 bg-gradient-radial to-zinc-700 from-purple-800 hover:text-white rounded">
+              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Yu-Gi-Oh! Deck Builder
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/sports" rel="noopener noreferrer">
-              <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-zinc-300 bg-gradient-radial to-zinc-700 from-purple-800 hover:text-white rounded">
+              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Sports Card Prices
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/yugioh/my-collection" rel="noopener noreferrer">
-              <span className="block p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-zinc-300 bg-gradient-radial to-zinc-700 from-purple-800 hover:text-white rounded">
+              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 My Collection
               </span>
             </Link>
@@ -72,7 +72,7 @@ export default function SideNav() {
             <li className="mt-4">
               <button
                 onClick={ handleLogout }
-                className="block w-full text-left p-2 text-white bg-clip-padding font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-red-700 from-zinc-800 hover:text-white rounded"
+                className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-70 hover:bg-none bg-gradient-radial to-red-700 from-zinc-800 hover:text-white rounded"
               >
                 Logout
               </button>

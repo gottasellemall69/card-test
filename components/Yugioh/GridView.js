@@ -107,19 +107,20 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                   width={ 210 }
                   height={ 320 }
                 />
-                <div className="black-overlay" />
-                <div className="details p-3 space-y-2">
-                  <h3 className="text-xl font-bold text-white text-shadow text-wrap">{ card.productName }</h3>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between"><span>Set:</span> <span>{ card.setName }</span></div>
-                    <div className="flex justify-between"><span>Number:</span> <span>{ card.number }</span></div>
-                    <div className="flex justify-between"><span>Rarity:</span> <span>{ card.rarity }</span></div>
-                    <div className="flex justify-between"><span>Printing:</span> <span>{ card.printing }</span></div>
-                    <div className="flex justify-between"><span>Condition:</span> <span>{ card.condition }</span></div>
-                    <div className="flex justify-between font-bold"><span>Old Price:</span> <span>${ card.oldPrice }</span></div>
-                    <div className="flex justify-between font-bold"><span>Price:</span> <span>${ card.marketPrice }</span></div>
-                  </div>
+                <div className="black-overlay">
+                  <div className="details p-2 text-center mx-auto">
+                    <h3 className="text-xl font-bold text-white text-shadow text-wrap my-5">{ card.productName }</h3>
+                    <div className="space-y-1 text-sm mx-auto">
+                      <div className="flex justify-evenly gap-2"><span>Set:</span> <span>{ card.setName }</span></div>
+                      <div className="flex justify-evenly gap-2"><span>Number:</span> <span>{ card.number }</span></div>
+                      <div className="flex justify-evenly gap-2"><span>Rarity:</span> <span>{ card.rarity }</span></div>
+                      <div className="flex justify-evenly gap-2"><span>Printing:</span> <span>{ card.printing }</span></div>
+                      <div className="flex justify-evenly gap-2"><span>Condition:</span> <span>{ card.condition }</span></div>
+                      <div className="flex justify-between font-bold"><span>Old Price:</span> <span>${ card.oldPrice }</span></div>
+                      <div className="flex justify-between font-bold"><span>Price:</span> <span>${ card.marketPrice }</span></div>
+                    </div>
 
+                  </div>
                 </div>
               </Link>
             </div>
