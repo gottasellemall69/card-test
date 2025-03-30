@@ -20,7 +20,7 @@ export default async function handler( req, res ) {
 
         // Fetch global price history from "priceHistory"
         const globalDoc = await db.collection( "priceHistory" ).findOne(
-            { cardId, setName: set, rarity, edition },
+            { cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, edition: { $eq: edition } },
             { projection: { history: 1, _id: 0 } }
         );
 
