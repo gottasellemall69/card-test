@@ -20,6 +20,7 @@ const RARITY_NORMALIZATION_MAP = {
   'Gold Rare': 'Gold Rare',
   'Gold Secret Rare': 'Gold Secret Rare',
   'Premium Gold Rare': 'Premium Gold Rare',
+  'Quarter Century Secret Rare': 'Quarter Century Secret Rare'
 
 
 };

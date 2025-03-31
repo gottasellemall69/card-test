@@ -4,7 +4,7 @@
 
 img
 {
-  aspect-ratio: 21 / 34;
+  aspect-ratio: 1 / 1;
   max-width: 100%;
   width: 210px;
   max-height: auto;
@@ -13,64 +13,81 @@ img
   object-position: center;
 }
 
-:root {
+:root
+{
   --glass-border: rgba(255, 255, 255, 0.18);
   --glass-bg: rgba(255, 255, 255, 0.08);
   --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
 }
 
-#cardFilterX {
+#cardFilterX
+{
   font-size: 32px;
 }
 
-@layer base {
-  body {
+@layer base
+{
+  body
+  {
     @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white;
   }
 }
 
-@layer components {
-  .glass {
+@layer components
+{
+  .glass
+  {
     @apply backdrop-blur-lg bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-xl shadow-xl;
   }
-  
-  .card {
+
+  .card
+  {
     @apply glass w-[280px] h-[480px] m-4 p-4 inline-block transition-all duration-300 hover:scale-105 hover:shadow-2xl;
   }
 
-  .wrapper {
+  .wrapper
+  {
     @apply relative w-[240px] h-[310px] rounded-lg overflow-hidden;
   }
 
-  .cover-image {
+  .cover-image
+  {
     @apply object-cover transition-transform duration-300 hover:scale-110;
   }
 
-  .black-overlay {
+  .black-overlay
+  {
     @apply absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 hover:opacity-100;
   }
 
-  .details {
+  .details
+  {
     @apply absolute bottom-0 left-0 right-0 bg-black/70 text-white transform translate-y-full transition-transform duration-300 hover:translate-y-0;
   }
 
-  .wrapper:hover .details {
+  .wrapper:hover .details
+  {
     @apply translate-y-0;
   }
 
-  .text-shadow {
+  .text-shadow
+  {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
 
-  .pagination-container {
+  .pagination-container
+  {
     @apply glass p-4;
   }
 
-  input[type="text"], input[type="number"] {
+  input[type="text"],
+  input[type="number"]
+  {
     @apply glass text-white bg-transparent border-white/20 focus:border-white/40 focus:ring-purple-500/30;
   }
 
-  .table-container {
+  .table-container
+  {
     @apply glass;
   }
 }

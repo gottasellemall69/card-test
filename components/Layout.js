@@ -35,7 +35,7 @@ export default function Layout( { children } ) {
 
       {/* Main content */ }
       <div className="flex-1 flex flex-col max-w-full mx-auto">
-        <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 top-0 z-20 lg:hidden">
+        <header className="sticky bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 top-0 z-20 lg:hidden">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-bold text-white text-shadow">
               <Link

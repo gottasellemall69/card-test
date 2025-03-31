@@ -38,7 +38,7 @@ const SetsByLetterPage = () => {
       <div key={ index } className="p-5 text-white font-medium leading-5 w-7xl">
         <Link
           className="w-fit hover:underline hover:font-semibold"
-          href="/yugioh/sets/[letter]/cards/[setName]"
+          href={ encodeURI( `/yugioh/sets/[letter]/cards/[setName]` ) }
           as={ `/yugioh/sets/${ encodeURIComponent( letter ) }/cards/${ encodeURIComponent( set.set_name ) }` }
           passHref
         >
