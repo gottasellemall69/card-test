@@ -29,39 +29,39 @@ export default function SideNav() {
 
   return (
     <>
-      <nav className="p-4">
+      <nav className="p-4 mix-blend-overlay backdrop-opacity-0">
         <ul className="inset-2">
           <li className="mb-2">
             <Link href="/" rel="noopener noreferrer">
-              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
+              <span className="glassIco block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Yu-Gi-Oh! Card Prices
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/yugioh/sets/set-index" rel="noopener noreferrer">
-              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
+              <span className="glassIco block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Browse Yu-Gi-Oh! Sets
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/yugioh/deck-builder" rel="noopener noreferrer">
-              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
+              <span className="glassIco block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Yu-Gi-Oh! Deck Builder
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/sports" rel="noopener noreferrer">
-              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
+              <span className="glassIco block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 Sports Card Prices
               </span>
             </Link>
           </li>
           <li className="mb-2">
             <Link href="/yugioh/my-collection" rel="noopener noreferrer">
-              <span className="block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
+              <span className="glassIco block w-full text-left p-2 text-white bg-clip-border font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-transparent from-purple-800 hover:text-white rounded">
                 My Collection
               </span>
             </Link>
