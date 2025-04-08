@@ -2,23 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
+@layer base
+{
+  body
+  {
     @apply bg-gradient-to-br from-purple-900 via-blue-900 to-black min-h-screen text-white;
     background-attachment: fixed;
   }
 }
 
-@layer components {
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-xl shadow-xl;
+@layer components
+{
+  .glass
+  {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-sm shadow-xl;
   }
-  
-  .button-glass {
+
+  .button-glass
+  {
     @apply glass px-4 py-2 transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
-  
-  .card-glass {
+
+  .card-glass
+  {
     @apply glass p-6 transition-all hover:bg-white/20;
   }
 }

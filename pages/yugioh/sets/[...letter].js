@@ -38,7 +38,7 @@ const SetsByLetterPage = () => {
       <div key={ index } className="p-5 text-white font-medium leading-5 w-7xl">
         <Link
           className="w-fit hover:underline hover:font-semibold"
-          href={ encodeURI( `/yugioh/sets/[letter]/cards/[setName]` ) }
+          href={ `/yugioh/sets/[letter]/cards/[setName]` }
           as={ `/yugioh/sets/${ encodeURIComponent( letter ) }/cards/${ encodeURIComponent( set.set_name ) }` }
           passHref
         >
@@ -52,7 +52,7 @@ const SetsByLetterPage = () => {
     <>
       <Breadcrumb />
       <div>
-        <h1 className="my-10 text-xl font-black">Sets Starting with { letter }</h1>
+        <h1 className="my-10 text-xl font-black text-shadow">Sets Starting with { letter }</h1>
         <div className="mx-5 flex-wrap grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row">
           { memoizedSets }
         </div>

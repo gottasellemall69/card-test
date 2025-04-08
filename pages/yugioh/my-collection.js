@@ -337,7 +337,7 @@ const MyCollection = ( { error } ) => {
           </span>
         </div>
       </header>
-      <div className="flex flex-wrap gap-4 mb-6 px-2 py-2 glass max-w-7xl z-0">
+      <div className="mx-auto flex flex-wrap gap-4 mb-6 px-2 py-2 glass max-w-7xl z-0">
         <button
           onClick={ () => setView( 'grid' ) }
           className={ `float-start inline-flex items-center px-2 py-2 rounded-lg transition-colors ${ view === 'grid' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/80 hover:text-white/80' }` }
@@ -381,7 +381,7 @@ const MyCollection = ( { error } ) => {
         </button>
       </div>
       <CardFilter
-        className="float-end z-50 relative"
+        className="mx-auto float-end z-50 relative"
         updateFilters={ handleFilterChange }
         toggleFilterMenu={ toggleFilterMenu }
         isFilterMenuOpen={ isFilterMenuOpen }

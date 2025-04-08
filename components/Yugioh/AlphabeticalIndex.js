@@ -8,16 +8,16 @@ const AlphabeticalIndex = () => {
   return (
     <>
       <div className="w-full inline-block flex-col sm:flex-row my-10 m-2 mx-auto justify-between">
-        <span className="columns-2 p-2 mx-auto">
-          <h1 className="text-2xl font-semibold mb-4 sm:text-nowrap sm:block">Alphabetical Index</h1>
-          <p className="text-base text-gray-300 italic text-pretty sm:text-nowrap sm:inline sm:mx-auto">Browse Yu-Gi-Oh! sets by letter...</p>
+        <span className="columns-2 p-2 mx-auto max-w-7xl">
+          <h1 className="text-2xl text-shadow text-center sm:text-left font-semibold mb-4 sm:text-nowrap sm:block">Alphabetical Index</h1>
+          <p className="text-base text-center sm:text-left text-gray-300 italic text-pretty sm:text-nowrap sm:inline sm:mx-auto">Browse Yu-Gi-Oh! sets by letter...</p>
         </span>
 
-        <div className="mt-5 flex flex-wrap gap-2 place-content-center md:text-nowrap">
+        <div className="mx-auto mt-5 max-w-7xl text-pretty text-shadow flex flex-wrap gap-2 place-content-center md:text-nowrap">
 
           { alphabet.split( '' ).map( ( letter ) => (
             <Link
-              href={ encodeURI( `/yugioh/sets/[...letter]` ) }
+              href={ `/yugioh/sets/[...letter]` }
               as={ `/yugioh/sets/${ encodeURIComponent( letter ) }` }
               key={ letter }
               passHref
