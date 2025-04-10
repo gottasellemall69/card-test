@@ -100,18 +100,18 @@ const CardsInSetPage = () => {
       <Breadcrumb />
       <div>
         <h1 className="my-10 text-xl font-black">Cards in { decodeURIComponent( setName ) }</h1>
-        <div className="w-full mx-auto gap-6 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="w-full mx-auto gap-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           { cards?.map( ( card ) => (
             <div
               key={ card.id }
-              className={ `p-4 border rounded shadow transition-transform transform duration-300` }
+              className={ `p-4 rounded shadow transition-transform transform duration-300` }
             >
               <Card
                 cardData={ card }
               />
               { isAuthenticated && (
                 <button
-                  className="mt-2 w-full px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
+                  className="flex mt-2 max-w-fit mx-auto justify-center px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
                   onClick={ () => openModal( card ) }
                 >
                   Add to Collection

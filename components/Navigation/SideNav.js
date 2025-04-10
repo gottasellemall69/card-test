@@ -29,7 +29,7 @@ export default function SideNav() {
 
   return (
     <>
-      <nav className="p-4 mix-blend-overlay backdrop-opacity-0">
+      <nav className="p-4 mix-blend-overlay backdrop-opacity-0 z-50">
         <ul className="inset-2">
           <li className="navButton mb-2 rounded">
             <Link href="/" rel="noopener noreferrer">

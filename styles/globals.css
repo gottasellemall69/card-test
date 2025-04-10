@@ -29,7 +29,7 @@
 .navButton a:hover::before
 {
   transform: scale(1);
-  box-shadow: 0 0 15px #fffeee;
+  box-shadow: 0 0 10px #fffeee;
 }
 
 .navButton a:hover
@@ -79,7 +79,7 @@ img
 
   .card
   {
-    @apply glass w-[280px] h-[480px] m-4 p-4 inline-block transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+    @apply w-[280px] h-[480px] m-4 p-4 inline-block transition-all duration-300 hover:scale-105 hover:shadow-2xl;
   }
 
   .wrapper
@@ -279,5 +279,5 @@ img
 
 .text-shadow
 {
-  text-shadow: 3px 1px 7px rgba(0, 0, 0, 1);
+  text-shadow: 3px 1px 5px rgba(0, 0, 0, 1);
 }

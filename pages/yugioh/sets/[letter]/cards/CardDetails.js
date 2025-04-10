@@ -74,9 +74,9 @@ const CardDetails = () => {
         <Link href={ `/yugioh/sets/${ letter }/cards/${ encodeURIComponent( set_name ) }` }>
           Cards in Set: { decodeURIComponent( set_name ) }
         </Link>
-        <div>
-          <p><span className="text-black">Card Details: { cardData.name }</span></p>
-        </div>
+
+        <Link href={ `#` } className="text-shadow">Card Details: { cardData.name }</Link>
+
       </Breadcrumb>
 
 

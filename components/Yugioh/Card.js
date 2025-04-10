@@ -29,11 +29,12 @@ const Card = ( { cardData } ) => {
           <Image
             className="object-scale-down object-center w-full h-full max-h-96"
             quality={ 75 }
+            priority
             unoptimized={ true }
             src={ getLocalImagePath( cardData?.id ) }
             alt={ `Card Image - ${ cardData?.name }` }
-            width={ 210 }
-            height={ 320 }
+            width={ 1600 }
+            height={ 1600 }
           />
         </div>
       </Link>

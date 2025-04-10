@@ -14,7 +14,7 @@ const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, isLoading, 
 
   return (
     <div>
-      <div className='mx-auto object-center self-center place-content-center'>
+      <div className='mx-auto object-center self-center place-content-center z-10 text-shadow font-black'>
         { isLoading && <LoadingSpinner /> }
       </div>
       <div className='mx-auto object-center self-center place-content-center text-shadow glass'>

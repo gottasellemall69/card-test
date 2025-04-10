@@ -11,6 +11,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
+  const [ flippedCards, setFlippedCards ] = useState( {} ); // 🆕
 
   const handleEdit = ( cardId, field ) => {
     setEdit( prev => ( { ...prev, [ cardId ]: field } ) );
@@ -20,7 +21,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
     }
   };
 
-  const handleChange = async ( e, cardId, field ) => {
+  const handleChange = ( e, cardId, field ) => {
     const { value } = e.target;
     setEditValues( ( prev ) => ( {
       ...prev,
@@ -68,6 +69,10 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
     return cardInfo ? { full: getFullImagePath( cardInfo.id ) } : null;
   }, [ getFullImagePath ] );
 
+  const toggleFlip = ( id ) => {
+    setFlippedCards( prev => ( { ...prev, [ id ]: !prev[ id ] } ) );
+  };
+
   const memoizedAggregatedData = useMemo( () => aggregatedData, [ aggregatedData ] );
 
   return (
@@ -81,78 +86,91 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
         if ( !card || !card.setName ) return null;
         const cardImages = getCardImage( card.productName );
         const cardInfo = cardData.find( item => item.name === card.productName );
-        return (
-          <div key={ card._id } className="card group mx-auto">
-            <div className="wrapper">
-              <Link
-                href={ {
-                  pathname: "/yugioh/sets/[letter]/cards/CardDetails",
-                  query: {
-                    card: cardInfo?.id,
-                    letter: card.setName.charAt( 0 ).toUpperCase(),
-                    setName: card.setName
-                  }
-                } }
-                passHref
-                as={ `/yugioh/sets/${ card.setName.charAt( 0 ).toUpperCase() }/cards/CardDetails?card=${ encodeURIComponent( String( card.productName ) ) }` }
-              >
+        const isFlipped = flippedCards[ card._id ];
 
-                <Image
-                  className="cover-image"
-                  priority={ true }
-                  unoptimized={ true }
-                  src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
-                  alt={ `${ card.productName }` }
-                  quality={ 75 }
-                  width={ 210 }
-                  height={ 320 }
-                />
-                <div className="black-overlay">
-                  <div className="details p-2 text-center mx-auto">
-                    <h3 className="text-xl font-bold text-white text-shadow text-wrap my-5">{ card.productName }</h3>
-                    <div className="space-y-1 text-sm mx-auto">
-                      <div className="flex justify-evenly gap-2"><span>Set:</span> <span>{ card.setName }</span></div>
-                      <div className="flex justify-evenly gap-2"><span>Number:</span> <span>{ card.number }</span></div>
-                      <div className="flex justify-evenly gap-2"><span>Rarity:</span> <span>{ card.rarity }</span></div>
-                      <div className="flex justify-evenly gap-2"><span>Printing:</span> <span>{ card.printing }</span></div>
-                      <div className="flex justify-evenly gap-2"><span>Condition:</span> <span>{ card.condition }</span></div>
+        return (
+          <>
+            <div
+              key={ card._id }
+              className={ `flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
+              onClick={ () => toggleFlip( card._id ) }
+            >
+              <div className="flip-card-inner">
+                {/* FRONT */ }
+                <div className="flip-card-front">
+                  <Image
+                    className="w-full h-96 aspect-video object-scale-down object-center"
+                    priority
+                    unoptimized
+                    src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
+                    alt={ `${ card.productName }` }
+                    width={ 250 }
+                    height={ 320 } />
+                </div>
+
+                {/* BACK */ }
+                <div className="flip-card-back glass text-white text-shadow p-3 overflow-auto">
+
+                  <div>
+                    <h3 className="text-xl font-bold">{ card.productName }</h3>
+                    <div className="text-sm space-y-1 mt-2 text-shadow">
+                      <div className="flex justify-between"><span>Set:</span> <span>{ card.setName }</span></div>
+                      <div className="flex justify-between"><span>Number:</span> <span>{ card.number }</span></div>
+                      <div className="flex justify-between"><span>Rarity:</span> <span>{ card.rarity }</span></div>
+                      <div className="flex justify-between"><span>Printing:</span> <span>{ card.printing }</span></div>
+                      <div className="flex justify-between"><span>Condition:</span> <span>{ card.condition }</span></div>
                       <div className="flex justify-between font-bold"><span>Old Price:</span> <span>${ card.oldPrice }</span></div>
                       <div className="flex justify-between font-bold"><span>Price:</span> <span>${ card.marketPrice }</span></div>
                     </div>
-
                   </div>
-                </div>
-              </Link>
-            </div>
-            <div className="flex justify-between items-center mb-16 mt-4">
-              <div className="text-sm">
-                <span className="text-white/60">Quantity: </span>
-                { edit[ card._id ] === 'quantity' ? (
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={ editValues[ card._id ]?.quantity || '' }
-                    onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
-                    onBlur={ () => handleSave( card._id, 'quantity' ) }
-                    className="w-16 text-center px-2 py-1 glass mx-auto"
-                  />
-                ) : (
-                  <span
-                    className="cursor-pointer hover:text-purple-300 transition-colors"
-                    onClick={ () => handleEdit( card._id, 'quantity' ) }
+                  <Link
+                    href={ {
+                      pathname: "/yugioh/sets/[letter]/cards/CardDetails",
+                      query: {
+                        card: cardInfo?.id,
+                        letter: card.setName.charAt( 0 ).toUpperCase(),
+                        setName: card.setName,
+                      },
+                    } }
+                    as={ `/yugioh/sets/${ card.setName.charAt( 0 ).toUpperCase() }/cards/CardDetails?card=${ encodeURIComponent(
+                      String( card.productName )
+                    ) }` }
+                    passHref
                   >
-                    { card.quantity }
-                  </span>
-                ) }
+                    <span>
+                      <p className='p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center hover:underline'>More Details </p></span>
+                  </Link>
+                </div>
               </div>
-              <button
-                onClick={ () => handleDelete( card._id ) }
-                className="text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
-              >
-                Delete
-              </button>
+              <div className="mx-auto flex justify-between items-center mt-4 mb-5">
+                <div className="text-sm">
+                  <span className="text-white/60">Quantity: </span>
+                  { edit[ card._id ] === 'quantity' ? (
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={ editValues[ card._id ]?.quantity || '' }
+                      onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
+                      onBlur={ () => handleSave( card._id, 'quantity' ) }
+                      className="w-16 text-center px-2 py-1 glass mx-auto" />
+                  ) : (
+                    <span
+                      className="cursor-pointer hover:text-purple-300 transition-colors"
+                      onClick={ () => handleEdit( card._id, 'quantity' ) }
+                    >
+                      { card.quantity }
+                    </span>
+                  ) }
+                </div>
+                <button
+                  onClick={ () => handleDelete( card._id ) }
+                  className="text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
+          </>
         );
       } ) }
     </div>

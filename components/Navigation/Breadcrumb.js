@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 const Breadcrumb = () => {
   const router = useRouter();
-  const { pathname, isReady, query, setName, set_name } = router;
+  const { pathname, isReady, query, card, setName, set_name } = router;
 
   if ( !isReady ) return null;
 
@@ -38,7 +38,7 @@ const Breadcrumb = () => {
         ) }
 
         {/* Sets by Letter */ }
-        { pathname.startsWith( '/yugioh/sets' ) && query.letter && (
+        { pathname.startsWith( '/yugioh/sets' ) && query?.letter && (
           <li className="flex">
             <div className="flex items-center">
               <svg className="h-full w-6 flex-shrink-0 text-white text-shadow" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
@@ -46,18 +46,18 @@ const Breadcrumb = () => {
               </svg>
               <Link
                 href={ "/yugioh/sets/[...letter]" }
-                as={ `/yugioh/sets/${ encodeURIComponent( query.letter ) }` }
+                as={ `/yugioh/sets/${ encodeURIComponent( query?.letter ) }` }
                 passHref
                 className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700"
               >
-                <span>Sets by Letter: </span> { query.letter }
+                <span>Sets by Letter: </span> { query?.letter }
               </Link>
             </div>
           </li>
         ) }
 
         {/* Cards in Set */ }
-        { pathname.startsWith( '/yugioh/sets/[letter]/cards' ) && query.letter && query.setName && (
+        { pathname.startsWith( '/yugioh/sets/[letter]/cards' ) && query?.letter && query?.setName && (
           <li className="flex">
             <div className="flex items-center">
               <svg className="h-full w-6 flex-shrink-0 text-white text-shadow" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
@@ -65,18 +65,18 @@ const Breadcrumb = () => {
               </svg>
               <Link
                 href={ "/yugioh/sets/[letter]/cards/[setName]" }
-                as={ `/yugioh/sets/${ encodeURIComponent( query.letter ) }/cards/${ encodeURIComponent( query.setName ) }` }
+                as={ `/yugioh/sets/${ encodeURIComponent( query?.letter ) }/cards/${ encodeURIComponent( query?.setName ) }` }
                 passHref
                 className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700"
               >
-                <span>Cards in Set: </span> { query.setName }
+                <span>Cards in Set: </span> { query?.setName }
               </Link>
             </div>
           </li>
         ) }
 
         {/* Card Details */ }
-        { pathname.startsWith( '/yugioh/sets/' ) && query.card && query.letter && query.set_name && (
+        { pathname.startsWith( '/yugioh/sets/' ) && query?.card && query?.letter && query?.set_name && (
           <div className="flex flex-wrap flex-row">
             <li className="flex">
               <div className="flex items-center">
@@ -85,23 +85,28 @@ const Breadcrumb = () => {
                 </svg>
                 <Link
                   href={ "/yugioh/sets/[letter]/cards/[setName]" }
-                  as={ `/yugioh/sets/${ encodeURIComponent( query.letter ) }/cards/${ encodeURIComponent( query.set_name ) }` }
+                  as={ `/yugioh/sets/${ encodeURIComponent( query?.letter ) }/cards/${ encodeURIComponent( query?.set_name ) }` }
                   passHref
                   className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700"
                 >
-                  <span>Cards in Set: </span> { query.set_name }
+                  <span>Cards in Set: </span> { query?.set_name }
                 </Link>
               </div>
             </li>
-            { pathname.startsWith( '/yugioh/sets/[letter]/cards/CardDetails' ) && query.card && (
+            { pathname.startsWith( '/yugioh/sets/[letter]/cards/' ) && query?.card && (
               <li className="flex">
                 <div className="flex items-center">
                   <svg className="h-full w-6 flex-shrink-0 text-white text-shadow" viewBox="0 0 24 44" preserveAspectRatio="none" fill="currentColor" aria-hidden="true">
                     <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
                   </svg>
-                  <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700">
-                    Card Details: { query.card }
-                  </span>
+                  <Link
+                    href={ `#` }
+                    passHref
+                    className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700">
+                    <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700">
+                      Card Details: { query?.card }
+                    </span>
+                  </Link>
                 </div>
               </li>
             ) }
