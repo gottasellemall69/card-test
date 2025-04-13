@@ -50,7 +50,6 @@
 .card:hover .wrapper
 {
   transform: perspective(750px) translateY(-5%) rotateX(3deg) translateZ(0);
-  box-shadow: 2px 35px 32px -8px rgba(0, 0, 0, 0.75);
 }
 
 .wrapper::before,

@@ -99,13 +99,14 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 {/* FRONT */ }
                 <div className="flip-card-front">
                   <Image
-                    className="w-full h-96 aspect-video object-scale-down object-center"
-                    priority
-                    unoptimized
+                    className="w-full h-96 aspect-square object-scale-down object-center"
+                    as={ "image" }
+                    priority={ true }
+                    unoptimized={ true }
                     src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
                     alt={ `${ card.productName }` }
-                    width={ 250 }
-                    height={ 320 } />
+                    width={ 1600 }
+                    height={ 1600 } />
                 </div>
 
                 {/* BACK */ }
@@ -125,14 +126,14 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                   </div>
                   <Link
                     href={ {
-                      pathname: "/yugioh/sets/[letter]/cards/CardDetails",
+                      pathname: "/yugioh/sets/[letter]/cards/card-details",
                       query: {
                         card: cardInfo?.id,
                         letter: card.setName.charAt( 0 ).toUpperCase(),
                         setName: card.setName,
                       },
                     } }
-                    as={ `/yugioh/sets/${ card.setName.charAt( 0 ).toUpperCase() }/cards/CardDetails?card=${ encodeURIComponent(
+                    as={ `/yugioh/sets/${ card.setName.charAt( 0 ).toUpperCase() }/cards/card-details?card=${ encodeURIComponent(
                       String( card.productName )
                     ) }` }
                     passHref
@@ -141,8 +142,9 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       <p className='p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center hover:underline'>More Details </p></span>
                   </Link>
                 </div>
+
               </div>
-              <div className="mx-auto flex justify-between items-center mt-4 mb-5">
+              <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm">
                 <div className="text-sm">
                   <span className="text-white/60">Quantity: </span>
                   { edit[ card._id ] === 'quantity' ? (

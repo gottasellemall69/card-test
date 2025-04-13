@@ -17,7 +17,7 @@ const AlphabeticalIndex = () => {
 
           { alphabet.split( '' ).map( ( letter ) => (
             <Link
-              href={ `/yugioh/sets/[...letter]` }
+              href={ `/yugioh/sets/letter` }
               as={ `/yugioh/sets/${ encodeURIComponent( letter ) }` }
               key={ letter }
               passHref

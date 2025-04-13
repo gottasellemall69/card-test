@@ -7,10 +7,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
 import { useState, useCallback, useEffect } from 'react';
 
-const CARD_PATH = process.env.CARD_PATH;
-const CARDS_PATH = process.env.CARDS_PATH;
-const SET_NAME_ID_PATH = process.env.SET_NAME_ID_PATH;
-
 // Example card list data
 const exampleCardList =
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition

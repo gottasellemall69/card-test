@@ -108,6 +108,10 @@ const CardsInSetPage = () => {
             >
               <Card
                 cardData={ card }
+                unoptimized={ true }
+                priority={ true }
+                width={ 1600 }
+                height={ 1600 }
               />
               { isAuthenticated && (
                 <button

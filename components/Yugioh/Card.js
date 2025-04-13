@@ -12,9 +12,9 @@ const Card = ( { cardData } ) => {
   return (
     <div>
       <Link
-        as={ `/yugioh/sets/${ encodeURIComponent( letter ) }/cards/CardDetails` }
+        as={ `/yugioh/sets/${ encodeURIComponent( letter ) }/cards/card-details?name=${ encodeURIComponent( cardData.name ) }` }
         href={ {
-          pathname: "/yugioh/sets/[letter]/cards/CardDetails",
+          pathname: "/yugioh/sets/[letter]/cards/card-details",
           query: {
             card: cardData.id,
             set_name: setName || "Unknown",
@@ -28,8 +28,9 @@ const Card = ( { cardData } ) => {
         <div className="object-center object-scale-down hover:scale-105 hover:duration-100 transition-transform">
           <Image
             className="object-scale-down object-center w-full h-full max-h-96"
+            as={ "image" }
             quality={ 75 }
-            priority
+            priority={ true }
             unoptimized={ true }
             src={ getLocalImagePath( cardData?.id ) }
             alt={ `Card Image - ${ cardData?.name }` }

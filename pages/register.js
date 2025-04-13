@@ -49,7 +49,12 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-transparent">
-      <h1 className="text-3xl font-bold mb-6">Register</h1>
+      <h1 className="text-3xl font-bold mb-3">Register</h1>
+      <span className='mb-5'>
+        <p className='text-sm max-w-prose text-nowrap text-white italic text-center'>
+          Please remember your password as there is no password recovery system in place.<br />"Write it down, or look like a clown!"
+        </p>
+      </span>
       <form
         id="reg-form"
         onSubmit={ handleSubmit }

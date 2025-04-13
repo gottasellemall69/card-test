@@ -25,6 +25,6 @@
 
   .card-glass
   {
-    @apply glass p-6 transition-all hover:bg-white/20;
+    @apply glass p-6 transition-all;
   }
 }

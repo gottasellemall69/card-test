@@ -1,4 +1,4 @@
-// pages\yugioh\sets\[letter]\cards\CardDetails.js
+// pages\yugioh\sets\[letter]\cards\card-details.js
 
 "use client";
 import { useEffect, useState, useMemo } from "react";
@@ -36,7 +36,6 @@ const CardDetails = () => {
       } else {
         const defaultVersion = `${ cardData.card_sets[ 0 ].set_name } - ${ cardData.card_sets[ 0 ].set_rarity } - ${ cardData.card_sets[ 0 ].set_edition || "Unknown Edition" }`;
         setSelectedVersion( defaultVersion );
-        localStorage.setItem( `selectedVersion-${ cardId }`, defaultVersion );
       }
     }
   }, [ cardData, cardId ] );
@@ -45,7 +44,6 @@ const CardDetails = () => {
   const handleVersionChange = ( e ) => {
     const newVersion = e.target.value;
     setSelectedVersion( newVersion );
-    localStorage.setItem( `selectedVersion-${ cardId }`, newVersion );
   };
 
   const { data: priceHistoryData } = useSWR(
@@ -68,16 +66,7 @@ const CardDetails = () => {
 
   return (
     <>
-      <Breadcrumb>
-        <Link href="/yugioh">Alphabetical Index</Link>
-        <Link href={ `/yugioh/${ letter }/sets` }>Sets by Letter: { letter }</Link>
-        <Link href={ `/yugioh/sets/${ letter }/cards/${ encodeURIComponent( set_name ) }` }>
-          Cards in Set: { decodeURIComponent( set_name ) }
-        </Link>
-
-        <Link href={ `#` } className="text-shadow">Card Details: { cardData.name }</Link>
-
-      </Breadcrumb>
+      <Breadcrumb />
 
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
