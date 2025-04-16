@@ -20,7 +20,7 @@
         "isotope-layout": "^3.0.6",
         "jsonwebtoken": "^9.0.2",
         "lodash": "^4.17.21",
-        "lucide-react": "^0.482.0",
+        "lucide-react": "^0.488.0",
         "mongodb": "^6.15.0",
         "next": "^15.3.0",
         "next-auth": "^4.24.11",
