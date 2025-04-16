@@ -1,30 +1,30 @@
 import { useState } from 'react';
 
-const CardFilter = ({ updateFilters }) => {
-  const [selectedFilters, setSelectedFilters] = useState({
+const CardFilter = ( { updateFilters } ) => {
+  const [ selectedFilters, setSelectedFilters ] = useState( {
     rarity: [],
     condition: []
-  });
+  } );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ isModalOpen, setIsModalOpen ] = useState( false );
 
-  const handleCheckboxChange = (event, filterType) => {
+  const handleCheckboxChange = ( event, filterType ) => {
     const { value, checked } = event.target;
     let updatedValues;
 
-    if (checked) {
-      updatedValues = [...selectedFilters[filterType], value];
+    if ( checked ) {
+      updatedValues = [ ...selectedFilters[ filterType ], value ];
     } else {
-      updatedValues = selectedFilters[filterType].filter((v) => v !== value);
+      updatedValues = selectedFilters[ filterType ].filter( ( v ) => v !== value );
     }
 
-    setSelectedFilters((prevState) => ({
+    setSelectedFilters( ( prevState ) => ( {
       ...prevState,
-      [filterType]: updatedValues
-    }));
+      [ filterType ]: updatedValues
+    } ) );
 
-    if (typeof updateFilters === 'function') {
-      updateFilters(filterType, updatedValues);
+    if ( typeof updateFilters === 'function' ) {
+      updateFilters( filterType, updatedValues );
     }
   };
 
@@ -50,75 +50,75 @@ const CardFilter = ({ updateFilters }) => {
 
     return (
       <div id="filters-container" className="p-4 space-y-4 text-black">
-        {filters.map((filter) => (
-          <div key={filter.id} className="text-base font-semibold">
-            <label className="block mb-2">{filter.label}:</label>
+        { filters.map( ( filter ) => (
+          <div key={ filter.id } className="text-base font-semibold">
+            <label className="block mb-2">{ filter.label }:</label>
             <div className="space-y-2">
-              {filter.values.map((value) => (
-                <div key={value} className="flex items-center space-x-2">
+              { filter.values.map( ( value ) => (
+                <div key={ value } className="flex items-center space-x-2">
                   <input
-                    id={`${ filter.id }-${ value.toLowerCase().replace(/\s/g, '-') }`}
+                    id={ `${ filter.id }-${ value.toLowerCase().replace( /\s/g, '-' ) }` }
                     type="checkbox" // Change to 'radio' for single selection
-                    value={value}
-                    checked={selectedFilters[filter.id.split('-')[0]].includes(value)}
-                    onChange={(e) => handleCheckboxChange(e, filter.id.split('-')[0])}
+                    value={ value }
+                    checked={ selectedFilters[ filter.id.split( '-' )[ 0 ] ].includes( value ) }
+                    onChange={ ( e ) => handleCheckboxChange( e, filter.id.split( '-' )[ 0 ] ) }
                   />
-                  <label htmlFor={`${ filter.id }-${ value.toLowerCase().replace(/\s/g, '-') }`}>
-                    {value}
+                  <label htmlFor={ `${ filter.id }-${ value.toLowerCase().replace( /\s/g, '-' ) }` }>
+                    { value }
                   </label>
                 </div>
-              ))}
+              ) ) }
             </div>
           </div>
-        ))}
+        ) ) }
       </div>
     );
   };
 
   return (
     <>
-      {/* Button to trigger the modal */}
+      {/* Button to trigger the modal */ }
       <button
         className="p-2 font-semibold text-black bg-white hover:bg-black hover:text-white rounded"
-        onClick={() => setIsModalOpen(true)}
+        onClick={ () => setIsModalOpen( true ) }
       >
         Open Filters
       </button>
 
-      {/* Slide-over modal */}
-      {isModalOpen && (
+      {/* Slide-over modal */ }
+      { isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-black bg-opacity-50">
-          {/* Slide-over panel */}
+          {/* Slide-over panel */ }
           <div className="w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
-            {/* Close button */}
+            {/* Close button */ }
             <div className=" justify-start flex border-b">
-              
+
               <button
                 id="cardFilterX"
-                className="text-red-600 hover:text-red-800 font-extrabold px-4"
-                onClick={() => setIsModalOpen(false)}
+                className="text-red-600 hover:text-red-800 font-semibold px-4"
+                onClick={ () => setIsModalOpen( false ) }
               >
                 X
               </button>
             </div>
 
-            {/* Filters content */}
+            {/* Filters content */ }
             <div className="overflow-y-auto h-[calc(100vh-115px)]">
-              {renderFilters()}
+              { renderFilters() }
             </div>
 
-            {/* Apply Filters Button */}
+            {/* Apply Filters Button */ }
             <div className="p-4 border-t">
               <button
                 className="w-full p-2 bg-blue-500 text-white hover:bg-blue-600 rounded"
-                onClick={() => setIsModalOpen(false)} // Close modal on applying filters
+                onClick={ () => setIsModalOpen( false ) } // Close modal on applying filters
               >
                 Apply Filters
               </button>
             </div>
           </div>
         </div>
-      )}
+      ) }
     </>
   );
 };

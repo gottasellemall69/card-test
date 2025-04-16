@@ -7,23 +7,24 @@ const Card = ( { cardData } ) => {
   const router = useRouter();
   const { cardId, letter, setName, rarity, edition } = router.query;
 
-  const getLocalImagePath = useCallback( ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, [] );
+  const getLocalImagePath = useCallback(
+    ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`,
+    []
+  );
 
   return (
     <div>
       <Link
-        as={ `/yugioh/sets/${ encodeURIComponent( letter ) }/cards/card-details?name=${ encodeURIComponent( cardData.name ) }` }
         href={ {
           pathname: "/yugioh/sets/[letter]/cards/card-details",
           query: {
-            card: cardData.id,
+            card: cardData?.id,
             set_name: setName || "Unknown",
             rarity: rarity || "Unknown",
             edition: edition || "Unknown",
-            letter: letter
-          }
+            letter: letter,
+          },
         } }
-        passHref
       >
         <div className="object-center object-scale-down hover:scale-105 hover:duration-100 transition-transform">
           <Image

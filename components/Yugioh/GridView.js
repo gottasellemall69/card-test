@@ -11,7 +11,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
-  const [ flippedCards, setFlippedCards ] = useState( {} ); // 🆕
+  const [ flippedCards, setFlippedCards ] = useState( {} );
 
   const handleEdit = ( cardId, field ) => {
     setEdit( prev => ( { ...prev, [ cardId ]: field } ) );
@@ -92,10 +92,12 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
           <>
             <div
               key={ card._id }
-              className={ `flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
-              onClick={ () => toggleFlip( card._id ) }
+              className={ `glass rounded-md flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
             >
-              <div className="flip-card-inner">
+              <div
+                className="flip-card-inner hover:cursor-pointer "
+                onClick={ () => toggleFlip( card._id ) }
+              >
                 {/* FRONT */ }
                 <div className="flip-card-front">
                   <Image
@@ -110,7 +112,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 </div>
 
                 {/* BACK */ }
-                <div className="flip-card-back glass text-white text-shadow p-3 overflow-auto">
+                <div className="flip-card-back cursor-default glass text-white text-shadow p-3 overflow-auto">
 
                   <div>
                     <h3 className="text-xl font-bold">{ card.productName }</h3>
@@ -130,23 +132,22 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       query: {
                         card: cardInfo?.id,
                         letter: card.setName.charAt( 0 ).toUpperCase(),
-                        setName: card.setName,
-                      },
+                        set_name: card.setName,
+                      }
                     } }
-                    as={ `/yugioh/sets/${ card.setName.charAt( 0 ).toUpperCase() }/cards/card-details?card=${ encodeURIComponent(
-                      String( card.productName )
-                    ) }` }
-                    passHref
                   >
-                    <span>
-                      <p className='p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center hover:underline'>More Details </p></span>
+                    <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
+                      More Details
+                    </p>
                   </Link>
+
                 </div>
 
               </div>
-              <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm">
-                <div className="text-sm">
-                  <span className="text-white/60">Quantity: </span>
+              <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm gap-4 flex-wrap">
+                {/* Quantity Editing */ }
+                <div className="text-sm text-white text-shadow">
+                  <span>Quantity: </span>
                   { edit[ card._id ] === 'quantity' ? (
                     <input
                       type="number"
@@ -154,7 +155,8 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       value={ editValues[ card._id ]?.quantity || '' }
                       onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
                       onBlur={ () => handleSave( card._id, 'quantity' ) }
-                      className="w-16 text-center px-2 py-1 glass mx-auto" />
+                      className="w-16 text-center px-2 py-1 glass mx-auto"
+                    />
                   ) : (
                     <span
                       className="cursor-pointer hover:text-purple-300 transition-colors"
@@ -164,12 +166,58 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                     </span>
                   ) }
                 </div>
-                <button
-                  onClick={ () => handleDelete( card._id ) }
-                  className="text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
-                >
-                  Delete
-                </button>
+
+                {/* Custom Delete Amount Input + Button */ }
+                <div className="text-sm text-white text-shadow flex gap-2 items-center">
+                  <span className='text-shadow text-rose-400'>Delete: </span>
+                  { edit[ card._id ] === 'deleteAmount' ? (
+                    <input
+                      type="number"
+                      min={ 1 }
+                      max={ card.quantity }
+                      value={ editValues[ card._id ]?.deleteAmount || 1 }
+                      onChange={ ( e ) =>
+                        setEditValues( ( prev ) => ( {
+                          ...prev,
+                          [ card._id ]: {
+                            ...prev[ card._id ],
+                            deleteAmount: parseInt( e.target.value ) || 1,
+                          },
+                        } ) )
+                      }
+                      onBlur={ () => {
+                        const deleteQty = editValues[ card._id ]?.deleteAmount || 1;
+                        const currentQty = card.quantity || 0;
+                        const newQty = Math.max( 0, currentQty - deleteQty );
+
+                        updateQuantity( card._id, newQty );
+
+                        // Reset input only if card remains
+                        if ( newQty > 0 ) {
+                          setEditValues( ( prev ) => ( {
+                            ...prev,
+                            [ card._id ]: {
+                              ...prev[ card._id ],
+                              deleteAmount: 1,
+                            },
+                          } ) );
+                        }
+
+                        setEdit( ( prev ) => ( { ...prev, [ card._id ]: null } ) );
+                      } }
+
+                      className="w-16 text-center px-2 py-1 glass mx-auto"
+                    />
+                  ) : (
+                    <span
+                      className="cursor-pointer hover:text-red-300 transition-colors"
+                      onClick={ () => handleEdit( card._id, 'deleteAmount' ) }
+                    >
+                      { editValues[ card._id ]?.deleteAmount || 1 }
+                    </span>
+                  ) }
+                </div>
+
               </div>
             </div>
           </>

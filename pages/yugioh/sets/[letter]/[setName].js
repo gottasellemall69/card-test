@@ -97,7 +97,9 @@ const CardsInSetPage = () => {
 
   return (
     <>
-      <Breadcrumb />
+      <Breadcrumb
+
+      />
       <div>
         <h1 className="my-10 text-xl font-black">Cards in { decodeURIComponent( setName ) }</h1>
         <div className="w-full mx-auto gap-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -108,10 +110,6 @@ const CardsInSetPage = () => {
             >
               <Card
                 cardData={ card }
-                unoptimized={ true }
-                priority={ true }
-                width={ 1600 }
-                height={ 1600 }
               />
               { isAuthenticated && (
                 <button

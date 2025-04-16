@@ -161,11 +161,10 @@ const Home = () => {
         <meta name="charset" content="UTF-8" />
 
       </Head>
-      <div className="w-full max-w-7xl mx-auto min-h-screen">
+      <div className="w-full text-center sm:text-left max-w-7xl mx-auto min-h-screen">
         <h1 className="text-4xl font-bold mb-8 text-center sm:text-left">Welcome to the thing!</h1>
-        <header className="text-center sm:w-full sm:text-left text-pretty pb-3">
+        <header className="inline-block mx-auto sm:w-full text-pretty pb-3">
           Enter a comma-separated (CSV format) list of cards below in the order of:
-          <br />
           <br />
           <span className='font-black underline underline-offset-auto'>
             [Name],[Set],[Number],[Edition],[Rarity],[Condition]
@@ -173,7 +172,7 @@ const Home = () => {
           <br />
           <p className="py-3">where the possible conditions are:</p>
 
-          <ul className="w-full max-w-prose text-center sm:text-left text-ellipsis columns-2 space-y-1 font-semibold">
+          <ul className="inline-block w-full max-w-prose text-center sm:text-left text-ellipsis columns-2 space-y-1 font-semibold">
 
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
@@ -182,24 +181,16 @@ const Home = () => {
             <li>Damaged+[Edition]</li>
           </ul>
         </header>
-        <div className="w-full max-w-prose text-center sm:text-left text-pretty">
+        <div className="inline-block w-full max-w-prose text-center sm:text-left text-pretty">
           Try it out:
           <br />
           <button
-            className="my-2 text-sm border border-white rounded-lg px-2 py-2 text-white font-bold hover:text-black hover:bg-white"
+            className="inline my-2 text-sm border border-white rounded px-2 py-2 text-white font-bold hover:text-black hover:bg-white"
             onClick={ handleLoadExampleData }>
             Load Example Data
           </button>
-          <br />
-          OR:
-          <br />
-          Browse sets by name by choosing the letter it starts with from the list below:
         </div>
-
-        <div className="mx-auto w-full max-w-7xl leading-5">
-          <AlphabeticalIndex />
-        </div>
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-7xl min-h-fit mt-10 rounded align-bottom place-self-stretch">
           <YugiohCardListInput
             collection={ collection }
             selectedRows={ selectedRows }
@@ -214,7 +205,7 @@ const Home = () => {
             setMatchedCardData={ setMatchedCardData }
           />
         </div>
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-7xl min-h-fit">
           <YugiohCardDataTable
             matchedCardData={ matchedCardData }
             setMatchedCardData={ setMatchedCardData }
