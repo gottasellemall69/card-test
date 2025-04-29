@@ -1,38 +1,39 @@
 import jwt from "jsonwebtoken";
 import clientPromise from '@/utils/mongo.js';
 
-export default async function handler(req, res) {
+export default async function handler( req, res ) {
   try {
-    const client = await clientPromise;
-    const db = client.db('cardPriceApp');
-    const collection = db.collection('myCollection');
+    // Allow token either via Authorization header or HTTP-only cookie
+    const authHeader =
+      req.headers.authorization ||
+      ( req.cookies.token ? `Bearer ${ req.cookies.token }` : undefined );
 
-    if (req.method === 'POST') {
-      const authorizationHeader = req.headers.authorization;
+    if ( !authHeader || !authHeader.startsWith( "Bearer " ) ) {
+      return res.status( 401 ).json( { error: "Unauthorized: No token provided" } );
+    }
 
-      if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
+    // Verify JWT
+    const token = authHeader.split( " " )[ 1 ];
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify( token, process.env.JWT_SECRET );
+    } catch ( error ) {
+      console.error( "Invalid token:", error );
+      return res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
+    }
+    const userId = decodedToken.username;
 
-      // Extract and verify token
-      const token = authorizationHeader.split(" ")[1];
-      let decodedToken;
+    if ( req.method === 'POST' ) {
+      const client = await clientPromise;
+      const db = client.db( 'cardPriceApp' );
+      const collection = db.collection( 'myCollection' );
 
-      try {
-        decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      } catch (error) {
-        console.error("Invalid token:", error);
-        return res.status(401).json({ error: "Unauthorized: Invalid token" });
-      }
-
-      const userId = decodedToken.username;
       const { cards } = req.body;
-
-      if (!cards || cards.length === 0) {
-        return res.status(400).json({ error: "No cards provided." });
+      if ( !cards || cards.length === 0 ) {
+        return res.status( 400 ).json( { error: "No cards provided." } );
       }
 
-      const bulkOps = cards.map((card) => ({
+      const bulkOps = cards.map( card => ( {
         updateOne: {
           filter: {
             userId,
@@ -52,17 +53,16 @@ export default async function handler(req, res) {
             },
           },
           upsert: true,
-        },
-      }));
+        }
+      } ) );
 
-      await collection.bulkWrite(bulkOps);
-
-      res.status(201).json({ message: 'Cards saved/updated successfully' });
+      await collection.bulkWrite( bulkOps );
+      res.status( 201 ).json( { message: 'Cards saved/updated successfully' } );
     } else {
-      res.status(405).json({ message: 'Method Not Allowed' });
+      res.status( 405 ).json( { message: 'Method Not Allowed' } );
     }
-  } catch (error) {
-    console.error('Error saving/updating cards:', error);
-    res.status(500).json({ message: 'Server error' });
+  } catch ( error ) {
+    console.error( 'Error saving/updating cards:', error );
+    res.status( 500 ).json( { message: 'Server error' } );
   }
 }

@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+
 
 export default function SideNav() {
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
+  const router = useRouter();
 
   useEffect( () => {
     const token = localStorage.getItem( "token" );
@@ -19,7 +22,7 @@ export default function SideNav() {
   const handleLogout = () => {
     localStorage.removeItem( "token" );
     setIsAuthenticated( false );
-    window.location.href = "/login";
+    router.push( "/login" );
   };
 
   return (

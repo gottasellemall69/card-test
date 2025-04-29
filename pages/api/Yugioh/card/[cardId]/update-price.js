@@ -7,9 +7,9 @@ export default async function handler( req, res ) {
         return res.status( 405 ).json( { error: "Method Not Allowed" } );
     }
 
-    const { cardId, setName, rarity, edition, newPrice } = req.body;
+    const { cardId, setName, number, rarity, edition, newPrice } = req.body;
 
-    if ( !cardId || !setName || !rarity || !edition || isNaN( newPrice ) ) {
+    if ( !cardId || !setName || !number || !rarity || !edition || isNaN( newPrice ) ) {
         return res.status( 400 ).json( { error: "Missing or invalid parameters" } );
     }
 
@@ -21,13 +21,14 @@ export default async function handler( req, res ) {
         const priceHistoryCollection = db.collection( "priceHistory" );
 
         const existingDoc = await priceHistoryCollection.findOne( {
-            cardId: { $eq: cardId }, setName: { $eq: setName }, rarity: { $eq: rarity }, edition: { $eq: edition }
+            cardId: { $eq: cardId }, setName: { $eq: setName }, number: { $eq: number }, rarity: { $eq: rarity }, edition: { $eq: edition }
         } );
 
         if ( !existingDoc ) {
             const newDoc = {
                 cardId,
                 setName,
+                number,
                 rarity,
                 edition,
                 history: [ { date: new Date().toISOString(), price: parseFloat( newPrice ) } ],
@@ -35,7 +36,7 @@ export default async function handler( req, res ) {
             await priceHistoryCollection.insertOne( newDoc );
         } else {
             await priceHistoryCollection.updateOne(
-                { cardId: { $eq: cardId }, setName: { $eq: setName }, rarity: { $eq: rarity }, edition: { $eq: edition } },
+                { cardId: { $eq: cardId }, setName: { $eq: setName }, number: { $eq: number }, rarity: { $eq: rarity }, edition: { $eq: edition } },
                 { $push: { history: { date: new Date().toISOString(), price: parseFloat( newPrice ) } } },
                 { $upsert: true },
 

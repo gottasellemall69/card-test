@@ -80,49 +80,29 @@ const Breadcrumb = () => {
           </li>
         ) }
 
-        { pathname.startsWith( '/yugioh/sets' ) && query?.letter && query?.set_name && (
-          <div className="flex flex-wrap flex-row">
-            <li className="flex">
-              <div className="flex items-center">
-                <svg className="h-full w-6 flex-shrink-0 text-white text-shadow" viewBox="0 0 24 44" fill="currentColor" aria-hidden="true">
-                  <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
-                </svg>
-                <Link
-                  href={ {
-                    pathname: '/yugioh/sets/[letter]/[setName]',
-                    query: { letter: query.letter, setName: query.set_name }
-                  } }
-                >
-                  <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700">
-                    Cards in Set: { query.set_name }
-                  </span>
-                </Link>
-              </div>
-            </li>
-            { pathname.startsWith( '/yugioh/sets/[letter]/cards' ) && query?.card && (
-              <li className="flex">
-                <div className="flex items-center">
-                  <svg className="h-full w-6 flex-shrink-0 text-white text-shadow" viewBox="0 0 24 44" fill="currentColor" aria-hidden="true">
-                    <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
-                  </svg>
-                  <Link
-                    href={ {
-                      pathname: '/yugioh/sets/[letter]/cards/card-details',
-                      query: {
-                        letter: query.letter,
-                        set_name: query.set_name,
-                        card: query.card
-                      }
-                    } }
-                  >
-                    <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700">
-                      Card Details: { query.card }
-                    </span>
-                  </Link>
-                </div>
-              </li>
-            ) }
-          </div>
+
+        { pathname.startsWith( '/yugioh/sets/[letter]/cards' ) && query?.card && query.setName && query.letter && (
+          <li className="flex">
+            <div className="flex items-center">
+              <svg className="h-full w-6 flex-shrink-0 text-white text-shadow" viewBox="0 0 24 44" fill="currentColor" aria-hidden="true">
+                <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
+              </svg>
+              <Link
+                href={ {
+                  pathname: '/yugioh/sets/[letter]/cards/card-details',
+                  query: {
+                    letter: query.letter,
+                    setName: query.setName,
+                    card: query.card
+                  }
+                } }
+              >
+                <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-700">
+                  Card Details: { query.card }
+                </span>
+              </Link>
+            </div>
+          </li>
         ) }
       </ol>
     </nav>

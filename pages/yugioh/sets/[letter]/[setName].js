@@ -110,6 +110,7 @@ const CardsInSetPage = () => {
             >
               <Card
                 cardData={ card }
+                as={ "image" }
               />
               { isAuthenticated && (
                 <button

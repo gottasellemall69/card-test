@@ -112,18 +112,18 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 </div>
 
                 {/* BACK */ }
-                <div className="flip-card-back cursor-default glass text-white text-shadow p-3 overflow-auto">
+                <div className="flip-card-back p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
 
                   <div>
-                    <h3 className="text-xl font-bold">{ card.productName }</h3>
+                    <h3 className="text-xl font-bold text-center">{ card.productName }</h3>
                     <div className="text-sm space-y-1 mt-2 text-shadow">
-                      <div className="flex justify-between"><span>Set:</span> <span>{ card.setName }</span></div>
-                      <div className="flex justify-between"><span>Number:</span> <span>{ card.number }</span></div>
-                      <div className="flex justify-between"><span>Rarity:</span> <span>{ card.rarity }</span></div>
-                      <div className="flex justify-between"><span>Printing:</span> <span>{ card.printing }</span></div>
-                      <div className="flex justify-between"><span>Condition:</span> <span>{ card.condition }</span></div>
-                      <div className="flex justify-between font-bold"><span>Old Price:</span> <span>${ card.oldPrice }</span></div>
-                      <div className="flex justify-between font-bold"><span>Price:</span> <span>${ card.marketPrice }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Set:</span> <span className='text-pretty text-end'>{ card.setName }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Number:</span> <span>{ card.number }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Rarity:</span> <span>{ card.rarity }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Printing:</span> <span>{ card.printing }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Condition:</span> <span>{ card.condition }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Old Price:</span> <span>${ card.oldPrice }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Price:</span> <span>${ card.marketPrice }</span></div>
                     </div>
                   </div>
                   <Link
@@ -132,7 +132,9 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       query: {
                         card: cardInfo?.id,
                         letter: card.setName.charAt( 0 ).toUpperCase(),
-                        set_name: card.setName,
+                        setName: card.setName,
+                        rarity: card.rarity,
+                        edition: card.printing,
                       }
                     } }
                   >
@@ -211,7 +213,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                   ) : (
                     <span
                       className="cursor-pointer hover:text-red-300 transition-colors"
-                      onClick={ () => handleEdit( card._id, 'deleteAmount' ) }
+                      onClick={ () => handleDelete( card._id, 'deleteAmount' ) }
                     >
                       { editValues[ card._id ]?.deleteAmount || 1 }
                     </span>

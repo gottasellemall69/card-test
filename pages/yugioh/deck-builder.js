@@ -280,6 +280,7 @@ export default function DeckBuilder() {
                       <img
                         src={ card.card_images[ 0 ].image_url }
                         alt={ card.name }
+                        as={ "image" }
                         width={ 120 }
                         height={ 160 }
                         className="m-2 rounded w-fit object-contain max-h-48 float-left ..." />

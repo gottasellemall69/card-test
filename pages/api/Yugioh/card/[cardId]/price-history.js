@@ -1,10 +1,10 @@
 import { MongoClient } from "mongodb";
 
 export default async function handler( req, res ) {
-    const { cardId, set, rarity, edition } = req.query;
+    const { cardId, set, number, rarity, edition } = req.query;
 
-    if ( !cardId || !set || !rarity || !edition ) {
-        return res.status( 400 ).json( { error: "Missing parameters: cardId, set, rarity, edition" } );
+    if ( !cardId || !set || !number || !rarity || !edition ) {
+        return res.status( 400 ).json( { error: "Missing parameters: cardId, set, number, rarity, edition" } );
     }
 
     try {
@@ -14,13 +14,13 @@ export default async function handler( req, res ) {
 
         // Fetch user-specific price history from "myCollection"
         const userDoc = await db.collection( "myCollection" ).findOne(
-            { setName: { $eq: set }, rarity: { $eq: rarity }, printing: { $eq: edition } },
+            { setName: { $eq: set }, number: { $eq: number }, rarity: { $eq: rarity }, printing: { $eq: edition } },
             { projection: { priceHistory: 1, _id: 0 } }
         );
 
         // Fetch global price history from "priceHistory"
         const globalDoc = await db.collection( "priceHistory" ).findOne(
-            { cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, edition: { $eq: edition } },
+            { cardId: { $eq: cardId }, setName: { $eq: set }, number: { $eq: number }, rarity: { $eq: rarity }, edition: { $eq: edition } },
             { projection: { history: 1, _id: 0 } }
         );
 
@@ -51,7 +51,7 @@ export default async function handler( req, res ) {
 
             const card = data.data[ 0 ];
             const matchingSet = card?.card_sets?.find(
-                ( s ) => s.set_name === set && s.set_rarity === rarity && s.set_edition === edition
+                ( s ) => s.set_name === set && s.set_code === number && s.set_rarity === rarity && s.set_edition === edition
             );
 
             if ( !matchingSet || !matchingSet.set_price ) {
@@ -73,6 +73,7 @@ export default async function handler( req, res ) {
             await db.collection( "priceHistory" ).insertOne( {
                 cardId,
                 setName: set,
+                number,
                 rarity,
                 edition,
                 history: [ newEntry ]
@@ -95,7 +96,7 @@ export default async function handler( req, res ) {
                 if ( data?.data?.length > 0 ) {
                     const card = data.data[ 0 ];
                     const matchingSet = card?.card_sets?.find(
-                        ( s ) => s.set_name === set && s.set_rarity === rarity && s.set_edition === edition
+                        ( s ) => s.set_name === set && s.set_code === number && s.set_rarity === rarity && s.set_edition === edition
                     );
 
                     if ( matchingSet?.set_price ) {
@@ -105,7 +106,7 @@ export default async function handler( req, res ) {
                             console.log( `✅ Adding new price entry for ${ todayDate }: $${ latestPrice }` );
 
                             await db.collection( "priceHistory" ).updateOne(
-                                { cardId: { $eq: cardId }, setName: { $eq: set }, rarity: { $eq: rarity }, edition: { $eq: edition } },
+                                { cardId: { $eq: cardId }, setName: { $eq: set }, number: { $eq: number }, rarity: { $eq: rarity }, edition: { $eq: edition } },
                                 { $push: { history: { date: new Date().toISOString(), price: latestPrice } } },
                                 { upsert: true }
                             );

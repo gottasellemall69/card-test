@@ -1,100 +1,65 @@
-import { useState } from 'react';
+// components/Yugioh/CardFilter.js
+import React from 'react';
 
-const CardFilter = ( { updateFilters } ) => {
-  const [ selectedFilters, setSelectedFilters ] = useState( {
-    rarity: [],
-    condition: []
-  } );
-
-  const [ isModalOpen, setIsModalOpen ] = useState( false );
-
+const CardFilter = ( {
+  filters,            // { rarity: [], condition: [] }
+  updateFilters,      // (filterType, updatedValues) => void
+  isModalOpen,        // boolean
+  setIsModalOpen      // (open: boolean) => void
+} ) => {
   const handleCheckboxChange = ( event, filterType ) => {
     const { value, checked } = event.target;
-    let updatedValues;
-
-    if ( checked ) {
-      updatedValues = [ ...selectedFilters[ filterType ], value ];
-    } else {
-      updatedValues = selectedFilters[ filterType ].filter( ( v ) => v !== value );
-    }
-
-    setSelectedFilters( ( prevState ) => ( {
-      ...prevState,
-      [ filterType ]: updatedValues
-    } ) );
-
-    if ( typeof updateFilters === 'function' ) {
-      updateFilters( filterType, updatedValues );
-    }
+    const prev = filters[ filterType ] || [];
+    const updatedValues = checked
+      ? [ ...prev, value ]
+      : prev.filter( v => v !== value );
+    updateFilters( filterType, updatedValues );
   };
 
-  const renderFilters = () => {
-    const filters = [
-      {
-        id: 'rarity-filter',
-        label: 'Rarity',
-        values: [
-          "Common / Short Print", "Rare", "Super Rare", "Ultra Rare", "Secret Rare", "Prismatic Secret Rare", "Gold Rare", "Premium Gold Rare", "Shatterfoil Rare", "Mosaic Rare", "Collector's Rare", "Starfoil Rare", "Ultimate Rare"
-        ],
-      },
-      {
-        id: 'condition-filter',
-        label: "Condition",
-        values: [
-          "Near Mint 1st Edition", "Lightly Played 1st Edition", "Moderately Played 1st Edition", "Heavily Played 1st Edition", "Damaged 1st Edition",
-          "Near Mint Limited", "Lightly Played Limited", "Moderately Played Limited", "Heavily Played Limited", "Damaged Limited",
-          "Near Mint Unlimited", "Lightly Played Unlimited", "Moderately Played Unlimited", "Heavily Played Unlimited", "Damaged Unlimited"
-        ],
-      }
-    ];
-
-    return (
-      <div id="filters-container" className="p-4 space-y-4 text-black">
-        { filters.map( ( filter ) => (
-          <div key={ filter.id } className="text-base font-semibold">
-            <label className="block mb-2">{ filter.label }:</label>
-            <div className="space-y-2">
-              { filter.values.map( ( value ) => (
-                <div key={ value } className="flex items-center space-x-2">
-                  <input
-                    id={ `${ filter.id }-${ value.toLowerCase().replace( /\s/g, '-' ) }` }
-                    type="checkbox" // Change to 'radio' for single selection
-                    value={ value }
-                    checked={ selectedFilters[ filter.id.split( '-' )[ 0 ] ].includes( value ) }
-                    onChange={ ( e ) => handleCheckboxChange( e, filter.id.split( '-' )[ 0 ] ) }
-                  />
-                  <label htmlFor={ `${ filter.id }-${ value.toLowerCase().replace( /\s/g, '-' ) }` }>
-                    { value }
-                  </label>
-                </div>
-              ) ) }
-            </div>
-          </div>
-        ) ) }
-      </div>
-    );
-  };
+  const filtersDef = [
+    {
+      id: 'rarity',
+      label: 'Rarity',
+      values: [
+        "Common / Short Print", "Rare", "Super Rare", "Ultra Rare",
+        "Secret Rare", "Prismatic Secret Rare", "Gold Rare",
+        "Premium Gold Rare", "Shatterfoil Rare", "Mosaic Rare",
+        "Collector's Rare", "Starfoil Rare", "Ultimate Rare"
+      ]
+    },
+    {
+      id: 'condition',
+      label: 'Condition',
+      values: [
+        "Near Mint 1st Edition", "Lightly Played 1st Edition",
+        "Moderately Played 1st Edition", "Heavily Played 1st Edition",
+        "Damaged 1st Edition", "Near Mint Limited", "Lightly Played Limited",
+        "Moderately Played Limited", "Heavily Played Limited", "Damaged Limited",
+        "Near Mint Unlimited", "Lightly Played Unlimited",
+        "Moderately Played Unlimited", "Heavily Played Unlimited",
+        "Damaged Unlimited"
+      ]
+    }
+  ];
 
   return (
     <>
-      {/* Button to trigger the modal */ }
+      {/* 📌 trigger button */ }
       <button
+        type="button"
         className="p-2 font-semibold text-black bg-white hover:bg-black hover:text-white rounded"
         onClick={ () => setIsModalOpen( true ) }
       >
         Open Filters
       </button>
 
-      {/* Slide-over modal */ }
       { isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-black bg-opacity-50">
-          {/* Slide-over panel */ }
           <div className="w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
-            {/* Close button */ }
-            <div className=" justify-start flex border-b">
-
+            {/* Close */ }
+            <div className="flex border-b">
               <button
-                id="cardFilterX"
+                type="button"
                 className="text-red-600 hover:text-red-800 font-semibold px-4"
                 onClick={ () => setIsModalOpen( false ) }
               >
@@ -102,16 +67,35 @@ const CardFilter = ( { updateFilters } ) => {
               </button>
             </div>
 
-            {/* Filters content */ }
-            <div className="overflow-y-auto h-[calc(100vh-115px)]">
-              { renderFilters() }
+            {/* Filters */ }
+            <div className="overflow-y-auto h-[calc(100vh-115px)] p-4 space-y-4 text-black">
+              { filtersDef.map( filter => (
+                <div key={ filter.id }>
+                  <div className="block mb-2 font-semibold">{ filter.label }:</div>
+                  <div className="space-y-2">
+                    { filter.values.map( value => (
+                      <div key={ value } className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={ `${ filter.id }-${ value }` }
+                          value={ value }
+                          checked={ filters[ filter.id ]?.includes( value ) || false }
+                          onChange={ e => handleCheckboxChange( e, filter.id ) }
+                        />
+                        <label htmlFor={ `${ filter.id }-${ value }` }>{ value }</label>
+                      </div>
+                    ) ) }
+                  </div>
+                </div>
+              ) ) }
             </div>
 
-            {/* Apply Filters Button */ }
+            {/* Apply */ }
             <div className="p-4 border-t">
               <button
+                type="button"
                 className="w-full p-2 bg-blue-500 text-white hover:bg-blue-600 rounded"
-                onClick={ () => setIsModalOpen( false ) } // Close modal on applying filters
+                onClick={ () => setIsModalOpen( false ) }
               >
                 Apply Filters
               </button>

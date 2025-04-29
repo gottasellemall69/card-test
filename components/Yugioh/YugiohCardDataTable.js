@@ -6,8 +6,6 @@ import dynamic from 'next/dynamic';
 import Notification from '@/components/Notification.js';
 const YugiohPagination = dynamic( () => import( '@/components/Yugioh/YugiohPagination.js' ), { ssr: false } );
 
-const CARDS_PATH = process.env.CARDS_PATH;
-
 const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
     const router = useRouter();
     const itemsPerPage = 30; // Adjust as needed
@@ -114,7 +112,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                 'quantity': 1
             } ) );
 
-            const response = await fetch( `${ CARDS_PATH }`, {
+            const response = await fetch( `/api/Yugioh/cards`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
@@ -163,14 +161,35 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             return;
         }
 
-        const csvContent = convertToCSV( matchedCardData );
+        // build header row + body rows
+        const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price" ];
+        const rows = matchedCardData.map( ( { card, data } ) => [
+            card?.productName,
+            card?.setName,
+            card?.number,
+            card?.printing,
+            card?.rarity,
+            card?.condition,
+            data?.marketPrice
+        ] );
+
+        // join into CSV text
+        const csvBody = headers.join( "|" ) + "\n"
+            + rows.map( r => r.map( v => `"${ v }"` ).join( "|" ) ).join( "\n" );
+
+        // prepend BOM so spreadsheet apps don’t treat “#…” lines as comments
+        const blob = new Blob( [ "\uFEFF" + csvBody ], { type: "text/csv;charset=utf-8;" } );
+        const url = URL.createObjectURL( blob );
+
         const link = document.createElement( "a" );
-        link.setAttribute( "href", csvContent );
-        link.setAttribute( "download", "yugioh_card_prices.csv" );
+        link.href = url;
+        link.download = "yugioh_card_prices.csv";
         document.body.appendChild( link );
         link.click();
         document.body.removeChild( link );
+        URL.revokeObjectURL( url );
     }, [ matchedCardData, convertToCSV ] );
+
 
     return (
         <div className="mx-auto w-full mb-10">
@@ -280,13 +299,13 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
 
                         </table>
                         <div className="max-h-fit w-full">
-                            <button className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={ downloadCSV }>
+                            <button type='button' className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={ downloadCSV }>
                                 Download CSV
                             </button>
-                            <button className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={ addToCollection }>
+                            <button type='button' className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={ addToCollection }>
                                 Add cards to collection
                             </button>
-                            <button className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={ handleGoToCollectionPage }>
+                            <button type='button' className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={ handleGoToCollectionPage }>
                                 View Collection
                             </button>
                         </div>

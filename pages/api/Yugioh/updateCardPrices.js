@@ -1,17 +1,19 @@
-import updateCardPricesLogic from '@/utils/updateCardPricesLogic'; // Move core logic to a separate file for reusability
+import updateCardPricesLogic from '@/utils/updateCardPricesLogic';
 
-export default async function handler(req, res) {
+export default async function handler( req, res ) {
   try {
-    const authorizationHeader = req.headers.authorization;
+    const authHeader =
+      req.headers.authorization ||
+      ( req.cookies.token ? `Bearer ${ req.cookies.token }` : undefined );
 
-    if (!authorizationHeader) {
-      return res.status(401).json({ error: "Unauthorized" });
+    if ( !authHeader ) {
+      return res.status( 401 ).json( { error: "Unauthorized" } );
     }
 
-    const result = await updateCardPricesLogic(authorizationHeader);
-    res.status(200).json({ message: "Prices updated successfully", result });
-  } catch (error) {
-    console.error("Error updating card prices:", error);
-    res.status(500).json({ error: error.message });
+    const result = await updateCardPricesLogic( authHeader );
+    res.status( 200 ).json( { message: "Prices updated successfully", result } );
+  } catch ( error ) {
+    console.error( "Error updating card prices:", error );
+    res.status( 500 ).json( { error: error.message } );
   }
 }

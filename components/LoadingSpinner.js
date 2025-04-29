@@ -1,7 +1,7 @@
 // @/components/LoadingSpinner.js
-const LoadingSpinner=() => {
+const LoadingSpinner = () => {
   return (
-    <div className="spinner">
+    <div className="z-50 w-96 h-96 glass backdrop-opacity-0 spinner">
       <div className="spinner-inner"></div>
     </div>
   );

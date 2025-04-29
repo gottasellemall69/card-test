@@ -3,21 +3,23 @@ import jwt from "jsonwebtoken";
 
 export default async function handler( req, res ) {
   if ( req.method === "PATCH" ) {
-    const authHeader = req.headers.authorization;
+    const authHeader =
+      req.headers.authorization ||
+      ( req.cookies.token ? `Bearer ${ req.cookies.token }` : undefined );
+
     if ( !authHeader || !authHeader.startsWith( "Bearer " ) ) {
       return res.status( 401 ).json( { message: "Unauthorized: No token provided" } );
     }
 
     const token = authHeader.split( " " )[ 1 ];
-    let userId;
-
+    let decodedToken;
     try {
-      const decodedToken = jwt.verify( token, process.env.JWT_SECRET );
-      userId = decodedToken.username;
+      decodedToken = jwt.verify( token, process.env.JWT_SECRET );
     } catch ( error ) {
       console.error( "Invalid token:", error );
       return res.status( 401 ).json( { message: "Unauthorized: Invalid token" } );
     }
+    const userId = decodedToken.username;
 
     const client = new MongoClient( process.env.MONGODB_URI );
     await client.connect();
@@ -30,7 +32,6 @@ export default async function handler( req, res ) {
         { _id: new ObjectId( cardId ), userId },
         { $set: { [ field ]: value } }
       );
-
       if ( result.modifiedCount >= 0 ) {
         res.status( 200 ).json( { message: "Card updated successfully" } );
       } else {

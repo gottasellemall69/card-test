@@ -12,10 +12,13 @@ import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), { ssr: false } );
-const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
-  ssr: false,
-  loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
-} );
+const GridView = dynamic(
+  () => import( "@/components/Yugioh/GridView" ),
+  {
+    ssr: false,
+    loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
+  }
+);
 
 const MyCollection = ( { error } ) => {
   const router = useRouter();
@@ -27,17 +30,8 @@ const MyCollection = ( { error } ) => {
   const [ initialData, setInitialData ] = useState( [] );
   const [ aggregatedData, setAggregatedData ] = useState( initialData || [] );
 
-  // States for managing data and UI
-  const [ filters, setFilters ] = useState( {
-    rarity: [],
-    condition: [],
-  } );
-
-  const [ sortConfig, setSortConfig ] = useState( {
-    key: "",
-    direction: "",
-  } );
-
+  const [ filters, setFilters ] = useState( { rarity: [], condition: [] } );
+  const [ sortConfig, setSortConfig ] = useState( { key: "", direction: "" } );
   const [ view, setView ] = useState( "grid" );
   const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
   const [ currentPage, setCurrentPage ] = useState( 1 );
@@ -52,18 +46,16 @@ const MyCollection = ( { error } ) => {
         router.push( "/login" );
         return;
       }
-
       setToken( storedToken );
       setIsAuthenticated( true );
     };
     validateAuth();
   }, [ router ] );
 
-  // Apply filters to the data
   const applyFilters = useCallback(
-    ( data ) => {
+    data => {
       if ( !filters.rarity.length && !filters.condition.length ) return data;
-      return data.filter( ( card ) => {
+      return data.filter( card => {
         return (
           ( !filters.rarity.length || filters.rarity.includes( card.rarity ) ) &&
           ( !filters.condition.length || filters.condition.includes( card.condition ) )
@@ -73,9 +65,8 @@ const MyCollection = ( { error } ) => {
     [ filters ]
   );
 
-  // Apply sorting to the data
   const applySorting = useCallback(
-    ( data ) => {
+    data => {
       if ( !sortConfig.key ) return data;
       return [ ...data ].sort( ( a, b ) => {
         if ( a[ sortConfig.key ] < b[ sortConfig.key ] ) {
@@ -92,10 +83,12 @@ const MyCollection = ( { error } ) => {
 
   const fetchData = useCallback( async () => {
     if ( !token ) return;
+    setIsLoading( true );
     try {
       const response = await fetch( `/api/Yugioh/my-collection`, {
+        method: "GET",
+        credentials: "include",
         headers: {
-          method: "GET",
           Authorization: `Bearer ${ token }`,
         },
       } );
@@ -103,9 +96,9 @@ const MyCollection = ( { error } ) => {
         throw new Error( "Failed to fetch aggregated data" );
       }
       const data = await response.json();
+      setInitialData( data );
       const filteredData = applyFilters( data );
       const sortedData = applySorting( filteredData );
-      setInitialData( data ); // Store the unfiltered data
       setAggregatedData( sortedData );
     } catch ( error ) {
       console.error( "Error fetching aggregated data:", error );
@@ -120,57 +113,54 @@ const MyCollection = ( { error } ) => {
     }
   }, [ isAuthenticated, fetchData ] );
 
-  // Handle search functionality
-  const handleSearch = useCallback( async ( searchTerm ) => {
-    setSearchTerm( searchTerm );
-    setCurrentPage( 1 );
-    if ( searchTerm === "" ) {
-      // Reset to initial data if the search is cleared
-      setAggregatedData( initialData );
-    } else {
-      const filteredData = initialData.filter( ( card ) =>
-        [ "productName", "setName", "number", "rarity", "printing", "condition" ]
-          .some( ( key ) => card[ key ]?.toLowerCase().includes( searchTerm.toLowerCase() ) )
-      );
-      setAggregatedData( filteredData );
-    }
-  }, [ initialData ] );
-
-  // Handle filter changes
-  const handleFilterChange = useCallback(
-    async ( filterName, selectedOptions ) => {
-      setFilters( ( prevFilters ) => ( {
-        ...prevFilters,
-        [ filterName ]: selectedOptions,
-      } ) );
+  const handleSearch = useCallback(
+    async searchTerm => {
+      setSearchTerm( searchTerm );
       setCurrentPage( 1 );
+      if ( searchTerm === "" ) {
+        setAggregatedData( initialData );
+      } else {
+        const filteredData = initialData.filter( card =>
+          [ "productName", "setName", "number", "rarity", "printing", "condition" ].some( key =>
+            card[ key ]?.toLowerCase().includes( searchTerm.toLowerCase() )
+          )
+        );
+        setAggregatedData( filteredData );
+      }
     },
-    []
+    [ initialData ]
   );
 
-  // Handle sorting change
-  const handleSortChange = useCallback(
-    async ( sortKey ) => {
-      setSortConfig( ( prevSortConfig ) => ( {
-        key: sortKey,
-        direction:
-          prevSortConfig.key === sortKey && prevSortConfig.direction === "ascending"
-            ? "descending"
-            : "ascending",
-      } ) );
+  const handleFilterChange = useCallback( ( filterName, selectedOptions ) => {
+    setFilters( prev => ( { ...prev, [ filterName ]: selectedOptions } ) );
+    setCurrentPage( 1 );
+
+    // apply filters to the existing initialData
+    setAggregatedData(
+      applySorting(
+        applyFilters( initialData )
+      )
+    );
+  }, [ initialData, applyFilters, applySorting ] );
+
+  const handleSortChange = useCallback( sortKey => {
+    setSortConfig( prev => ( {
+      key: sortKey,
+      direction: prev.key === sortKey && prev.direction === "ascending" ? "descending" : "ascending",
+    } ) );
+  }, [] );
+
+  const handlePageClick = useCallback(
+    page => {
+      const totalPages = Math.ceil( aggregatedData.length / itemsPerPage );
+      if ( page < 1 || page > totalPages ) return;
+      setCurrentPage( page );
     },
-    []
+    [ aggregatedData, itemsPerPage ]
   );
 
-  const handlePageClick = useCallback( ( page ) => {
-    const totalPages = Math.ceil( aggregatedData.length / itemsPerPage );
-    if ( page < 1 || page > totalPages ) return; // Prevent invalid pages
-    setCurrentPage( page );
-  }, [ aggregatedData, itemsPerPage ] );
+  const toggleFilterMenu = useCallback( () => setIsFilterMenuOpen( prev => !prev ), [] );
 
-  const toggleFilterMenu = useCallback( async () => setIsFilterMenuOpen( ( prev ) => !prev ), [] );
-
-  // Update subtotal market price when aggregatedData changes
   useEffect( () => {
     if ( Array.isArray( aggregatedData ) && aggregatedData.length ) {
       const subtotal = aggregatedData.reduce(
@@ -186,29 +176,27 @@ const MyCollection = ( { error } ) => {
       alert( "You must be logged in to update prices." );
       return;
     }
-
     setIsUpdatingPrices( true );
     try {
       const response = await fetch( `/api/Yugioh/updateCardPrices`, {
-        method: 'POST',
+        method: "POST",
+        credentials: "include",
         headers: {
           Authorization: `Bearer ${ token }`,
           "Content-Type": "application/json",
-        }
+        },
       } );
-      if ( !response.ok ) {
-        throw new Error( 'Failed to update card prices.' );
-      }
-      const result = await response.json();
-      alert( `Prices updated successfully.` );
-      await fetchData(); // Refresh collection data to reflect updated prices
+      if ( !response.ok ) throw new Error( "Failed to update card prices." );
+      await response.json();
+      alert( "Prices updated successfully." );
+      await fetchData();
     } catch ( error ) {
-      console.error( 'Error updating card prices:', error );
-      alert( 'An error occurred while updating prices. Please try again later.' );
+      console.error( "Error updating card prices:", error );
+      alert( "An error occurred while updating prices. Please try again later." );
     } finally {
       setIsUpdatingPrices( false );
     }
-  }, [ token ] );
+  }, [ token, fetchData ] );
 
   const onUpdateCard = useCallback( async ( cardId, field, value ) => {
     try {
@@ -216,33 +204,34 @@ const MyCollection = ( { error } ) => {
         alert( "You must be logged in to update cards." );
         return;
       }
-      if ( cardId && field && value !== undefined && value !== null ) {
-        const updateCard = { cardId, field, value };
-        const response = await fetch( `/api/Yugioh/updateCards`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${ token }`, // Include the user's token
-          },
-          body: JSON.stringify( updateCard ),
-        } );
-        if ( !response.ok ) {
-          throw new Error( "Failed to update card" );
-        }
-        const updatedCard = await response.json();
-        await fetchData(); // Refresh data after the update
-        setAggregatedData( ( currentData ) =>
-          currentData.map( ( card ) =>
-            card._id === cardId ? { ...card, ...updatedCard } : card
-          )
-        );
-      } else {
-        throw new Error( "Invalid cardId, field, or value" );
-      }
+      // send update
+      const response = await fetch( `/api/Yugioh/updateCards`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${ token }`,
+        },
+        body: JSON.stringify( { cardId, field, value } ),
+      } );
+      if ( !response.ok ) throw new Error( "Failed to update card" );
+
+      // OPTIMISTICALLY update local state without re-fetch
+      setAggregatedData( current =>
+        current.map( card =>
+          card._id === cardId ? { ...card, [ field ]: value } : card
+        )
+      );
+      // also update initialData so filters/search remain in sync
+      setInitialData( current =>
+        current.map( card =>
+          card._id === cardId ? { ...card, [ field ]: value } : card
+        )
+      );
     } catch ( error ) {
       console.error( "Error updating card:", error );
     }
-  }, [ fetchData, token ] );
+  }, [ token ] );
 
   const onDeleteCard = useCallback( async ( cardId ) => {
     try {
@@ -250,62 +239,51 @@ const MyCollection = ( { error } ) => {
         alert( "You must be logged in to delete cards." );
         return;
       }
-
       const response = await fetch( `/api/Yugioh/deleteCards`, {
         method: "DELETE",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${ token }`, // Include the user's token
+          Authorization: `Bearer ${ token }`,
         },
         body: JSON.stringify( { cardId } ),
       } );
+      if ( !response.ok ) throw new Error( "Failed to delete card" );
 
-      if ( !response.ok ) {
-        throw new Error( "Failed to delete card" );
-      }
-
-      await fetchData(); // Refresh data after deletion
-      setAggregatedData( ( currentData ) =>
-        currentData.filter( ( card ) => card._id !== cardId )
-      );
+      // remove from local state
+      setAggregatedData( current => current.filter( card => card._id !== cardId ) );
+      setInitialData( current => current.filter( card => card._id !== cardId ) );
     } catch ( error ) {
       console.error( "Error deleting card:", error );
     }
-  }, [ fetchData, token ] );
+  }, [ token ] );
 
   const onDeleteAllCards = useCallback( async () => {
+    if ( !token ) {
+      alert( "You must be logged in to delete all cards." );
+      return;
+    }
     try {
-      if ( !token ) {
-        alert( "You must be logged in to delete all cards." );
-        return;
-      }
-
       const response = await fetch( `/api/Yugioh/deleteAllCards`, {
         method: "DELETE",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${ token }`, // Include the user's token
+          Authorization: `Bearer ${ token }`,
         },
       } );
-
-      if ( !response.ok ) {
-        throw new Error( "Failed to delete all cards" );
-      }
-
-      await fetchData(); // Refresh data after deletion
-      setAggregatedData( [] );
+      if ( !response.ok ) throw new Error( "Failed to delete all cards" );
+      await fetchData();
     } catch ( error ) {
       console.error( "Error deleting all cards:", error );
     }
-  }, [ fetchData, token ] );
+  }, [ token, fetchData ] );
 
-  // Paginate the data
   const paginatedData = useMemo( () => {
-    const startIndex = ( currentPage - 1 ) * itemsPerPage;
-    return aggregatedData.slice( startIndex, startIndex + itemsPerPage );
+    const start = ( currentPage - 1 ) * itemsPerPage;
+    return aggregatedData.slice( start, start + itemsPerPage );
   }, [ aggregatedData, currentPage, itemsPerPage ] );
 
-  // Render a loading state while authentication is being checked
   if ( !isAuthenticated || isLoading ) {
     return (
       <div className="w-full text-center mt-10 text-xl text-white">
@@ -318,27 +296,21 @@ const MyCollection = ( { error } ) => {
     <>
       <Head>
         <title>My Collection</title>
-        <meta
-          name="description"
-          content="Enter list of TCG cards, get data back"
-        />
-        <meta
-          name="keywords"
-          content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss"
-        />
-        <meta name="charset" content="UTF-8" />
+        <meta name="description" content="Enter list of TCG cards, get data back" />
+        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta charSet="UTF-8" />
       </Head>
+
       <header className="bg-gradient-to-r from-purple-900/80 to-slate-900/80 rounded-lg shadow-xl p-6 mb-8 glass">
         <h1 className="text-4xl font-bold text-white mb-4">My Collection</h1>
         <div className="flex items-center">
           <span className="text-xl font-semibold text-white">Total Collection Value:</span>
-          <span className="text-2xl font-bold text-emerald-400">
-            ${ subtotalMarketPrice }
-          </span>
+          <span className="text-2xl font-bold text-emerald-400">${ subtotalMarketPrice }</span>
         </div>
       </header>
       <div className="mx-auto flex flex-wrap gap-4 mb-6 px-2 py-2 glass max-w-7xl z-0">
         <button
+          type='button'
           onClick={ () => setView( 'grid' ) }
           className={ `float-start inline-flex items-center px-2 py-2 rounded-lg transition-colors ${ view === 'grid' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/80 hover:text-white/80' }` }
           id="grid">
@@ -346,6 +318,7 @@ const MyCollection = ( { error } ) => {
           <span>Grid View</span>
         </button>
         <button
+          type='button'
           onClick={ () => setView( 'table' ) }
           className={ `float-start inline-flex items-center px-2 py-2 rounded-lg transition-colors ${ view === 'table' ? 'bg-black text-white' : 'bg-white text-black hover:bg-black/80 hover:text-white/80' }` }
           id="table">
@@ -354,6 +327,7 @@ const MyCollection = ( { error } ) => {
         </button>
 
         <button
+          type='button'
           onClick={ handleUpdatePrices }
           disabled={ isUpdatingPrices }
           className={ `float-start bg-white text-black font-bold m-1 px-2 py-2 text-nowrap rounded-lg border border-zinc-400 hover:bg-black hover:text-white ${ isUpdatingPrices ? 'bg-gray-500 cursor-not-allowed' : 'bg-primary hover:bg-primary/80'
@@ -381,11 +355,12 @@ const MyCollection = ( { error } ) => {
         </button>
       </div>
       <CardFilter
+        type='button'
         className="mx-auto float-end z-50 relative"
         updateFilters={ handleFilterChange }
-        toggleFilterMenu={ toggleFilterMenu }
-        isFilterMenuOpen={ isFilterMenuOpen }
-        setIsFilterMenuOpen={ setIsFilterMenuOpen }
+        filters={ filters }
+        isModalOpen={ isFilterMenuOpen }
+        setIsModalOpen={ setIsFilterMenuOpen }
       />
       <div className="mx-auto text-black w-full max-w-7xl z-0">
         <YugiohSearchBar
@@ -406,9 +381,9 @@ const MyCollection = ( { error } ) => {
             <GridView
               aggregatedData={ paginatedData.map( card => ( {
                 ...card,
-                set_name: card.setName,
+                setName: card.setName,
                 rarity: card.rarity,
-                edition: card.printing // Assuming printing = edition
+                edition: card.printing,
               } ) ) }
               onDeleteCard={ onDeleteCard }
               onUpdateCard={ onUpdateCard }
@@ -432,16 +407,17 @@ const MyCollection = ( { error } ) => {
               onUpdateCard={ onUpdateCard }
               aggregatedData={ aggregatedData.map( card => ( {
                 ...card,
-                set_name: card.setName,
+                setName: card.setName,
                 rarity: card.rarity,
-                edition: card.printing
+                edition: card.printing,
               } ) ) }
               onDeleteCard={ onDeleteCard }
             />
           </Suspense>
         </div>
       ) }
-      <SpeedInsights></SpeedInsights>
+
+      <SpeedInsights />
     </>
   );
 };

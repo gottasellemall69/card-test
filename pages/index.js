@@ -5,7 +5,7 @@ const YugiohCardListInput = dynamic( () => import( '@/components/Yugioh/YugiohCa
 const YugiohCardDataTable = dynamic( () => import( '@/components/Yugioh/YugiohCardDataTable.js' ), { ssr: false } );
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 // Example card list data
 const exampleCardList =
@@ -26,7 +26,7 @@ const Home = () => {
     setCardList( exampleCardList );
   };
 
-  const fetchedSetData = {};
+  const fetchedSetData = useRef( {} );
   const [ setNameIdMap, setSetNameIdMap ] = useState( {} );
 
   // Fetch setNameIdMap from the endpoint once on component mount
@@ -59,6 +59,7 @@ const Home = () => {
           return { card, data: null, error: `Failed to fetch set data for ID: ${ setNameId }` };
         }
         const responseData = await response.json();
+        fetchedSetData.current[ setNameId ] = responseData;
         setCache[ setNameId ] = responseData;
       } else {
         console.log( 'Using cached set data for ID:', setNameId );
