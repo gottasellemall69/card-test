@@ -89,140 +89,139 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
         const isFlipped = flippedCards[ card._id ];
 
         return (
-          <>
+          <div
+            key={ card._id }
+            className={ `glass rounded-md flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
+          >
             <div
-              key={ card._id }
-              className={ `glass rounded-md flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
+              className="flip-card-inner hover:cursor-pointer "
+              onClick={ () => toggleFlip( card._id ) }
             >
-              <div
-                className="flip-card-inner hover:cursor-pointer "
-                onClick={ () => toggleFlip( card._id ) }
-              >
-                {/* FRONT */ }
-                <div className="flip-card-front">
-                  <Image
-                    className="w-full h-96 aspect-square object-scale-down object-center"
-                    as={ "image" }
-                    priority={ true }
-                    unoptimized={ true }
-                    src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
-                    alt={ `${ card.productName }` }
-                    width={ 1600 }
-                    height={ 1600 } />
-                </div>
+              {/* FRONT */ }
+              <div className="flip-card-front">
+                <Image
+                  className="w-full h-96 aspect-square object-scale-down object-center"
+                  as={ "image" }
+                  priority={ true }
+                  unoptimized={ true }
+                  src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
+                  alt={ `${ card.productName }` }
+                  width={ 1600 }
+                  height={ 1600 } />
+              </div>
 
-                {/* BACK */ }
-                <div className="flip-card-back p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
+              {/* BACK */ }
+              <div className="flip-card-back p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
 
-                  <div>
-                    <h3 className="text-xl font-bold text-center">{ card.productName }</h3>
-                    <div className="text-sm space-y-1 mt-2 text-shadow">
-                      <div className="flex justify-between"><span className="font-bold">Set:</span> <span className='text-pretty text-end'>{ card.setName }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Number:</span> <span>{ card.number }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Rarity:</span> <span>{ card.rarity }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Printing:</span> <span>{ card.printing }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Condition:</span> <span>{ card.condition }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Old Price:</span> <span>${ card.oldPrice }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Price:</span> <span>${ card.marketPrice }</span></div>
-                    </div>
+                <div>
+                  <h3 className="text-xl font-bold text-center">{ card.productName }</h3>
+                  <div className="text-sm space-y-1 mt-2 text-shadow">
+                    <div className="flex justify-between"><span className="font-bold">Set:</span> <span className='text-pretty text-end'>{ card.setName }</span></div>
+                    <div className="flex justify-between"><span className="font-bold">Number:</span> <span>{ card.number }</span></div>
+                    <div className="flex justify-between"><span className="font-bold">Rarity:</span> <span>{ card.rarity }</span></div>
+                    <div className="flex justify-between"><span className="font-bold">Printing:</span> <span>{ card.printing }</span></div>
+                    <div className="flex justify-between"><span className="font-bold">Condition:</span> <span>{ card.condition }</span></div>
+                    <div className="flex justify-between"><span className="font-bold">Old Price:</span> <span>${ card.oldPrice }</span></div>
+                    <div className="flex justify-between"><span className="font-bold">Price:</span> <span>${ card.marketPrice }</span></div>
                   </div>
-                  <Link
-                    href={ {
-                      pathname: "/yugioh/sets/[letter]/cards/card-details",
-                      query: {
-                        card: cardInfo?.id,
-                        letter: card.setName.charAt( 0 ).toUpperCase(),
-                        setName: card.setName,
-                        rarity: card.rarity,
-                        edition: card.printing,
-                      }
-                    } }
-                  >
-                    <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
-                      More Details
-                    </p>
-                  </Link>
-
                 </div>
+                <Link
+                  href={ {
+                    pathname: "/yugioh/sets/[letter]/cards/card-details",
+                    query: {
+                      card: cardInfo?.id,
+                      letter: card.setName.charAt( 0 ).toUpperCase(),
+                      setName: card.setName,
+                      rarity: card.rarity,
+                      edition: card.printing,
+                    }
+                  } }
+                >
+                  <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
+                    More Details
+                  </p>
+                </Link>
 
               </div>
-              <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm gap-4 flex-wrap">
-                {/* Quantity Editing */ }
-                <div className="text-sm text-white text-shadow">
-                  <span>Quantity: </span>
-                  { edit[ card._id ] === 'quantity' ? (
-                    <input
-                      type="number"
-                      name="quantity"
-                      value={ editValues[ card._id ]?.quantity || '' }
-                      onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
-                      onBlur={ () => handleSave( card._id, 'quantity' ) }
-                      className="w-16 text-center px-2 py-1 glass mx-auto"
-                    />
-                  ) : (
-                    <span
-                      className="cursor-pointer hover:text-purple-300 transition-colors"
-                      onClick={ () => handleEdit( card._id, 'quantity' ) }
-                    >
-                      { card.quantity }
-                    </span>
-                  ) }
-                </div>
 
-                {/* Custom Delete Amount Input + Button */ }
-                <div className="text-sm text-white text-shadow flex gap-2 items-center">
-                  <span className='text-shadow text-rose-400'>Delete: </span>
-                  { edit[ card._id ] === 'deleteAmount' ? (
-                    <input
-                      type="number"
-                      min={ 1 }
-                      max={ card.quantity }
-                      value={ editValues[ card._id ]?.deleteAmount || 1 }
-                      onChange={ ( e ) =>
+            </div>
+            <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm gap-4 flex-wrap">
+              {/* Quantity Editing */ }
+              <div className="text-sm text-white text-shadow">
+                <span>Quantity: </span>
+                { edit[ card._id ] === 'quantity' ? (
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={ editValues[ card._id ]?.quantity || '' }
+                    onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
+                    onBlur={ () => handleSave( card._id, 'quantity' ) }
+                    className="w-16 text-center px-2 py-1 glass mx-auto"
+                  />
+                ) : (
+                  <span
+                    className="cursor-pointer hover:text-purple-300 transition-colors"
+                    onClick={ () => handleEdit( card._id, 'quantity' ) }
+                  >
+                    { card.quantity }
+                  </span>
+                ) }
+              </div>
+
+              {/* Custom Delete Amount Input + Button */ }
+              <div className="text-sm text-white text-shadow flex gap-2 items-center">
+                <span className='text-shadow text-rose-400'>Delete: </span>
+                { edit[ card._id ] === 'deleteAmount' ? (
+                  <input
+                    type="number"
+                    min={ 1 }
+                    max={ card.quantity }
+                    value={ editValues[ card._id ]?.deleteAmount || 1 }
+                    onChange={ ( e ) =>
+                      setEditValues( ( prev ) => ( {
+                        ...prev,
+                        [ card._id ]: {
+                          ...prev[ card._id ],
+                          deleteAmount: parseInt( e.target.value ) || 1,
+                        },
+                      } ) )
+                    }
+                    onBlur={ () => {
+                      const deleteQty = editValues[ card._id ]?.deleteAmount || 1;
+                      const currentQty = card.quantity || 0;
+                      const newQty = Math.max( 0, currentQty - deleteQty );
+
+                      updateQuantity( card._id, newQty );
+
+                      // Reset input only if card remains
+                      if ( newQty > 0 ) {
                         setEditValues( ( prev ) => ( {
                           ...prev,
                           [ card._id ]: {
                             ...prev[ card._id ],
-                            deleteAmount: parseInt( e.target.value ) || 1,
+                            deleteAmount: 1,
                           },
-                        } ) )
+                        } ) );
                       }
-                      onBlur={ () => {
-                        const deleteQty = editValues[ card._id ]?.deleteAmount || 1;
-                        const currentQty = card.quantity || 0;
-                        const newQty = Math.max( 0, currentQty - deleteQty );
 
-                        updateQuantity( card._id, newQty );
+                      setEdit( ( prev ) => ( { ...prev, [ card._id ]: null } ) );
+                    } }
 
-                        // Reset input only if card remains
-                        if ( newQty > 0 ) {
-                          setEditValues( ( prev ) => ( {
-                            ...prev,
-                            [ card._id ]: {
-                              ...prev[ card._id ],
-                              deleteAmount: 1,
-                            },
-                          } ) );
-                        }
-
-                        setEdit( ( prev ) => ( { ...prev, [ card._id ]: null } ) );
-                      } }
-
-                      className="w-16 text-center px-2 py-1 glass mx-auto"
-                    />
-                  ) : (
-                    <span
-                      className="cursor-pointer hover:text-red-300 transition-colors"
-                      onClick={ () => handleDelete( card._id, 'deleteAmount' ) }
-                    >
-                      { editValues[ card._id ]?.deleteAmount || 1 }
-                    </span>
-                  ) }
-                </div>
-
+                    className="w-16 text-center px-2 py-1 glass mx-auto"
+                  />
+                ) : (
+                  <span
+                    className="cursor-pointer hover:text-red-300 transition-colors"
+                    onClick={ () => handleEdit( card._id, 'deleteAmount' ) }
+                    onBlur={ () => handleDelete( card._id, 'deleteAmount' ) }
+                  >
+                    { editValues[ card._id ]?.deleteAmount || 1 }
+                  </span>
+                ) }
               </div>
+
             </div>
-          </>
+          </div>
         );
       } ) }
     </div>

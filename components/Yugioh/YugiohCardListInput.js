@@ -1,22 +1,16 @@
 'use client';
+
 import Notification from '@/components/Notification.js';
-import dynamic from 'next/dynamic';
+import { useState } from 'react';
 
-import { useCallback, useState } from 'react';
-
-const LoadingSpinner = dynamic( () => import( '@/components/LoadingSpinner.js' ), { ssr: false } );
-
-const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, isLoading, error } ) => {
+const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, error } ) => {
   const [ notification, setNotification ] = useState( {
     show: false,
     message: ''
   } );
 
   return (
-    <div>
-      <div className='mx-auto object-center self-center place-content-center z-10 text-shadow font-black'>
-        { isLoading && <LoadingSpinner /> }
-      </div>
+    <>
       <div className='mx-auto object-center self-center place-content-center text-shadow glass'>
         <Notification show={ notification.show } setShow={ ( show ) => setNotification( { ...notification, show } ) } message={ notification.message } />
       </div>
@@ -37,7 +31,7 @@ const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, isLoading, 
         </div>
       </form>
       { error && <p>{ error }</p> }
-    </div>
+    </>
   );
 };
 

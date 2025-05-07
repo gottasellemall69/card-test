@@ -1,12 +1,11 @@
 "use client";
-import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex.js';
 import dynamic from 'next/dynamic';
-const YugiohCardListInput = dynamic( () => import( '@/components/Yugioh/YugiohCardListInput.js' ), { ssr: false } );
-const YugiohCardDataTable = dynamic( () => import( '@/components/Yugioh/YugiohCardDataTable.js' ), { ssr: false } );
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from 'next/head';
 import { useState, useCallback, useEffect, useRef } from 'react';
-
+const LoadingSpinner = dynamic( () => import( '@/components/LoadingSpinner.js' ), { ssr: false } );
+const YugiohCardListInput = dynamic( () => import( '@/components/Yugioh/YugiohCardListInput.js' ), { ssr: false } );
+const YugiohCardDataTable = dynamic( () => import( '@/components/Yugioh/YugiohCardDataTable.js' ), { ssr: false } );
 // Example card list data
 const exampleCardList =
   `Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
@@ -182,6 +181,7 @@ const Home = () => {
             <li>Damaged+[Edition]</li>
           </ul>
         </header>
+
         <div className="inline-block w-full max-w-prose text-center sm:text-left text-pretty">
           Try it out:
           <br />
@@ -191,27 +191,35 @@ const Home = () => {
             Load Example Data
           </button>
         </div>
-        <div className="mx-auto w-full max-w-7xl min-h-fit mt-10 rounded align-bottom place-self-stretch">
-          <YugiohCardListInput
-            collection={ collection }
-            selectedRows={ selectedRows }
-            setSelectedRows={ setSelectedRows }
-            setCollection={ setCollection }
-            cardList={ cardList }
-            setCardList={ setCardList }
-            handleSubmit={ handleSubmit }
-            isLoading={ isLoading }
-            error={ error }
-            matchedCardData={ matchedCardData }
-            setMatchedCardData={ setMatchedCardData }
-          />
-        </div>
-        <div className="mx-auto w-full max-w-7xl min-h-fit">
-          <YugiohCardDataTable
-            matchedCardData={ matchedCardData }
-            setMatchedCardData={ setMatchedCardData }
-          />
-        </div>
+        <main>
+
+          <div className="mx-auto w-full max-w-7xl min-h-fit mt-10 align-bottom place-self-stretch">
+            <YugiohCardListInput
+              collection={ collection }
+              selectedRows={ selectedRows }
+              setSelectedRows={ setSelectedRows }
+              setCollection={ setCollection }
+              cardList={ cardList }
+              setCardList={ setCardList }
+              handleSubmit={ handleSubmit }
+              isLoading={ isLoading }
+              error={ error }
+              matchedCardData={ matchedCardData }
+              setMatchedCardData={ setMatchedCardData }
+            />
+          </div>
+        </main>
+        <footer>
+          <div className='mx-auto object-center self-center place-content-center z-50 text-shadow font-black'>
+            { isLoading && <LoadingSpinner /> }
+          </div>
+          <div className="mx-auto w-full max-w-7xl min-h-fit">
+            <YugiohCardDataTable
+              matchedCardData={ matchedCardData }
+              setMatchedCardData={ setMatchedCardData }
+            />
+          </div>
+        </footer>
       </div>
 
       <SpeedInsights></SpeedInsights>

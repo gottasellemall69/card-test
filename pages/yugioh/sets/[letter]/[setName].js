@@ -153,7 +153,7 @@ const CardsInSetPage = () => {
                   </option>
                   { selectedCard.card_sets?.map( ( set, index ) => (
                     <option key={ index } value={ JSON.stringify( set ) }>
-                      { set.set_name } - { set.set_rarity } - { set.set_price }
+                      { set.set_name } - { set.set_rarity } - { set.set_edition } - { set.set_price }
                     </option>
                   ) ) }
                 </select>
