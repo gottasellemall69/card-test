@@ -1,26 +1,30 @@
 "use client";
-import Breadcrumb from '@/components/Navigation/Breadcrumb';
-import Card from '@/components/Yugioh/Card';
-import { fetchCardData } from '@/utils/api';
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+
+import Breadcrumb from "@/components/Navigation/Breadcrumb";
+import Card from "@/components/Yugioh/Card";
+import { fetchCardData } from "@/utils/api";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-
-
 
 const CardsInSetPage = () => {
   const [ cards, setCards ] = useState( [] );
   const [ selectedCard, setSelectedCard ] = useState( null );
   const [ modalVisible, setModalVisible ] = useState( false );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
+
   const router = useRouter();
   const { card, setName } = router.query;
 
   useEffect( () => {
     const loadData = async () => {
       const allCards = await fetchCardData();
-      const cardsInSet = allCards.filter(
-        ( card ) => card.card_sets?.some( ( set ) => set.set_name.toLowerCase() === setName.toLowerCase() )
+      const cardsInSet = allCards.filter( ( card ) =>
+        card.card_sets?.some(
+          ( set ) => set.set_name.toLowerCase() === setName?.toLowerCase()
+        )
       );
       setCards( cardsInSet );
     };
@@ -29,7 +33,6 @@ const CardsInSetPage = () => {
       loadData();
     }
 
-    // Check authentication state
     const token = localStorage.getItem( "token" );
     setIsAuthenticated( !!token );
   }, [ card, setName ] );
@@ -88,30 +91,20 @@ const CardsInSetPage = () => {
     }
   };
 
-  const handleCardClick = ( cardId ) => {
-    setClickedCardId( cardId );
-    setTimeout( () => {
-      setClickedCardId( null ); // Reset animation after a delay
-    }, 300 ); // Match animation duration
-  };
-
   return (
     <>
-      <Breadcrumb
-
-      />
+      <Breadcrumb />
       <div>
-        <h1 className="my-10 text-xl font-black">Cards in { decodeURIComponent( setName ) }</h1>
+        <h1 className="my-10 text-xl font-black">
+          Cards in { decodeURIComponent( setName || "" ) }
+        </h1>
         <div className="w-full mx-auto gap-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           { cards?.map( ( card ) => (
             <div
               key={ card.id }
-              className={ `p-4 rounded shadow transition-transform transform duration-300` }
+              className="p-4 rounded shadow transition-transform transform duration-300"
             >
-              <Card
-                cardData={ card }
-                as={ "image" }
-              />
+              <Card cardData={ card } as="image" />
               { isAuthenticated && (
                 <button
                   className="flex mt-2 max-w-fit mx-auto justify-center px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
@@ -124,6 +117,7 @@ const CardsInSetPage = () => {
           ) ) }
         </div>
       </div>
+
       { modalVisible && selectedCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="glass p-6 rounded shadow-lg w-96">
@@ -153,11 +147,13 @@ const CardsInSetPage = () => {
                   </option>
                   { selectedCard.card_sets?.map( ( set, index ) => (
                     <option key={ index } value={ JSON.stringify( set ) }>
-                      { set.set_name } - { set.set_rarity } - { set.set_edition } - { set.set_price }
+                      { set.set_name } - { set.set_rarity } - { set.set_edition } - $
+                      { set.set_price }
                     </option>
                   ) ) }
                 </select>
               </label>
+
               <label className="block mb-2">
                 Select Rarity:
                 <input
@@ -167,6 +163,7 @@ const CardsInSetPage = () => {
                   placeholder="Enter rarity"
                 />
               </label>
+
               <label className="block mb-4">
                 Select Printing:
                 <input
@@ -176,6 +173,7 @@ const CardsInSetPage = () => {
                   placeholder="Enter printing"
                 />
               </label>
+
               <div className="flex justify-between">
                 <button
                   type="button"
@@ -195,7 +193,7 @@ const CardsInSetPage = () => {
           </div>
         </div>
       ) }
-      <SpeedInsights></SpeedInsights>
+      <SpeedInsights />
     </>
   );
 };

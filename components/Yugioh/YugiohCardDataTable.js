@@ -190,11 +190,9 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         URL.revokeObjectURL( url );
     }, [ matchedCardData, convertToCSV ] );
 
-
     return (
         <div className="mx-auto w-full mb-10 min-h-fit">
             <Notification show={ notification.show } setShow={ ( show ) => setNotification( { ...notification, show } ) } message={ notification.message } />
-
             { sortedAndPaginatedData.currentItems.length > 0 && (
                 <>
                     <div className="w-full -mt-5">
@@ -206,104 +204,112 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                 handlePageClick={ handlePageClick }
                             />
                         </div>
-                        <table className="text-white items-center w-full border-collapse">
-                            <thead className="p-1 bg-transparent">
-                                <tr>
-                                    <th className="sticky px-1 top-0 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                        <input
-                                            type="checkbox"
-                                            checked={ selectAllChecked }
-                                            onChange={ toggleSelectAll } />
-                                    </th>
-                                    <th
-                                        onClick={ () => handleSort( 'productName' ) }
-                                        className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                        Name
-                                        { sortConfig.key === 'productName' && (
-                                            <span className="ml-1">
-                                                { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
-                                            </span>
-                                        ) }
-                                    </th>
-                                    <th
-                                        onClick={ () => handleSort( 'setName' ) }
-                                        className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                        Set
-                                        { sortConfig.key === 'setName' && (
-                                            <span className="ml-1">
-                                                { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
-                                            </span>
-                                        ) }
-                                    </th>
-                                    <th
-                                        onClick={ () => handleSort( 'number' ) }
-                                        className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                        Number
-                                        { sortConfig.key === 'number' && (
-                                            <span className="ml-1">
-                                                { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
-                                            </span>
-                                        ) }
-                                    </th>
-                                    <th
-                                        onClick={ () => handleSort( 'rarity' ) }
-                                        className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                        Rarity
-                                        { sortConfig.key === 'rarity' && (
-                                            <span className="ml-1">
-                                                { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
-                                            </span>
-                                        ) }
-                                    </th>
-                                    <th
-                                        onClick={ () => handleSort( 'condition' ) }
-                                        className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                        Condition
-                                        { sortConfig.key === 'condition' && (
-                                            <span className="ml-1">
-                                                { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
-                                            </span>
-                                        ) }
-                                    </th>
-                                    <th
-                                        onClick={ () => handleSort( 'marketPrice' ) }
-                                        className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                        Price
-                                        { sortConfig.key === 'marketPrice' && (
-                                            <span className="ml-1">
-                                                { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
-                                            </span>
-                                        ) }
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200 text-black px-1 py-1 mx-auto">
-                                { sortedAndPaginatedData.currentItems.map( ( { card, data, error }, index ) => (
-                                    <tr key={ index }>
-                                        <td className="border border-gray-100 text-center">
+                        <div className="w-full overflow-x-auto">
+                            <table className="min-w-[1000px] text-white items-center border-collapse">
+
+                                <thead className="p-1 bg-transparent">
+                                    <tr>
+                                        <th className="sticky px-1 top-0 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
                                             <input
                                                 type="checkbox"
-                                                checked={ selectedRows.has( ( currentPage - 1 ) * itemsPerPage + index ) }
-                                                onChange={ () => toggleCheckbox( index ) } />
-                                        </td>
-                                        <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.productName }</td>
-                                        <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.setName }</td>
-                                        <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.number }</td>
-                                        <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.rarity }</td>
-                                        <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.condition }</td>
-                                        <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ data?.marketPrice !== undefined ? `${ data?.marketPrice }` : error }</td>
+                                                checked={ selectAllChecked }
+                                                onChange={ toggleSelectAll } />
+                                        </th>
+                                        <th
+                                            onClick={ () => handleSort( 'productName' ) }
+                                            className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                                            Name
+                                            { sortConfig.key === 'productName' && (
+                                                <span className="ml-1">
+                                                    { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
+                                                </span>
+                                            ) }
+                                        </th>
+                                        <th
+                                            onClick={ () => handleSort( 'setName' ) }
+                                            className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                                            Set
+                                            { sortConfig.key === 'setName' && (
+                                                <span className="ml-1">
+                                                    { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
+                                                </span>
+                                            ) }
+                                        </th>
+                                        <th
+                                            onClick={ () => handleSort( 'number' ) }
+                                            className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                                            Number
+                                            { sortConfig.key === 'number' && (
+                                                <span className="ml-1">
+                                                    { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
+                                                </span>
+                                            ) }
+                                        </th>
+                                        <th
+                                            onClick={ () => handleSort( 'rarity' ) }
+                                            className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                                            Rarity
+                                            { sortConfig.key === 'rarity' && (
+                                                <span className="ml-1">
+                                                    { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
+                                                </span>
+                                            ) }
+                                        </th>
+                                        <th
+                                            onClick={ () => handleSort( 'condition' ) }
+                                            className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                                            Condition
+                                            { sortConfig.key === 'condition' && (
+                                                <span className="ml-1">
+                                                    { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
+                                                </span>
+                                            ) }
+                                        </th>
+                                        <th
+                                            onClick={ () => handleSort( 'marketPrice' ) }
+                                            className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                                            Price
+                                            { sortConfig.key === 'marketPrice' && (
+                                                <span className="ml-1">
+                                                    { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
+                                                </span>
+                                            ) }
+                                        </th>
                                     </tr>
-                                ) ) }
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-300 text-black px-1 py-1 mx-auto">
+                                    { sortedAndPaginatedData.currentItems.map( ( item, index ) => {
+                                        const globalIndex = ( currentPage - 1 ) * itemsPerPage + index;
+                                        const isSelected = selectedRows.has( globalIndex );
+                                        const { card, data } = item;
 
-                            </tbody>
-
-                        </table>
+                                        return (
+                                            <tr key={ globalIndex } className="hover:bg-gray-100 text-black">
+                                                <td className="text-center border border-gray-300">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={ isSelected }
+                                                        onChange={ () => toggleCheckbox( index ) }
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.productName || 'N/A' }</td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.setName || 'N/A' }</td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.number || 'N/A' }</td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.rarity || 'N/A' }</td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.condition || 'N/A' }</td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ data?.marketPrice !== undefined ? `${ data.marketPrice }` : error }</td>
+                                            </tr>
+                                        );
+                                    } ) }
+                                </tbody>
+                            </table>
+                        </div>
                         <div className="max-h-fit w-full">
                             <button type='button' className="border border-white rounded-lg px-2 py-2 mx-auto m-1 text-white text-sm font-bold hover:text-black hover:bg-white" onClick={ downloadCSV }>
                                 Download CSV
                             </button>
                             <button type='button' className="float-start border border-white rounded-lg px-2 py-2 mx-auto m-1 text-sm text-white font-bold hover:text-black hover:bg-white" onClick={ addToCollection }>
-                                Add cards to collection
+                                Add card(s) to collection
                             </button>
                             <button type='button' className="float-end border border-white rounded-lg px-2 py-2 mx-auto text-sm m-1 text-white font-bold hover:text-black hover:bg-white" onClick={ handleGoToCollectionPage }>
                                 View Collection

@@ -10,21 +10,20 @@ export default function Layout( { children } ) {
   };
 
   return (
-    <div className="flex min-h-screen w-full mx-auto">
+    <div className="flex min-h-screen w-full mx-auto bg-gradient-to-br from-purple-900/80 via-white/20 to-slate-900/80">
       {/* Sidebar */ }
-      <div className={ `fixed inset-y-0 left-0 z-30 max-w-72 glass transform ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full' } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0` }>
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-900/80 to-slate-900/80">
+      <div
+        className={ `fixed inset-y-0 left-0 z-30 max-w-72 glass transform ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0` }
+      >
+        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-900/80 to-slate-900/80 shadow-lg border-b border-purple-900">
           <h2 className="text-xl font-bold text-white text-shadow">
-            <Link
-              className="w-fit"
-              href={ `/` }
-              passHref
-            >
-              <span className='PX-2'>CARD PRICE APP</span>
+            <Link className="w-fit" href={ `/` } passHref>
+              <span className="px-2">CARD PRICE APP</span>
             </Link>
           </h2>
           <button
-            className="lg:hidden text-white hover:text-purple-200 transition-colors"
+            className="lg:hidden text-white hover:text-purple-200 transition-colors text-2xl"
             onClick={ toggleSidebar }
           >
             ✖
@@ -33,17 +32,14 @@ export default function Layout( { children } ) {
         <SideNav />
       </div>
 
-      {/* Main content */ }
+      {/* Main Content */ }
       <div className="flex-1 flex flex-col max-w-full mx-auto">
-        <header className="sticky bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 top-0 z-20 lg:hidden">
+        {/* Mobile Header */ }
+        <header className="sticky top-0 z-20 bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 shadow-md lg:hidden">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-bold text-white text-shadow">
-              <Link
-                className="w-fit"
-                href={ `/` }
-                passHref
-              >
-                <span className='PX-2'>CARD PRICE APP</span>
+              <Link className="w-fit" href={ `/` } passHref>
+                <span className="px-2">CARD PRICE APP</span>
               </Link>
             </h3>
             <button
@@ -54,10 +50,9 @@ export default function Layout( { children } ) {
             </button>
           </div>
         </header>
+
         <main className="min-h-fit p-5 w-full max-w-[100%] mx-auto">
-          <div className="mx-auto">
-            { children }
-          </div>
+          <div className="mx-auto">{ children }</div>
         </main>
       </div>
     </div>
