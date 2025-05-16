@@ -7,11 +7,14 @@ import cardData from '@/public/card-data/Yugioh/card_data.json';
 
 const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const router = useRouter();
-  const { cardId, card, setName, letter } = router.query;
+  const { cardId, card, setName, letter, lowPrice, ebay_price } = router.query;
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
   const [ flippedCards, setFlippedCards ] = useState( {} );
+  const [ sortField, setSortField ] = useState( '' );
+  const [ sortDirection, setSortDirection ] = useState( 'asc' );
+
 
   const handleEdit = ( cardId, field ) => {
     setEdit( prev => ( { ...prev, [ cardId ]: field } ) );
@@ -73,158 +76,209 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
     setFlippedCards( prev => ( { ...prev, [ id ]: !prev[ id ] } ) );
   };
 
-  const memoizedAggregatedData = useMemo( () => aggregatedData, [ aggregatedData ] );
+  const memoizedAggregatedData = useMemo( () => {
+    const sortedData = [ ...aggregatedData ];
+
+    sortedData.sort( ( a, b ) => {
+      const aValue = a[ sortField ];
+      const bValue = b[ sortField ];
+
+      if ( aValue === undefined || bValue === undefined ) return 0;
+
+      if ( typeof aValue === 'number' && typeof bValue === 'number' ) {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      const aStr = String( aValue ).toLowerCase();
+      const bStr = String( bValue ).toLowerCase();
+
+      return sortDirection === 'asc' ? aStr.localeCompare( bStr ) : bStr.localeCompare( aStr );
+    } );
+
+    return sortedData;
+  }, [ aggregatedData, sortField, sortDirection ] );
+
 
   return (
-    <div className="w-full mx-auto flex flex-wrap flex-col gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-      <Notification
-        show={ notification.show }
-        setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
-        message={ notification.message }
-      />
-      { memoizedAggregatedData?.map( ( card ) => {
-        if ( !card || !card.setName ) return null;
-        const cardImages = getCardImage( card.productName );
-        const cardInfo = cardData.find( item => item.name === card.productName );
-        const isFlipped = flippedCards[ card._id ];
+    <>
 
-        return (
-          <div
-            key={ card._id }
-            className={ `glass rounded-md flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
-          >
+      <div className="flex gap-4 items-center mb-4 mx-auto">
+        <label className="text-white">Sort by:</label>
+        <select
+          value={ sortField }
+          onChange={ ( e ) => setSortField( e.target.value ) }
+          className="px-2 py-1 rounded bg-gray-800 text-white"
+        >
+          <option value="productName">Card Name</option>
+          <option value="setName">Set Name</option>
+          <option value="number">Card Number</option>
+          <option value="rarity">Card Rarity</option>
+          <option value="quantity">Quantity</option>
+          <option value="marketPrice">Market Price</option>
+          <option value="condition">Card Condition</option>
+        </select>
+
+        <button
+          onClick={ () => setSortDirection( prev => prev === 'asc' ? 'desc' : 'asc' ) }
+          className="px-2 py-1 rounded bg-gray-700 text-white"
+        >
+          { sortDirection === 'asc' ? '▲ Ascending' : '▼ Descending' }
+        </button>
+      </div>
+
+      <div className="w-full mx-auto flex flex-wrap flex-col gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+
+        <Notification
+          show={ notification.show }
+          setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
+          message={ notification.message }
+        />
+
+
+        { memoizedAggregatedData?.map( ( card ) => {
+          if ( !card || !card.setName ) return null;
+          const cardImages = getCardImage( card.productName );
+          const cardInfo = cardData.find( item => item.name === card.productName );
+          const isFlipped = flippedCards[ card._id ];
+
+          return (
             <div
-              className="flip-card-inner hover:cursor-pointer "
-              onClick={ () => toggleFlip( card._id ) }
+              key={ card._id }
+              className={ `glass rounded-md flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
             >
-              {/* FRONT */ }
-              <div className="flip-card-front">
-                <Image
-                  className="w-full h-96 aspect-square object-scale-down object-center"
-                  as={ "image" }
-                  priority={ true }
-                  unoptimized={ true }
-                  src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
-                  alt={ `${ card.productName }` }
-                  width={ 1600 }
-                  height={ 1600 } />
-              </div>
-
-              {/* BACK */ }
-              <div className="flip-card-back p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
-
-                <div>
-                  <h3 className="text-xl font-bold text-center">{ card.productName }</h3>
-                  <div className="text-sm space-y-1 mt-2 text-shadow">
-                    <div className="flex justify-between"><span className="font-bold">Set:</span> <span className='text-pretty text-end'>{ card.setName }</span></div>
-                    <div className="flex justify-between"><span className="font-bold">Number:</span> <span>{ card.number }</span></div>
-                    <div className="flex justify-between"><span className="font-bold">Rarity:</span> <span>{ card.rarity }</span></div>
-                    <div className="flex justify-between"><span className="font-bold">Printing:</span> <span>{ card.printing }</span></div>
-                    <div className="flex justify-between"><span className="font-bold">Condition:</span> <span>{ card.condition }</span></div>
-                    <div className="flex justify-between"><span className="font-bold">Old Price:</span> <span>${ card.oldPrice }</span></div>
-                    <div className="flex justify-between"><span className="font-bold">Price:</span> <span>${ card.marketPrice }</span></div>
-                  </div>
+              <div
+                className="flip-card-inner hover:cursor-pointer "
+                onClick={ () => toggleFlip( card._id ) }
+              >
+                {/* FRONT */ }
+                <div className="flip-card-front">
+                  <Image
+                    className="w-full h-96 aspect-square object-scale-down object-center"
+                    as={ "image" }
+                    priority={ true }
+                    unoptimized={ true }
+                    src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
+                    alt={ `${ card.productName }` }
+                    width={ 1600 }
+                    height={ 1600 } />
                 </div>
-                <Link
-                  href={ {
-                    pathname: "/yugioh/sets/[letter]/cards/card-details",
-                    query: {
-                      card: cardInfo?.id,
-                      letter: card.setName.charAt( 0 ).toUpperCase(),
-                      setName: card.setName,
-                      rarity: card.rarity,
-                      edition: card.printing,
-                    }
-                  } }
-                >
-                  <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
-                    More Details
-                  </p>
-                </Link>
 
-              </div>
+                {/* BACK */ }
+                <div className="flip-card-back p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
 
-            </div>
-            <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm gap-4 flex-wrap">
-              {/* Quantity Editing */ }
-              <div className="text-sm text-white text-shadow">
-                <span>Quantity: </span>
-                { edit[ card._id ] === 'quantity' ? (
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={ editValues[ card._id ]?.quantity || '' }
-                    onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
-                    onBlur={ () => handleSave( card._id, 'quantity' ) }
-                    className="w-16 text-center px-2 py-1 glass mx-auto"
-                  />
-                ) : (
-                  <span
-                    className="cursor-pointer hover:text-purple-300 transition-colors"
-                    onClick={ () => handleEdit( card._id, 'quantity' ) }
+                  <div>
+                    <h3 className="text-xl font-bold text-center">{ card.productName }</h3>
+                    <div className="text-sm space-y-1 mt-2 text-shadow">
+                      <div className="flex justify-between"><span className="font-bold">Set:</span> <span className='text-pretty text-end'>{ card.setName }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Number:</span> <span>{ card.number }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Rarity:</span> <span>{ card.rarity }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Printing:</span> <span>{ card.printing }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Condition:</span> <span>{ card.condition }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Old Price:</span> <span>${ card.oldPrice }</span></div>
+                      <div className="flex justify-between"><span className="font-bold">Market Price:</span> <span>${ card.marketPrice }</span></div>
+                    </div>
+                  </div>
+                  <Link
+                    href={ {
+                      pathname: "/yugioh/sets/[letter]/cards/card-details",
+                      query: {
+                        card: cardInfo?.id,
+                        letter: card.setName.charAt( 0 ).toUpperCase(),
+                        setName: card.setName,
+                        rarity: card.rarity,
+                        edition: card.printing,
+                      }
+                    } }
                   >
-                    { card.quantity }
-                  </span>
-                ) }
+                    <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
+                      More Details
+                    </p>
+                  </Link>
+
+                </div>
+
               </div>
+              <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm gap-4 flex-wrap">
+                {/* Quantity Editing */ }
+                <div className="text-sm text-white text-shadow">
+                  <span>Quantity: </span>
+                  { edit[ card._id ] === 'quantity' ? (
+                    <input
+                      type="number"
+                      name="quantity"
+                      value={ editValues[ card._id ]?.quantity || '' }
+                      onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
+                      onBlur={ () => handleSave( card._id, 'quantity' ) }
+                      className="w-16 text-center px-2 py-1 glass mx-auto"
+                    />
+                  ) : (
+                    <span
+                      className="cursor-pointer hover:text-purple-300 transition-colors"
+                      onClick={ () => handleEdit( card._id, 'quantity' ) }
+                    >
+                      { card.quantity }
+                    </span>
+                  ) }
+                </div>
 
-              {/* Custom Delete Amount Input + Button */ }
-              <div className="text-sm text-white text-shadow flex gap-2 items-center">
-                <span className='text-shadow text-rose-400'>Delete: </span>
-                { edit[ card._id ] === 'deleteAmount' ? (
-                  <input
-                    type="number"
-                    min={ 1 }
-                    max={ card.quantity }
-                    value={ editValues[ card._id ]?.deleteAmount || 1 }
-                    onChange={ ( e ) =>
-                      setEditValues( ( prev ) => ( {
-                        ...prev,
-                        [ card._id ]: {
-                          ...prev[ card._id ],
-                          deleteAmount: parseInt( e.target.value ) || 1,
-                        },
-                      } ) )
-                    }
-                    onBlur={ () => {
-                      const deleteQty = editValues[ card._id ]?.deleteAmount || 1;
-                      const currentQty = card.quantity || 0;
-                      const newQty = Math.max( 0, currentQty - deleteQty );
-
-                      updateQuantity( card._id, newQty );
-
-                      // Reset input only if card remains
-                      if ( newQty > 0 ) {
+                {/* Custom Delete Amount Input + Button */ }
+                <div className="text-sm text-white text-shadow flex gap-2 items-center">
+                  <span className='text-shadow text-rose-400'>Delete: </span>
+                  { edit[ card._id ] === 'deleteAmount' ? (
+                    <input
+                      type="number"
+                      min={ 1 }
+                      max={ card.quantity }
+                      value={ editValues[ card._id ]?.deleteAmount || 1 }
+                      onChange={ ( e ) =>
                         setEditValues( ( prev ) => ( {
                           ...prev,
                           [ card._id ]: {
                             ...prev[ card._id ],
-                            deleteAmount: 1,
+                            deleteAmount: parseInt( e.target.value ) || 1,
                           },
-                        } ) );
+                        } ) )
                       }
+                      onBlur={ () => {
+                        const deleteQty = editValues[ card._id ]?.deleteAmount || 1;
+                        const currentQty = card.quantity || 0;
+                        const newQty = Math.max( 0, currentQty - deleteQty );
 
-                      setEdit( ( prev ) => ( { ...prev, [ card._id ]: null } ) );
-                    } }
+                        updateQuantity( card._id, newQty );
 
-                    className="w-16 text-center px-2 py-1 glass mx-auto"
-                  />
-                ) : (
-                  <span
-                    className="cursor-pointer hover:text-red-300 transition-colors"
-                    onClick={ () => handleEdit( card._id, 'deleteAmount' ) }
-                    onBlur={ () => handleDelete( card._id, 'deleteAmount' ) }
-                  >
-                    { editValues[ card._id ]?.deleteAmount || 1 }
-                  </span>
-                ) }
+                        // Reset input only if card remains
+                        if ( newQty > 0 ) {
+                          setEditValues( ( prev ) => ( {
+                            ...prev,
+                            [ card._id ]: {
+                              ...prev[ card._id ],
+                              deleteAmount: 1,
+                            },
+                          } ) );
+                        }
+
+                        setEdit( ( prev ) => ( { ...prev, [ card._id ]: null } ) );
+                      } }
+
+                      className="w-16 text-center px-2 py-1 glass mx-auto"
+                    />
+                  ) : (
+                    <span
+                      className="cursor-pointer hover:text-red-300 transition-colors"
+                      onClick={ () => handleEdit( card._id, 'deleteAmount' ) }
+                      onBlur={ () => handleDelete( card._id, 'deleteAmount' ) }
+                    >
+                      { editValues[ card._id ]?.deleteAmount || 1 }
+                    </span>
+                  ) }
+                </div>
+
               </div>
-
             </div>
-          </div>
-        );
-      } ) }
-    </div>
+          );
+        } ) }
+      </div>
+    </>
   );
 };
 

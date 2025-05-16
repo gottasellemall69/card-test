@@ -287,7 +287,7 @@ const MyCollection = ( { error } ) => {
   if ( !isAuthenticated || isLoading ) {
     return (
       <div className="w-full text-center mt-10 text-xl text-white">
-        Verifying authentication...
+        Loading...
       </div>
     );
   }

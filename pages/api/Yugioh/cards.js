@@ -49,6 +49,7 @@ export default async function handler( req, res ) {
             $set: { oldPrice: null },
             $setOnInsert: {
               marketPrice: card.marketPrice || 0,
+              lowPrice: card.lowPrice || 0,
               userId
             },
           },

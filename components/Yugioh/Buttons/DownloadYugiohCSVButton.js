@@ -1,7 +1,7 @@
 const DownloadYugiohCSVButton = ( { aggregatedData, userCardList } ) => {
   const downloadCSV = () => {
     try {
-      const csvHeader = '"Name"|"Set"|"Number"|"Printing"|"Rarity"|"Condition"|"Price"|"Quantity"';
+      const csvHeader = '"Name"|"Set"|"Number"|"Printing"|"Rarity"|"Condition"|"Price"|"Low Price"|"Quantity"';
       const csvData = aggregatedData?.map( ( card ) => {
         const productName = card?.productName || '';
         const userCard = userCardList?.filter( ( entry ) =>
@@ -23,6 +23,7 @@ const DownloadYugiohCSVButton = ( { aggregatedData, userCardList } ) => {
           `"${ card?.rarity.replace( /"/g, '""' ) || '' }"`,
           `"${ card?.condition.replace( /"/g, '""' ) || '' }"`,
           `"${ card?.marketPrice ? card.marketPrice.toString().replace( /"/g, '""' ) : '' }"`,
+          `"${ card?.lowPrice ? card.lowPrice.toString().replace( /"/g, '""' ) : '' }"`,
           `"${ card?.quantity ? card.quantity.toString().replace( /"/g, '""' ) : '' }"`
         ].join( '|' );  // Updated delimiter
       } ).join( "\n" );

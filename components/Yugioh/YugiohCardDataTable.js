@@ -109,6 +109,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                 rarity: card?.rarity,
                 condition: card?.condition,
                 marketPrice: data?.marketPrice,
+                lowPrice: data?.lowPrice,
                 'quantity': 1
             } ) );
 
@@ -145,7 +146,8 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             card?.printing,
             card?.rarity,
             card?.condition,
-            data?.marketPrice
+            data?.marketPrice,
+            data?.lowPrice
         ] );
 
         const csvContent = "data:text/csv;charset=utf-8," + headers.join( "|" ) + "\n" +
@@ -170,7 +172,8 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             card?.printing,
             card?.rarity,
             card?.condition,
-            data?.marketPrice
+            data?.marketPrice,
+            data?.lowPrice
         ] );
 
         // join into CSV text
@@ -204,8 +207,8 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                 handlePageClick={ handlePageClick }
                             />
                         </div>
-                        <div className="w-full overflow-x-auto">
-                            <table className="min-w-[1000px] text-white items-center border-collapse">
+                        <div className="w-full mx-auto overflow-x-auto">
+                            <table className="min-w-full max-w-7xl text-white items-center border-collapse mx-auto">
 
                                 <thead className="p-1 bg-transparent">
                                     <tr>
@@ -268,8 +271,18 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                         <th
                                             onClick={ () => handleSort( 'marketPrice' ) }
                                             className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                            Price
+                                            Market Price
                                             { sortConfig.key === 'marketPrice' && (
+                                                <span className="ml-1">
+                                                    { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
+                                                </span>
+                                            ) }
+                                        </th>
+                                        <th
+                                            onClick={ () => handleSort( 'lowPrice' ) }
+                                            className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                                            Low Price
+                                            { sortConfig.key === 'lowPrice' && (
                                                 <span className="ml-1">
                                                     { sortConfig.direction === 'ascending' ? <ChevronUpIcon className="h-2 w-2 text-white font-black inline" /> : <ChevronDownIcon className="h-2 w-2 text-white font-black inline" /> }
                                                 </span>
@@ -298,6 +311,8 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.rarity || 'N/A' }</td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ card?.condition || 'N/A' }</td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ data?.marketPrice !== undefined ? `${ data.marketPrice }` : error }</td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">{ data?.lowPrice }</td>
+
                                             </tr>
                                         );
                                     } ) }

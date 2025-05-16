@@ -204,11 +204,11 @@ const Home = () => {
           </div>
         </main>
 
-        <footer className="mt-10">
+        <footer className="mt-10 mx-auto w-full">
           <div className="text-center z-50 font-black">
             { isLoading && <LoadingSpinner /> }
           </div>
-          <div className="w-full max-w-7xl mx-auto">
+          <div className="w-full mx-auto">
             <YugiohCardDataTable
               matchedCardData={ matchedCardData }
               setMatchedCardData={ setMatchedCardData }

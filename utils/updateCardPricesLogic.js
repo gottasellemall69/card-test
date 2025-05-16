@@ -97,6 +97,7 @@ export default async function updateCardPricesLogic( authorizationHeader ) {
               $set: {
                 marketPrice: newPrice,
                 oldPrice: card.marketPrice,
+
               },
               $push: {
                 priceHistory: {

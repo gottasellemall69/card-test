@@ -89,7 +89,7 @@ img
 
   .cover-image
   {
-    @apply object-cover transition-transform duration-300 hover:scale-110;
+    @apply object-cover transition-transform duration-300;
   }
 
   .black-overlay

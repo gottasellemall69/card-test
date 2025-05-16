@@ -21,7 +21,7 @@ const CardDetails = () => {
 
   const [ selectedVersion, setSelectedVersion ] = useState( "" );
 
-  useEffect( () => {
+  useMemo( () => {
     if ( cardData?.card_sets ) {
       const savedVersion = localStorage.getItem( `selectedVersion-${ cardId }` );
       if (
@@ -111,6 +111,8 @@ const CardDetails = () => {
                 `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` ===
                 selectedVersion
             )?.set_price || "N/A" }
+            <br />
+
           </p>
         </div>
 
