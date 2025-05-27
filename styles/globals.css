@@ -79,7 +79,7 @@ img
 
   .card
   {
-    @apply w-[280px] h-[480px] m-4 p-4 inline-block transition-all duration-300 hover:scale-105 hover:shadow-2xl;
+    @apply w-[280px] h-[480px] m-4 p-4 inline-block transition-all duration-300 hover:shadow-zinc-900/30 hover:drop-shadow-2xl;
   }
 
   .wrapper

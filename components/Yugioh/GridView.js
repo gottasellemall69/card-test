@@ -102,12 +102,12 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   return (
     <>
 
-      <div className="flex gap-4 items-center mb-4 mx-auto">
-        <label className="text-white">Sort by:</label>
+      <div className="flex gap-4 items-start mb-4 mx-auto sm:mx-0 w-fit">
+        <label className="text-shadow">Sort by:</label>
         <select
           value={ sortField }
           onChange={ ( e ) => setSortField( e.target.value ) }
-          className="px-2 py-1 rounded bg-gray-800 text-white"
+          className="px-2 py-1 rounded bg-white text-black font-semibold text-start"
         >
           <option value="productName">Card Name</option>
           <option value="setName">Set Name</option>
@@ -120,7 +120,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
 
         <button
           onClick={ () => setSortDirection( prev => prev === 'asc' ? 'desc' : 'asc' ) }
-          className="px-2 py-1 rounded bg-gray-700 text-white"
+          className="px-2 py-1 rounded bg-white text-black font-semibold text-center"
         >
           { sortDirection === 'asc' ? '▲ Ascending' : '▼ Descending' }
         </button>
@@ -153,7 +153,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 {/* FRONT */ }
                 <div className="flip-card-front">
                   <Image
-                    className="w-full h-96 aspect-square object-scale-down object-center"
+                    className="w-full h-96 aspect-auto object-scale-down object-center"
                     as={ "image" }
                     priority={ true }
                     unoptimized={ true }

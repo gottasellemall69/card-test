@@ -1,9 +1,12 @@
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { SpeedInsights } from "@vercel/speed-insights/next";
+
 
 const AlphabeticalIndex = () => {
   const alphabet = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
+  const router = useRouter();
+  const { letter } = router.query;
   return (
     <>
       <div className="w-full inline-block flex-col sm:flex-row my-10 m-2 mx-auto justify-between">

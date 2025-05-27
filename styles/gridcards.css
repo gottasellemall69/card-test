@@ -4,7 +4,7 @@
 
 :root
 {
-  --card-height: 300px;
+  --card-height: 320px;
   --card-width: 250px;
 }
 
@@ -93,7 +93,7 @@
 
 .card:hover .wrapper::after
 {
-  height: 85%;
+  height: 75%;
 }
 
 .details
