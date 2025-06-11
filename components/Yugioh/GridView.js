@@ -184,12 +184,14 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       query: {
                         card: cardInfo?.id,
                         letter: card.setName.charAt( 0 ).toUpperCase(),
-                        setName: card.setName,
+                        set_name: card.setName,
+                        set_code: card.number,
                         rarity: card.rarity,
-                        edition: card.printing,
+                        edition: card.printing || "Unknown Edition",
                       }
                     } }
                   >
+
                     <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
                       More Details
                     </p>
@@ -227,21 +229,21 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                   { edit[ card._id ] === 'deleteAmount' ? (
                     <input
                       type="number"
-                      min={ 1 }
+                      min={ 0 }
                       max={ card.quantity }
-                      value={ editValues[ card._id ]?.deleteAmount || 1 }
+                      value={ editValues[ card._id ]?.deleteAmount || 0 }
                       onChange={ ( e ) =>
                         setEditValues( ( prev ) => ( {
                           ...prev,
                           [ card._id ]: {
                             ...prev[ card._id ],
-                            deleteAmount: parseInt( e.target.value ) || 1,
+                            deleteAmount: parseInt( e.target.value ) || 0,
                           },
                         } ) )
                       }
                       onBlur={ () => {
-                        const deleteQty = editValues[ card._id ]?.deleteAmount || 1;
-                        const currentQty = card.quantity || 0;
+                        const deleteQty = editValues[ card._id ]?.deleteAmount || 0;
+                        const currentQty = card.quantity || 1;
                         const newQty = Math.max( 0, currentQty - deleteQty );
 
                         updateQuantity( card._id, newQty );
@@ -252,7 +254,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                             ...prev,
                             [ card._id ]: {
                               ...prev[ card._id ],
-                              deleteAmount: 1,
+                              deleteAmount: 0,
                             },
                           } ) );
                         }
@@ -268,7 +270,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       onClick={ () => handleEdit( card._id, 'deleteAmount' ) }
                       onBlur={ () => handleDelete( card._id, 'deleteAmount' ) }
                     >
-                      { editValues[ card._id ]?.deleteAmount || 1 }
+                      { editValues[ card._id ]?.deleteAmount || 0 }
                     </span>
                   ) }
                 </div>

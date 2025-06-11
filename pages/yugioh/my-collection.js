@@ -381,14 +381,16 @@ const MyCollection = ( { error } ) => {
             <GridView
               aggregatedData={ paginatedData.map( card => ( {
                 ...card,
-                setName: card.setName,
+                set_name: card.setName,
+                set_code: card.number,
                 rarity: card.rarity,
-                edition: card.printing,
+                edition: card.printing || "Unknown Edition",
               } ) ) }
               onDeleteCard={ onDeleteCard }
               onUpdateCard={ onUpdateCard }
               setAggregatedData={ setAggregatedData }
             />
+
           </div>
           <div className="w-fit mx-auto mb-12 z-0">
             <YugiohPagination

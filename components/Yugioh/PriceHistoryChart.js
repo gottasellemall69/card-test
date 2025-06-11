@@ -25,9 +25,9 @@ const PriceHistoryChart = ( { selectedVersion, priceHistory } ) => {
     return (
         <div>
             <h3 className="text-white text-shadow text-lg font-bold mb-2">
-                Price History for: { selectedVersion }
+                { selectedVersion }
             </h3>
-            <ResponsiveContainer className={ "text-black" } width="100%" height={ 450 }>
+            <ResponsiveContainer className={ "text-black" } width={ `100%` } height={ 450 }>
                 <LineChart data={ formattedData }>
                     <XAxis
                         dataKey="date"

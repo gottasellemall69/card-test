@@ -38,7 +38,13 @@ const SetsByLetterPage = () => {
       <div key={ index } className="p-5 text-white font-medium leading-5 w-7xl">
         <Link
           className="w-fit hover:underline hover:font-semibold"
-          href={ `/yugioh/sets/${ encodeURIComponent( letter ) }/${ encodeURIComponent( set.set_name ) }` }
+          href={ {
+            pathname: `/yugioh/sets/${ encodeURIComponent( letter ) }/${ encodeURIComponent( set.set_name ) }`,
+            query: {
+              letter: letter,
+              set_name: set.set_name
+            }
+          } }
         >
           { set.set_name }
         </Link>

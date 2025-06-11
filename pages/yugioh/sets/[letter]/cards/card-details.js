@@ -10,21 +10,29 @@ const fetcher = ( url ) => fetch( url ).then( ( res ) => res.json() );
 
 const CardDetails = () => {
   const router = useRouter();
-  const { card, name, letter, set_name, rarity, edition } = router.query;
+  const { card, name, letter, set_name, set_code, rarity, edition } = router.query;
   const cardId = card?.toString();
-  const decodedSetName = set_name ? encodeURIComponent( set_name ) : "Unknown Set";
+  const [ selectedVersion, setSelectedVersion ] = useState( "" );
 
   const { data: cardData, error: cardError } = useSWR(
     card ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }` : null,
     fetcher
   );
 
-  const [ selectedVersion, setSelectedVersion ] = useState( "" );
-
   useMemo( () => {
     if ( cardData?.card_sets ) {
       const savedVersion = localStorage.getItem( `selectedVersion-${ cardId }` );
-      if (
+      const queryVersion = `${ set_name } - ${ set_code } - ${ rarity } - ${ edition || "Unknown Edition" }`;
+
+      const hasQueryVersion = cardData.card_sets.some(
+        ( set ) =>
+          `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` ===
+          queryVersion
+      );
+
+      if ( hasQueryVersion ) {
+        setSelectedVersion( queryVersion );
+      } else if (
         savedVersion &&
         cardData.card_sets.some(
           ( set ) =>
@@ -34,16 +42,32 @@ const CardDetails = () => {
       ) {
         setSelectedVersion( savedVersion );
       } else {
-        const defaultVersion = `${ cardData.card_sets[ 0 ].set_name } - ${ cardData.card_sets[ 0 ].set_code } - ${ cardData.card_sets[ 0 ].set_rarity } - ${ cardData.card_sets[ 0 ].set_edition || "Unknown Edition"
-          }`;
+        const defaultVersion = `${ cardData.card_sets[ 0 ].set_name } - ${ cardData.card_sets[ 0 ].set_code } - ${ cardData.card_sets[ 0 ].set_rarity } - ${ cardData.card_sets[ 0 ].set_edition || "Unknown Edition" }`;
         setSelectedVersion( defaultVersion );
       }
     }
-  }, [ cardData, cardId ] );
+  }, [ cardData, cardId, set_name, set_code, rarity, edition ] );
 
   const handleVersionChange = ( e ) => {
     const newVersion = e.target.value;
     setSelectedVersion( newVersion );
+
+    const [ newSetName, newSetCode, newRarity, newEdition ] = newVersion.split( " - " );
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          set_name: newSetName,
+          set_code: newSetCode,
+          rarity: newRarity,
+          edition: newEdition,
+        },
+      },
+      undefined,
+      { shallow: true }
+    );
   };
 
   const { data: priceHistoryData } = useSWR(
@@ -76,7 +100,6 @@ const CardDetails = () => {
     <>
       <Breadcrumb />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        {/* Card Info */ }
         <div className="glass p-6 text-white rounded-md shadow-md text-shadow">
           <h1 className="text-2xl font-extrabold mb-4">{ cardData.name }</h1>
           <p className="mb-1"><span className="font-bold">Card Type:</span> { cardData.type }</p>
@@ -84,7 +107,6 @@ const CardDetails = () => {
           <p className="mb-1"><span className="font-bold">Monster Type:</span> { cardData.race }</p>
           <p className="mb-1"><span className="font-bold">Archetype:</span> { cardData.archetype }</p>
 
-          {/* Set Dropdown */ }
           <div className="mt-6">
             <label className="block text-sm font-bold mb-2">Select Version:</label>
             <select
@@ -103,7 +125,6 @@ const CardDetails = () => {
             </select>
           </div>
 
-          {/* Price Info */ }
           <p className="mt-4 border-t pt-4">
             <span className="font-bold">Market Price:</span> $
             { cardData.card_sets?.find(
@@ -111,12 +132,9 @@ const CardDetails = () => {
                 `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` ===
                 selectedVersion
             )?.set_price || "N/A" }
-            <br />
-
           </p>
         </div>
 
-        {/* Price History Panel */ }
         <div className="glass p-6 rounded-md shadow-md">
           <h2 className="text-lg font-bold mb-4 text-white">Price History</h2>
           <PriceHistoryChart
