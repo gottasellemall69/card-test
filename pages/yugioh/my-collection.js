@@ -367,7 +367,7 @@ const MyCollection = ( { error } ) => {
           searchTerm={ searchTerm }
           onSearch={ handleSearch } />
       </div>
-      { !isLoading && view === "grid" ? (
+      { !isLoading && isAuthenticated && view === "grid" ? (
         <main>
           <div className="w-fit mx-auto mt-12">
             <YugiohPagination
@@ -385,6 +385,7 @@ const MyCollection = ( { error } ) => {
                 set_code: card.number,
                 rarity: card.rarity,
                 edition: card.printing || "Unknown Edition",
+                source: "collection"
               } ) ) }
               onDeleteCard={ onDeleteCard }
               onUpdateCard={ onUpdateCard }

@@ -10,7 +10,21 @@ const fetcher = ( url ) => fetch( url ).then( ( res ) => res.json() );
 
 const CardDetails = () => {
   const router = useRouter();
-  const { card, name, letter, set_name, set_code, rarity, edition } = router.query;
+  const {
+    card,
+    letter: queryLetter,
+    set_name: querySetName,
+    set_code: querySetCode,
+    rarity: queryRarity,
+    edition: queryEdition,
+  } = router.query;
+
+  const letter = Array.isArray( queryLetter ) ? queryLetter[ 0 ] : queryLetter;
+  const set_name = Array.isArray( querySetName ) ? querySetName[ 0 ] : querySetName;
+  const set_code = Array.isArray( querySetCode ) ? querySetCode[ 0 ] : querySetCode;
+  const rarity = Array.isArray( queryRarity ) ? queryRarity[ 0 ] : queryRarity;
+  const edition = Array.isArray( queryEdition ) ? queryEdition[ 0 ] : queryEdition;
+
   const cardId = card?.toString();
   const [ selectedVersion, setSelectedVersion ] = useState( "" );
 
@@ -22,12 +36,11 @@ const CardDetails = () => {
   useMemo( () => {
     if ( cardData?.card_sets ) {
       const savedVersion = localStorage.getItem( `selectedVersion-${ cardId }` );
-      const queryVersion = `${ set_name } - ${ set_code } - ${ rarity } - ${ edition || "Unknown Edition" }`;
 
+      const queryVersion = `${ set_name } - ${ set_code } - ${ rarity } - ${ edition || "Unknown Edition" }`;
       const hasQueryVersion = cardData.card_sets.some(
         ( set ) =>
-          `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` ===
-          queryVersion
+          `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === queryVersion
       );
 
       if ( hasQueryVersion ) {
@@ -36,8 +49,7 @@ const CardDetails = () => {
         savedVersion &&
         cardData.card_sets.some(
           ( set ) =>
-            `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` ===
-            savedVersion
+            `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === savedVersion
         )
       ) {
         setSelectedVersion( savedVersion );
@@ -53,42 +65,33 @@ const CardDetails = () => {
     setSelectedVersion( newVersion );
 
     const [ newSetName, newSetCode, newRarity, newEdition ] = newVersion.split( " - " );
+    const newLetter = newSetName.charAt( 0 ).toUpperCase();
 
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          set_name: newSetName,
-          set_code: newSetCode,
-          rarity: newRarity,
-          edition: newEdition,
-        },
+    router.replace( {
+      pathname: router.pathname,
+      query: {
+        ...router.query,
+        set_name: newSetName,
+        set_code: newSetCode,
+        rarity: newRarity,
+        edition: newEdition,
+        letter: newLetter,
+        source: cardData.source
+
       },
-      undefined,
-      { shallow: true }
-    );
+    }, undefined, { shallow: true } );
   };
 
+
   const { data: priceHistoryData } = useSWR(
-    cardId && selectedVersion
-      ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent(
-        selectedVersion.split( " - " )[ 0 ]
-      ) }&number=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&rarity=${ encodeURIComponent(
-        selectedVersion.split( " - " )[ 2 ]
-      ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 3 ] ) }`
-      : null,
+    cardId && selectedVersion ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&number=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 3 ] ) }` : null,
     fetcher
   );
 
   useMemo( () => {
     if ( cardId && selectedVersion ) {
       mutate(
-        `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent(
-          selectedVersion.split( " - " )[ 0 ]
-        ) }&number=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&rarity=${ encodeURIComponent(
-          selectedVersion.split( " - " )[ 2 ]
-        ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 3 ] ) }`
+        `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&number=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 3 ] ) }`
       );
     }
   }, [ selectedVersion, cardId ] );
@@ -129,9 +132,7 @@ const CardDetails = () => {
             <span className="font-bold">Market Price:</span> $
             { cardData.card_sets?.find(
               ( set ) =>
-                `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` ===
-                selectedVersion
-            )?.set_price || "N/A" }
+                `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === selectedVersion )?.set_price || "N/A" }
           </p>
         </div>
 

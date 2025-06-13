@@ -104,7 +104,7 @@ const CardsInSetPage = () => {
               key={ card.id }
               className="p-4 rounded shadow transition-transform transform duration-300"
             >
-              <Card cardData={ card } as="image" />
+              <Card cardData={ card } as="image" source="set" />
               { isAuthenticated && (
                 <button
                   className="flex mt-2 max-w-fit mx-auto justify-center px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
@@ -177,14 +177,14 @@ const CardsInSetPage = () => {
               <div className="flex justify-between">
                 <button
                   type="button"
-                  className="px-4 py-2 bg-gray-500 text-white rounded"
+                  className="px-4 py-2 bg-red-500 text-white rounded text-shadow font-semibold"
                   onClick={ closeModal }
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded"
+                  className="px-4 py-2 bg-green-500 text-white rounded text-shadow font-semibold"
                 >
                   Add
                 </button>

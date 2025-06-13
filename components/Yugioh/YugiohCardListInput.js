@@ -21,7 +21,7 @@ const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, error } ) =
         <div className="text-black">
           <textarea
             name="cardListInput"
-            className="w-full max-w-7xl rounded-lg flex flex-wrap text-nowrap resize-none h-48"
+            className="w-full max-w-7xl rounded-xs flex flex-wrap text-nowrap resize-none h-48"
             value={ cardList }
             onChange={ ( e ) => setCardList( e.target.value ) }
             placeholder="Enter your list of cards..." />

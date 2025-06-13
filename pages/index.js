@@ -167,7 +167,7 @@ const Home = () => {
             <span className="font-black underline">[Name],[Set],[Number],[Edition],[Rarity],[Condition]</span>
           </p>
           <p className="py-3">where the possible conditions are:</p>
-          <ul className="columns-2 space-y-1 font-semibold text-left">
+          <ul className="columns-2 space-y-1 font-semibold text-center max-w-prose text-pretty md:text-left">
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
             <li>Moderately Played+[Edition]</li>
@@ -187,7 +187,7 @@ const Home = () => {
         </div>
 
         <main className="mt-10">
-          <div className="w-full max-w-7xl mx-auto">
+          <div className="w-7xl max-w-full mx-auto">
             <YugiohCardListInput
               collection={ collection }
               selectedRows={ selectedRows }

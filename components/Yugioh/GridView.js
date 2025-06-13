@@ -188,6 +188,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         set_code: card.number,
                         rarity: card.rarity,
                         edition: card.printing || "Unknown Edition",
+                        source: 'collection'
                       }
                     } }
                   >
@@ -196,9 +197,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       More Details
                     </p>
                   </Link>
-
                 </div>
-
               </div>
               <div className="mx-auto flex justify-between items-center mt-4 mb-5 glass p-2 rounded-sm gap-4 flex-wrap">
                 {/* Quantity Editing */ }

@@ -4,70 +4,107 @@ import { useRouter } from 'next/router';
 
 const Breadcrumb = () => {
   const router = useRouter();
-  const { asPath, isReady, query } = router;
+  const { pathname, query, isReady } = router;
   const [ hasMounted, setHasMounted ] = useState( false );
+  const [ cardName, setCardName ] = useState( null );
 
+  // Ensure client-only rendering
   useEffect( () => {
     setHasMounted( true );
   }, [] );
 
+  // Fetch the card's human-readable name if we're on a details page
+  useEffect( () => {
+    if ( query.card ) {
+      fetch( `/api/Yugioh/card/${ encodeURIComponent( query.card ) }` )
+        .then( ( res ) => res.json() )
+        .then( ( data ) => {
+          if ( data?.name ) setCardName( data.name );
+        } )
+        .catch( ( err ) => console.error( 'Breadcrumb: failed to fetch card name', err ) );
+    }
+  }, [ query.card ] );
+
   if ( !isReady || !hasMounted ) return null;
 
-  const pathWithoutQuery = asPath.split( '?' )[ 0 ];
-  const segments = pathWithoutQuery.split( '/' ).filter( Boolean );
+  const crumbs = [];
 
-  const generateHref = ( index ) => {
-    return '/' + segments.slice( 0, index + 1 ).join( '/' );
-  };
+  // 1. Home
+  crumbs.push( { label: 'Home', href: '/' } );
 
-  const formatLabel = ( segment, index ) => {
-    if ( segment === 'set-index' ) return 'Alphabetical Index';
-    if ( segment.length === 1 && /^[a-zA-Z]$/.test( segment ) ) return `Letter: ${ segment.toUpperCase() }`;
-    if ( query.set_name && index === segments.length - 2 ) return `Set: ${ encodeURIComponent( query.set_name ) }`;
-    if ( query.card && index === segments.length - 1 ) return `Card: ${ query.card }`;
-    if ( segment === 'my-collection' ) return 'My Collection';
-    return segment.replace( /[-_]/g, ' ' ).replace( /\b\w/g, ( char ) => char.toUpperCase() );
-  };
+  // 2. Set Index
+  crumbs.push( { label: 'Set Index', href: '/yugioh/sets/set-index' } );
 
-  const shouldDisplaySegment = ( segment, index ) => {
-    if ( segment === 'cards' ) return false; // Hide "/cards"
-    return true;
-  };
+  // 3. Sets Starting With: [LETTER]
+  if ( query.letter && pathname.includes( '/yugioh/sets' ) ) {
+    crumbs.push( {
+      label: `Sets Starting With: ${ String( query.letter ).toUpperCase() }`,
+      href: `/yugioh/sets/${ encodeURIComponent( query.letter ) }`,
+    } );
+  }
+
+  // 4. Cards In Set: [SET NAME]
+  const onSetPage = pathname.includes( '/[setName]' ) || pathname.includes( '/card-details' );
+  if ( query.set_name && onSetPage ) {
+    crumbs.push( {
+      label: `Cards In Set: ${ query.set_name }`,
+      href: `/yugioh/sets/${ encodeURIComponent( query.letter ) }/${ encodeURIComponent( query.set_name ) }`,
+    } );
+  }
+
+  // 5. Context-specific parent
+  if ( pathname.includes( 'card-details' ) ) {
+    if ( query.source === 'set' ) {
+      crumbs.push( {
+        label: `Cards In Set: ${ query.set_name }`,
+        href: `/yugioh/sets/${ encodeURIComponent( query.letter ) }/${ encodeURIComponent( query.set_name ) }`
+      } );
+    } else if ( query.source === 'collection' ) {
+      crumbs.push( {
+        label: 'My Collection',
+        href: '/yugioh/my-collection'
+      } );
+    }
+
+    // 6. Card Details
+    crumbs.push( {
+      label: `Card Details: ${ cardName || query.card }`,
+      href: null
+    } );
+  }
+
 
   return (
-    <nav className="flex flex-wrap whitespace-break-spaces border-2 border-zinc-200 bg-transparent glass text-shadow rounded-sm w-full" aria-label="Breadcrumb">
-      <ol className="mx-auto sm:mx-0 sm:float-start flex flex-wrap text-wrap w-fit space-x-4 px-4 sm:px-6 lg:px-8">
-
-        {/* Home icon */ }
-        <li className="flex items-center">
-          <Link href="/">
-            <span className="sr-only">Home</span>
-            <svg className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fillRule="evenodd" d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z" clipRule="evenodd" />
-            </svg>
-          </Link>
-        </li>
-
-        {/* Dynamically Rendered Segments */ }
-        { segments.map( ( segment, index ) => {
-          if ( !shouldDisplaySegment( segment, index ) ) return null;
-
-          const href = generateHref( index );
-          const label = formatLabel( segment, index );
-
-          return (
-            <li key={ index } className="flex items-center">
-              <svg className="h-full w-6 flex-shrink-0 text-white text-shadow" viewBox="0 0 24 44" fill="currentColor" aria-hidden="true">
+    <nav
+      className="flex flex-wrap whitespace-break-spaces border-2 border-zinc-200 bg-transparent glass text-shadow rounded-sm w-full"
+      aria-label="Breadcrumb"
+    >
+      <ol className="mx-auto sm:mx-0 sm:float-start flex flex-wrap w-fit space-x-4 px-4 sm:px-6 lg:px-8">
+        { crumbs.map( ( crumb, idx ) => (
+          <li key={ idx } className="flex items-center">
+            { idx > 0 && (
+              <svg
+                className="h-full w-6 flex-shrink-0 text-white text-shadow"
+                viewBox="0 0 24 44"
+                fill="currentColor"
+                aria-hidden="true"
+              >
                 <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
               </svg>
-              <Link href={ href }>
+            ) }
+            { crumb.href ? (
+              <Link href={ crumb.href }>
                 <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-300">
-                  { label }
+                  { crumb.label }
                 </span>
               </Link>
-            </li>
-          );
-        } ) }
+            ) : (
+              <span className="ml-4 text-sm font-medium text-white text-shadow">
+                { crumb.label }
+              </span>
+            ) }
+          </li>
+        ) ) }
       </ol>
     </nav>
   );
