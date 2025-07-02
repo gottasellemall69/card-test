@@ -22,7 +22,8 @@ const Card = ( { cardData } ) => {
             letter,                               // preserved from URL
             setName,                              // preserved from URL
             rarity: cardData.rarity,              // real rarity from data
-            edition: cardData.printing            // real “edition” from data
+            edition: cardData.printing,            // real “edition” from data
+            source: cardData.setName
           },
         } }
       >
