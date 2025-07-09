@@ -12,7 +12,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
   const [ flippedCards, setFlippedCards ] = useState( {} );
-  const [ sortField, setSortField ] = useState( '' );
+  const [ sortField, setSortField ] = useState( 'setName' );
   const [ sortDirection, setSortDirection ] = useState( 'asc' );
 
 
@@ -77,13 +77,17 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   };
 
   const memoizedAggregatedData = useMemo( () => {
+    if ( !Array.isArray( aggregatedData ) ) return [];
+
     const sortedData = [ ...aggregatedData ];
 
     sortedData.sort( ( a, b ) => {
-      const aValue = a[ sortField ];
-      const bValue = b[ sortField ];
+      const aValue = a?.[ sortField ];
+      const bValue = b?.[ sortField ];
 
-      if ( aValue === undefined || bValue === undefined ) return 0;
+      if ( aValue === null || bValue === null ) return 0;
+      if ( aValue === null ) return 1;
+      if ( bValue === null ) return -1;
 
       if ( typeof aValue === 'number' && typeof bValue === 'number' ) {
         return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;

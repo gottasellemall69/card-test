@@ -11,34 +11,34 @@ import { Card } from '@/types/Card';
 interface SportsTableProps {
   sportsData: any[];
   dataLoaded: boolean;
-  setSelectedCardSet: (cardSet: string) => void;
+  setSelectedCardSet: ( cardSet: string ) => void;
   pageSize: number;
   isLoading: boolean;
 }
 
-const SportsTable: React.FC<SportsTableProps> = ({
+const SportsTable: React.FC<SportsTableProps> = ( {
   sportsData,
   dataLoaded,
   pageSize,
   isLoading
-}) => {
+} ) => {
   // Transform data
- const flatData = React.useMemo(() => {
-    if (!Array.isArray(sportsData)) return [];
-    return sportsData.flatMap(item => 
-      Array.isArray(item.products) ? item.products.map((product: { id: any; productName: any; consoleUri: any; }) => ({
+  const flatData = React.useMemo( () => {
+    if ( !Array.isArray( sportsData ) ) return [];
+    return sportsData.flatMap( item =>
+      Array.isArray( item.products ) ? item.products.map( ( product: { id: any; productName: any; consoleUri: any; } ) => ( {
         ...product,
-        id: product.id || `${product.productName}-${product.consoleUri}`
-      })) : []
+        id: product.id || `${ product.productName }-${ product.consoleUri }`
+      } ) ) : []
     );
-  }, [sportsData]);
+  }, [ sportsData ] );
 
-  const { sortedData, handleSort, getSortIcon } = useSorting<Card>(flatData);
-  const { currentPage, paginatedData, totalPages, onPageChange } = usePagination(sortedData, pageSize);
+  const { sortedData, handleSort, getSortIcon } = useSorting<Card>( flatData );
+  const { currentPage, paginatedData, totalPages, onPageChange } = usePagination( sortedData, pageSize );
   const { toggleCardSelection, isCardSelected } = useSelectedCards();
 
   // Loading state
-  if (isLoading) {
+  if ( isLoading ) {
     return (
       <div className="w-full text-center py-8">
         <p className="text-white">Loading sports card data...</p>
@@ -47,7 +47,7 @@ const SportsTable: React.FC<SportsTableProps> = ({
   }
 
   // Empty data state
-  if (!isLoading && flatData.length === 0) {
+  if ( !isLoading && flatData.length === 0 ) {
     return (
       <div className="w-full text-center py-8">
         <p className="text-white">No cards available for this set.</p>
@@ -62,7 +62,7 @@ const SportsTable: React.FC<SportsTableProps> = ({
           <div className="w-full align-baseline float-start">
             <SportsCSVButton sportsData={sportsData} />
           </div>
-{dataLoaded && totalPages > 1 && (
+          {dataLoaded && totalPages > 1 && (
             <div className="mx-auto container max-w-7xl place-content-evenly">
               <SportsPagination
                 currentPage={currentPage}
@@ -71,7 +71,7 @@ const SportsTable: React.FC<SportsTableProps> = ({
               />
             </div>
           )}
-          <div className="container h-fit max-h-[750px] overflow-y-auto w-full">
+          <div className="container h-fit max-h-[750px] overflow-y-auto w-full mx-auto">
             <table className="mx-auto mb-2 w-full">
               <thead>
                 <tr>
@@ -109,20 +109,20 @@ const SportsTable: React.FC<SportsTableProps> = ({
                 </tr>
               </thead>
               <tbody className="mx-auto overflow-x-hidden">
-                {paginatedData.map((product: Card, index: number) => (
+                {paginatedData.map( ( product: Card, index: number ) => (
                   <TableRow
                     key={product.id || index}
                     product={product}
                     index={index}
-                    isSelected={isCardSelected(product.id)}
+                    isSelected={isCardSelected( product.id )}
                     onToggleSelect={toggleCardSelection}
                   />
-                ))}
+                ) )}
               </tbody>
             </table>
           </div>
 
-          
+
         </div>
       </div>
     </div>
