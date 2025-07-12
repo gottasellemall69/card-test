@@ -6,16 +6,17 @@ import Layout from "@/components/Layout";
 import { CardProvider } from "@/context/CardContext";
 import { MarketPriceProvider } from "@/context/MarketPriceContext";
 
-function MyApp( { Component, pageProps } ) {
-  return (
-    <Layout>
-      <CardProvider>
-        <MarketPriceProvider>
-          <Component { ...pageProps } />
-        </MarketPriceProvider>
-      </CardProvider>
-    </Layout>
-  );
-}
+export default function MyApp( { Component, pageProps } ) {
+  const getLayout = Component.getLayout ?? ( ( page ) => page );
+  return getLayout(
+    <CardProvider>
+      <MarketPriceProvider>
+        <Layout>
 
-export default MyApp;
+          <Component { ...pageProps } />
+
+        </Layout>
+      </MarketPriceProvider>
+    </CardProvider>
+  );
+};
