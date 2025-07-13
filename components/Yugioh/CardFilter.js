@@ -47,20 +47,20 @@ const CardFilter = ( {
       {/* 📌 trigger button */ }
       <button
         type="button"
-        className="p-2 font-semibold text-black bg-white hover:bg-black hover:text-white rounded"
+        className="px-0.5 py-0.5 m-2 glass inline-block font-semibold text-black bg-white hover:bg-black hover:text-white rounded-xs"
         onClick={ () => setIsModalOpen( true ) }
       >
         Open Filters
       </button>
 
       { isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black bg-opacity-50">
-          <div className="w-96 bg-white shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black bg-opacity-60">
+          <div className="w-96 text-white bg-opacity-60 glass shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
             {/* Close */ }
             <div className="flex border-b">
               <button
                 type="button"
-                className="text-red-600 hover:text-red-800 font-semibold px-4"
+                className="text-red-600 text-2xl hover:text-red-800 font-black px-4 py-2"
                 onClick={ () => setIsModalOpen( false ) }
               >
                 X
@@ -68,7 +68,7 @@ const CardFilter = ( {
             </div>
 
             {/* Filters */ }
-            <div className="overflow-y-auto h-[calc(100vh-115px)] p-4 space-y-4 text-black">
+            <div className="overflow-y-auto h-[calc(100vh-140px)] p-4 space-y-4 text-white text-shadow font-medium">
               { filtersDef.map( filter => (
                 <div key={ filter.id }>
                   <div className="block mb-2 font-semibold">{ filter.label }:</div>
@@ -91,10 +91,10 @@ const CardFilter = ( {
             </div>
 
             {/* Apply */ }
-            <div className="p-4 border-t">
+            <div className="hover:cursor-pointer p-4 m-4 border-t">
               <button
                 type="button"
-                className="w-full p-2 bg-blue-500 text-white hover:bg-blue-600 rounded"
+                className="w-full px-3 py-3 bg-blue-500 text-white hover:bg-blue-600 rounded"
                 onClick={ () => setIsModalOpen( false ) }
               >
                 Apply Filters

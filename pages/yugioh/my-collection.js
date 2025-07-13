@@ -11,11 +11,11 @@ import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), { ssr: false } );
+const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), { ssr: true } );
 const GridView = dynamic(
   () => import( "@/components/Yugioh/GridView" ),
   {
-    ssr: false,
+    ssr: true,
     loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
   }
 );
@@ -31,11 +31,11 @@ const MyCollection = ( { error } ) => {
   const [ aggregatedData, setAggregatedData ] = useState( initialData || [] );
 
   const [ filters, setFilters ] = useState( { rarity: [], condition: [] } );
-  const [ sortConfig, setSortConfig ] = useState( { key: "", direction: "" } );
+  const [ sortConfig, setSortConfig ] = useState( { key: "number", direction: "ascending" } );
   const [ view, setView ] = useState( "grid" );
   const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
   const [ currentPage, setCurrentPage ] = useState( 1 );
-  const [ itemsPerPage ] = useState( 12 );
+  const [ itemsPerPage ] = useState( 32 );
   const [ subtotalMarketPrice, setSubtotalMarketPrice ] = useState( 0 );
 
   // Effect to check authentication
@@ -70,7 +70,7 @@ const MyCollection = ( { error } ) => {
       if ( !sortConfig.key ) return data;
       return [ ...data ].sort( ( a, b ) => {
         if ( a[ sortConfig.key ] < b[ sortConfig.key ] ) {
-          return sortConfig.direction === "ascending" ? -1 : 1;
+          return sortConfig.direction === "descending" ? -1 : 1;
         }
         if ( a[ sortConfig.key ] > b[ sortConfig.key ] ) {
           return sortConfig.direction === "ascending" ? 1 : -1;
@@ -309,6 +309,7 @@ const MyCollection = ( { error } ) => {
         </div>
       </header>
       <div className="mx-auto flex flex-wrap gap-4 mb-6 px-2 py-2 glass max-w-7xl z-0">
+
         <button
           type='button'
           onClick={ () => setView( 'grid' ) }
@@ -353,15 +354,9 @@ const MyCollection = ( { error } ) => {
           className="float-start inline-flex flex-wrap items-center px-2 py-2 m-1 rounded-lg bg-red-800 text-white hover:text-black hover:bg-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           Delete All Cards
         </button>
+
       </div>
-      <CardFilter
-        type='button'
-        className="mx-auto float-end z-50 relative"
-        updateFilters={ handleFilterChange }
-        filters={ filters }
-        isModalOpen={ isFilterMenuOpen }
-        setIsModalOpen={ setIsFilterMenuOpen }
-      />
+
       <div className="mx-auto text-black w-full max-w-7xl z-0">
         <YugiohSearchBar
           searchTerm={ searchTerm }
@@ -378,6 +373,14 @@ const MyCollection = ( { error } ) => {
             />
           </div>
           <div className="w-full mx-auto mb-24 min-h-screen z-0">
+            <CardFilter
+              type='button'
+              className="z-90 relative min-h-svh"
+              updateFilters={ handleFilterChange }
+              filters={ filters }
+              isModalOpen={ isFilterMenuOpen }
+              setIsModalOpen={ setIsFilterMenuOpen }
+            />
             <GridView
               aggregatedData={ paginatedData.map( card => ( {
                 ...card,

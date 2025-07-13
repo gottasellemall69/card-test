@@ -26,35 +26,35 @@ export default function SideNav() {
   };
 
   return (
-    <nav className="p-4 mix-blend-overlay backdrop-opacity-0 z-50">
-      <ul className="inset-2 rounded">
-        <li className="navButton mb-2 rounded">
+    <nav className="p-4  min-h-max z-50">
+      <ul className="inset-2 rounded-lg bg-opacity-10">
+        <li className="navButton mb-2 rounded-lg`">
           <Link href="/">
-            <span className="block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400  from-purple-800 hover:text-white">
+            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400  from-purple-800 hover:text-white">
               Yu-Gi-Oh! Card Prices
             </span>
           </Link>
         </li>
 
-        <li className="navButton mb-2 rounded">
+        <li className="navButton mb-2 rounded-lg`">
           <Link href="/yugioh/sets/set-index">
-            <span className="block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Browse Yu-Gi-Oh! Sets
             </span>
           </Link>
         </li>
 
-        <li className="navButton mb-2 rounded">
+        <li className="navButton mb-2 rounded-lg`">
           <Link href="/yugioh/deck-builder">
-            <span className="block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Yu-Gi-Oh! Deck Builder
             </span>
           </Link>
         </li>
 
-        <li className="navButton mb-2 rounded">
+        <li className="navButton mb-2 rounded-lg`">
           <Link href="/sports">
-            <span className="block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Sports Card Prices
             </span>
           </Link>
@@ -72,7 +72,7 @@ export default function SideNav() {
           <li className="navButton mt-4 rounded">
             <button
               onClick={ handleLogout }
-              className="block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr from-red-900 to-purple-600 hover:text-white"
+              className="navButton rounded block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr from-red-900 to-purple-600 hover:text-white"
             >
               Logout
             </button>
