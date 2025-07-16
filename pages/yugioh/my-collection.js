@@ -15,7 +15,7 @@ const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), { ss
 const GridView = dynamic(
   () => import( "@/components/Yugioh/GridView" ),
   {
-    ssr: true,
+    ssr: false,
     loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
   }
 );
