@@ -68,7 +68,7 @@ const CardFilter = ( {
             </div>
 
             {/* Filters */ }
-            <div className="overflow-y-auto h-[calc(100vh-140px)] p-4 space-y-4 text-white text-shadow font-medium">
+            <div className="overflow-y-auto h-[calc(100svh-140px)] p-4 space-y-4 text-white text-shadow font-medium">
               { filtersDef.map( filter => (
                 <div key={ filter.id }>
                   <div className="block mb-2 font-semibold">{ filter.label }:</div>
@@ -91,7 +91,7 @@ const CardFilter = ( {
             </div>
 
             {/* Apply */ }
-            <div className="hover:cursor-pointer p-4 m-4 border-t">
+            <div className="hover:cursor-pointer border-t">
               <button
                 type="button"
                 className="w-full px-3 py-3 bg-blue-500 text-white hover:bg-blue-600 rounded"

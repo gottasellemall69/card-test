@@ -51,7 +51,7 @@ export default function Layout( { children } ) {
           </div>
         </header>
 
-        <main className="min-h-fit p-5 w-full max-w-[100%] mx-auto">
+        <main className="min-h-screen p-5 w-full max-w-[100%] mx-auto">
           <div className="mx-auto">{ children }</div>
         </main>
       </div>

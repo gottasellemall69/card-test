@@ -11,7 +11,7 @@ import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), { ssr: true } );
+const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), { ssr: false } );
 const GridView = dynamic(
   () => import( "@/components/Yugioh/GridView" ),
   {
@@ -35,7 +35,7 @@ const MyCollection = ( { error } ) => {
   const [ view, setView ] = useState( "grid" );
   const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
   const [ currentPage, setCurrentPage ] = useState( 1 );
-  const [ itemsPerPage ] = useState( 32 );
+  const [ itemsPerPage ] = useState( 20 );
   const [ subtotalMarketPrice, setSubtotalMarketPrice ] = useState( 0 );
 
   // Effect to check authentication
@@ -87,7 +87,7 @@ const MyCollection = ( { error } ) => {
     try {
       const response = await fetch( `/api/Yugioh/my-collection`, {
         method: "GET",
-        credentials: "include",
+
         headers: {
           Authorization: `Bearer ${ token }`,
         },
@@ -180,7 +180,7 @@ const MyCollection = ( { error } ) => {
     try {
       const response = await fetch( `/api/Yugioh/updateCardPrices`, {
         method: "POST",
-        credentials: "include",
+
         headers: {
           Authorization: `Bearer ${ token }`,
           "Content-Type": "application/json",
@@ -207,7 +207,7 @@ const MyCollection = ( { error } ) => {
       // send update
       const response = await fetch( `/api/Yugioh/updateCards`, {
         method: "PATCH",
-        credentials: "include",
+
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${ token }`,
@@ -241,7 +241,7 @@ const MyCollection = ( { error } ) => {
       }
       const response = await fetch( `/api/Yugioh/deleteCards`, {
         method: "DELETE",
-        credentials: "include",
+
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${ token }`,
@@ -266,7 +266,7 @@ const MyCollection = ( { error } ) => {
     try {
       const response = await fetch( `/api/Yugioh/deleteAllCards`, {
         method: "DELETE",
-        credentials: "include",
+
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${ token }`,
