@@ -98,7 +98,7 @@ const CardsInSetPage = () => {
         <h1 className="my-10 text-xl font-black">
           Cards in { decodeURIComponent( setName || "" ) }
         </h1>
-        <div className="w-full mx-auto gap-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="container w-full mx-auto gap-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           { cards?.map( ( card ) => (
             <div
               key={ card.id }

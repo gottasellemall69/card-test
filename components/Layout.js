@@ -10,7 +10,7 @@ export default function Layout( { children } ) {
   };
 
   return (
-    <div className="flex h-full w-full mx-auto bg-gradient-to-br from-purple-900/80 via-white/20 to-slate-900/80">
+    <div className="flex h-full w-full mx-auto bg-gradient-to-br from-purple-900/80 via-white/20 to-transparent/80">
       {/* Sidebar */ }
       <div
         className={ `fixed inset-y-0 left-0 z-30 max-w-72 glass transform ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -52,7 +52,7 @@ export default function Layout( { children } ) {
         </header>
 
         <main className="min-h-screen p-5 w-full max-w-[100%] mx-auto">
-          <div className="mx-auto">{ children }</div>
+          <div className="container box-content mx-auto">{ children }</div>
         </main>
       </div>
     </div>

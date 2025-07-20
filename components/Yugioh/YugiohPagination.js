@@ -29,13 +29,13 @@ const YugiohPagination = ( { currentPage, itemsPerPage, totalItems, handlePageCl
   };
 
   return (
-    <nav className="glass p-4 my-8">
+    <nav className="w-full glass p-4 my-8">
       <div className="flex items-center justify-center space-x-4">
         <button
           type='button'
           onClick={ () => handlePageClick( currentPage - 1 ) }
           disabled={ currentPage === 1 }
-          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-transparent transition-colors"
         >
           Previous
         </button>
@@ -57,7 +57,7 @@ const YugiohPagination = ( { currentPage, itemsPerPage, totalItems, handlePageCl
           type='button'
           onClick={ () => handlePageClick( currentPage + 1 ) }
           disabled={ currentPage === totalPages }
-          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
+          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-transparent transition-colors"
         >
           Next
         </button>

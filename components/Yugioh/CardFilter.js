@@ -1,3 +1,4 @@
+"use client";
 // components/Yugioh/CardFilter.js
 import React from 'react';
 
@@ -68,7 +69,7 @@ const CardFilter = ( {
             </div>
 
             {/* Filters */ }
-            <div className="overflow-y-auto h-[calc(100svh-140px)] p-4 space-y-4 text-white text-shadow font-medium">
+            <div className="overflow-y-auto h-[calc(100vh-90px)] p-4 space-y-4 text-white text-shadow font-medium">
               { filtersDef.map( filter => (
                 <div key={ filter.id }>
                   <div className="block mb-2 font-semibold">{ filter.label }:</div>
@@ -91,10 +92,10 @@ const CardFilter = ( {
             </div>
 
             {/* Apply */ }
-            <div className="hover:cursor-pointer border-t">
+            <div className=" border-t">
               <button
                 type="button"
-                className="w-full px-3 py-3 bg-blue-500 text-white hover:bg-blue-600 rounded"
+                className="flex w-full h-full mx-auto justify-center px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-900"
                 onClick={ () => setIsModalOpen( false ) }
               >
                 Apply Filters

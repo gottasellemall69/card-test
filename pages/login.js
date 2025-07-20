@@ -40,7 +40,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="text-black min-h-screen flex flex-col items-center justify-center bg-transparent text-shadow">
+    <div className="text-black h-full flex flex-col items-center justify-center bg-transparent text-shadow">
       <h1 className="text-3xl text-white font-bold mb-6">Login</h1>
       <form
         id="login-form"

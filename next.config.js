@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
+  swcMinify: true,
   experimental: {
-    swcMinify: true,
     modularizeImports: {
       lodash: {
         transform: "lodash/{{member}}",

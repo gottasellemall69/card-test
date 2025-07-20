@@ -130,7 +130,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
         </button>
       </div>
 
-      <div className="w-full mx-auto flex flex-wrap flex-col gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="container box-content w-full mx-auto flex flex-wrap flex-col gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 
         <Notification
           show={ notification.show }
@@ -158,8 +158,8 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 <div className="flip-card-front">
                   <Image
                     className="w-full h-96 aspect-auto object-scale-down object-center"
-                    as={ "image" }
-                    priority={ true }
+                    as="image"
+                    priority
                     unoptimized={ true }
                     src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
                     alt={ `${ card.productName }` }
