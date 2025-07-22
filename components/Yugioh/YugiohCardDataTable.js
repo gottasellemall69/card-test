@@ -13,7 +13,7 @@ const YugiohPagination = dynamic(
 
 const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
     const router = useRouter();
-    const itemsPerPage = 30;
+    const itemsPerPage = 50;
     const [ currentPage, setCurrentPage ] = useState( 1 );
     const [ sortConfig, setSortConfig ] = useState( { key: [], direction: 'ascending' } );
     const [ selectedKeys, setSelectedKeys ] = useState( new Set() );
@@ -21,122 +21,104 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
     const [ selectAllChecked, setSelectAllChecked ] = useState( false );
     const [ notification, setNotification ] = useState( { show: false, message: '' } );
 
-    // sort handler unchanged
-    const handleSort = useCallback(
-        ( key ) => {
-            setSortConfig( ( prev ) => {
-                let direction = 'ascending';
-                if ( prev.key === key && prev.direction === 'ascending' ) {
-                    direction = 'descending';
-                }
-                setMatchedCardData( ( prevData ) => {
-                    const sorted = [ ...prevData ].sort( ( a, b ) => {
-                        const aValue =
-                            key === 'marketPrice' ? a.data?.marketPrice || 0 : a.card[ key ];
-                        const bValue =
-                            key === 'marketPrice' ? b.data?.marketPrice || 0 : b.card[ key ];
-                        if ( aValue < bValue ) return direction === 'ascending' ? -1 : 1;
-                        if ( aValue > bValue ) return direction === 'ascending' ? 1 : -1;
-                        return 0;
-                    } );
-                    return sorted;
-                } );
-                return { key, direction };
-            } );
-        },
-        [ setMatchedCardData ]
-    );
+    // Build base key from card properties (without index)
+    const makeKey = ( { card } ) =>
+        `${ card?.productName }|${ card?.setName }|${ card?.number }|${ card?.printing }`;
 
-    // sorted & paginated
-    const sortedAndPaginatedData = useMemo( () => {
-        if ( !Array.isArray( matchedCardData ) ) {
-            return { currentItems: [], totalCount: 0 };
-        }
-        // full sort
-        const sortedData = [ ...matchedCardData ].sort( ( a, b ) => {
-            const aValue =
-                sortConfig.key === 'marketPrice'
-                    ? a.data?.marketPrice || 0
-                    : a.card[ sortConfig.key ];
-            const bValue =
-                sortConfig.key === 'marketPrice'
-                    ? b.data?.marketPrice || 0
-                    : b.card[ sortConfig.key ];
+    // 1. Precompute stable unique IDs including duplicate counts for all items in matchedCardData
+    const itemUniqueIds = useMemo( () => {
+        const counts = {};
+        return matchedCardData.map( ( item ) => {
+            const baseKey = makeKey( item );
+            counts[ baseKey ] = ( counts[ baseKey ] || 0 ) + 1;
+            return `${ baseKey }|${ counts[ baseKey ] }`; // e.g. "card|set|num|print|1", "card|set|num|print|2"
+        } );
+    }, [ matchedCardData ] );
+
+    // 2. Sort matchedCardData with original index retained for referencing unique IDs
+    const sortedDataWithIndex = useMemo( () => {
+        if ( !Array.isArray( matchedCardData ) ) return [];
+
+        const sorted = [ ...matchedCardData ].map( ( item, index ) => ( { item, originalIndex: index } ) );
+        sorted.sort( ( a, b ) => {
+            const aValue = sortConfig.key === 'marketPrice'
+                ? a.item.data?.marketPrice || 0
+                : a.item.card[ sortConfig.key ];
+            const bValue = sortConfig.key === 'marketPrice'
+                ? b.item.data?.marketPrice || 0
+                : b.item.card[ sortConfig.key ];
             if ( aValue < bValue ) return sortConfig.direction === 'ascending' ? -1 : 1;
             if ( aValue > bValue ) return sortConfig.direction === 'ascending' ? 1 : -1;
             return 0;
         } );
+        return sorted;
+    }, [ matchedCardData, sortConfig ] );
+
+    // 3. Pagination slice on sorted data
+    const sortedAndPaginatedData = useMemo( () => {
         const indexOfLast = currentPage * itemsPerPage;
         const indexOfFirst = indexOfLast - itemsPerPage;
-        const currentItems = sortedData.slice( indexOfFirst, indexOfLast );
-        return { currentItems, totalCount: sortedData.length };
-    }, [ matchedCardData, currentPage, sortConfig ] );
+        const currentItems = sortedDataWithIndex.slice( indexOfFirst, indexOfLast );
+        return { currentItems, totalCount: matchedCardData.length };
+    }, [ sortedDataWithIndex, currentPage, matchedCardData.length ] );
 
-    // build unique rowKey
-    const makeKey = ( { card } ) =>
-        `${ card?.productName }|${ card?.setName }|${ card?.number }|${ card?.printing }`;
+    // Unique IDs in sorted order (full dataset)
+    const sortedUniqueIds = useMemo(
+        () => sortedDataWithIndex.map( ( { originalIndex } ) => itemUniqueIds[ originalIndex ] ),
+        [ sortedDataWithIndex, itemUniqueIds ]
+    );
 
-    // checkbox toggle with Shift+Click
+    // Checkbox toggle with Shift+Click
     const toggleCheckbox = useCallback(
-        ( e, rowKey ) => {
+        ( e, uniqueId ) => {
             const isShift = e.nativeEvent.shiftKey;
             const newSelected = new Set( selectedKeys );
 
-            if ( isShift && lastCheckedKey !== null ) {
-                // determine range in the full sorted list
-                const fullKeys = matchedCardData.map( ( item ) => makeKey( item ) );
-                const start = fullKeys.indexOf( lastCheckedKey );
-                const end = fullKeys.indexOf( rowKey );
-                const [ lo, hi ] = start < end ? [ start, end ] : [ end, start ];
-                for ( let i = lo; i <= hi; i++ ) {
-                    newSelected.add( fullKeys[ i ] );
+            if ( isShift && lastCheckedKey !== null && sortedUniqueIds.length ) {
+                const start = sortedUniqueIds.indexOf( lastCheckedKey );
+                const end = sortedUniqueIds.indexOf( uniqueId );
+
+                if ( start !== -1 && end !== -1 ) {
+                    const [ lo, hi ] = start < end ? [ start, end ] : [ end, start ];
+                    for ( let i = lo; i <= hi; i++ ) {
+                        newSelected.add( sortedUniqueIds[ i ] );
+                    }
                 }
             } else {
-                if ( newSelected.has( rowKey ) ) newSelected.delete( rowKey );
-                else newSelected.add( rowKey );
-                setLastCheckedKey( rowKey );
+                if ( newSelected.has( uniqueId ) ) newSelected.delete( uniqueId );
+                else newSelected.add( uniqueId );
+                setLastCheckedKey( uniqueId );
             }
 
             setSelectedKeys( newSelected );
             setSelectAllChecked( false );
         },
-        [ selectedKeys, lastCheckedKey, matchedCardData ]
+        [ selectedKeys, lastCheckedKey, sortedUniqueIds ]
     );
 
-    // Select All / Deselect All logic
-    const pagedKeys = useMemo(
-        () => sortedAndPaginatedData.currentItems.map( ( item ) => makeKey( item ) ),
-        [ sortedAndPaginatedData ]
+
+    // Current page unique IDs
+    const pagedUniqueIds = useMemo(
+        () => sortedAndPaginatedData.currentItems.map( ( { originalIndex } ) => itemUniqueIds[ originalIndex ] ),
+        [ sortedAndPaginatedData, itemUniqueIds ]
     );
 
-    const isAllOnPage = pagedKeys.every( ( k ) => selectedKeys.has( k ) );
-
-    const toggleSelectAll = useCallback( () => {
-        if ( !selectAllChecked ) {
-            // select all dataset
-            const all = matchedCardData.map( ( item ) => makeKey( item ) );
-            setSelectedKeys( new Set( all ) );
-        } else {
-            setSelectedKeys( new Set() );
-        }
-        setSelectAllChecked( ( f ) => !f );
-    }, [ selectAllChecked, matchedCardData ] );
+    const isAllOnPage = pagedUniqueIds.length > 0 && pagedUniqueIds.every( ( k ) => selectedKeys.has( k ) );
 
     const handleSelectAllOnPage = () => {
         const newSet = new Set( selectedKeys );
-        pagedKeys.forEach( ( k ) => newSet.add( k ) );
+        pagedUniqueIds.forEach( ( k ) => newSet.add( k ) );
         setSelectedKeys( newSet );
     };
 
     const handleDeselectAllOnPage = () => {
         const newSet = new Set( selectedKeys );
-        pagedKeys.forEach( ( k ) => newSet.delete( k ) );
+        pagedUniqueIds.forEach( ( k ) => newSet.delete( k ) );
         setSelectedKeys( newSet );
     };
 
     const handleSelectAllDataset = () => {
-        const all = matchedCardData.map( ( item ) => makeKey( item ) );
-        setSelectedKeys( new Set( all ) );
+        setSelectedKeys( new Set( itemUniqueIds ) );
     };
 
     const handleClear = () => {
@@ -145,7 +127,22 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         setSelectAllChecked( false );
     };
 
-    // Collection + CSV logic unchanged
+    // Sort handler unchanged
+    const handleSort = useCallback(
+        ( key ) => {
+            setSortConfig( ( prev ) => {
+                let direction = 'ascending';
+                if ( prev.key === key && prev.direction === 'ascending' ) {
+                    direction = 'descending';
+                }
+                return { key, direction };
+            } );
+            setCurrentPage( 1 );
+        },
+        []
+    );
+
+    // Add to collection logic unchanged except use uniqueId filtering
     const addToCollection = useCallback( async () => {
         if ( selectedKeys.size === 0 ) {
             return setNotification( { show: true, message: 'No cards were selected to add to the collection!' } );
@@ -155,8 +152,8 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             setNotification( { show: true, message: "You must be logged in to add cards." } );
             return;
         }
-        const selectedData = matchedCardData.filter( ( _, idx ) =>
-            selectedKeys.has( makeKey( matchedCardData[ idx ] ) )
+        const selectedData = matchedCardData.filter( ( _, index ) =>
+            selectedKeys.has( itemUniqueIds[ index ] )
         );
         const collectionArray = selectedData.map( ( { card, data } ) => ( {
             productName: card?.productName,
@@ -183,8 +180,9 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         } catch {
             setNotification( { show: true, message: 'Card(s) failed to save!' } );
         }
-    }, [ selectedKeys, matchedCardData ] );
+    }, [ selectedKeys, matchedCardData, itemUniqueIds ] );
 
+    // Download CSV using uniqueIds filtering
     const downloadCSV = useCallback( () => {
         if ( selectedKeys.size === 0 ) {
             setNotification( { show: true, message: 'No cards selected to download!' } );
@@ -192,7 +190,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         }
         const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price", "Low Price" ];
         const rows = matchedCardData
-            .filter( ( _, idx ) => selectedKeys.has( makeKey( matchedCardData[ idx ] ) ) )
+            .filter( ( _, index ) => selectedKeys.has( itemUniqueIds[ index ] ) )
             .map( ( { card, data } ) => [
                 card?.productName,
                 card?.setName,
@@ -214,14 +212,14 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         link.click();
         document.body.removeChild( link );
         URL.revokeObjectURL( url );
-    }, [ selectedKeys, matchedCardData ] );
+    }, [ selectedKeys, matchedCardData, itemUniqueIds ] );
 
     const handleGoToCollectionPage = useCallback( () => {
         router.push( '/yugioh/my-collection' );
     }, [ router ] );
 
     return (
-        <div className="mx-auto w-full mb-10 min-h-max">
+        <div className="mx-auto w-full mb-10 min-h-fit">
             <Notification
                 show={ notification.show }
                 setShow={ ( show ) => setNotification( { ...notification, show } ) }
@@ -229,9 +227,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             />
 
             { sortedAndPaginatedData.currentItems.length > 0 && (
-                <>
-
-
+                <div>
                     {/* Pagination */ }
                     <div className="w-full -mt-5">
                         <div className="w-fit mx-auto">
@@ -253,7 +249,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                         <button onClick={ handleClear } className="ml-4 underline float-end">Clear</button>
                                         <button onClick={ handleSelectAllDataset } className="ml-4 underline float-end">Select All in Dataset</button>
                                     </div>
-
                                 </div>
                             ) }
 
@@ -299,18 +294,18 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                 </thead>
 
                                 <tbody className="bg-white divide-y divide-gray-300 text-black px-1 py-1 mx-auto">
-                                    { sortedAndPaginatedData.currentItems.map( ( item, idx ) => {
-                                        const rowKey = makeKey( item );
-                                        const isSelected = selectedKeys.has( rowKey );
+                                    { sortedAndPaginatedData.currentItems.map( ( { item, originalIndex } ) => {
+                                        const uniqueId = itemUniqueIds[ originalIndex ];
+                                        const isSelected = selectedKeys.has( uniqueId );
                                         const { card, data } = item;
 
                                         return (
-                                            <tr key={ rowKey } className="hover:bg-gray-100">
+                                            <tr key={ uniqueId } className="hover:bg-gray-100">
                                                 <td className="text-center border border-gray-300">
                                                     <input
                                                         type="checkbox"
                                                         checked={ isSelected }
-                                                        onChange={ ( e ) => toggleCheckbox( e, rowKey ) }
+                                                        onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
                                                     />
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
@@ -339,8 +334,8 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                     } ) }
                                 </tbody>
                             </table>
-
                         </div>
+
                         <div className="max-h-fit w-full mt-2 flex justify-center space-x-2">
                             <button
                                 type="button"
@@ -365,7 +360,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                             </button>
                         </div>
                     </div>
-                </>
+                </div>
             ) }
         </div>
     );

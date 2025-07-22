@@ -2,14 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
-  swcMinify: true,
-  experimental: {
-    modularizeImports: {
-      lodash: {
-        transform: "lodash/{{member}}",
-      },
-    },
-  },
+
   async headers() {
     return [
       {
