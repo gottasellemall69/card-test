@@ -8,7 +8,7 @@ const CardFilter = ( {
   isModalOpen,        // boolean
   setIsModalOpen      // (open: boolean) => void
 } ) => {
-  const handleCheckboxChange = ( event, filterType ) => {
+  const handleCheckboxChange = async ( event, filterType ) => {
     const { value, checked } = event.target;
     const prev = filters[ filterType ] || [];
     const updatedValues = checked
@@ -48,14 +48,14 @@ const CardFilter = ( {
       {/* 📌 trigger button */ }
       <button
         type="button"
-        className="px-0.5 py-0.5 m-2 glass inline-block font-semibold text-black bg-white hover:bg-black hover:text-white rounded-xs"
+        className="px-1 py-1 m-2 glass font-semibold text-black bg-white hover:bg-black hover:text-white rounded-xs"
         onClick={ () => setIsModalOpen( true ) }
       >
         Open Filters
       </button>
 
       { isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black bg-opacity-60">
+        <aside className="fixed inset-0 z-50 flex items-center justify-end bg-black bg-opacity-60">
           <div className="w-96 text-white bg-opacity-60 glass shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
             {/* Close */ }
             <div className="flex border-b">
@@ -102,7 +102,7 @@ const CardFilter = ( {
               </button>
             </div>
           </div>
-        </div>
+        </aside>
       ) }
     </>
   );
