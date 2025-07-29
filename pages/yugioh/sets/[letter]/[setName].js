@@ -55,7 +55,7 @@ const CardsInSetPage = () => {
     }
 
     try {
-      const { set, rarity, printing } = selectedOptions;
+      const { set, condition } = selectedOptions;
 
       const response = await fetch( `/api/Yugioh/cards`, {
         method: "POST",
@@ -69,9 +69,9 @@ const CardsInSetPage = () => {
               productName: selectedCard.name,
               setName: set.set_name,
               number: set.set_code,
-              printing: printing || set.set_edition,
-              rarity: rarity || set.set_rarity,
-              condition: `Near Mint ${ printing }`,
+              printing: set.set_edition || "Unknown Edition",
+              rarity: set.set_rarity,
+              condition: condition + " " + ( set.set_edition || "Unknown Edition" ),
               marketPrice: set.set_price || 0,
               quantity: 1,
             },
@@ -126,12 +126,13 @@ const CardsInSetPage = () => {
               onSubmit={ ( e ) => {
                 e.preventDefault();
                 const formData = new FormData( e.target );
-                const selectedOptions = {
-                  set: JSON.parse( formData.get( "set" ) ),
-                  rarity: formData.get( "rarity" ),
-                  printing: formData.get( "printing" ),
-                };
-                handleAddToCollection( selectedOptions );
+                const selectedSet = JSON.parse( formData.get( "set" ) );
+                const selectedCondition = formData.get( "condition" );
+
+                handleAddToCollection( {
+                  set: selectedSet,
+                  condition: selectedCondition,
+                } );
               } }
             >
               <label className="block mb-2">
@@ -147,31 +148,26 @@ const CardsInSetPage = () => {
                   </option>
                   { selectedCard.card_sets?.map( ( set, index ) => (
                     <option key={ index } value={ JSON.stringify( set ) }>
-                      { set.set_name } - { set.set_rarity } - { set.set_edition } - $
-                      { set.set_price }
+                      { set.set_name } - { set.set_rarity } - { set.set_edition || "Unknown Edition" } - ${ set.set_price || "0.00" }
                     </option>
                   ) ) }
                 </select>
               </label>
 
-              <label className="block mb-2">
-                Select Rarity:
-                <input
-                  type="text"
-                  name="rarity"
-                  className="w-full border rounded p-2"
-                  placeholder="Enter rarity"
-                />
-              </label>
-
               <label className="block mb-4">
-                Select Printing:
-                <input
-                  type="text"
-                  name="printing"
-                  className="w-full border rounded p-2"
-                  placeholder="Enter printing"
-                />
+                Select Condition:
+                <select
+                  name="condition"
+                  className="w-full border rounded p-2 text-black"
+                  required
+                  defaultValue="Near Mint"
+                >
+                  <option value="Near Mint">Near Mint</option>
+                  <option value="Lightly Played">Lightly Played</option>
+                  <option value="Moderately Played">Moderately Played</option>
+                  <option value="Heavily Played">Heavily Played</option>
+                  <option value="Damaged">Damaged</option>
+                </select>
               </label>
 
               <div className="flex justify-between">

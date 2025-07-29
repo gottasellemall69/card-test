@@ -18,15 +18,14 @@ const Card = ( { cardData } ) => {
         href={ {
           pathname: "/yugioh/sets/[letter]/cards/card-details",
           query: {
-            card: cardData.id,                    // the actual card id
-            letter,                               // preserved from URL
-            setName,                              // preserved from URL
-            rarity: cardData.rarity,              // real rarity from data
-            edition: cardData.printing,            // real “edition” from data
-            source: cardData.setName
+            card: cardData.id,
+            letter,
+            set_name: setName, // only set name passed
           },
         } }
       >
+
+
         <div className="object-center object-scale-down hover:scale-105 hover:duration-100 transition-transform">
           <Image
             className="object-scale-down object-center w-full h-full max-h-96"

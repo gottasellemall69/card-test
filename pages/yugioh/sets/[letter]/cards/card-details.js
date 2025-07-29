@@ -26,14 +26,14 @@ const CardDetails = () => {
   const edition = Array.isArray( queryEdition ) ? queryEdition[ 0 ] : queryEdition;
 
   const cardId = card?.toString();
-  const [ selectedVersion, setSelectedVersion ] = useState( "" );
+  const [ selectedVersion, setSelectedVersion ] = useState( null );
 
   const { data: cardData, error: cardError } = useSWR(
     card ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }` : null,
     fetcher
   );
 
-  useMemo( () => {
+  useEffect( () => {
     if ( cardData?.card_sets ) {
       const savedVersion = localStorage.getItem( `selectedVersion-${ cardId }` );
 
@@ -137,7 +137,7 @@ const CardDetails = () => {
         </div>
 
         <div className="glass p-6 rounded-md shadow-md">
-          <h2 className="text-lg font-bold mb-4 text-white">Price History</h2>
+          <h2 className="text-2xl font-bold mb-1 text-white text-shadow">Price History</h2>
           <PriceHistoryChart
             priceHistory={ priceHistoryData?.priceHistory || [] }
             selectedVersion={ selectedVersion }
