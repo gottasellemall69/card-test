@@ -8,12 +8,11 @@ const Card = ( { cardData } ) => {
   const { letter, setName } = router.query;    // only these two from URL
 
   const getLocalImagePath = useCallback(
-    ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`,
-    []
+    ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, []
   );
 
   return (
-    <div>
+    <>
       <Link
         href={ {
           pathname: "/yugioh/sets/[letter]/cards/card-details",
@@ -26,7 +25,7 @@ const Card = ( { cardData } ) => {
       >
 
 
-        <div className="object-center object-scale-down hover:scale-105 hover:duration-100 transition-transform">
+        <div className="hover:scale-105 hover:duration-100 transition-transform">
           <Image
             className="object-scale-down object-center w-full h-full max-h-96"
 
@@ -41,7 +40,7 @@ const Card = ( { cardData } ) => {
           />
         </div>
       </Link>
-    </div>
+    </>
   );
 };
 
