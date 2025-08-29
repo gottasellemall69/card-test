@@ -304,6 +304,62 @@ const MyCollection = () => {
               <div>
                 <h1 className="text-3xl font-bold text-shadow mb-2">My Yu-Gi-Oh! Collection</h1>
                 <p className="text-white/80">Manage and track your card collection</p>
+
+                {/* Controls */ }
+                <div className="w-fit sm:max-w-dvw mt-6">
+                  <div className="p-4 rounded-lg border border-white/20">
+                    <div className="flex flex-col lg:flex-row gap-4">
+                      {/* View Toggle */ }
+                      <div className="glass flex border border-white/20 rounded-lg overflow-hidden">
+                        <button
+                          onClick={ () => setViewMode( 'grid' ) }
+                          className={ `float-left p-3 transition-colors ${ viewMode === 'grid'
+                            ? 'bg-purple-600 text-white'
+                            : 'text-white/60 hover:text-white hover:bg-white/10'
+                            }` }
+                        >
+                          <Grid size={ 16 } />
+                        </button>
+                        <button
+                          onClick={ () => setViewMode( 'table' ) }
+                          className={ `float-right p-3 transition-colors ${ viewMode === 'table'
+                            ? 'bg-purple-600 text-white'
+                            : 'text-white/60 hover:text-white hover:bg-white/10'
+                            }` }
+                        >
+                          <List size={ 16 } />
+                        </button>
+                      </div>
+
+                      {/* Action Buttons */ }
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={ handleUpdatePrices }
+                          disabled={ isUpdatingPrices }
+                          className={ `flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-colors ${ isUpdatingPrices
+                            ? 'bg-gray-500 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                            }` }
+                        >
+                          <TrendingUp size={ 16 } />
+                          <span>{ isUpdatingPrices ? 'Updating...' : 'Update Prices' }</span>
+                        </button>
+
+                        <DownloadYugiohCSVButton
+                          aggregatedData={ aggregatedData }
+                          userCardList={ [] }
+                        />
+
+                        <button
+                          onClick={ onDeleteAllCards }
+                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-colors font-semibold"
+                        >
+                          <span>Delete All</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               {/* Collection Stats */ }
               <div className="p-4 mt-8">
@@ -325,61 +381,7 @@ const MyCollection = () => {
           </div>
         </div>
 
-        {/* Controls */ }
-        <div className="px-6 mb-6">
-          <div className="glass p-4 rounded-lg border border-white/20">
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* View Toggle */ }
-              <div className="flex border border-white/20 rounded-lg overflow-hidden">
-                <button
-                  onClick={ () => setViewMode( 'grid' ) }
-                  className={ `p-3 transition-colors ${ viewMode === 'grid'
-                    ? 'bg-purple-600 text-white'
-                    : 'text-white/60 hover:text-white hover:bg-white/10'
-                    }` }
-                >
-                  <Grid size={ 16 } />
-                </button>
-                <button
-                  onClick={ () => setViewMode( 'table' ) }
-                  className={ `p-3 transition-colors ${ viewMode === 'table'
-                    ? 'bg-purple-600 text-white'
-                    : 'text-white/60 hover:text-white hover:bg-white/10'
-                    }` }
-                >
-                  <List size={ 16 } />
-                </button>
-              </div>
 
-              {/* Action Buttons */ }
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={ handleUpdatePrices }
-                  disabled={ isUpdatingPrices }
-                  className={ `flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-colors ${ isUpdatingPrices
-                    ? 'bg-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-                    }` }
-                >
-                  <TrendingUp size={ 16 } />
-                  <span>{ isUpdatingPrices ? 'Updating...' : 'Update Prices' }</span>
-                </button>
-
-                <DownloadYugiohCSVButton
-                  aggregatedData={ aggregatedData }
-                  userCardList={ [] }
-                />
-
-                <button
-                  onClick={ onDeleteAllCards }
-                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-colors font-semibold"
-                >
-                  <span>Delete All</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Search */ }
         <div className="px-6 mb-6">
@@ -390,18 +392,10 @@ const MyCollection = () => {
         </div>
 
         {/* Content Area */ }
-        <main className="px-6 pb-8">
+        <main className="mx-auto max-w-screen-xl px-6 pb-8">
           { isAuthenticated ? (
             <>
-              {/* Pagination */ }
-              <div className="mb-6">
-                <YugiohPagination
-                  currentPage={ currentPage }
-                  itemsPerPage={ itemsPerPage }
-                  totalItems={ aggregatedData.length }
-                  handlePageClick={ handlePageClick }
-                />
-              </div>
+
 
               {/* Filter */ }
               <div className="mb-6">
@@ -415,19 +409,39 @@ const MyCollection = () => {
 
               {/* Content */ }
               { viewMode === 'grid' ? (
-                <GridView
-                  aggregatedData={ paginatedData.map( card => ( {
-                    ...card,
-                    set_name: card.setName,
-                    set_code: card.number,
-                    rarity: card.rarity,
-                    edition: card.printing || "Unknown Edition",
-                    source: "collection"
-                  } ) ) }
-                  onDeleteCard={ onDeleteCard }
-                  onUpdateCard={ onUpdateCard }
-                  setAggregatedData={ setAggregatedData }
-                />
+                <>
+                  <div className="mx-auto max-w-7xl mb-6">
+                    <YugiohPagination
+                      currentPage={ currentPage }
+                      itemsPerPage={ itemsPerPage }
+                      totalItems={ aggregatedData.length }
+                      handlePageClick={ handlePageClick }
+                    />
+                  </div>
+
+                  <GridView
+                    aggregatedData={ paginatedData.map( card => ( {
+                      ...card,
+                      set_name: card.setName,
+                      set_code: card.number,
+                      rarity: card.rarity,
+                      edition: card.printing || "Unknown Edition",
+                      source: "collection"
+                    } ) ) }
+                    onDeleteCard={ onDeleteCard }
+                    onUpdateCard={ onUpdateCard }
+                    setAggregatedData={ setAggregatedData }
+                  />
+
+                  <div className="mx-auto max-w-7xl mt-8">
+                    <YugiohPagination
+                      currentPage={ currentPage }
+                      itemsPerPage={ itemsPerPage }
+                      totalItems={ aggregatedData.length }
+                      handlePageClick={ handlePageClick }
+                    />
+                  </div>
+                </>
               ) : (
                 <Suspense fallback={ <div className="text-center py-8">Loading...</div> }>
                   <TableView
@@ -445,14 +459,7 @@ const MyCollection = () => {
               ) }
 
               {/* Bottom Pagination */ }
-              <div className="mt-8">
-                <YugiohPagination
-                  currentPage={ currentPage }
-                  itemsPerPage={ itemsPerPage }
-                  totalItems={ aggregatedData.length }
-                  handlePageClick={ handlePageClick }
-                />
-              </div>
+
             </>
           ) : (
             <div className="text-center py-16">

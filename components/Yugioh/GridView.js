@@ -7,7 +7,7 @@ import cardData from '@/public/card-data/Yugioh/card_data.json';
 
 const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const router = useRouter();
-  const { cardId, card, setName, letter, lowPrice, ebay_price } = router.query;
+  const { productName, cardId, card, setName, letter, lowPrice, ebay_price } = router.query;
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
@@ -156,15 +156,16 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
               >
                 {/* FRONT */ }
                 <div className="flip-card-front">
-                  <Image
+                  <img
                     className="w-full h-96 aspect-auto object-scale-down object-center"
                     as="image"
-                    priority
-                    unoptimized={ true }
+                    priority="true"
+                    unoptimized="true"
                     src={ cardImages ? cardImages.full : '/images/yugioh-card.png' }
                     alt={ `${ card.productName }` }
                     width={ 1600 }
-                    height={ 1600 } />
+                    height={ 1600 }
+                  />
                 </div>
 
                 {/* BACK */ }

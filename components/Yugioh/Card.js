@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 
 const Card = ( { cardData } ) => {
   const router = useRouter();
-  const { letter, setName } = router.query;    // only these two from URL
+  const { letter, setName, productName } = router.query;    // only these two from URL
 
   const getLocalImagePath = useCallback(
     ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, []
@@ -18,25 +18,23 @@ const Card = ( { cardData } ) => {
           pathname: "/yugioh/sets/[letter]/cards/card-details",
           query: {
             card: cardData.id,
-            letter,
+            letter: letter,
             set_name: setName, // only set name passed
           },
         } }
       >
 
 
-        <div className="hover:scale-105 hover:duration-100 transition-transform">
-          <Image
+        <div className="hover:scale-95 hover:duration-100 transition-transform">
+          <img
             className="object-scale-down object-center w-full h-full max-h-96"
-
             as="image"
-            quality={ 75 }
-            priority={ true }
-            unoptimized={ true }
+            priority="true"
+            unoptimized="true"
             src={ getLocalImagePath( cardData.id ) }
             alt={ `Card Image - ${ cardData.productName }` }
-            width={ 1600 }
-            height={ 1600 }
+            width="auto"
+            height="auto"
           />
         </div>
       </Link>

@@ -107,6 +107,7 @@ const CardsInSetPage = () => {
               <Card cardData={ card } as="image" source="set" />
               { isAuthenticated && (
                 <button
+                  type="button"
                   className="flex mt-2 max-w-fit mx-auto justify-center px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
                   onClick={ () => openModal( card ) }
                 >
@@ -123,6 +124,7 @@ const CardsInSetPage = () => {
           <div className="glass p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">{ selectedCard.name }</h2>
             <form
+              name="addToCollection"
               onSubmit={ ( e ) => {
                 e.preventDefault();
                 const formData = new FormData( e.target );
@@ -135,13 +137,13 @@ const CardsInSetPage = () => {
                 } );
               } }
             >
-              <label className="block mb-2">
+              <label id="addToCollection" className="block mb-2">
                 Select Set:
                 <select
                   name="set"
                   className="w-full border rounded p-2 text-black"
                   required
-                  defaultValue=""
+                  defaultValue={ "" }
                 >
                   <option value="" disabled>
                     Choose a set
@@ -154,14 +156,15 @@ const CardsInSetPage = () => {
                 </select>
               </label>
 
-              <label className="block mb-4">
+              <label id="addToCollection" className="block mb-4">
                 Select Condition:
                 <select
                   name="condition"
                   className="w-full border rounded p-2 text-black"
                   required
-                  defaultValue="Near Mint"
+                  defaultValue={ "" }
                 >
+                  <option value="" disabled>Choose a condition</option>
                   <option value="Near Mint">Near Mint</option>
                   <option value="Lightly Played">Lightly Played</option>
                   <option value="Moderately Played">Moderately Played</option>

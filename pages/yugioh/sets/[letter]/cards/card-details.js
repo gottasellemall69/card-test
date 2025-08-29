@@ -26,7 +26,7 @@ const CardDetails = () => {
   const edition = Array.isArray( queryEdition ) ? queryEdition[ 0 ] : queryEdition;
 
   const cardId = card?.toString();
-  const [ selectedVersion, setSelectedVersion ] = useState( null );
+  const [ selectedVersion, setSelectedVersion ] = useState( undefined );
 
   const { data: cardData, error: cardError } = useSWR(
     card ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }` : null,
@@ -117,9 +117,9 @@ const CardDetails = () => {
               value={ selectedVersion }
               onChange={ handleVersionChange }
             >
-              { cardData.card_sets?.map( ( set, index ) => (
+              { cardData.card_sets?.map( ( set, selectedVersion ) => (
                 <option
-                  key={ index }
+                  key={ selectedVersion }
                   value={ `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` }
                 >
                   { set.set_name } - { set.set_code } - { set.set_rarity } - { set.set_edition || "Unknown Edition" }
