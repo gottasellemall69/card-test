@@ -25,27 +25,26 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
     const makeKey = ( { card } ) =>
         `${ card?.productName }|${ card?.setName }|${ card?.number }|${ card?.printing }`;
 
-    // 1. Precompute stable unique IDs including duplicate counts for all items in matchedCardData
+    // Stable unique IDs including duplicate counts
     const itemUniqueIds = useMemo( () => {
         const counts = {};
         return matchedCardData.map( ( item ) => {
             const baseKey = makeKey( item );
             counts[ baseKey ] = ( counts[ baseKey ] || 0 ) + 1;
-            return `${ baseKey }|${ counts[ baseKey ] }`; // e.g. "card|set|num|print|1", "card|set|num|print|2"
+            return `${ baseKey }|${ counts[ baseKey ] }`;
         } );
     }, [ matchedCardData ] );
 
-    // 2. Sort matchedCardData with original index retained for referencing unique IDs
+    // Sorted data with index
     const sortedDataWithIndex = useMemo( () => {
         if ( !Array.isArray( matchedCardData ) ) return [];
-
         const sorted = [ ...matchedCardData ].map( ( item, index ) => ( { item, originalIndex: index } ) );
         sorted.sort( ( a, b ) => {
             const aValue = sortConfig.key === 'marketPrice'
-                ? a.item.data?.marketPrice || 0
+                ? parseFloat( a.item.data?.marketPrice ) || 0
                 : a.item.card[ sortConfig.key ];
             const bValue = sortConfig.key === 'marketPrice'
-                ? b.item.data?.marketPrice || 0
+                ? parseFloat( b.item.data?.marketPrice ) || 0
                 : b.item.card[ sortConfig.key ];
             if ( aValue < bValue ) return sortConfig.direction === 'ascending' ? -1 : 1;
             if ( aValue > bValue ) return sortConfig.direction === 'ascending' ? 1 : -1;
@@ -54,7 +53,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         return sorted;
     }, [ matchedCardData, sortConfig ] );
 
-    // 3. Pagination slice on sorted data
+    // Pagination slice
     const sortedAndPaginatedData = useMemo( () => {
         const indexOfLast = currentPage * itemsPerPage;
         const indexOfFirst = indexOfLast - itemsPerPage;
@@ -62,7 +61,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         return { currentItems, totalCount: matchedCardData.length };
     }, [ sortedDataWithIndex, currentPage, matchedCardData.length ] );
 
-    // Unique IDs in sorted order (full dataset)
     const sortedUniqueIds = useMemo(
         () => sortedDataWithIndex.map( ( { originalIndex } ) => itemUniqueIds[ originalIndex ] ),
         [ sortedDataWithIndex, itemUniqueIds ]
@@ -77,7 +75,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             if ( isShift && lastCheckedKey !== null && sortedUniqueIds.length ) {
                 const start = sortedUniqueIds.indexOf( lastCheckedKey );
                 const end = sortedUniqueIds.indexOf( uniqueId );
-
                 if ( start !== -1 && end !== -1 ) {
                     const [ lo, hi ] = start < end ? [ start, end ] : [ end, start ];
                     for ( let i = lo; i <= hi; i++ ) {
@@ -96,8 +93,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         [ selectedKeys, lastCheckedKey, sortedUniqueIds ]
     );
 
-
-    // Current page unique IDs
     const pagedUniqueIds = useMemo(
         () => sortedAndPaginatedData.currentItems.map( ( { originalIndex } ) => itemUniqueIds[ originalIndex ] ),
         [ sortedAndPaginatedData, itemUniqueIds ]
@@ -127,7 +122,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         setSelectAllChecked( false );
     };
 
-    // Sort handler unchanged
     const handleSort = useCallback(
         ( key ) => {
             setSortConfig( ( prev ) => {
@@ -142,19 +136,18 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         []
     );
 
-    // Add to collection logic unchanged except use uniqueId filtering
     const addToCollection = useCallback( async () => {
         if ( selectedKeys.size === 0 ) {
-            return setNotification( { show: true, message: 'No cards were selected to add to the collection!' } );
+            return setNotification( {
+                show: true,
+                message: "No cards were selected to add to the collection!",
+            } );
         }
-        const token = localStorage.getItem( "token" );
-        if ( !token ) {
-            setNotification( { show: true, message: "You must be logged in to add cards." } );
-            return;
-        }
+
         const selectedData = matchedCardData.filter( ( _, index ) =>
             selectedKeys.has( itemUniqueIds[ index ] )
         );
+
         const collectionArray = selectedData.map( ( { card, data } ) => ( {
             productName: card?.productName,
             setName: card?.setName,
@@ -166,23 +159,31 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             lowPrice: data?.lowPrice,
             quantity: 1,
         } ) );
+
         try {
             const response = await fetch( `/api/Yugioh/cards`, {
-                method: 'POST',
+                method: "POST",
+                credentials: "include", // ✅ automatically sends the JWT cookie
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${ token }`,
                 },
                 body: JSON.stringify( { cards: collectionArray } ),
             } );
+
             if ( !response.ok ) throw new Error();
-            setNotification( { show: true, message: 'Card(s) added to the collection!' } );
+            setNotification( {
+                show: true,
+                message: "Card(s) added to the collection!",
+            } );
         } catch {
-            setNotification( { show: true, message: 'Card(s) failed to save!' } );
+            setNotification( {
+                show: true,
+                message: "Card(s) failed to save!",
+            } );
         }
     }, [ selectedKeys, matchedCardData, itemUniqueIds ] );
 
-    // Download CSV using uniqueIds filtering
+
     const downloadCSV = useCallback( () => {
         if ( selectedKeys.size === 0 ) {
             setNotification( { show: true, message: 'No cards selected to download!' } );
@@ -212,11 +213,17 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         link.click();
         document.body.removeChild( link );
         URL.revokeObjectURL( url );
-    }, [ selectedKeys, matchedCardData, itemUniqueIds ] );
+    }, [ selectedKeys, matchedCardData, setMatchedCardData, itemUniqueIds ] );
 
     const handleGoToCollectionPage = useCallback( () => {
         router.push( '/yugioh/my-collection' );
     }, [ router ] );
+
+    // Format helper for prices
+    const formatPrice = ( val ) => {
+        const num = parseFloat( val );
+        return isNaN( num ) ? "0.00" : `${ num.toFixed( 2 ) }`;
+    };
 
     return (
         <div className="mx-auto w-full mb-10 min-h-fit">
@@ -241,7 +248,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
 
                         {/* Table */ }
                         <div className="w-full mx-auto overflow-x-auto">
-                            {/* Bulk Action Bar */ }
                             { selectedKeys.size > 0 && (
                                 <div className="my-5 py-2 h-fit bg-stone-500 bg-opacity-20 backdrop-blur backdrop-filter text-white p-2 mb-2 flex justify-between items-center">
                                     <div className="text-sm float-start">
@@ -324,10 +330,10 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                                     { card?.condition || 'N/A' }
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
-                                                    { data?.marketPrice ?? 'N/A' }
+                                                    { formatPrice( data?.marketPrice ) }
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
-                                                    { data?.lowPrice ?? 'N/A' }
+                                                    { formatPrice( data?.lowPrice ) }
                                                 </td>
                                             </tr>
                                         );

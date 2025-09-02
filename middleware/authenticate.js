@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 import clientPromise from "@/utils/mongo";
+import { ObjectId } from "mongodb";
 
 export default async function authenticate( req, res, next ) {
-  const token = req.headers.authorization?.split( " " )[ 1 ];
+  const token = req.cookies?.token;
 
   if ( !token ) {
     return res.status( 401 ).json( { error: "Unauthorized" } );
@@ -14,7 +15,10 @@ export default async function authenticate( req, res, next ) {
 
     const client = await clientPromise;
     const db = client.db( "cardPriceApp" );
-    const user = await db.collection( "users" ).findOne( { _id: { $eq: decoded.userId } } );
+
+    const user = await db
+      .collection( "users" )
+      .findOne( { _id: new ObjectId( decoded.userId ) } );
 
     if ( !user ) {
       return res.status( 401 ).json( { error: "Invalid token" } );

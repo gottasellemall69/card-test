@@ -38,7 +38,7 @@ export default async function handler( req, res ) {
     );
 
     res.setHeader( "Set-Cookie", `token=${ token }; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict; Secure` );
-    res.status( 200 ).json( { token } );
+    res.status( 200 ).json( { message: "Logged in!" } );
 
   } catch ( error ) {
     console.error( "Error logging in user:", error );

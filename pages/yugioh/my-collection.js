@@ -41,18 +41,28 @@ const MyCollection = () => {
   const toggleSidebar = () => setIsSidebarOpen( !isSidebarOpen );
 
   // Effect to check authentication
+  // Effect to check authentication
   useEffect( () => {
     const validateAuth = async () => {
-      const storedToken = localStorage.getItem( "token" );
-      if ( !storedToken ) {
+      try {
+        const response = await fetch( "/api/auth/validate", {
+          method: "GET",
+          credentials: "include", // send cookies
+        } );
+
+        if ( response.ok ) {
+          setIsAuthenticated( true );
+        } else {
+          setIsAuthenticated( false );
+        }
+      } catch ( err ) {
         setIsAuthenticated( false );
-        return;
       }
-      setToken( storedToken );
-      setIsAuthenticated( true );
     };
+
     validateAuth();
   }, [ router ] );
+
 
   const applyFilters = useCallback(
     data => {
@@ -84,18 +94,17 @@ const MyCollection = () => {
   );
 
   const fetchData = useCallback( async () => {
-    if ( !token ) return;
     setIsLoading( true );
     try {
       const response = await fetch( `/api/Yugioh/my-collection`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${ token }`,
-        },
+        credentials: "include", // send cookies
       } );
+
       if ( !response.ok ) {
         throw new Error( "Failed to fetch aggregated data" );
       }
+
       const data = await response.json();
       setInitialData( data );
       const filteredData = applyFilters( data );
@@ -106,7 +115,8 @@ const MyCollection = () => {
     } finally {
       setIsLoading( false );
     }
-  }, [ applyFilters, applySorting, token ] );
+  }, [ applyFilters, applySorting ] );
+
 
   useEffect( () => {
     if ( isAuthenticated ) {
@@ -170,19 +180,16 @@ const MyCollection = () => {
   }, [ aggregatedData ] );
 
   const handleUpdatePrices = useCallback( async () => {
-    if ( !token ) {
-      alert( "You must be logged in to update prices." );
-      return;
-    }
     setIsUpdatingPrices( true );
     try {
       const response = await fetch( `/api/Yugioh/updateCardPrices`, {
         method: "POST",
+        credentials: "include",
         headers: {
-          Authorization: `Bearer ${ token }`,
           "Content-Type": "application/json",
         },
       } );
+
       if ( !response.ok ) throw new Error( "Failed to update card prices." );
       await response.json();
       alert( "Prices updated successfully." );
@@ -193,81 +200,76 @@ const MyCollection = () => {
     } finally {
       setIsUpdatingPrices( false );
     }
-  }, [ token, fetchData ] );
+  }, [ fetchData ] );
+
 
   const onUpdateCard = useCallback( async ( cardId, field, value ) => {
     try {
-      if ( !token ) {
-        alert( "You must be logged in to update cards." );
-        return;
-      }
       const response = await fetch( `/api/Yugioh/updateCards`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${ token }`,
         },
         body: JSON.stringify( { cardId, field, value } ),
       } );
+
       if ( !response.ok ) throw new Error( "Failed to update card" );
 
-      setAggregatedData( current =>
-        current.map( card =>
+      setAggregatedData( ( current ) =>
+        current.map( ( card ) =>
           card._id === cardId ? { ...card, [ field ]: value } : card
         )
       );
-      setInitialData( current =>
-        current.map( card =>
+      setInitialData( ( current ) =>
+        current.map( ( card ) =>
           card._id === cardId ? { ...card, [ field ]: value } : card
         )
       );
     } catch ( error ) {
       console.error( "Error updating card:", error );
     }
-  }, [ token ] );
+  }, [] );
+
 
   const onDeleteCard = useCallback( async ( cardId ) => {
     try {
-      if ( !token ) {
-        alert( "You must be logged in to delete cards." );
-        return;
-      }
       const response = await fetch( `/api/Yugioh/deleteCards`, {
         method: "DELETE",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${ token }`,
         },
         body: JSON.stringify( { cardId } ),
       } );
+
       if ( !response.ok ) throw new Error( "Failed to delete card" );
 
-      setAggregatedData( current => current.filter( card => card._id !== cardId ) );
-      setInitialData( current => current.filter( card => card._id !== cardId ) );
+      setAggregatedData( ( current ) => current.filter( ( card ) => card._id !== cardId ) );
+      setInitialData( ( current ) => current.filter( ( card ) => card._id !== cardId ) );
     } catch ( error ) {
       console.error( "Error deleting card:", error );
     }
-  }, [ token ] );
+  }, [] );
+
 
   const onDeleteAllCards = useCallback( async () => {
-    if ( !token ) {
-      alert( "You must be logged in to delete all cards." );
-      return;
-    }
     try {
       const response = await fetch( `/api/Yugioh/deleteAllCards`, {
         method: "DELETE",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${ token }`,
         },
       } );
+
       if ( !response.ok ) throw new Error( "Failed to delete all cards" );
       await fetchData();
     } catch ( error ) {
       console.error( "Error deleting all cards:", error );
     }
-  }, [ token, fetchData ] );
+  }, [ fetchData ] );
+
 
   const paginatedData = useMemo( () => {
     const start = ( currentPage - 1 ) * itemsPerPage;

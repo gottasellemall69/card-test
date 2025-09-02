@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 
 const Card = ( { cardData } ) => {
   const router = useRouter();
-  const { letter, setName, productName } = router.query;    // only these two from URL
+  const { letter, setName } = router.query;    // only these two from URL
 
   const getLocalImagePath = useCallback(
     ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, []
@@ -33,8 +33,8 @@ const Card = ( { cardData } ) => {
             unoptimized="true"
             src={ getLocalImagePath( cardData.id ) }
             alt={ `Card Image - ${ cardData.productName }` }
-            width="auto"
-            height="auto"
+            width={ 1600 }
+            height={ 1600 }
           />
         </div>
       </Link>

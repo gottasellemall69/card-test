@@ -33,8 +33,20 @@ const CardsInSetPage = () => {
       loadData();
     }
 
-    const token = localStorage.getItem( "token" );
-    setIsAuthenticated( !!token );
+    // ✅ Cookie-based auth check
+    const checkAuth = async () => {
+      try {
+        const res = await fetch( "/api/auth/validate", {
+          method: "GET",
+          credentials: "include",
+        } );
+        setIsAuthenticated( res.ok );
+      } catch {
+        setIsAuthenticated( false );
+      }
+    };
+
+    checkAuth();
   }, [ card, setName ] );
 
   const openModal = ( card ) => {
@@ -48,21 +60,13 @@ const CardsInSetPage = () => {
   };
 
   const handleAddToCollection = async ( selectedOptions ) => {
-    const token = localStorage.getItem( "token" );
-    if ( !token ) {
-      alert( "Please log in to add cards to your collection." );
-      return;
-    }
-
     try {
       const { set, condition } = selectedOptions;
 
       const response = await fetch( `/api/Yugioh/cards`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${ token }`,
-        },
+        credentials: "include", // ✅ send cookies
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify( {
           cards: [
             {
@@ -137,34 +141,38 @@ const CardsInSetPage = () => {
                 } );
               } }
             >
-              <label id="addToCollection" className="block mb-2">
+              <label className="block mb-2">
                 Select Set:
                 <select
                   name="set"
                   className="w-full border rounded p-2 text-black"
                   required
-                  defaultValue={ "" }
+                  defaultValue=""
                 >
                   <option value="" disabled>
                     Choose a set
                   </option>
                   { selectedCard.card_sets?.map( ( set, index ) => (
                     <option key={ index } value={ JSON.stringify( set ) }>
-                      { set.set_name } - { set.set_rarity } - { set.set_edition || "Unknown Edition" } - ${ set.set_price || "0.00" }
+                      { set.set_name } - { set.set_rarity } -{ " " }
+                      { set.set_edition || "Unknown Edition" } - $
+                      { set.set_price || "0.00" }
                     </option>
                   ) ) }
                 </select>
               </label>
 
-              <label id="addToCollection" className="block mb-4">
+              <label className="block mb-4">
                 Select Condition:
                 <select
                   name="condition"
                   className="w-full border rounded p-2 text-black"
                   required
-                  defaultValue={ "" }
+                  defaultValue=""
                 >
-                  <option value="" disabled>Choose a condition</option>
+                  <option value="" disabled>
+                    Choose a condition
+                  </option>
                   <option value="Near Mint">Near Mint</option>
                   <option value="Lightly Played">Lightly Played</option>
                   <option value="Moderately Played">Moderately Played</option>

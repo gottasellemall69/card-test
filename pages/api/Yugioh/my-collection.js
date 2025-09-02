@@ -2,21 +2,20 @@ import { MongoClient } from "mongodb";
 import jwt from "jsonwebtoken";
 
 export default async function handler( req, res ) {
-  const authHeader = req.headers.authorization;
-
-  // Validate the Authorization header
-  if ( !authHeader || !authHeader.startsWith( "Bearer " ) ) {
+  // Read token from cookie
+  const token = req.cookies?.token;
+  if ( !token ) {
     return res.status( 401 ).json( { error: "Unauthorized: No token provided" } );
   }
 
-  const token = authHeader.split( " " )[ 1 ];
-
   let decodedToken;
-  let userId;
-
+  let userId; // this remains the field name in the DB, but it stores the username string
   try {
     decodedToken = jwt.verify( token, process.env.JWT_SECRET );
-    userId = decodedToken.username; // Ensure this matches the field in the token payload
+    userId = decodedToken.username; // ✅ keep using username
+    if ( !userId ) {
+      return res.status( 401 ).json( { error: "Unauthorized: Invalid token payload" } );
+    }
   } catch ( error ) {
     console.error( "Invalid token:", error );
     return res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
@@ -29,12 +28,9 @@ export default async function handler( req, res ) {
     const collection = client.db( "cardPriceApp" ).collection( "myCollection" );
 
     switch ( req.method ) {
-      case "GET":
-        // Ensure we fetch only the current user's collection
+      case "GET": {
         const agg = [
-          {
-            $match: { userId }, // Match documents where userId matches the logged-in user
-          },
+          { $match: { userId } }, // match by username stored in userId field
           {
             $project: {
               _id: 1,
@@ -50,22 +46,20 @@ export default async function handler( req, res ) {
               quantity: 1,
             },
           },
-          {
-            $sort: { _id: 1 },
-          },
+          { $sort: { _id: 1 } },
         ];
 
         const result = await collection.aggregate( agg ).toArray();
-        res.status( 200 ).json( result );
-        break;
+        return res.status( 200 ).json( result );
+      }
 
       default:
         res.setHeader( "Allow", [ "GET" ] );
-        res.status( 405 ).end( `Method ${ req.method } Not Allowed` );
+        return res.status( 405 ).end( `Method ${ req.method } Not Allowed` );
     }
   } catch ( error ) {
     console.error( "Error executing aggregation query:", error );
-    res.status( 500 ).json( { message: "Server error" } );
+    return res.status( 500 ).json( { message: "Server error" } );
   } finally {
     await client.close();
   }

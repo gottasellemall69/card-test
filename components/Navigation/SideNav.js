@@ -1,36 +1,46 @@
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 export default function SideNav() {
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
   const router = useRouter();
 
   useEffect( () => {
-    const token = localStorage.getItem( "token" );
-    setIsAuthenticated( !!token );
+    const checkAuth = async () => {
+      try {
+        const res = await fetch( "/api/auth/validate", {
+          method: "GET",
+          credentials: "include",
+        } );
+        setIsAuthenticated( res.ok );
+      } catch {
+        setIsAuthenticated( false );
+      }
+    };
 
-    const tokenPollInterval = setInterval( () => {
-      const updatedToken = localStorage.getItem( "token" );
-      setIsAuthenticated( !!updatedToken );
-    }, 500 );
+    checkAuth();
+  }, [ router ] );
 
-    return () => clearInterval( tokenPollInterval );
-  }, [] );
-
-  const handleLogout = () => {
-    localStorage.removeItem( "token" );
-    setIsAuthenticated( false );
-    router.push( "/login" );
+  const handleLogout = async () => {
+    try {
+      await fetch( "/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      } );
+      setIsAuthenticated( false );
+      router.push( "/login" );
+    } catch {
+      console.error( "Logout failed" );
+    }
   };
 
   return (
-    <nav className="p-4  min-h-max z-50">
+    <nav className="p-4 min-h-max z-50">
       <ul className="inset-2 rounded-lg bg-opacity-10">
         <li className="navButton mb-2 rounded-lg`">
           <Link href="/">
-            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400  from-purple-800 hover:text-white">
+            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Yu-Gi-Oh! Card Prices
             </span>
           </Link>
