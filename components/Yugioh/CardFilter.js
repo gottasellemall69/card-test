@@ -48,7 +48,7 @@ const CardFilter = ( {
       {/* 📌 trigger button */ }
       <button
         type="button"
-        className="px-1 py-1 m-2 glass font-semibold text-black bg-white hover:bg-black hover:text-white rounded-xs"
+        className="px-1.5 py-1.5 my-2 glass font-semibold text-black bg-white hover:bg-black hover:text-white rounded-xs"
         onClick={ () => setIsModalOpen( true ) }
       >
         Open Filters

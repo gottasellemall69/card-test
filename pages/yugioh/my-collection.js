@@ -297,7 +297,7 @@ const MyCollection = () => {
 
 
       {/* Main Content */ }
-      <div className="mx-auto">
+      <div className="mx-auto w-auto">
 
         {/* Page Header */ }
         <div className="px-6 py-8">
@@ -308,63 +308,45 @@ const MyCollection = () => {
                 <p className="text-white/80">Manage and track your card collection</p>
 
                 {/* Controls */ }
-                <div className="w-fit sm:max-w-dvw mt-6">
-                  <div className="p-4 rounded-lg border border-white/20">
-                    <div className="flex flex-col lg:flex-row gap-4">
-                      {/* View Toggle */ }
-                      <div className="glass flex border border-white/20 rounded-lg overflow-hidden">
-                        <button
-                          onClick={ () => setViewMode( 'grid' ) }
-                          className={ `float-left p-3 transition-colors ${ viewMode === 'grid'
-                            ? 'bg-purple-600 text-white'
-                            : 'text-white/60 hover:text-white hover:bg-white/10'
-                            }` }
-                        >
-                          <Grid size={ 16 } />
-                        </button>
-                        <button
-                          onClick={ () => setViewMode( 'table' ) }
-                          className={ `float-right p-3 transition-colors ${ viewMode === 'table'
-                            ? 'bg-purple-600 text-white'
-                            : 'text-white/60 hover:text-white hover:bg-white/10'
-                            }` }
-                        >
-                          <List size={ 16 } />
-                        </button>
-                      </div>
+                { isAuthenticated && (
+                  <div className="mx-auto mt-6">
+                    <div className="p-4 rounded-lg border border-white/20">
+                      <div className=" inline-flex flex-wrap flex-col lg:flex-row gap-4">
 
-                      {/* Action Buttons */ }
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={ handleUpdatePrices }
-                          disabled={ isUpdatingPrices }
-                          className={ `flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-colors ${ isUpdatingPrices
-                            ? 'bg-gray-500 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-                            }` }
-                        >
-                          <TrendingUp size={ 16 } />
-                          <span>{ isUpdatingPrices ? 'Updating...' : 'Update Prices' }</span>
-                        </button>
 
-                        <DownloadYugiohCSVButton
-                          aggregatedData={ aggregatedData }
-                          userCardList={ [] }
-                        />
+                        {/* Action Buttons */ }
+                        <div className="mx-auto flex flex-wrap gap-2">
+                          <button
+                            onClick={ handleUpdatePrices }
+                            disabled={ isUpdatingPrices }
+                            className={ `flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-colors ${ isUpdatingPrices
+                              ? 'bg-gray-500 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                              }` }
+                          >
+                            <TrendingUp size={ 16 } />
+                            <span>{ isUpdatingPrices ? 'Updating...' : 'Update Prices' }</span>
+                          </button>
 
-                        <button
-                          onClick={ onDeleteAllCards }
-                          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-colors font-semibold"
-                        >
-                          <span>Delete All</span>
-                        </button>
+                          <DownloadYugiohCSVButton
+                            aggregatedData={ aggregatedData }
+                            userCardList={ [] }
+                          />
+
+                          <button
+                            onClick={ onDeleteAllCards }
+                            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 rounded-lg hover:from-red-700 hover:to-red-800 transition-colors font-semibold"
+                          >
+                            <span>Delete All</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ) }
               </div>
               {/* Collection Stats */ }
-              <div className="p-4 mt-8">
+              <div className="w-3/4 sm:max-w-[55%] mx-auto p-4 mt-8">
                 <div className="glass p-4 rounded-lg">
                   <h3 className="text-sm font-semibold text-white/80 mb-3">Collection Value</h3>
                   <div className="space-y-2">
@@ -385,28 +367,53 @@ const MyCollection = () => {
 
 
 
-        {/* Search */ }
-        <div className="px-6 mb-6">
-          <YugiohSearchBar
-            searchTerm={ searchTerm }
-            onSearch={ handleSearch }
-          />
-        </div>
+
 
         {/* Content Area */ }
-        <main className="mx-auto max-w-screen-xl px-6 pb-8">
+        <main className="mx-auto w-full px-6 pb-8">
           { isAuthenticated ? (
             <>
 
-
+              {/* Search */ }
+              <div className="px-6 mb-6">
+                <YugiohSearchBar
+                  searchTerm={ searchTerm }
+                  onSearch={ handleSearch }
+                />
+              </div>
               {/* Filter */ }
-              <div className="mb-6">
+              <div className="px-3 py-3 mb-6">
                 <CardFilter
                   updateFilters={ handleFilterChange }
                   filters={ filters }
                   isModalOpen={ isFilterMenuOpen }
                   setIsModalOpen={ setIsFilterMenuOpen }
                 />
+                {/* View Toggle */ }
+                <div className="glass flex border border-white/20 rounded-lg overflow-ellipsis w-fit">
+                  <div className='float-left w-1/2'>
+                    <button
+                      onClick={ () => setViewMode( 'grid' ) }
+                      className={ `p-3 transition-colors ${ viewMode === 'grid'
+                        ? 'bg-purple-600 text-white'
+                        : 'text-white/60 hover:text-white hover:bg-white/10'
+                        }` }
+                    >
+                      <Grid size={ 16 } />
+                    </button>
+                  </div>
+                  <div className='float-right w-1/2'>
+                    <button
+                      onClick={ () => setViewMode( 'table' ) }
+                      className={ `p-3 transition-colors ${ viewMode === 'table'
+                        ? 'bg-purple-600 text-white'
+                        : 'text-white/60 hover:text-white hover:bg-white/10'
+                        }` }
+                    >
+                      <List size={ 16 } />
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Content */ }
@@ -420,6 +427,7 @@ const MyCollection = () => {
                       handlePageClick={ handlePageClick }
                     />
                   </div>
+
 
                   <GridView
                     aggregatedData={ paginatedData.map( card => ( {

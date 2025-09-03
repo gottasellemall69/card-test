@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import Card from "@/components/Yugioh/Card";
+import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
+import YugiohCardDataTable from "@/components/Yugioh/YugiohCardDataTable";
 import { fetchCardData } from "@/utils/api";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -13,7 +15,16 @@ const CardsInSetPage = () => {
   const [ cards, setCards ] = useState( [] );
   const [ selectedCard, setSelectedCard ] = useState( null );
   const [ modalVisible, setModalVisible ] = useState( false );
+  const [ bulkModalVisible, setBulkModalVisible ] = useState( false );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
+
+  const [ searchTerm, setSearchTerm ] = useState( "" );
+  const [ sortBy, setSortBy ] = useState( "name-asc" );
+  const [ viewMode, setViewMode ] = useState( "grid" );
+
+  // ✅ lifted persistent selection
+  const [ selectedRowIds, setSelectedRowIds ] = useState( {} );
+  const [ bulkSelections, setBulkSelections ] = useState( {} );
 
   const router = useRouter();
   const { card, setName } = router.query;
@@ -29,11 +40,9 @@ const CardsInSetPage = () => {
       setCards( cardsInSet );
     };
 
-    if ( setName ) {
-      loadData();
-    }
+    if ( setName ) loadData();
 
-    // ✅ Cookie-based auth check
+    // auth check
     const checkAuth = async () => {
       try {
         const res = await fetch( "/api/auth/validate", {
@@ -62,10 +71,9 @@ const CardsInSetPage = () => {
   const handleAddToCollection = async ( selectedOptions ) => {
     try {
       const { set, condition } = selectedOptions;
-
       const response = await fetch( `/api/Yugioh/cards`, {
         method: "POST",
-        credentials: "include", // ✅ send cookies
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify( {
           cards: [
@@ -82,38 +90,160 @@ const CardsInSetPage = () => {
           ],
         } ),
       } );
-
-      if ( !response.ok ) {
-        throw new Error( "Failed to add card to collection." );
-      }
-
-      alert( "Card added to your collection!" );
+      if ( !response.ok ) throw new Error( "Failed to add card" );
+      alert( "Card added!" );
       closeModal();
     } catch ( error ) {
-      console.error( "Error adding card to collection:", error );
-      alert( "Failed to add card. Please try again." );
+      console.error( error );
+      alert( "Failed to add card. Try again." );
+    }
+  };
+
+  // ✅ search + sort
+  const processedCards = useMemo( () => {
+    let data = [ ...cards ];
+    if ( searchTerm ) {
+      const term = searchTerm.toLowerCase();
+      data = data.filter(
+        ( c ) =>
+          c.name?.toLowerCase().includes( term ) ||
+          ( c.type && c.type.toLowerCase().includes( term ) ) ||
+          ( c.archetype && c.archetype.toLowerCase().includes( term ) )
+      );
+    }
+    if ( sortBy === "name-asc" ) data.sort( ( a, b ) => a.name.localeCompare( b.name ) );
+    if ( sortBy === "name-desc" ) data.sort( ( a, b ) => b.name.localeCompare( a.name ) );
+    return data;
+  }, [ cards, searchTerm, sortBy ] );
+
+  // ✅ convert to matchedCardData for table
+  const matchedCardData = useMemo( () => {
+    return processedCards.map( ( c ) => {
+      const setForThisPage =
+        c.card_sets?.find(
+          ( s ) => s.set_name?.toLowerCase() === setName?.toLowerCase()
+        ) || c.card_sets?.[ 0 ] || {};
+      return {
+        card: {
+          productName: c.name,
+          setName: setForThisPage.set_name || setName || "Unknown Set",
+          number: setForThisPage.set_code || "",
+          printing: setForThisPage.set_edition || "Unknown Edition",
+          rarity: setForThisPage.set_rarity || "",
+          condition: "Near Mint",
+        },
+        data: {
+          marketPrice: setForThisPage.set_price || 0,
+          lowPrice: 0,
+        },
+      };
+    } );
+  }, [ processedCards, setName ] );
+
+  // ✅ get actual selected cards
+  const getSelectedCards = () => {
+    return matchedCardData.filter( ( row ) => {
+      const key = `${ row.card.productName }|${ row.card.setName }|${ row.card.number }|${ row.card.printing }`;
+      return selectedRowIds[ key ];
+    } );
+  };
+
+  const openBulkModal = () => {
+    const sel = getSelectedCards();
+    if ( sel.length === 0 ) {
+      alert( "No cards selected." );
+      return;
+    }
+    const initial = {};
+    sel.forEach( ( row ) => {
+      initial[ row.card.productName ] = {
+        set: {
+          set_name: row.card.setName,
+          set_code: row.card.number,
+          set_edition: row.card.printing,
+          set_rarity: row.card.rarity,
+          set_price: row.data.marketPrice,
+        },
+        condition: row.card.condition,
+      };
+    } );
+    setBulkSelections( ( prev ) => ( { ...prev, ...initial } ) );
+    setBulkModalVisible( true );
+  };
+
+  const closeBulkModal = () => setBulkModalVisible( false );
+
+  const handleBulkSubmit = async ( e ) => {
+    e.preventDefault();
+    try {
+      const payload = getSelectedCards().map( ( row ) => {
+        const sel = bulkSelections[ row.card.productName ];
+        return {
+          productName: row.card.productName,
+          setName: sel.set.set_name,
+          number: sel.set.set_code,
+          printing: sel.set.set_edition || "Unknown Edition",
+          rarity: sel.set.set_rarity,
+          condition: sel.condition + " " + ( sel.set.set_edition || "Unknown Edition" ),
+          marketPrice: sel.set.set_price || 0,
+          quantity: 1,
+        };
+      } );
+
+      const response = await fetch( `/api/Yugioh/cards`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( { cards: payload } ),
+      } );
+      if ( !response.ok ) throw new Error( "Bulk add failed" );
+      alert( `Added ${ payload.length } cards!` );
+      setSelectedRowIds( {} );
+      setBulkSelections( {} );
+      closeBulkModal();
+    } catch ( err ) {
+      console.error( err );
+      alert( "Error adding cards. Try again." );
     }
   };
 
   return (
     <>
       <Breadcrumb />
-      <div>
-        <h1 className="my-10 text-xl font-black">
-          Cards in { decodeURIComponent( setName || "" ) }
-        </h1>
-        <div className="container w-full mx-auto gap-6 grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          { cards?.map( ( card ) => (
-            <div
-              key={ card.id }
-              className="p-4 rounded shadow transition-transform transform duration-300"
-            >
-              <Card cardData={ card } as="image" source="set" />
+      <h1 className="my-10 text-xl font-black">
+        Cards in { decodeURIComponent( setName || "" ) }
+      </h1>
+
+      {/* Controls */ }
+      <div className="flex items-center flex-wrap gap-2 mb-4">
+        <YugiohSearchBar onSearch={ setSearchTerm } />
+        <select
+          value={ sortBy }
+          onChange={ ( e ) => setSortBy( e.target.value ) }
+          className="px-2 py-1 rounded border"
+        >
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+        </select>
+        <button
+          onClick={ () => setViewMode( ( v ) => ( v === "grid" ? "table" : "grid" ) ) }
+          className="px-2 py-1 rounded border"
+        >
+          { viewMode === "grid" ? "Switch to Table" : "Switch to Grid" }
+        </button>
+      </div>
+
+      {/* Content */ }
+      { viewMode === "grid" ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          { processedCards?.map( ( cardItem ) => (
+            <div key={ cardItem.id } className="mx-auto p-4 rounded shadow">
+              <Card cardData={ cardItem } as="image" source="set" />
               { isAuthenticated && (
                 <button
                   type="button"
-                  className="flex mt-2 max-w-fit mx-auto justify-center px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-700"
-                  onClick={ () => openModal( card ) }
+                  className="w-full mt-2 px-2 py-2 bg-blue-500 text-white font-semibold text-shadow rounded"
+                  onClick={ () => openModal( cardItem ) }
                 >
                   Add to Collection
                 </button>
@@ -121,26 +251,47 @@ const CardsInSetPage = () => {
             </div>
           ) ) }
         </div>
-      </div>
+      ) : (
+        <Suspense fallback={ <div className="text-center py-8">Loading...</div> }>
+          <YugiohCardDataTable
+            matchedCardData={ matchedCardData }
+            selectedRowIds={ selectedRowIds }
+            setSelectedRowIds={ setSelectedRowIds }
+          />
+        </Suspense>
+      ) }
 
+      {/* Bulk Add Button */ }
+      { viewMode === "table" &&
+        Object.values( selectedRowIds ).some( Boolean ) && (
+          <div className="mt-4">
+            <button
+              onClick={ openBulkModal }
+              className="px-4 py-2 bg-green-600 text-white rounded"
+            >
+              Add Selected to Collection
+            </button>
+          </div>
+        ) }
+
+      {/* Single card modal (unchanged) */ }
       { modalVisible && selectedCard && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="glass p-6 rounded shadow-lg w-96">
             <h2 className="text-xl font-bold mb-4">{ selectedCard.name }</h2>
             <form
-              name="addToCollection"
               onSubmit={ ( e ) => {
                 e.preventDefault();
                 const formData = new FormData( e.target );
                 const selectedSet = JSON.parse( formData.get( "set" ) );
                 const selectedCondition = formData.get( "condition" );
-
                 handleAddToCollection( {
                   set: selectedSet,
                   condition: selectedCondition,
                 } );
               } }
             >
+              {/* set + condition selectors */ }
               <label className="block mb-2">
                 Select Set:
                 <select
@@ -152,8 +303,8 @@ const CardsInSetPage = () => {
                   <option value="" disabled>
                     Choose a set
                   </option>
-                  { selectedCard.card_sets?.map( ( set, index ) => (
-                    <option key={ index } value={ JSON.stringify( set ) }>
+                  { selectedCard.card_sets?.map( ( set, i ) => (
+                    <option key={ i } value={ JSON.stringify( set ) }>
                       { set.set_name } - { set.set_rarity } -{ " " }
                       { set.set_edition || "Unknown Edition" } - $
                       { set.set_price || "0.00" }
@@ -161,7 +312,6 @@ const CardsInSetPage = () => {
                   ) ) }
                 </select>
               </label>
-
               <label className="block mb-4">
                 Select Condition:
                 <select
@@ -170,9 +320,7 @@ const CardsInSetPage = () => {
                   required
                   defaultValue=""
                 >
-                  <option value="" disabled>
-                    Choose a condition
-                  </option>
+                  <option value="" disabled>Choose a condition</option>
                   <option value="Near Mint">Near Mint</option>
                   <option value="Lightly Played">Lightly Played</option>
                   <option value="Moderately Played">Moderately Played</option>
@@ -180,26 +328,86 @@ const CardsInSetPage = () => {
                   <option value="Damaged">Damaged</option>
                 </select>
               </label>
-
               <div className="flex justify-between">
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-red-500 text-white rounded text-shadow font-semibold"
-                  onClick={ closeModal }
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded text-shadow font-semibold"
-                >
-                  Add
-                </button>
+                <button type="button" onClick={ closeModal } className="px-4 py-2 bg-red-500 text-white rounded">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded">Add</button>
               </div>
             </form>
           </div>
         </div>
       ) }
+
+      {/* Bulk modal */ }
+      { bulkModalVisible && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 overflow-y-auto">
+          <div className="glass p-6 rounded shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Add Selected Cards</h2>
+            <form onSubmit={ handleBulkSubmit } className="space-y-6">
+              { getSelectedCards().map( ( row ) => (
+                <div key={ row.card.productName } className="border-b pb-4">
+                  <h3 className="font-semibold mb-2">{ row.card.productName }</h3>
+                  <label className="block mb-2">
+                    Select Set:
+                    <select
+                      className="w-full border rounded p-2 text-black"
+                      value={ JSON.stringify( bulkSelections[ row.card.productName ]?.set || {} ) }
+                      onChange={ ( e ) =>
+                        setBulkSelections( ( prev ) => ( {
+                          ...prev,
+                          [ row.card.productName ]: {
+                            ...prev[ row.card.productName ],
+                            set: JSON.parse( e.target.value ),
+                          },
+                        } ) )
+                      }
+                      required
+                    >
+                      <option value="" disabled>Choose a set</option>
+                      { cards
+                        .find( ( c ) => c.name === row.card.productName )
+                        ?.card_sets?.map( ( set, i ) => (
+                          <option key={ i } value={ JSON.stringify( set ) }>
+                            { set.set_name } - { set.set_rarity } -{ " " }
+                            { set.set_edition || "Unknown Edition" } - $
+                            { set.set_price || "0.00" }
+                          </option>
+                        ) ) }
+                    </select>
+                  </label>
+                  <label className="block">
+                    Select Condition:
+                    <select
+                      className="w-full border rounded p-2 text-black"
+                      value={ bulkSelections[ row.card.productName ]?.condition || "Near Mint" }
+                      onChange={ ( e ) =>
+                        setBulkSelections( ( prev ) => ( {
+                          ...prev,
+                          [ row.card.productName ]: {
+                            ...prev[ row.card.productName ],
+                            condition: e.target.value,
+                          },
+                        } ) )
+                      }
+                      required
+                    >
+                      <option value="Near Mint">Near Mint</option>
+                      <option value="Lightly Played">Lightly Played</option>
+                      <option value="Moderately Played">Moderately Played</option>
+                      <option value="Heavily Played">Heavily Played</option>
+                      <option value="Damaged">Damaged</option>
+                    </select>
+                  </label>
+                </div>
+              ) ) }
+              <div className="flex justify-between mt-6">
+                <button type="button" onClick={ closeBulkModal } className="px-4 py-2 bg-red-500 text-white rounded">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded">Add All</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) }
+
       <SpeedInsights />
     </>
   );
