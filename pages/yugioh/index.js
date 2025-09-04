@@ -25,14 +25,13 @@ const MyCollection = () => {
   const [ isSidebarOpen, setIsSidebarOpen ] = useState( false );
   const [ viewMode, setViewMode ] = useState( 'grid' );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
-  const [ token, setToken ] = useState( null );
   const [ isUpdatingPrices, setIsUpdatingPrices ] = useState( false );
   const [ searchTerm, setSearchTerm ] = useState( "" );
   const [ isLoading, setIsLoading ] = useState( false );
   const [ initialData, setInitialData ] = useState( [] );
   const [ aggregatedData, setAggregatedData ] = useState( [] );
-  const [ filters, setFilters ] = useState( { rarity: [], condition: [] } );
-  const [ sortConfig, setSortConfig ] = useState( { key: "number", direction: "ascending" } );
+  const [ filters, setFilters ] = useState( { rarity: [], condition: [], printing: [] } );
+  const [ sortConfig, setSortConfig ] = useState( { key: 'number', direction: "ascending" } );
   const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
   const [ currentPage, setCurrentPage ] = useState( 1 );
   const [ itemsPerPage ] = useState( 20 );
@@ -42,7 +41,7 @@ const MyCollection = () => {
 
   // Effect to check authentication
   // Effect to check authentication
-  useEffect( () => {
+  useMemo( () => {
     const validateAuth = async () => {
       try {
         const response = await fetch( "/api/auth/validate", {
@@ -66,11 +65,12 @@ const MyCollection = () => {
 
   const applyFilters = useCallback(
     data => {
-      if ( !filters.rarity.length && !filters.condition.length ) return data;
+      if ( !filters.rarity.length && !filters.condition.length && !filters.printing.length ) return data;
       return data.filter( card => {
         return (
           ( !filters.rarity.length || filters.rarity.includes( card.rarity ) ) &&
-          ( !filters.condition.length || filters.condition.includes( card.condition ) )
+          ( !filters.condition.length || filters.condition.includes( card.condition ) ) &&
+          ( !filters.printing.length || filters.printing.includes( card.printing ) )
         );
       } );
     },
@@ -346,9 +346,9 @@ const MyCollection = () => {
                 ) }
               </div>
               {/* Collection Stats */ }
-              <div className="w-3/4 sm:max-w-[55%] mx-auto p-4 mt-8">
-                <div className="glass p-4 rounded-lg">
-                  <h3 className="text-sm font-semibold text-white/80 mb-3">Collection Value</h3>
+              <div className="sm:w-1/3 p-4 mt-8">
+                <div className="text-shadow font-semibold glass p-4 rounded-lg">
+                  <h3 className="text-lg text-white/80 mb-3">Collection Value</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm">Total Cards:</span>
@@ -390,7 +390,7 @@ const MyCollection = () => {
                   setIsModalOpen={ setIsFilterMenuOpen }
                 />
                 {/* View Toggle */ }
-                <div className="glass flex border border-white/20 rounded-lg overflow-ellipsis w-fit">
+                <div className="glass font-semibold text-shadow flex border border-white/20 rounded-lg overflow-ellipsis w-fit">
                   <div className='float-left w-1/2'>
                     <button
                       onClick={ () => setViewMode( 'grid' ) }

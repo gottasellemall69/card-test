@@ -40,6 +40,15 @@ const CardFilter = ( {
         "Moderately Played Unlimited", "Heavily Played Unlimited",
         "Damaged Unlimited"
       ]
+    },
+    {
+      id: 'printing',
+      label: 'Printing',
+      values: [
+        "1st Edition",
+        "Unlimited",
+        "Limited"
+      ]
     }
   ];
 

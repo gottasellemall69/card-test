@@ -216,7 +216,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
     }, [ selectedKeys, matchedCardData, setMatchedCardData, itemUniqueIds ] );
 
     const handleGoToCollectionPage = useCallback( () => {
-        router.push( '/yugioh/my-collection' );
+        router.push( '/yugioh/' );
     }, [ router ] );
 
     // Format helper for prices

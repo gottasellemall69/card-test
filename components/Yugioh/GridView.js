@@ -12,7 +12,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
   const [ flippedCards, setFlippedCards ] = useState( {} );
-  const [ sortField, setSortField ] = useState( 'setName' );
+  const [ sortField, setSortField ] = useState( '' );
   const [ sortDirection, setSortDirection ] = useState( 'asc' );
 
 
@@ -113,6 +113,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
           onChange={ ( e ) => setSortField( e.target.value ) }
           className="px-2 py-1 rounded bg-white text-black font-semibold text-start"
         >
+          <option disabled></option>
           <option value="productName">Card Name</option>
           <option value="setName">Set Name</option>
           <option value="number">Card Number</option>
@@ -123,6 +124,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
         </select>
 
         <button
+          type="button"
           onClick={ () => setSortDirection( prev => prev === 'asc' ? 'desc' : 'asc' ) }
           className="px-2 py-1 rounded bg-white text-black font-semibold text-center"
         >

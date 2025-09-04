@@ -13,13 +13,13 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const CardsInSetPage = () => {
   const [ cards, setCards ] = useState( [] );
-  const [ selectedCard, setSelectedCard ] = useState( null );
+  const [ selectedCard, setSelectedCard ] = useState( [] );
   const [ modalVisible, setModalVisible ] = useState( false );
   const [ bulkModalVisible, setBulkModalVisible ] = useState( false );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
 
-  const [ searchTerm, setSearchTerm ] = useState( "" );
-  const [ sortBy, setSortBy ] = useState( "name-asc" );
+  const [ searchTerm, setSearchTerm ] = useState( null );
+  const [ sortBy, setSortBy ] = useState( "asc" );
   const [ viewMode, setViewMode ] = useState( "grid" );
 
   // ✅ lifted persistent selection
@@ -111,8 +111,8 @@ const CardsInSetPage = () => {
           ( c.archetype && c.archetype.toLowerCase().includes( term ) )
       );
     }
-    if ( sortBy === "name-asc" ) data.sort( ( a, b ) => a.name.localeCompare( b.name ) );
-    if ( sortBy === "name-desc" ) data.sort( ( a, b ) => b.name.localeCompare( a.name ) );
+    if ( sortBy === "asc" ) data.sort( ( a, b ) => a.name.localeCompare( b.name ) );
+    if ( sortBy === "desc" ) data.sort( ( a, b ) => b.name.localeCompare( a.name ) );
     return data;
   }, [ cards, searchTerm, sortBy ] );
 
@@ -222,8 +222,8 @@ const CardsInSetPage = () => {
           onChange={ ( e ) => setSortBy( e.target.value ) }
           className="px-2 py-1 rounded border"
         >
-          <option value="name-asc">Name (A-Z)</option>
-          <option value="name-desc">Name (Z-A)</option>
+          <option value="asc">Name (A-Z)</option>
+          <option value="desc">Name (Z-A)</option>
         </select>
         <button
           onClick={ () => setViewMode( ( v ) => ( v === "grid" ? "table" : "grid" ) ) }

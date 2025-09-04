@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
 export default function SideNav() {
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
   const router = useRouter();
 
-  useEffect( () => {
+  useMemo( () => {
     const checkAuth = async () => {
       try {
         const res = await fetch( "/api/auth/validate", {
@@ -71,7 +71,7 @@ export default function SideNav() {
         </li>
 
         <li className="navButton mb-2 rounded">
-          <Link href="/yugioh/my-collection">
+          <Link href="/yugioh/">
             <span className="rounded block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               My Collection
             </span>

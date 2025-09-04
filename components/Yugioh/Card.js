@@ -20,6 +20,8 @@ const Card = ( { cardData } ) => {
             card: cardData.id,
             letter: letter,
             set_name: setName, // only set name passed
+            source: setName
+
           },
         } }
       >

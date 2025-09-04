@@ -62,7 +62,7 @@ const Breadcrumb = () => {
     } else if ( query.source === 'collection' ) {
       crumbs.push( {
         label: 'My Collection',
-        href: '/yugioh/my-collection'
+        href: '/yugioh/'
       } );
     }
 
