@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useMemo, Suspense } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
-
+import { Grid, List } from 'lucide-react';
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import Card from "@/components/Yugioh/Card";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
@@ -18,13 +17,19 @@ const CardsInSetPage = () => {
   const [ bulkModalVisible, setBulkModalVisible ] = useState( false );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
 
-  const [ searchTerm, setSearchTerm ] = useState( null );
+  const [ searchTerm, setSearchTerm ] = useState( "" );
   const [ sortBy, setSortBy ] = useState( "asc" );
   const [ viewMode, setViewMode ] = useState( "grid" );
 
   // ✅ lifted persistent selection
   const [ selectedRowIds, setSelectedRowIds ] = useState( {} );
   const [ bulkSelections, setBulkSelections ] = useState( {} );
+
+  // ✅ filters
+  const [ selectedNumbers, setSelectedNumbers ] = useState( [] );
+  const [ selectedRarities, setSelectedRarities ] = useState( [] );
+  const [ numbersOpen, setNumbersOpen ] = useState( false );
+  const [ raritiesOpen, setRaritiesOpen ] = useState( false );
 
   const router = useRouter();
   const { card, setName } = router.query;
@@ -83,7 +88,8 @@ const CardsInSetPage = () => {
               number: set.set_code,
               printing: set.set_edition || "Unknown Edition",
               rarity: set.set_rarity,
-              condition: condition + " " + ( set.set_edition || "Unknown Edition" ),
+              condition:
+                condition + " " + ( set.set_edition || "Unknown Edition" ),
               marketPrice: set.set_price || 0,
               quantity: 1,
             },
@@ -99,7 +105,36 @@ const CardsInSetPage = () => {
     }
   };
 
-  // ✅ search + sort
+  // ✅ derive filter options
+  const availableNumbers = useMemo( () => {
+    return [
+      ...new Set(
+        cards
+          .map( ( c ) =>
+            c.card_sets?.find(
+              ( s ) => s.set_name?.toLowerCase() === setName?.toLowerCase()
+            )?.set_code
+          )
+          .filter( Boolean )
+      ),
+    ].sort();
+  }, [ cards, setName ] );
+
+  const availableRarities = useMemo( () => {
+    return [
+      ...new Set(
+        cards.flatMap( ( c ) =>
+          c.card_sets
+            ?.filter( ( s ) => s.set_name?.toLowerCase() === setName?.toLowerCase() )
+            .map( ( s ) => s.set_rarity )
+        )
+      ),
+    ]
+      .filter( Boolean )
+      .sort();
+  }, [ cards, setName ] );
+
+  // ✅ search + sort + filters
   const processedCards = useMemo( () => {
     let data = [ ...cards ];
     if ( searchTerm ) {
@@ -111,10 +146,31 @@ const CardsInSetPage = () => {
           ( c.archetype && c.archetype.toLowerCase().includes( term ) )
       );
     }
+
+    if ( selectedNumbers.length > 0 ) {
+      data = data.filter( ( c ) =>
+        c.card_sets?.some(
+          ( s ) =>
+            s.set_name.toLowerCase() === setName?.toLowerCase() &&
+            selectedNumbers.includes( s.set_code )
+        )
+      );
+    }
+
+    if ( selectedRarities.length > 0 ) {
+      data = data.filter( ( c ) =>
+        c.card_sets?.some(
+          ( s ) =>
+            s.set_name.toLowerCase() === setName?.toLowerCase() &&
+            selectedRarities.includes( s.set_rarity )
+        )
+      );
+    }
+
     if ( sortBy === "asc" ) data.sort( ( a, b ) => a.name.localeCompare( b.name ) );
     if ( sortBy === "desc" ) data.sort( ( a, b ) => b.name.localeCompare( a.name ) );
     return data;
-  }, [ cards, searchTerm, sortBy ] );
+  }, [ cards, searchTerm, sortBy, selectedNumbers, selectedRarities, setName ] );
 
   // ✅ convert to matchedCardData for table
   const matchedCardData = useMemo( () => {
@@ -184,7 +240,8 @@ const CardsInSetPage = () => {
           number: sel.set.set_code,
           printing: sel.set.set_edition || "Unknown Edition",
           rarity: sel.set.set_rarity,
-          condition: sel.condition + " " + ( sel.set.set_edition || "Unknown Edition" ),
+          condition:
+            sel.condition + " " + ( sel.set.set_edition || "Unknown Edition" ),
           marketPrice: sel.set.set_price || 0,
           quantity: 1,
         };
@@ -214,24 +271,188 @@ const CardsInSetPage = () => {
         Cards in { decodeURIComponent( setName || "" ) }
       </h1>
 
-      {/* Controls */ }
-      <div className="flex items-center flex-wrap gap-2 mb-4">
-        <YugiohSearchBar onSearch={ setSearchTerm } />
-        <select
-          value={ sortBy }
-          onChange={ ( e ) => setSortBy( e.target.value ) }
-          className="px-2 py-1 rounded border"
-        >
-          <option value="asc">Name (A-Z)</option>
-          <option value="desc">Name (Z-A)</option>
-        </select>
-        <button
-          onClick={ () => setViewMode( ( v ) => ( v === "grid" ? "table" : "grid" ) ) }
-          className="px-2 py-1 rounded border"
-        >
-          { viewMode === "grid" ? "Switch to Table" : "Switch to Grid" }
-        </button>
+      {/* Controls styled like yugiohcardprices.io */ }
+      <div id="dropdown-filters" className="space-y-3 mb-4">
+        <div className="flex w-full flex-wrap items-center gap-4 ">
+          {/* Numbers Filter */ }
+          <div className="relative">
+            <button
+              type="button"
+              onClick={ () => setNumbersOpen( ( o ) => !o ) }
+              className="glass text-shadow inline-flex h-[40px] items-center gap-1.5 rounded-md border !border-dashed bg-transparent px-3 text-sm font-medium shadow-md hover:bg-accent hover:text-accent-foreground"
+            >
+              Number
+            </button>
+            { numbersOpen && (
+              <div className="absolute mt-2 z-50 bg-white dark:bg-neutral-900 border border-dashed rounded shadow-lg p-3 max-h-64 overflow-y-auto w-56">
+                <div className="flex justify-between mb-2">
+                  <button
+                    type="button"
+                    onClick={ () => setSelectedNumbers( [] ) }
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={ () => setNumbersOpen( false ) }
+                    className="text-xs text-blue-500 hover:underline"
+                  >
+                    Done
+                  </button>
+                </div>
+                { availableNumbers.map( ( num ) => (
+                  <label key={ num } className="flex items-center gap-2 text-sm py-1">
+                    <input
+                      type="checkbox"
+                      checked={ selectedNumbers.includes( num ) }
+                      onChange={ ( e ) =>
+                        setSelectedNumbers( ( prev ) =>
+                          e.target.checked
+                            ? [ ...prev, num ]
+                            : prev.filter( ( n ) => n !== num )
+                        )
+                      }
+                    />
+                    { num }
+                  </label>
+                ) ) }
+              </div>
+            ) }
+          </div>
+
+          {/* Rarities Filter */ }
+          <div className="relative">
+            <button
+              type="button"
+              onClick={ () => setRaritiesOpen( ( o ) => !o ) }
+              className="glass text-shadow inline-flex h-[40px] items-center gap-1.5 rounded-md border !border-dashed bg-transparent px-3 text-sm font-medium shadow-md hover:bg-accent hover:text-accent-foreground"
+            >
+              Rarities
+            </button>
+            { raritiesOpen && (
+              <div className="absolute mt-2 z-50 bg-white dark:bg-neutral-900 border border-dashed rounded shadow-lg p-3 max-h-64 overflow-y-auto w-56">
+                <div className="flex justify-between mb-2">
+                  <button
+                    type="button"
+                    onClick={ () => setSelectedRarities( [] ) }
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={ () => setRaritiesOpen( false ) }
+                    className="text-xs text-blue-500 hover:underline"
+                  >
+                    Done
+                  </button>
+                </div>
+                { availableRarities.map( ( rar ) => (
+                  <label key={ rar } className="flex items-center gap-2 text-sm py-1">
+                    <input
+                      type="checkbox"
+                      checked={ selectedRarities.includes( rar ) }
+                      onChange={ ( e ) =>
+                        setSelectedRarities( ( prev ) =>
+                          e.target.checked
+                            ? [ ...prev, rar ]
+                            : prev.filter( ( r ) => r !== rar )
+                        )
+                      }
+                    />
+                    { rar }
+                  </label>
+                ) ) }
+              </div>
+            ) }
+          </div>
+
+          {/* Sort Dropdown */ }
+          <div className="flex items-center">
+            <select
+              value={ sortBy }
+              onChange={ ( e ) => setSortBy( e.target.value ) }
+              className="inline-flex h-[40px] items-center justify-center gap-1.5 rounded-md border !border-dashed bg-transparent px-3 text-sm font-medium shadow-md hover:bg-accent hover:text-accent-foreground"
+            >
+              <option value="glass text-shadow asc">Name (A-Z)</option>
+              <option value="glass text-shadow desc">Name (Z-A)</option>
+            </select>
+          </div>
+
+          {/* View Toggle */ }
+          <div
+            role="group"
+            className="flex w-fit items-center rounded-md border border-dashed text-shadow"
+          >
+            <button
+              type="button"
+              onClick={ () => setViewMode( "grid" ) }
+              className={ `inline-flex h-[40px] items-center justify-center px-3 text-sm font-medium ${ viewMode === "grid"
+                ? "glass bg-accent text-accent-foreground"
+                : "bg-transparent hover:bg-none hover:text-muted-foreground"
+                }` }
+            >
+              <Grid size={ 23 } />
+            </button>
+            <button
+              type="button"
+              onClick={ () => setViewMode( "table" ) }
+              className={ `inline-flex h-[40px] items-center justify-center px-3 text-sm font-medium ${ viewMode === "table"
+                ? "glass bg-accent text-accent-foreground"
+                : "bg-transparent hover:bg-transparent hover:text-muted-foreground"
+                }` }
+            >
+              <List size={ 23 } />
+            </button>
+          </div>
+
+          {/* Search */ }
+          <div className="flex-1 w-full">
+            <YugiohSearchBar onSearch={ setSearchTerm } />
+          </div>
+        </div>
       </div>
+
+      {/* Active filter chips */ }
+      { ( selectedNumbers.length > 0 || selectedRarities.length > 0 ) && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          { selectedNumbers.map( ( num ) => (
+            <span
+              key={ num }
+              className="inline-flex items-center gap-1 bg-accent text-accent-foreground text-sm px-3 py-1 rounded-full border border-dashed shadow-sm"
+            >
+              { num }
+              <button
+                type="button"
+                onClick={ () =>
+                  setSelectedNumbers( ( prev ) => prev.filter( ( n ) => n !== num ) )
+                }
+                className="ml-1 text-xs hover:text-red-500"
+              >
+                ✕
+              </button>
+            </span>
+          ) ) }
+          { selectedRarities.map( ( rar ) => (
+            <span
+              key={ rar }
+              className="inline-flex items-center gap-1 bg-accent text-accent-foreground text-sm px-3 py-1 rounded-full border border-dashed shadow-sm"
+            >
+              { rar }
+              <button
+                type="button"
+                onClick={ () =>
+                  setSelectedRarities( ( prev ) => prev.filter( ( r ) => r !== rar ) )
+                }
+                className="ml-1 text-xs hover:text-red-500"
+              >
+                ✕
+              </button>
+            </span>
+          ) ) }
+        </div>
+      ) }
 
       {/* Content */ }
       { viewMode === "grid" ? (
@@ -262,19 +483,18 @@ const CardsInSetPage = () => {
       ) }
 
       {/* Bulk Add Button */ }
-      { viewMode === "table" &&
-        Object.values( selectedRowIds ).some( Boolean ) && (
-          <div className="mt-4">
-            <button
-              onClick={ openBulkModal }
-              className="px-4 py-2 bg-green-600 text-white rounded"
-            >
-              Add Selected to Collection
-            </button>
-          </div>
-        ) }
+      { viewMode === "table" && Object.values( selectedRowIds ).some( Boolean ) && (
+        <div className="mt-4">
+          <button
+            onClick={ openBulkModal }
+            className="px-4 py-2 bg-green-600 text-white rounded"
+          >
+            Add Selected to Collection
+          </button>
+        </div>
+      ) }
 
-      {/* Single card modal (unchanged) */ }
+      {/* Single card modal */ }
       { modalVisible && selectedCard && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
           <div className="glass p-6 rounded shadow-lg w-96">
@@ -320,17 +540,32 @@ const CardsInSetPage = () => {
                   required
                   defaultValue=""
                 >
-                  <option value="" disabled>Choose a condition</option>
+                  <option value="" disabled>
+                    Choose a condition
+                  </option>
                   <option value="Near Mint">Near Mint</option>
                   <option value="Lightly Played">Lightly Played</option>
-                  <option value="Moderately Played">Moderately Played</option>
+                  <option value="Moderately Played">
+                    Moderately Played
+                  </option>
                   <option value="Heavily Played">Heavily Played</option>
                   <option value="Damaged">Damaged</option>
                 </select>
               </label>
               <div className="flex justify-between">
-                <button type="button" onClick={ closeModal } className="px-4 py-2 bg-red-500 text-white rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded">Add</button>
+                <button
+                  type="button"
+                  onClick={ closeModal }
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-500 text-white rounded"
+                >
+                  Add
+                </button>
               </div>
             </form>
           </div>
@@ -350,7 +585,9 @@ const CardsInSetPage = () => {
                     Select Set:
                     <select
                       className="w-full border rounded p-2 text-black"
-                      value={ JSON.stringify( bulkSelections[ row.card.productName ]?.set || {} ) }
+                      value={ JSON.stringify(
+                        bulkSelections[ row.card.productName ]?.set || {}
+                      ) }
                       onChange={ ( e ) =>
                         setBulkSelections( ( prev ) => ( {
                           ...prev,
@@ -362,7 +599,9 @@ const CardsInSetPage = () => {
                       }
                       required
                     >
-                      <option value="" disabled>Choose a set</option>
+                      <option value="" disabled>
+                        Choose a set
+                      </option>
                       { cards
                         .find( ( c ) => c.name === row.card.productName )
                         ?.card_sets?.map( ( set, i ) => (
@@ -378,7 +617,10 @@ const CardsInSetPage = () => {
                     Select Condition:
                     <select
                       className="w-full border rounded p-2 text-black"
-                      value={ bulkSelections[ row.card.productName ]?.condition || "Near Mint" }
+                      value={
+                        bulkSelections[ row.card.productName ]?.condition ||
+                        "Near Mint"
+                      }
                       onChange={ ( e ) =>
                         setBulkSelections( ( prev ) => ( {
                           ...prev,
@@ -392,7 +634,9 @@ const CardsInSetPage = () => {
                     >
                       <option value="Near Mint">Near Mint</option>
                       <option value="Lightly Played">Lightly Played</option>
-                      <option value="Moderately Played">Moderately Played</option>
+                      <option value="Moderately Played">
+                        Moderately Played
+                      </option>
                       <option value="Heavily Played">Heavily Played</option>
                       <option value="Damaged">Damaged</option>
                     </select>
@@ -400,8 +644,19 @@ const CardsInSetPage = () => {
                 </div>
               ) ) }
               <div className="flex justify-between mt-6">
-                <button type="button" onClick={ closeBulkModal } className="px-4 py-2 bg-red-500 text-white rounded">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded">Add All</button>
+                <button
+                  type="button"
+                  onClick={ closeBulkModal }
+                  className="px-4 py-2 bg-red-500 text-white rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-500 text-white rounded"
+                >
+                  Add All
+                </button>
               </div>
             </form>
           </div>

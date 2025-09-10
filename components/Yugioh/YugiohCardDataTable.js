@@ -156,7 +156,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             rarity: card?.rarity,
             condition: card?.condition,
             marketPrice: data?.marketPrice,
-            lowPrice: data?.lowPrice,
             quantity: 1,
         } ) );
 
@@ -189,7 +188,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
             setNotification( { show: true, message: 'No cards selected to download!' } );
             return;
         }
-        const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price", "Low Price" ];
+        const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price" ];
         const rows = matchedCardData
             .filter( ( _, index ) => selectedKeys.has( itemUniqueIds[ index ] ) )
             .map( ( { card, data } ) => [
@@ -200,7 +199,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                 card?.rarity,
                 card?.condition,
                 data?.marketPrice,
-                data?.lowPrice,
             ] );
         const csvBody = headers.join( "|" ) + "\n" +
             rows.map( ( r ) => r.map( ( v ) => `"${ v }"` ).join( "|" ) ).join( "\n" );
@@ -277,7 +275,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                             { key: 'rarity', label: 'Rarity' },
                                             { key: 'condition', label: 'Condition' },
                                             { key: 'marketPrice', label: 'Market Price' },
-                                            { key: 'lowPrice', label: 'Low Price' },
                                         ].map( ( { key, label } ) => (
                                             <th
                                                 key={ key }
@@ -299,14 +296,14 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                     </tr>
                                 </thead>
 
-                                <tbody className="bg-white divide-y divide-gray-300 text-black px-1 py-1 mx-auto">
+                                <tbody className=" glass text-shadow divide-y divide-gray-300 text-white px-1 py-1 mx-auto">
                                     { sortedAndPaginatedData.currentItems.map( ( { item, originalIndex } ) => {
                                         const uniqueId = itemUniqueIds[ originalIndex ];
                                         const isSelected = selectedKeys.has( uniqueId );
                                         const { card, data } = item;
 
                                         return (
-                                            <tr key={ uniqueId } className="hover:bg-gray-100">
+                                            <tr key={ uniqueId } className="hover:bg-gray-600">
                                                 <td className="text-center border border-gray-300">
                                                     <input
                                                         type="checkbox"
@@ -314,26 +311,23 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                                         onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
                                                     />
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.productName || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.setName || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.number || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.rarity || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.condition || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { formatPrice( data?.marketPrice ) }
-                                                </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-black hover:bg-black hover:text-white">
-                                                    { formatPrice( data?.lowPrice ) }
                                                 </td>
                                             </tr>
                                         );

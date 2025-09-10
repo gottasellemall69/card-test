@@ -394,23 +394,23 @@ const MyCollection = () => {
                   <div className='float-left w-1/2'>
                     <button
                       onClick={ () => setViewMode( 'grid' ) }
-                      className={ `p-3 transition-colors ${ viewMode === 'grid'
+                      className={ `px-3 py-3 transition-colors ${ viewMode === 'grid'
                         ? 'bg-purple-600 text-white'
                         : 'text-white/60 hover:text-white hover:bg-white/10'
                         }` }
                     >
-                      <Grid size={ 16 } />
+                      <Grid size={ 24 } />
                     </button>
                   </div>
                   <div className='float-right w-1/2'>
                     <button
                       onClick={ () => setViewMode( 'table' ) }
-                      className={ `p-3 transition-colors ${ viewMode === 'table'
+                      className={ `px-3 py-3 transition-colors ${ viewMode === 'table'
                         ? 'bg-purple-600 text-white'
                         : 'text-white/60 hover:text-white hover:bg-white/10'
                         }` }
                     >
-                      <List size={ 16 } />
+                      <List size={ 24 } />
                     </button>
                   </div>
                 </div>
@@ -472,6 +472,7 @@ const MyCollection = () => {
 
             </>
           ) : (
+            !isAuthenticated &&
             <div className="text-center py-16">
               <h2 className="text-2xl font-bold mb-4">Please Log In</h2>
               <p className="text-white/80 mb-8">You need to be logged in to view your collection.</p>
