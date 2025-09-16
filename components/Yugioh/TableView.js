@@ -103,7 +103,7 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
       <Notification show={ notification.show } setShow={ ( s ) => setNotification( prev => ( { ...prev, show: s } ) ) } message={ notification.message } />
 
       <table className="w-full table-auto">
-        <thead className='border border-zinc-300'>
+        <thead className='sticky border border-zinc-300'>
           <tr>
             <th onClick={ () => handleSort( 'quantity' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
               Qty { getSortArrow( 'quantity' ) }
@@ -116,6 +116,9 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
             </th>
             <th onClick={ () => handleSort( 'number' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
               Number { getSortArrow( 'number' ) }
+            </th>
+            <th onClick={ () => handleSort( 'printing' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+              Printing { getSortArrow( 'printing' ) }
             </th>
             <th onClick={ () => handleSort( 'rarity' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
               Rarity { getSortArrow( 'rarity' ) }
@@ -156,6 +159,7 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.productName }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.setName }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.number }</td>
+              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.printing }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.rarity }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.condition }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.marketPrice }</td>

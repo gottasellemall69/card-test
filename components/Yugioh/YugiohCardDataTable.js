@@ -272,8 +272,10 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                             { key: 'productName', label: 'Name' },
                                             { key: 'setName', label: 'Set' },
                                             { key: 'number', label: 'Number' },
+                                            { key: 'printing', label: 'Printing' },
                                             { key: 'rarity', label: 'Rarity' },
                                             { key: 'condition', label: 'Condition' },
+
                                             { key: 'marketPrice', label: 'Market Price' },
                                         ].map( ( { key, label } ) => (
                                             <th
@@ -321,10 +323,13 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                                     { card?.number || 'N/A' }
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                    { card?.printing || 'N/A' }
+                                                </td>
+                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.rarity || 'N/A' }
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { card?.condition || 'N/A' }
+                                                    { card?.condition || card?.condition + " " + card?.printing }
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { formatPrice( data?.marketPrice ) }

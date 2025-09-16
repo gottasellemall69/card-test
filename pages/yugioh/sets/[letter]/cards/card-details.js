@@ -76,7 +76,7 @@ const CardDetails = () => {
         rarity: newRarity,
         edition: newEdition,
         letter: newLetter,
-        source: cardData.source
+        source: "card-details"
 
       },
     }, undefined, { shallow: true } );
@@ -141,6 +141,7 @@ const CardDetails = () => {
           <PriceHistoryChart
             priceHistory={ priceHistoryData?.priceHistory || [] }
             selectedVersion={ selectedVersion }
+            source={ "card-details" }
           />
         </div>
       </div>

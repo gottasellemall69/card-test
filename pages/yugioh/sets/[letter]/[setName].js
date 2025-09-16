@@ -407,10 +407,11 @@ const CardsInSetPage = () => {
             </button>
           </div>
 
-          {/* Search */ }
-          <div className="flex-1 w-full">
-            <YugiohSearchBar onSearch={ setSearchTerm } />
-          </div>
+
+        </div>
+        {/* Search */ }
+        <div className="mx-auto flex-1 w-full">
+          <YugiohSearchBar onSearch={ setSearchTerm } />
         </div>
       </div>
 

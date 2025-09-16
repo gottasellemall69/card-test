@@ -417,9 +417,9 @@ const MyCollection = () => {
               </div>
 
               {/* Content */ }
-              { viewMode === 'grid' ? (
+              { isAuthenticated && viewMode === 'grid' ? (
                 <>
-                  <div className="mx-auto max-w-7xl mb-6">
+                  <div className="mx-auto max-w-7xl mt-8">
                     <YugiohPagination
                       currentPage={ currentPage }
                       itemsPerPage={ itemsPerPage }
@@ -427,8 +427,6 @@ const MyCollection = () => {
                       handlePageClick={ handlePageClick }
                     />
                   </div>
-
-
                   <GridView
                     aggregatedData={ paginatedData.map( card => ( {
                       ...card,
@@ -443,14 +441,7 @@ const MyCollection = () => {
                     setAggregatedData={ setAggregatedData }
                   />
 
-                  <div className="mx-auto max-w-7xl mt-8">
-                    <YugiohPagination
-                      currentPage={ currentPage }
-                      itemsPerPage={ itemsPerPage }
-                      totalItems={ aggregatedData.length }
-                      handlePageClick={ handlePageClick }
-                    />
-                  </div>
+
                 </>
               ) : (
                 <Suspense fallback={ <div className="text-center py-8">Loading...</div> }>
