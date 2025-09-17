@@ -4,12 +4,13 @@
 
 .navButton a
 {
-  border-radius: 5px;
+  border-radius: 20px;
   position: relative;
   text-align: center;
-  background: white;
+  background: transparent;
   color: white;
   transition: .6s;
+  width: 100%;
 }
 
 .navButton a::before
@@ -29,14 +30,15 @@
 .navButton a:hover::before
 {
   transform: scale(1);
-  box-shadow: 0 0 10px #fffeee;
+  box-shadow: 0 0 20px #fffeee;
 }
 
 .navButton a:hover
 {
-  color: purple;
-  box-shadow: 0 0 5px green;
-  text-shadow: 0 0 5px black;
+  color: white;
+  min-width: max-content;
+  box-shadow: 0 0 1px purple;
+  text-shadow: 0 0 1px green;
 }
 
 img

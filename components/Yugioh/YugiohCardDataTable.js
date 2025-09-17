@@ -243,7 +243,29 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                 handlePageClick={ setCurrentPage }
                             />
                         </div>
-
+                        <div className="max-h-fit w-full mt-2 flex justify-center space-x-2">
+                            <button
+                                type="button"
+                                className="border border-white rounded-lg px-2 py-2 text-white text-sm font-bold hover:text-black hover:bg-white"
+                                onClick={ downloadCSV }
+                            >
+                                Download CSV
+                            </button>
+                            <button
+                                type="button"
+                                className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
+                                onClick={ addToCollection }
+                            >
+                                Add card(s) to collection
+                            </button>
+                            <button
+                                type="button"
+                                className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
+                                onClick={ handleGoToCollectionPage }
+                            >
+                                View Collection
+                            </button>
+                        </div>
                         {/* Table */ }
                         <div className="w-full mx-auto overflow-x-auto">
                             { selectedKeys.size > 0 && (
@@ -341,29 +363,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                             </table>
                         </div>
 
-                        <div className="max-h-fit w-full mt-2 flex justify-center space-x-2">
-                            <button
-                                type="button"
-                                className="border border-white rounded-lg px-2 py-2 text-white text-sm font-bold hover:text-black hover:bg-white"
-                                onClick={ downloadCSV }
-                            >
-                                Download CSV
-                            </button>
-                            <button
-                                type="button"
-                                className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
-                                onClick={ addToCollection }
-                            >
-                                Add card(s) to collection
-                            </button>
-                            <button
-                                type="button"
-                                className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
-                                onClick={ handleGoToCollectionPage }
-                            >
-                                View Collection
-                            </button>
-                        </div>
+
                     </div>
                 </div>
             ) }

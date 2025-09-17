@@ -1,4 +1,5 @@
 "use client";
+import { X } from 'lucide-react';
 // components/Yugioh/CardFilter.js
 import React from 'react';
 
@@ -71,9 +72,10 @@ const CardFilter = ( {
               <button
                 type="button"
                 className="text-red-600 text-2xl hover:text-red-800 font-black px-4 py-2"
+                title={ "Close" }
                 onClick={ () => setIsModalOpen( false ) }
               >
-                X
+                <X size={ 40 } color={ "Red" } />
               </button>
             </div>
 

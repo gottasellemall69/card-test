@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import SideNav from '@/components/Navigation/SideNav';
 import Link from 'next/link';
+import { MenuIcon, X } from 'lucide-react';
 
 export default function Layout( { children } ) {
   const [ isSidebarOpen, setIsSidebarOpen ] = useState( false );
@@ -23,10 +24,11 @@ export default function Layout( { children } ) {
             </Link>
           </h2>
           <button
-            className="lg:hidden text-white hover:text-purple-200 transition-colors text-2xl"
+            className="lg:hidden text-white hover:text-purple-200 transition-colors text-2xl text-shadow bg-blur"
             onClick={ toggleSidebar }
+            title={ "Close" }
           >
-            ✖
+            <X size={ 40 } color={ "Red" } />
           </button>
         </div>
         <SideNav />
@@ -35,24 +37,25 @@ export default function Layout( { children } ) {
       {/* Main Content */ }
       <div className="flex-1 flex flex-col max-w-full mx-auto">
         {/* Mobile Header */ }
-        <header className="sticky top-0 z-20 bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-4 shadow-md lg:hidden">
+        <header className="sticky top-0 z-20 bg-gradient-to-r from-purple-900/80 to-slate-900/80 p-2 shadow-md lg:hidden">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-bold text-white text-shadow">
-              <Link className="w-fit" href={ `/` } passHref>
+              <Link href={ `/` } passHref>
                 <span className="px-2">CARD PRICE APP</span>
               </Link>
             </h3>
             <button
-              className="text-white hover:text-purple-200 transition-colors text-2xl"
+              className="text-white hover:text-purple-200 transition-colors text-3xl -m-1 p-1"
+              title={ "Menu" }
               onClick={ toggleSidebar }
             >
-              ☰
+              <MenuIcon size={ 40 } />
             </button>
           </div>
         </header>
 
-        <main className="min-h-screen p-5 w-full max-w-[100%] mx-auto">
-          <div className="container box-content mx-auto">{ children }</div>
+        <main className="min-h-screen p-2 w-full max-w-[100%] mx-auto">
+          <div className="container box-content mx-auto mt-5">{ children }</div>
         </main>
       </div>
     </div>
