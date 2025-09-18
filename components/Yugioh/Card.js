@@ -19,12 +19,14 @@ const Card = ( { cardData } ) => {
           query: {
             card: cardData.id,
             letter: letter,
-            set_name: setName, // only set name passed
-            source: setName
-
+            set_name: setName,
+            source: "set", // flag so card-details knows this came from a set page
           },
         } }
       >
+
+
+
 
 
         <div className="hover:scale-95 hover:duration-100 transition-transform">

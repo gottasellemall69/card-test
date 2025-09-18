@@ -45,3 +45,4 @@ prompt
 /.gpteng
 repomix-output.*
 /public/*
+repomix.config.json

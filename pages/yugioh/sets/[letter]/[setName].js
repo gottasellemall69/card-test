@@ -388,22 +388,24 @@ const CardsInSetPage = () => {
             <button
               type="button"
               onClick={ () => setViewMode( "grid" ) }
+              title={ "Grid view" }
               className={ `inline-flex h-[40px] items-center justify-center px-3 text-sm font-medium ${ viewMode === "grid"
                 ? "glass bg-accent text-accent-foreground"
                 : "bg-transparent hover:bg-none hover:text-muted-foreground"
                 }` }
             >
-              <Grid size={ 23 } />
+              <Grid size={ 25 } />
             </button>
             <button
               type="button"
               onClick={ () => setViewMode( "table" ) }
+              title={ "Table view" }
               className={ `inline-flex h-[40px] items-center justify-center px-3 text-sm font-medium ${ viewMode === "table"
                 ? "glass bg-accent text-accent-foreground"
                 : "bg-transparent hover:bg-transparent hover:text-muted-foreground"
                 }` }
             >
-              <List size={ 23 } />
+              <List size={ 25 } />
             </button>
           </div>
 

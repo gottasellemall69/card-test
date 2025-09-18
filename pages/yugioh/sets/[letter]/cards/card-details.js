@@ -17,6 +17,7 @@ const CardDetails = () => {
     set_code: querySetCode,
     rarity: queryRarity,
     edition: queryEdition,
+    source,
   } = router.query;
 
   const letter = Array.isArray( queryLetter ) ? queryLetter[ 0 ] : queryLetter;
@@ -37,28 +38,51 @@ const CardDetails = () => {
     if ( cardData?.card_sets ) {
       const savedVersion = localStorage.getItem( `selectedVersion-${ cardId }` );
 
-      const queryVersion = `${ set_name } - ${ set_code } - ${ rarity } - ${ edition || "Unknown Edition" }`;
-      const hasQueryVersion = cardData.card_sets.some(
-        ( set ) =>
-          `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === queryVersion
-      );
+      // ✅ Case 1: From [setName] page → match by set_name only
+      if ( source === "set" && set_name ) {
+        const matchBySetName = cardData.card_sets.find(
+          ( set ) => set.set_name === set_name
+        );
+        if ( matchBySetName ) {
+          const version = `${ matchBySetName.set_name } - ${ matchBySetName.set_code } - ${ matchBySetName.set_rarity } - ${ matchBySetName.set_edition || "Unknown Edition"
+            }`;
+          setSelectedVersion( version );
+          return;
+        }
+      }
 
-      if ( hasQueryVersion ) {
-        setSelectedVersion( queryVersion );
-      } else if (
+      // ✅ Case 2: From collection → require full version match
+      if ( source === "collection" && set_name && set_code && rarity && edition ) {
+        const queryVersion = `${ set_name } - ${ set_code } - ${ rarity } - ${ edition }`;
+        const hasQueryVersion = cardData.card_sets.some(
+          ( set ) =>
+            `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
+            }` === queryVersion
+        );
+        if ( hasQueryVersion ) {
+          setSelectedVersion( queryVersion );
+          return;
+        }
+      }
+
+      // ✅ Otherwise use saved version if valid
+      if (
         savedVersion &&
         cardData.card_sets.some(
           ( set ) =>
-            `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === savedVersion
+            `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
+            }` === savedVersion
         )
       ) {
         setSelectedVersion( savedVersion );
       } else {
-        const defaultVersion = `${ cardData.card_sets[ 0 ].set_name } - ${ cardData.card_sets[ 0 ].set_code } - ${ cardData.card_sets[ 0 ].set_rarity } - ${ cardData.card_sets[ 0 ].set_edition || "Unknown Edition" }`;
+        // ✅ Fallback to first version
+        const defaultVersion = `${ cardData.card_sets[ 0 ].set_name } - ${ cardData.card_sets[ 0 ].set_code } - ${ cardData.card_sets[ 0 ].set_rarity } - ${ cardData.card_sets[ 0 ].set_edition || "Unknown Edition"
+          }`;
         setSelectedVersion( defaultVersion );
       }
     }
-  }, [ cardData, cardId, set_name, set_code, rarity, edition ] );
+  }, [ cardData, cardId, set_name, set_code, rarity, edition, source ] );
 
   const handleVersionChange = ( e ) => {
     const newVersion = e.target.value;
@@ -67,31 +91,53 @@ const CardDetails = () => {
     const [ newSetName, newSetCode, newRarity, newEdition ] = newVersion.split( " - " );
     const newLetter = newSetName.charAt( 0 ).toUpperCase();
 
-    router.replace( {
-      pathname: router.pathname,
-      query: {
-        ...router.query,
-        set_name: newSetName,
-        set_code: newSetCode,
-        rarity: newRarity,
-        edition: newEdition,
-        letter: newLetter,
-        source: "card-details"
-
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          set_name: newSetName,
+          set_code: newSetCode,
+          rarity: newRarity,
+          edition: newEdition,
+          letter: newLetter,
+          source: "set",
+        },
       },
-    }, undefined, { shallow: true } );
+      undefined,
+      { shallow: true }
+    );
   };
 
-
   const { data: priceHistoryData } = useSWR(
-    cardId && selectedVersion ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&number=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 3 ] ) }` : null,
+    cardId && selectedVersion
+      ? `/api/Yugioh/card/${ encodeURIComponent(
+        cardId
+      ) }/price-history?set=${ encodeURIComponent(
+        selectedVersion.split( " - " )[ 0 ]
+      ) }&number=${ encodeURIComponent(
+        selectedVersion.split( " - " )[ 1 ]
+      ) }&rarity=${ encodeURIComponent(
+        selectedVersion.split( " - " )[ 2 ]
+      ) }&edition=${ encodeURIComponent(
+        selectedVersion.split( " - " )[ 3 ]
+      ) }`
+      : null,
     fetcher
   );
 
   useMemo( () => {
     if ( cardId && selectedVersion ) {
       mutate(
-        `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?set=${ encodeURIComponent( selectedVersion.split( " - " )[ 0 ] ) }&number=${ encodeURIComponent( selectedVersion.split( " - " )[ 1 ] ) }&rarity=${ encodeURIComponent( selectedVersion.split( " - " )[ 2 ] ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 3 ] ) }`
+        `/api/Yugioh/card/${ encodeURIComponent(
+          cardId
+        ) }/price-history?set=${ encodeURIComponent(
+          selectedVersion.split( " - " )[ 0 ]
+        ) }&number=${ encodeURIComponent(
+          selectedVersion.split( " - " )[ 1 ]
+        ) }&rarity=${ encodeURIComponent(
+          selectedVersion.split( " - " )[ 2 ]
+        ) }&edition=${ encodeURIComponent( selectedVersion.split( " - " )[ 3 ] ) }`
       );
     }
   }, [ selectedVersion, cardId ] );
@@ -101,14 +147,32 @@ const CardDetails = () => {
 
   return (
     <>
-      <Breadcrumb />
+      {/* 🔹 Breadcrumb shows Sets → SetName → Card Name */ }
+      <Breadcrumb
+        items={ [
+          { label: "Sets", href: "/yugioh/sets/set-index" },
+          set_name
+            ? { label: set_name, href: `/yugioh/sets/${ letter }/${ set_name }` }
+            : null,
+          { label: cardData?.name || "Card Details", href: router.asPath },
+        ].filter( Boolean ) }
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <div className="glass p-6 text-white rounded-md shadow-md text-shadow">
           <h1 className="text-2xl font-extrabold mb-4">{ cardData.name }</h1>
-          <p className="mb-1"><span className="font-bold">Card Type:</span> { cardData.type }</p>
-          <p className="mb-1"><span className="font-bold">Description:</span> { cardData.desc }</p>
-          <p className="mb-1"><span className="font-bold">Monster Type:</span> { cardData.race }</p>
-          <p className="mb-1"><span className="font-bold">Archetype:</span> { cardData.archetype }</p>
+          <p className="mb-1">
+            <span className="font-bold">Card Type:</span> { cardData.type }
+          </p>
+          <p className="mb-1">
+            <span className="font-bold">Description:</span> { cardData.desc }
+          </p>
+          <p className="mb-1">
+            <span className="font-bold">Monster Type:</span> { cardData.race }
+          </p>
+          <p className="mb-1">
+            <span className="font-bold">Archetype:</span> { cardData.archetype }
+          </p>
 
           <div className="mt-6">
             <label className="block text-sm font-bold mb-2">Select Version:</label>
@@ -117,12 +181,14 @@ const CardDetails = () => {
               value={ selectedVersion }
               onChange={ handleVersionChange }
             >
-              { cardData.card_sets?.map( ( set, selectedVersion ) => (
+              { cardData.card_sets?.map( ( set, idx ) => (
                 <option
-                  key={ selectedVersion }
-                  value={ `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` }
+                  key={ idx }
+                  value={ `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
+                    }` }
                 >
-                  { set.set_name } - { set.set_code } - { set.set_rarity } - { set.set_edition || "Unknown Edition" }
+                  { set.set_name } - { set.set_code } - { set.set_rarity } -{ " " }
+                  { set.set_edition || "Unknown Edition" }
                 </option>
               ) ) }
             </select>
@@ -132,16 +198,20 @@ const CardDetails = () => {
             <span className="font-bold">Market Price:</span> $
             { cardData.card_sets?.find(
               ( set ) =>
-                `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition" }` === selectedVersion )?.set_price || "N/A" }
+                `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
+                }` === selectedVersion
+            )?.set_price || "N/A" }
           </p>
         </div>
 
         <div className="glass p-6 rounded-md shadow-md">
-          <h2 className="text-2xl font-bold mb-1 text-white text-shadow">Price History</h2>
+          <h2 className="text-2xl font-bold mb-1 text-white text-shadow">
+            Price History
+          </h2>
           <PriceHistoryChart
             priceHistory={ priceHistoryData?.priceHistory || [] }
             selectedVersion={ selectedVersion }
-            source={ "card-details" }
+            source={ "set" }
           />
         </div>
       </div>

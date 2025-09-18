@@ -394,6 +394,7 @@ const MyCollection = () => {
                   <div className='float-left w-1/2'>
                     <button
                       onClick={ () => setViewMode( 'grid' ) }
+                      title={ "Grid view" }
                       className={ `px-3 py-3 transition-colors ${ viewMode === 'grid'
                         ? 'bg-purple-600 text-white'
                         : 'text-white/60 hover:text-white hover:bg-white/10'
@@ -405,6 +406,7 @@ const MyCollection = () => {
                   <div className='float-right w-1/2'>
                     <button
                       onClick={ () => setViewMode( 'table' ) }
+                      title={ "Table view" }
                       className={ `px-3 py-3 transition-colors ${ viewMode === 'table'
                         ? 'bg-purple-600 text-white'
                         : 'text-white/60 hover:text-white hover:bg-white/10'

@@ -37,10 +37,10 @@ export default function SideNav() {
 
   return (
     <nav className="p-4 min-h-max z-50">
-      <ul className="inset-2 rounded-lg bg-opacity-10">
+      <ul className="inset-2 rounded-lg bg-opacity-50">
         <li className="navButton mb-2 rounded-lg`">
           <Link href="/" title={ "Search for current Yu-Gi-Oh! card prices" } passHref>
-            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Yu-Gi-Oh! Card Prices
             </span>
           </Link>
@@ -48,7 +48,7 @@ export default function SideNav() {
 
         <li className="navButton mb-2 rounded-lg`">
           <Link href="/yugioh/sets/set-index" title={ "Browse Yu-Gi-Oh! sets" } passHref>
-            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Browse Yu-Gi-Oh! Sets
             </span>
           </Link>
@@ -56,7 +56,7 @@ export default function SideNav() {
 
         <li className="navButton mb-2 rounded-lg`">
           <Link href="/yugioh/deck-builder" title={ "Build and test decks" } passHref>
-            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Yu-Gi-Oh! Deck Builder
             </span>
           </Link>
@@ -64,15 +64,15 @@ export default function SideNav() {
 
         <li className="navButton mb-2 rounded-lg`">
           <Link href="/sports" title={ "Get current sports card prices" } passHref>
-            <span className="rounded-xs block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               Sports Card Prices
             </span>
           </Link>
         </li>
 
-        <li className="navButton mb-2 rounded">
+        <li className="navButton mb-2 rounded-lg">
           <Link href="/yugioh" title={ "View your saved cards" } passHref>
-            <span className="rounded block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
+            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
               My Collection
             </span>
           </Link>
@@ -90,8 +90,8 @@ export default function SideNav() {
           </li>
         ) }
         { !isAuthenticated && (
-          <div className="navButton w-full">
-            <button className="mt-4 rounded block w-full text-left p-2 bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md bg-gradient-to-tr from-red-900 to-purple-600">
+          <div className="w-full">
+            <button className="mt-4 rounded block w-full text-left p-2 bg-clip-padding bg-zinc-800 border border-zinc-600 hover:transition-transform hover:ease-in-out hover:duration-700 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-gradient-to-tr hover:from-purple-900 hover:to-green-600">
               <Link
                 href="/login"
                 title={ "Log in" }
