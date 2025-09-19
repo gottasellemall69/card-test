@@ -23,6 +23,7 @@ const Card = ( { cardData } ) => {
             source: "set", // flag so card-details knows this came from a set page
           },
         } }
+        passHref
       >
 
 

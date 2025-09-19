@@ -30,7 +30,7 @@ const Breadcrumb = () => {
   const crumbs = [];
 
   // 1. Home
-  crumbs.push( { label: 'Home', href: '/' } );
+  crumbs.push( { label: 'Home', href: '/yugioh' } );
 
   // 2. Set Index
   crumbs.push( { label: 'Set Index', href: '/yugioh/sets/set-index' } );
@@ -62,7 +62,7 @@ const Breadcrumb = () => {
     } else if ( query.source === 'collection' ) {
       crumbs.push( {
         label: 'My Collection',
-        href: '/yugioh/'
+        href: '/yugioh/my-collection'
       } );
     }
 
@@ -93,11 +93,11 @@ const Breadcrumb = () => {
               </svg>
             ) }
             { crumb.href ? (
-              <Link href={ crumb.href }>
-                <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-300">
+              <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-300">
+                <Link href={ crumb.href } passHref>
                   { crumb.label }
-                </span>
-              </Link>
+                </Link>
+              </span>
             ) : (
               <span className="ml-4 text-sm font-medium text-white text-shadow">
                 { crumb.label }

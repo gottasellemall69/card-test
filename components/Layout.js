@@ -17,7 +17,7 @@ export default function Layout( { children } ) {
         className={ `fixed inset-y-0 left-0 z-30 max-w-72 glass transform ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0` }
       >
-        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-900/80 to-slate-900/80 shadow-lg border-b border-purple-900">
+        <div className="flex items-center justify-between gap-5 p-4 bg-gradient-to-r from-purple-900/80 to-slate-900/80 shadow-lg border-b border-purple-900">
           <h2 className="text-xl font-bold text-white text-shadow">
             <Link className="w-fit" href={ `/` } passHref>
               <span className="text-shadow px-2 bg-blur backdrop">CARD PRICE APP</span>
@@ -28,7 +28,7 @@ export default function Layout( { children } ) {
             onClick={ toggleSidebar }
             title={ "Close" }
           >
-            <X size={ 25 } color={ "Red" } />
+            <X size={ 28 } color={ "Red" } />
           </button>
         </div>
         <SideNav />

@@ -197,7 +197,9 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         edition: card.printing || "Unknown Edition",
                         source: 'collection'
                       }
+
                     } }
+                    passHref
                   >
 
                     <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
@@ -269,6 +271,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       } }
 
                       className="w-16 text-center px-2 py-1 glass mx-auto"
+                      name="delete"
                     />
                   ) : (
                     <span

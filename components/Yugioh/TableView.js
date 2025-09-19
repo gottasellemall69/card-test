@@ -181,6 +181,7 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                   }
                 />
                 <button
+                  type="button"
                   onClick={ () => handleDelete( card._id ) }
                   className="text-red-400 hover:text-red-200 text-sm font-semibold"
                 >

@@ -29,7 +29,7 @@ export default function LoginPage() {
       const data = await response.json();
 
       if ( response.ok ) {
-        router.push( "/yugioh/" );
+        router.push( "/yugioh/my-collection" );
       } else {
         setError( data.error || "Login failed. Please try again." );
       }
