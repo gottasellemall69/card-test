@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 
@@ -35,73 +35,50 @@ export default function SideNav() {
     }
   };
 
+  const links = [
+    { href: "/yugioh", label: "Yu-Gi-Oh! Card Prices", title: "Search for current Yu-Gi-Oh! card prices" },
+    { href: "/yugioh/sets/set-index", label: "Browse Yu-Gi-Oh! Sets", title: "Browse Yu-Gi-Oh! sets" },
+    { href: "/yugioh/deck-builder", label: "Yu-Gi-Oh! Deck Builder", title: "Build and test decks" },
+    { href: "/sports", label: "Sports Card Prices", title: "Get current sports card prices" },
+    { href: "/yugioh/my-collection", label: "My Collection", title: "View your saved cards" },
+  ];
+
   return (
-    <nav className="p-4 min-h-max z-50">
-      <ul className="inset-2 rounded-lg bg-opacity-50">
-        <li className="navButton mb-2 rounded-lg`">
-          <Link href="/yugioh" title={ "Search for current Yu-Gi-Oh! card prices" } passHref>
-            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
-              Yu-Gi-Oh! Card Prices
-            </span>
-          </Link>
-        </li>
-
-        <li className="navButton mb-2 rounded-lg`">
-          <Link href="/yugioh/sets/set-index" title={ "Browse Yu-Gi-Oh! sets" } passHref>
-            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
-              Browse Yu-Gi-Oh! Sets
-            </span>
-          </Link>
-        </li>
-
-        <li className="navButton mb-2 rounded-lg`">
-          <Link href="/yugioh/deck-builder" title={ "Build and test decks" } passHref>
-            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
-              Yu-Gi-Oh! Deck Builder
-            </span>
-          </Link>
-        </li>
-
-        <li className="navButton mb-2 rounded-lg`">
-          <Link href="/sports" title={ "Get current sports card prices" } passHref>
-            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
-              Sports Card Prices
-            </span>
-          </Link>
-        </li>
-
-        <li className="navButton mb-2 rounded-lg">
-          <Link href="/yugioh/my-collection" title={ "View your saved cards" } passHref>
-            <span className="rounded-none block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr to-neutral-400 from-purple-800 hover:text-white">
-              My Collection
-            </span>
-          </Link>
-        </li>
-
-        { isAuthenticated && (
-          <li className="navButton mt-4 rounded">
-            <button
-              onClick={ handleLogout }
-              className="navButton rounded block w-full text-left p-2 text-white bg-clip-padding border border-zinc-600 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-zinc-400 bg-gradient-to-tr from-red-900 to-purple-600 hover:text-white"
-              title={ "Log out" }
-            >
-              Log Out
-            </button>
+    <nav className="flex max-h-fit flex-col justify-between px-4 py-6">
+      <ul className="space-y-3">
+        { links.map( ( item ) => (
+          <li key={ item.href } className="navButton">
+            <Link href={ item.href } title={ item.title } passHref>
+              <span className="block">
+                { item.label }
+              </span>
+            </Link>
           </li>
-        ) }
-        { !isAuthenticated && (
-          <div className="w-full">
-            <button className="mt-4 rounded block w-full text-left p-2 bg-clip-padding bg-zinc-800 border border-zinc-600 hover:transition-transform hover:ease-in-out hover:duration-700 font-semibold backdrop-opacity-90 backdrop-blur-md hover:bg-gradient-to-tr hover:from-purple-900 hover:to-green-600">
-              <Link
-                href="/login"
-                title={ "Log in" }
-                passHref
-              >
-                Log In
-              </Link>
-            </button>
-          </div> ) }
+        ) ) }
       </ul>
+
+      <div className="mt-6 space-y-3">
+        { isAuthenticated ? (
+          <button
+            onClick={ handleLogout }
+            className="w-full rounded-lg border border-white/10 bg-red-500/20 px-4 py-2 text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
+            title="Log out"
+          >
+            Log Out
+          </button>
+        ) : (
+          !isAuthenticated && (
+            <Link
+              href="/login"
+              title="Log in"
+              passHref
+              className="block w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
+            >
+              Log In
+            </Link>
+          )
+        ) }
+      </div>
     </nav>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+﻿import { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -150,7 +150,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
           return (
             <div
               key={ card._id }
-              className={ `glass rounded-md flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
+              className={ `glass rounded-md h-96 flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
             >
               <div
                 className="flip-card-inner hover:cursor-pointer "
@@ -159,7 +159,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 {/* FRONT */ }
                 <div className="flip-card-front">
                   <img
-                    className="w-full h-96 aspect-auto object-scale-down object-center"
+                    className="w-full h-auto aspect-auto object-scale-down object-center"
                     as="image"
                     priority="true"
                     unoptimized="true"
@@ -171,18 +171,39 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 </div>
 
                 {/* BACK */ }
-                <div className="flip-card-back p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
+                <div className="flip-card-back h-96 p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
 
                   <div>
                     <h3 className="text-xl font-bold text-center">{ card.productName }</h3>
-                    <div className="text-sm space-y-1 mt-2 text-shadow">
-                      <div className="flex justify-between"><span className="font-bold">Set:</span> <span className='text-pretty text-end'>{ card.setName }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Number:</span> <span>{ card.number }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Rarity:</span> <span>{ card.rarity }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Printing:</span> <span>{ card.printing }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Condition:</span> <span>{ card.condition }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Old Price:</span> <span>${ card.oldPrice }</span></div>
-                      <div className="flex justify-between"><span className="font-bold">Market Price:</span> <span>${ card.marketPrice }</span></div>
+                    <div className="text-sm space-y-1 mt-2 text-shadow backdrop">
+                      <div className="flex justify-between">
+                        <span className="font-bold">Set:</span>
+                        <span className='text-pretty text-end'>{ card.setName }</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Number:</span>
+                        <span className='text-pretty text-end'>{ card.number }</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Rarity:</span>
+                        <span className='text-pretty text-end'>{ card.rarity }</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Printing:</span>
+                        <span className='text-pretty text-end'>{ card.printing }</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Condition:</span>
+                        <span className='text-pretty text-end'>{ card.condition }</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Old Price:</span>
+                        <span className='text-pretty text-end'>${ card.oldPrice }</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Market Price:</span>
+                        <span className='text-pretty text-end'>${ card.marketPrice }</span>
+                      </div>
                     </div>
                   </div>
                   <Link
@@ -197,9 +218,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         edition: card.printing || "Unknown Edition",
                         source: 'collection'
                       }
-
                     } }
-                    passHref
                   >
 
                     <p className='hover:cursor-pointer p-2 mx-auto text-shadow text-2xl mt-5 max-w-prose text-center underline hover:no-underline underline-offset-2'>
@@ -271,7 +290,6 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       } }
 
                       className="w-16 text-center px-2 py-1 glass mx-auto"
-                      name="delete"
                     />
                   ) : (
                     <span

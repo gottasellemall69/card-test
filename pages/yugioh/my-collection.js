@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { Suspense } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
@@ -297,7 +297,7 @@ const MyCollection = () => {
 
 
       {/* Main Content */ }
-      <div className="mx-auto w-auto">
+      <div className="mx-auto w-full">
 
         {/* Page Header */ }
         <div className="px-6 py-8">

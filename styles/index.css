@@ -6,25 +6,66 @@
 {
   body
   {
-    @apply bg-gradient-to-br from-purple-900 via-blue-900 to-black min-h-screen text-white;
     background-attachment: fixed;
   }
 }
 
 @layer components
 {
-  .glass
+  .page-shell
   {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded;
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
-  .button-glass
+  .section-heading
   {
-    @apply glass px-4 py-2 transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply text-3xl md:text-4xl font-extrabold tracking-tight;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
   }
 
-  .card-glass
+  .surface-panel
   {
-    @apply glass p-6 transition-all;
+    background: rgba(15, 23, 42, 0.75);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    box-shadow: 0 24px 60px -32px rgba(15, 23, 42, 0.85);
+    backdrop-filter: saturate(160%) blur(24px);
+  }
+
+  .surface-panel--muted
+  {
+    background: rgba(30, 41, 69, 0.6);
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .card-veil
+  {
+    position: relative;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+
+  .card-veil::after
+  {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(99, 102, 241, 0.25), transparent 60%);
+    opacity: 0;
+    transition: opacity 260ms ease;
+  }
+
+  .card-veil:hover::after
+  {
+    opacity: 1;
+  }
+}
+
+@layer utilities
+{
+  .shadow-ring
+  {
+    box-shadow: 0 20px 45px -30px rgba(99, 102, 241, 0.65);
   }
 }

@@ -1,40 +1,32 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root
 {
-  --card-height: 320px;
-  --card-width: 250px;
-}
-
-*
-{
-  box-sizing: border-box;
+  --card-height: 600px;
+  --card-width: 420px;
 }
 
 .card
 {
-  width: var(--card-width);
-  height: var(--card-height);
+  width: min(var(--card-width), 100%);
+  height: 75%;
   position: relative;
-  display: inline-block;
-  flex-direction: row;
+  display: inline-flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  perspective: -200px;
-  margin: 25px;
-  padding: 5%;
+  perspective: 550px;
+  margin: 0.5rem;
+  padding: 0.75rem;
 }
 
 .cover-image
 {
-  aspect-ratio: 1 / 1;
-  max-width: 100%;
-  width: var(--card-width);
-  max-height: auto;
-  height: var(--card-height);
-  object-fit: scale-down;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   transition: opacity 0.5s ease-in-out;
 }
 
@@ -42,14 +34,14 @@
 {
   transition: all 0.5s;
   position: relative;
-  width: var(--card-width);
-  height: var(--card-height);
-  z-index: 1;
+  width: 100%;
+  height: 75%;
+  max-width: var(--card-width);
 }
 
 .card:hover .wrapper
 {
-  transform: perspective(750px) translateY(-5%) rotateX(3deg) translateZ(0);
+  transform: perspective(550px) translateY(-4%) rotateX(3deg) translateZ(0);
 }
 
 .wrapper::before,
@@ -67,8 +59,7 @@
 .wrapper::before
 {
   top: 0;
-  width: 100%;
-  height: 100%;
+  height: 75%;
   background-image: linear-gradient(to top,
       transparent 46%,
       rgba(12, 13, 19, 0.5) 68%,
@@ -91,11 +82,6 @@
   opacity: 1;
 }
 
-.card:hover .wrapper::after
-{
-  height: 75%;
-}
-
 .details
 {
   display: none;
@@ -114,29 +100,6 @@
   display: block;
 }
 
-.title
-{
-  width: 100%;
-  transition: transform 0.5s;
-}
-
-.card:hover .title
-{
-  transform: translate3d(0%, -50px, 200px);
-}
-
-.character
-{
-  opacity: 0;
-  transition: all 0.5s;
-}
-
-.card:hover .character
-{
-  opacity: 1;
-  transform: translate3d(0%, -30%, 100px);
-}
-
 .black-overlay
 {
   content: "";
@@ -144,7 +107,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 85%;
+  height: 80%;
   background-color: rgba(0, 0, 0, 0.9);
   z-index: 2;
   transition: opacity 0.5s ease-in-out;

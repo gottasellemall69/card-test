@@ -1,11 +1,14 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Flip card container */
 .flip-card
 {
-    perspective: 1200px;
+    width: 245px;
+    max-width: 100%;
+    margin: 0 auto;
+    perspective: 1250px;
 }
 
 /* Inner wrapper */
@@ -13,7 +16,7 @@
 {
     position: relative;
     width: 100%;
-    height: 85%;
+    height: 88%;
     transform-style: preserve-3d;
     transition: transform 0.8s;
 }
@@ -23,10 +26,9 @@
 .flip-card-back
 {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     backface-visibility: hidden;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     overflow: hidden;
 }
 

@@ -1,11 +1,28 @@
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import Notification from '@/components/Notification';
+import cardData from '@/public/card-data/Yugioh/card_data.json';
 
-const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
+const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChange } ) => {
   const [ sortConfig, setSortConfig ] = useState( { key: null, direction: 'ascending' } );
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
+  const router = useRouter();
+
+  const cardIndex = useMemo( () => {
+    const index = {};
+    cardData.forEach( ( entry ) => {
+      index[ entry.name.toLowerCase() ] = entry;
+    } );
+    return index;
+  }, [] );
+
+  const resolveCardId = ( name ) => {
+    if ( !name ) return null;
+    return cardIndex[ name.toLowerCase() ]?.id || null;
+  };
 
   const calculatePriceTrend = ( previousPrice, currentPrice ) => {
     if ( currentPrice > previousPrice ) {
@@ -75,6 +92,7 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
     }
 
     setSortConfig( { key, direction } );
+    handleSortChange?.( key, direction );
   };
 
   const sortedData = useMemo( () => {
@@ -95,78 +113,102 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
 
   const getSortArrow = ( key ) => {
     if ( sortConfig.key !== key ) return '';
-    return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    return sortConfig.direction === 'ascending' ? '?' : '?';
+  };
+
+  const handleRowNavigation = ( card ) => {
+    if ( !card ) return;
+    const cardId = resolveCardId( card.productName );
+    const letter = card?.setName?.charAt( 0 ).toUpperCase() || card?.productName?.charAt( 0 ).toUpperCase();
+
+    const query = {
+      letter,
+      set_name: card?.setName,
+      set_code: card?.number,
+      rarity: card?.rarity,
+      edition: card?.printing,
+      source: 'collection'
+    };
+
+    if ( cardId ) {
+      query.card = cardId;
+    } else {
+      query.productName = card?.productName;
+    }
+
+    router.push( {
+      pathname: '/yugioh/sets/[letter]/cards/card-details',
+      query
+    } );
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto table-container">
       <Notification show={ notification.show } setShow={ ( s ) => setNotification( prev => ( { ...prev, show: s } ) ) } message={ notification.message } />
 
-      <table className="w-full table-auto">
-        <thead className='sticky border border-zinc-300'>
+      <table className="min-w-full text-sm text-white">
+        <thead className='bg-white/5 text-xs uppercase tracking-wide text-white/70'>
           <tr>
-            <th onClick={ () => handleSort( 'quantity' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Qty { getSortArrow( 'quantity' ) }
-            </th>
-            <th onClick={ () => handleSort( 'productName' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Name { getSortArrow( 'productName' ) }
-            </th>
-            <th onClick={ () => handleSort( 'setName' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Set { getSortArrow( 'setName' ) }
-            </th>
-            <th onClick={ () => handleSort( 'number' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Number { getSortArrow( 'number' ) }
-            </th>
-            <th onClick={ () => handleSort( 'printing' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Printing { getSortArrow( 'printing' ) }
-            </th>
-            <th onClick={ () => handleSort( 'rarity' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Rarity { getSortArrow( 'rarity' ) }
-            </th>
-            <th onClick={ () => handleSort( 'condition' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Condition { getSortArrow( 'condition' ) }
-            </th>
-            <th onClick={ () => handleSort( 'marketPrice' ) } className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-              Price { getSortArrow( 'marketPrice' ) }
-            </th>
-            <th className="sticky top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-            </th>
-            <th className="rounded sticky top-0 z-10 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-            </th>
+            <th onClick={ () => handleSort( 'quantity' ) } className="p-3 cursor-pointer text-left">Qty { getSortArrow( 'quantity' ) }</th>
+            <th className="p-3 text-left">Status</th>
+            <th onClick={ () => handleSort( 'productName' ) } className="p-3 cursor-pointer text-left">Name { getSortArrow( 'productName' ) }</th>
+            <th onClick={ () => handleSort( 'setName' ) } className="p-3 cursor-pointer text-left">Set { getSortArrow( 'setName' ) }</th>
+            <th onClick={ () => handleSort( 'number' ) } className="p-3 cursor-pointer text-left">Number { getSortArrow( 'number' ) }</th>
+            <th onClick={ () => handleSort( 'printing' ) } className="p-3 cursor-pointer text-left">Printing { getSortArrow( 'printing' ) }</th>
+            <th onClick={ () => handleSort( 'rarity' ) } className="p-3 cursor-pointer text-left">Rarity { getSortArrow( 'rarity' ) }</th>
+            <th onClick={ () => handleSort( 'condition' ) } className="p-3 cursor-pointer text-left">Condition { getSortArrow( 'condition' ) }</th>
+            <th onClick={ () => handleSort( 'marketPrice' ) } className="p-3 cursor-pointer text-left">Price { getSortArrow( 'marketPrice' ) }</th>
+            <th className="p-3 text-left"></th>
+            <th className="p-3 text-left"></th>
           </tr>
         </thead>
-        <tbody className="w-full max-h-[450px] overflow-y-auto">
+        <tbody className="divide-y divide-white/5">
           { sortedData?.map( ( card, index ) => (
-            <tr key={ ( card._id, index ) } className="glass transition-colors">
-              <td className="text-white p-2">
+            <tr
+              key={ card._id ?? index }
+              className="interactive-row"
+              onClick={ ( event ) => {
+                if ( event.target.closest && event.target.closest( 'input,button,a,label,svg,path' ) ) {
+                  return;
+                }
+                handleRowNavigation( card );
+              } }
+            >
+              <td className="p-3 align-middle">
                 { edit[ card._id ] === 'quantity' ? (
                   <input
                     type="number"
-                    className="text-black w-16 text-center"
+                    className="w-16 text-center rounded bg-white/5"
                     value={ editValues[ card._id ]?.quantity || '' }
                     onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
                     onBlur={ () => handleSave( card._id, 'quantity' ) }
                   />
                 ) : (
                   <span
-                    className="cursor-pointer hover:text-purple-300"
+                    className="cursor-pointer font-semibold"
                     onClick={ () => handleEdit( card._id, 'quantity' ) }
                   >
                     { card.quantity }
                   </span>
                 ) }
               </td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.productName }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.setName }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.number }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.printing }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.rarity }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.condition }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.marketPrice }</td>
-              <td className="text-white p-2 flex flex-row items-center gap-2">
+              <td className="p-3 align-middle text-xs">
+                <span className="badge badge-success inline-flex items-center gap-1">
+                  <CheckCircleIcon className="h-3.5 w-3.5" />
+                  In Collection
+                </span>
+              </td>
+              <td className="p-3 align-middle text-sm font-semibold text-white">{ card?.productName }</td>
+              <td className="p-3 align-middle text-sm text-white/70">{ card?.setName }</td>
+              <td className="p-3 align-middle text-sm text-white/70">{ card?.number }</td>
+              <td className="p-3 align-middle text-sm text-white/70">{ card?.printing }</td>
+              <td className="p-3 align-middle text-sm text-white/70">{ card?.rarity }</td>
+              <td className="p-3 align-middle text-sm text-white/70">{ card?.condition }</td>
+              <td className="p-3 align-middle text-sm text-white/90">{ card?.marketPrice }</td>
+              <td className="p-3 align-middle text-white">
                 <input
                   type="number"
-                  className="w-14 text-black text-center"
+                  className="w-16 text-center rounded bg-white/5"
                   min={ 1 }
                   max={ card.quantity }
                   value={ editValues[ card._id ]?.deleteAmount || 1 }
@@ -179,10 +221,16 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       }
                     } ) )
                   }
+                  onClick={ ( e ) => e.stopPropagation() }
                 />
+              </td>
+              <td className="p-3 align-middle">
                 <button
                   type="button"
-                  onClick={ () => handleDelete( card._id ) }
+                  onClick={ ( e ) => {
+                    e.stopPropagation();
+                    handleDelete( card._id );
+                  } }
                   className="text-red-400 hover:text-red-200 text-sm font-semibold"
                 >
                   Delete
@@ -197,3 +245,4 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
 };
 
 export default TableView;
+

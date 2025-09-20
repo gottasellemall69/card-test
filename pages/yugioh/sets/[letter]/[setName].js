@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, Suspense } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter } from "next/router";
 import { Grid, List } from 'lucide-react';
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
@@ -9,6 +9,7 @@ import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import YugiohCardDataTable from "@/components/Yugioh/YugiohCardDataTable";
 import { fetchCardData } from "@/utils/api";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
 
 const CardsInSetPage = () => {
   const [ cards, setCards ] = useState( [] );
@@ -16,6 +17,9 @@ const CardsInSetPage = () => {
   const [ modalVisible, setModalVisible ] = useState( false );
   const [ bulkModalVisible, setBulkModalVisible ] = useState( false );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
+  const [ collectionCards, setCollectionCards ] = useState( [] );
+  const [ gridSelectionMode, setGridSelectionMode ] = useState( false );
+  const collectionLookup = useMemo( () => buildCollectionMap( collectionCards ), [ collectionCards ] );
 
   const [ searchTerm, setSearchTerm ] = useState( "" );
   const [ sortBy, setSortBy ] = useState( "asc" );
@@ -33,6 +37,85 @@ const CardsInSetPage = () => {
 
   const router = useRouter();
   const { card, setName } = router.query;
+
+  const resolveSetForPage = useCallback( ( cardItem ) => {
+    return cardItem.card_sets?.find(
+      ( s ) => s.set_name?.toLowerCase() === setName?.toLowerCase()
+    ) || cardItem.card_sets?.[ 0 ] || {};
+  }, [ setName ] );
+
+  const buildSelectionKey = useCallback( ( cardItem ) => {
+    const setDetails = resolveSetForPage( cardItem );
+    return buildCollectionKey( {
+      productName: cardItem.name,
+      setName: setDetails.set_name || setName || "Unknown Set",
+      number: setDetails.set_code || "",
+      printing: setDetails.set_edition || "Unknown Edition",
+    } );
+  }, [ resolveSetForPage, setName ] );
+
+  const toggleSelection = useCallback( ( key ) => {
+    setSelectedRowIds( ( prev ) => {
+      const next = { ...prev };
+      if ( next[ key ] ) {
+        delete next[ key ];
+      } else {
+        next[ key ] = true;
+      }
+      return next;
+    } );
+  }, [ setSelectedRowIds ] );
+
+  const renderGridCard = ( cardItem ) => {
+    const selectionKey = buildSelectionKey( cardItem );
+    const isSelected = Boolean( selectedRowIds[ selectionKey ] );
+    const isCollected = Boolean( collectionLookup[ selectionKey ] );
+
+    return (
+      <div key={ cardItem.id } className="relative">
+        <div
+          className={ `relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 transition-all ${ isSelected ? 'outline outline-2 outline-indigo-400/70 shadow-ring' : '' }` }
+        >
+          { isCollected && (
+            <span className="badge-in-collection">In Collection</span>
+          ) }
+          { gridSelectionMode && isAuthenticated && (
+            <button
+              type="button"
+              className="multi-select-checkbox"
+              onClick={ ( event ) => {
+                event.stopPropagation();
+                toggleSelection( selectionKey );
+              } }
+            >
+              <input type="checkbox" checked={ isSelected } readOnly />
+            </button>
+          ) }
+          <Card cardData={ cardItem } as="image" source="set" />
+        </div>
+        { isAuthenticated && (
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              className="button-primary flex-1 justify-center"
+              onClick={ () => openModal( cardItem ) }
+            >
+              Add to Collection
+            </button>
+            { gridSelectionMode && (
+              <button
+                type="button"
+                className={ `button-secondary ${ isSelected ? 'ring-2 ring-indigo-400/70' : '' }` }
+                onClick={ () => toggleSelection( selectionKey ) }
+              >
+                { isSelected ? 'Selected' : 'Select' }
+              </button>
+            ) }
+          </div>
+        ) }
+      </div>
+    );
+  };
 
   useEffect( () => {
     const loadData = async () => {
@@ -62,6 +145,41 @@ const CardsInSetPage = () => {
 
     checkAuth();
   }, [ card, setName ] );
+
+  useEffect( () => {
+    if ( !isAuthenticated ) {
+      setCollectionCards( [] );
+      return;
+    }
+
+    const fetchCollectionCards = async () => {
+      try {
+        const response = await fetch( "/api/Yugioh/my-collection", {
+          method: "GET",
+          credentials: "include",
+        } );
+
+        if ( !response.ok ) {
+          setCollectionCards( [] );
+          return;
+        }
+
+        const data = await response.json();
+        setCollectionCards( data );
+      } catch ( error ) {
+        console.error( "Failed to load collection for set view:", error );
+        setCollectionCards( [] );
+      }
+    };
+
+    fetchCollectionCards();
+  }, [ isAuthenticated ] );
+
+  useEffect( () => {
+    if ( viewMode !== "grid" ) {
+      setGridSelectionMode( false );
+    }
+  }, [ viewMode ] );
 
   const openModal = ( card ) => {
     setSelectedCard( card );
@@ -175,10 +293,13 @@ const CardsInSetPage = () => {
   // ✅ convert to matchedCardData for table
   const matchedCardData = useMemo( () => {
     return processedCards.map( ( c ) => {
-      const setForThisPage =
-        c.card_sets?.find(
-          ( s ) => s.set_name?.toLowerCase() === setName?.toLowerCase()
-        ) || c.card_sets?.[ 0 ] || {};
+      const setForThisPage = resolveSetForPage( c );
+      const collectionKey = buildCollectionKey( {
+        productName: c.name,
+        setName: setForThisPage.set_name || setName || "Unknown Set",
+        number: setForThisPage.set_code || "",
+        printing: setForThisPage.set_edition || "Unknown Edition",
+      } );
       return {
         card: {
           productName: c.name,
@@ -192,6 +313,7 @@ const CardsInSetPage = () => {
           marketPrice: setForThisPage.set_price || 0,
           lowPrice: 0,
         },
+        collectionKey,
       };
     } );
   }, [ processedCards, setName ] );
@@ -375,8 +497,8 @@ const CardsInSetPage = () => {
               onChange={ ( e ) => setSortBy( e.target.value ) }
               className="inline-flex h-[40px] items-center justify-center gap-1.5 rounded-md border !border-dashed bg-transparent px-3 text-sm font-medium shadow-md hover:bg-accent hover:text-accent-foreground"
             >
-              <option value="glass text-shadow asc">Name (A-Z)</option>
-              <option value="glass text-shadow desc">Name (Z-A)</option>
+              <option value="asc">Name (A-Z)</option>
+              <option value="desc">Name (Z-A)</option>
             </select>
           </div>
 
@@ -408,6 +530,15 @@ const CardsInSetPage = () => {
               <List size={ 25 } />
             </button>
           </div>
+          { viewMode === "grid" && isAuthenticated && (
+            <button
+              type="button"
+              onClick={ () => setGridSelectionMode( ( prev ) => !prev ) }
+              className={ gridSelectionMode ? "button-primary" : "button-secondary" }
+            >
+              { gridSelectionMode ? "Done Selecting" : "Enable Multi-Select" }
+            </button>
+          ) }
 
 
         </div>
@@ -433,7 +564,7 @@ const CardsInSetPage = () => {
                 }
                 className="ml-1 text-xs hover:text-red-500"
               >
-                ✕
+                x
               </button>
             </span>
           ) ) }
@@ -450,7 +581,7 @@ const CardsInSetPage = () => {
                 }
                 className="ml-1 text-xs hover:text-red-500"
               >
-                ✕
+                x
               </button>
             </span>
           ) ) }
@@ -481,16 +612,17 @@ const CardsInSetPage = () => {
             matchedCardData={ matchedCardData }
             selectedRowIds={ selectedRowIds }
             setSelectedRowIds={ setSelectedRowIds }
+            collectionMap={ collectionLookup }
           />
         </Suspense>
       ) }
 
       {/* Bulk Add Button */ }
-      { viewMode === "table" && Object.values( selectedRowIds ).some( Boolean ) && (
-        <div className="mt-4">
+      { Object.values( selectedRowIds ).some( Boolean ) && ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
+        <div className="mt-6">
           <button
             onClick={ openBulkModal }
-            className="px-4 py-2 bg-green-600 text-white rounded"
+            className="button-primary"
           >
             Add Selected to Collection
           </button>
