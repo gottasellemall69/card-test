@@ -128,7 +128,7 @@ export default function DeckBuilder() {
   );
 
   return (
-    <div className="p-6 glass min-h-screen text-black">
+    <div className="p-6 glass min-h-screen yugioh-bg text-black">
       <h1 className="text-3xl font-bold mb-4 text-white">Yu-Gi-Oh! Deck Builder</h1>
 
       <div className="flex flex-1 gap-x-2">

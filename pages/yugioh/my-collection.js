@@ -16,7 +16,7 @@ const GridView = dynamic(
   () => import( "@/components/Yugioh/GridView" ),
   {
     ssr: false,
-    loading: () => <div className="w-full max-w-7xl mx-auto text-3xl font-black">Loading...</div>,
+    loading: () => <div className="w-full max-w-max mx-auto text-3xl font-black">Loading...</div>,
   }
 );
 
@@ -285,7 +285,7 @@ const MyCollection = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-slate-900 to-black text-white">
+    <div className="min-h-screen yugioh-bg text-white">
       <Head>
         <title>Card Price App - My Collection</title>
         <meta name="description" content="Manage your Yu-Gi-Oh card collection with real-time pricing" />
@@ -370,7 +370,7 @@ const MyCollection = () => {
 
 
         {/* Content Area */ }
-        <main className="mx-auto w-full px-6 pb-8">
+        <main className="mx-auto w-full min-h-screen px-6 pb-8">
           { isAuthenticated ? (
             <>
 
@@ -382,7 +382,7 @@ const MyCollection = () => {
                 />
               </div>
               {/* Filter */ }
-              <div className="px-3 py-3 mb-6">
+              <div className="max-h-screen px-3 py-3 mb-6">
                 <CardFilter
                   updateFilters={ handleFilterChange }
                   filters={ filters }

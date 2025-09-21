@@ -147,75 +147,76 @@ const CardDetails = () => {
 
   return (
     <>
-      {/* 🔹 Breadcrumb shows Sets → SetName → Card Name */ }
-      <Breadcrumb
-        items={ [
-          { label: "Sets", href: "/yugioh/sets/set-index" },
-          set_name
-            ? { label: set_name, href: `/yugioh/sets/${ letter }/${ set_name }` }
-            : null,
-          { label: cardData?.name || "Card Details", href: router.asPath },
-        ].filter( Boolean ) }
-      />
+      <div className="mx-auto w-full yugioh-bg min-h-screen">
+        {/* 🔹 Breadcrumb shows Sets → SetName → Card Name */ }
+        <Breadcrumb
+          items={ [
+            { label: "Sets", href: "/yugioh/sets/set-index" },
+            set_name
+              ? { label: set_name, href: `/yugioh/sets/${ letter }/${ set_name }` }
+              : null,
+            { label: cardData?.name || "Card Details", href: router.asPath },
+          ].filter( Boolean ) }
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <div className="glass p-6 text-white rounded-md shadow-md text-shadow">
-          <h1 className="text-2xl font-extrabold mb-4">{ cardData.name }</h1>
-          <p className="mb-1">
-            <span className="font-bold">Card Type:</span> { cardData.type }
-          </p>
-          <p className="mb-1">
-            <span className="font-bold">Description:</span> { cardData.desc }
-          </p>
-          <p className="mb-1">
-            <span className="font-bold">Monster Type:</span> { cardData.race }
-          </p>
-          <p className="mb-1">
-            <span className="font-bold">Archetype:</span> { cardData.archetype }
-          </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+          <div className="glass p-6 text-white rounded-md shadow-md text-shadow">
+            <h1 className="text-2xl font-extrabold mb-4">{ cardData.name }</h1>
+            <p className="mb-1">
+              <span className="font-bold">Card Type:</span> { cardData.type }
+            </p>
+            <p className="mb-1">
+              <span className="font-bold">Description:</span> { cardData.desc }
+            </p>
+            <p className="mb-1">
+              <span className="font-bold">Monster Type:</span> { cardData.race }
+            </p>
+            <p className="mb-1">
+              <span className="font-bold">Archetype:</span> { cardData.archetype }
+            </p>
 
-          <div className="mt-6">
-            <label className="block text-sm font-bold mb-2">Select Version:</label>
-            <select
-              className="text-black p-2 rounded-md w-full"
-              value={ selectedVersion }
-              onChange={ handleVersionChange }
-            >
-              { cardData.card_sets?.map( ( set, idx ) => (
-                <option
-                  key={ idx }
-                  value={ `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
-                    }` }
-                >
-                  { set.set_name } - { set.set_code } - { set.set_rarity } -{ " " }
-                  { set.set_edition || "Unknown Edition" }
-                </option>
-              ) ) }
-            </select>
+            <div className="mt-6">
+              <label className="block text-sm font-bold mb-2">Select Version:</label>
+              <select
+                className="text-black p-2 rounded-md w-full"
+                value={ selectedVersion }
+                onChange={ handleVersionChange }
+              >
+                { cardData.card_sets?.map( ( set, idx ) => (
+                  <option
+                    key={ idx }
+                    value={ `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
+                      }` }
+                  >
+                    { set.set_name } - { set.set_code } - { set.set_rarity } -{ " " }
+                    { set.set_edition || "Unknown Edition" }
+                  </option>
+                ) ) }
+              </select>
+            </div>
+
+            <p className="mt-4 border-t pt-4">
+              <span className="font-bold">Market Price:</span> $
+              { cardData.card_sets?.find(
+                ( set ) =>
+                  `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
+                  }` === selectedVersion
+              )?.set_price || "N/A" }
+            </p>
           </div>
 
-          <p className="mt-4 border-t pt-4">
-            <span className="font-bold">Market Price:</span> $
-            { cardData.card_sets?.find(
-              ( set ) =>
-                `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
-                }` === selectedVersion
-            )?.set_price || "N/A" }
-          </p>
-        </div>
-
-        <div className="glass p-6 rounded-md shadow-md">
-          <h2 className="text-2xl font-bold mb-1 text-white text-shadow">
-            Price History
-          </h2>
-          <PriceHistoryChart
-            priceHistory={ priceHistoryData?.priceHistory || [] }
-            selectedVersion={ selectedVersion }
-            source={ "set" }
-          />
+          <div className="glass p-6 rounded-md shadow-md">
+            <h2 className="text-2xl font-bold mb-1 text-white text-shadow">
+              Price History
+            </h2>
+            <PriceHistoryChart
+              priceHistory={ priceHistoryData?.priceHistory || [] }
+              selectedVersion={ selectedVersion }
+              source={ "set" }
+            />
+          </div>
         </div>
       </div>
-
       <SpeedInsights />
     </>
   );

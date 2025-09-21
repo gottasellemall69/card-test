@@ -349,11 +349,7 @@ const YugiohCardDataTable = ( {
 
     return (
         <div className="mx-auto w-full mb-10 min-h-fit z-50">
-            <Notification
-                show={ notification.show }
-                setShow={ ( show ) => setNotification( { ...notification, show } ) }
-                message={ notification.message }
-            />
+
 
             { sortedAndPaginatedData.currentItems.length > 0 && (
                 <div>
@@ -486,6 +482,11 @@ const YugiohCardDataTable = ( {
                                     } ) }
                                 </tbody>
                             </table>
+                            <Notification
+                                show={ notification.show }
+                                setShow={ ( show ) => setNotification( { ...notification, show } ) }
+                                message={ notification.message }
+                            />
                         </div>
                     </div>
                 </div>

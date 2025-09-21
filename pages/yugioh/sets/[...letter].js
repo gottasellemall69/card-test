@@ -35,7 +35,7 @@ const SetsByLetterPage = () => {
     }
 
     return sets.map( ( set, index ) => (
-      <div key={ index } className="p-5 text-white font-medium leading-5 w-7xl">
+      <div key={ index } className="p-5 text-white font-medium leading-5 w-7xl ">
         <Link
           className="w-fit hover:underline hover:font-semibold"
           href={ {
@@ -54,13 +54,15 @@ const SetsByLetterPage = () => {
 
   return (
     <>
-      <Breadcrumb />
-      <div>
-        <h1 className="my-10 text-xl font-black text-shadow">
-          Sets Starting with { letter }
-        </h1>
-        <div className="mx-5 flex-wrap grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row">
-          { memoizedSets }
+      <div className="mx-auto w-full yugioh-bg min-h-screen">
+        <Breadcrumb />
+        <div>
+          <h1 className="my-10 text-xl font-black text-shadow">
+            Sets Starting with { letter }
+          </h1>
+          <div className="mx-5 flex-wrap grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-flow-row">
+            { memoizedSets }
+          </div>
         </div>
       </div>
       <SpeedInsights />

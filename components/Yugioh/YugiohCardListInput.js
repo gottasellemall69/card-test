@@ -11,17 +11,17 @@ const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, error } ) =
 
   return (
     <>
-      <div className='mx-auto object-center self-center place-content-center text-shadow glass'>
-        <Notification show={ notification.show } setShow={ ( show ) => setNotification( { ...notification, show } ) } message={ notification.message } />
-      </div>
       <form
         name="YugiohCardListInput"
         onSubmit={ handleSubmit }
       >
-        <div className="text-black">
+        <div className="text-white">
+          <div className='mx-auto object-center self-center place-content-center text-shadow glass'>
+            <Notification show={ notification.show } setShow={ ( show ) => setNotification( { ...notification, show } ) } message={ notification.message } />
+          </div>
           <textarea
             name="cardListInput"
-            className="w-full max-w-7xl rounded-xs flex flex-wrap text-nowrap resize-none h-48"
+            className="w-full max-w-7xl rounded-xs flex flex-wrap text-nowrap resize-none h-48 glass bg-transparent"
             value={ cardList }
             onChange={ ( e ) => setCardList( e.target.value ) }
             placeholder="Enter your list of cards..." />
@@ -31,6 +31,7 @@ const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, error } ) =
         </div>
       </form>
       { error && <p>{ error }</p> }
+
     </>
   );
 };

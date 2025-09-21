@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
@@ -157,7 +157,7 @@ const Home = () => {
         <meta charSet="UTF-8" />
       </Head>
 
-      <div className="w-full max-w-7xl mx-auto min-h-screen text-center sm:text-left">
+      <div className="yugioh-bg w-full mx-auto min-h-screen text-center sm:text-left p-5">
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
 
         <header className="pb-3">
@@ -186,7 +186,7 @@ const Home = () => {
           </button>
         </div>
 
-        <main className="mt-10">
+        <main className="mt-10 w-auto">
           <div className="w-7xl max-w-full mx-auto">
             <YugiohCardListInput
               collection={ collection }

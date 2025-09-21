@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -81,10 +81,10 @@ const Breadcrumb = () => {
     >
       <ol className="mx-auto sm:mx-0 sm:float-start flex flex-wrap w-fit space-x-4 px-4 sm:px-6 lg:px-8">
         { crumbs.map( ( crumb, idx ) => (
-          <li key={ idx } className="flex items-center">
+          <li key={ idx } className="flex flex-wrap items-center">
             { idx > 0 && (
               <svg
-                className="h-full w-6 flex-shrink-0 text-white text-shadow"
+                className="h-5 w-5 flex-shrink-0 text-white text-shadow backdrop"
                 viewBox="0 0 24 44"
                 fill="currentColor"
                 aria-hidden="true"
@@ -93,13 +93,13 @@ const Breadcrumb = () => {
               </svg>
             ) }
             { crumb.href ? (
-              <span className="ml-4 text-sm font-medium text-white text-shadow hover:text-gray-300">
+              <span className="ml-4 p-2 text-sm font-black text-white text-shadow hover:text-gray-300">
                 <Link href={ crumb.href } passHref>
                   { crumb.label }
                 </Link>
               </span>
             ) : (
-              <span className="ml-4 text-sm font-medium text-white text-shadow">
+              <span className="ml-4 p-2 text-sm font-black text-white text-shadow">
                 { crumb.label }
               </span>
             ) }

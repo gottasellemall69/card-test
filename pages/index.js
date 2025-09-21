@@ -18,12 +18,12 @@ export default function LandingPage() {
     };
 
     return (
-        <div className="h-fit min-h-screen w-full mx-auto flex overflow-hidden">
+        <div className="min-h-screen w-full mx-auto flex overflow-hidden">
             {/* Yu-Gi-Oh! Panel */ }
             <div
                 onClick={ () => goTo( "/yugioh" ) }
                 className={ `
-          relative flex-1 flex items-center justify-center cursor-pointer
+           relative flex-1 flex items-center justify-center cursor-pointer
           transition-all duration-700 ease-in-out
           ${ animate ? "translate-x-0" : "-translate-x-full" }
           bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500

@@ -48,7 +48,7 @@ const SelectedCardsPage = () => {
         <meta name="description" content="View your selected sports cards collection" />
       </Head>
 
-      <div className="min-h-screen bg-transparent text-white">
+      <div className="min-h-screen sports-bg text-white">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold">Your Card Collection</h1>
@@ -68,7 +68,7 @@ const SelectedCardsPage = () => {
             />
           </div>
 
-          <div className="bg-transparent glass rounded-lg shadow-xl">
+          <div className="sports-bg glass rounded-lg shadow-xl">
             <CardGrid
               cards={sortedCards}
               onRemoveCard={handleRemoveCard}
