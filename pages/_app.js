@@ -1,6 +1,5 @@
 import "@/styles/globals.css";
 import "@/styles/hovercards.css";
-import "@/styles/index.css";
 
 import Layout from "@/components/Layout";
 import { CardProvider } from "@/context/CardContext";

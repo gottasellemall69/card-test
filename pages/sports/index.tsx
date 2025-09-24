@@ -22,13 +22,13 @@ export default function Home() {
 
   return (
     <>
-      <div className="mx-auto min-h-screen w-full sports-bg">
+      <div className="mx-auto min-h-screen w-full">
         <Head>
           <title>Sports Card Collection</title>
           <meta name="description" content="Browse and collect sports cards" />
         </Head>
 
-        <div className="min-h-screen sports-bg text-white mx-auto">
+        <div className="sports-bg text-white mx-auto">
           <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <h1 className="text-3xl font-bold">Sports Card Browser</h1>

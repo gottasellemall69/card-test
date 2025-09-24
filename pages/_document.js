@@ -9,8 +9,8 @@ export default function Document() {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <body className="mx-auto bg-black min-h-screen">
-        <div className="transition-all main mx-auto">
+      <body className="mx-auto ">
+        <div className="transition-all mx-auto min-h-screen w-full">
           <Main />
         </div>
         <NextScript />

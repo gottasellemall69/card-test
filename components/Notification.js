@@ -1,5 +1,5 @@
+import React, { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/20/solid';
-import { useEffect } from 'react';
 
 const Notification = ( { show, setShow, message } ) => {
   useEffect( () => {
@@ -12,14 +12,14 @@ const Notification = ( { show, setShow, message } ) => {
   return (
     <div
       aria-live="assertive"
-      className={ `mx-auto mt-24 z-50 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 transition duration-300 ${ show ? 'opacity-100 translate-y-0 sm:translate-x-0' : 'opacity-0 translate-y-2 sm:translate-y-0 sm:translate-x-2' }` }
+      className={ `pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 transition duration-300 ${ show ? 'opacity-100 translate-y-0 sm:translate-x-0' : 'opacity-0 translate-y-2 sm:translate-y-0 sm:translate-x-2' }` }
     >
-      <div className=" z-50 flex w-full flex-col items-center space-y-4 sm:items-end">
-        <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg backdrop shadow-lg ring-1 ring-black ring-opacity-5">
-          <div className="glass p-4">
+      <div className="flex w-full flex-col items-center space-y-4 sm:items-center">
+        <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+          <div className="p-4">
             <div className="flex items-center">
               <div className="flex w-0 flex-1 justify-between">
-                <p className=" w-0 flex-1 text-sm  text-text-shadow font-semibold">{ message }</p>
+                <p className="w-0 flex-1 text-sm font-medium text-gray-900">{ message }</p>
               </div>
               <div className="ml-4 flex flex-shrink-0">
                 <button

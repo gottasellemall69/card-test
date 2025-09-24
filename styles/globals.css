@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -302,12 +302,12 @@ img:hover
 {
   body
   {
-    @apply min-h-screen antialiased;
-    background: radial-gradient(circle at 20% 20%, rgba(0, 0, 0, 0.774), transparent 55%),
-      radial-gradient(circle at 80% 10%, rgba(0, 0, 0, 0.25), transparent 50%),
-      linear-gradient(135deg, var(--gradient-start), var(--gradient-mid) 55%, var(--gradient-end));
-    color: var(--text-primary);
-    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+    @apply min-h-screen overflow-x-hidden bg-slate-950 text-slate-100 antialiased;
+  }
+
+  #__next
+  {
+    @apply min-h-screen flex flex-col overflow-x-hidden;
   }
 
   :focus-visible
@@ -497,3 +497,4 @@ img:hover
     animation: pulseGlow 2.8s ease-in-out infinite;
   }
 }
+

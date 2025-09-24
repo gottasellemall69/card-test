@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { X } from 'lucide-react';
 // components/Yugioh/CardFilter.js
 import React from 'react';
@@ -65,8 +65,8 @@ const CardFilter = ( {
       </button>
 
       { isModalOpen && (
-        <aside className="fixed inset-0 z-50 flex items-center justify-end bg-black bg-opacity-60">
-          <div className="w-96 text-white bg-opacity-60 glass shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
+        <aside className="absolute flex items-start justify-items-start bg-black bg-opacity-60">
+          <div className="z-50 h-full w-96 text-white bg-opacity-60 glass shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
             {/* Close */ }
             <div className="flex border-b">
               <button
@@ -80,13 +80,13 @@ const CardFilter = ( {
             </div>
 
             {/* Filters */ }
-            <div className="overflow-y-auto h-[calc(100vh-90px)] p-4 space-y-4 text-white text-shadow font-medium">
+            <div className="items-start justify-center sticky overflow-y-auto h-72 p-4 space-y-4 text-white text-shadow font-medium z-50">
               { filtersDef.map( filter => (
                 <div key={ filter.id }>
                   <div className="block mb-2 font-semibold">{ filter.label }:</div>
                   <div className="space-y-2">
                     { filter.values.map( value => (
-                      <div key={ value } className="flex items-center space-x-2">
+                      <div key={ value } className="flex items-start space-x-2">
                         <input
                           type="checkbox"
                           id={ `${ filter.id }-${ value }` }
@@ -106,7 +106,7 @@ const CardFilter = ( {
             <div className=" border-t">
               <button
                 type="button"
-                className="flex w-full h-full mx-auto justify-center px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-900"
+                className="z-50 flex w-full h-full mx-auto justify-center px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-900"
                 onClick={ () => setIsModalOpen( false ) }
               >
                 Apply Filters

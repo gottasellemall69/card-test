@@ -13,15 +13,22 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   sortKey,
   onSort,
   getSortIcon,
-  className = ''
-}) => (
-  <th
-    scope="col"
-    className={`sticky top-0 p-1 border-b border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white backdrop-blur backdrop-filter whitespace-nowrap cursor-pointer ${className}`}
-    onClick={() => onSort(sortKey)}
-  >
-    {title} {getSortIcon(sortKey)}
-  </th>
-);
+  className = '',
+}) => {
+  const sortIcon = getSortIcon(sortKey);
+
+  return (
+    <th
+      scope="col"
+      className={`sticky top-0 bg-slate-900/70 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/80 backdrop-blur transition-colors hover:text-white ${className}`}
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {title}
+        {sortIcon ? <span className="text-[0.7rem] text-indigo-300">{sortIcon}</span> : null}
+      </span>
+    </th>
+  );
+};
 
 export default TableHeader;

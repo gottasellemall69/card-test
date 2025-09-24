@@ -18,7 +18,7 @@ export default function LandingPage() {
     };
 
     return (
-        <div className="min-h-screen w-full mx-auto flex overflow-hidden">
+        <div className="min-h-screen w-full mx-auto flex">
             {/* Yu-Gi-Oh! Panel */ }
             <div
                 onClick={ () => goTo( "/yugioh" ) }

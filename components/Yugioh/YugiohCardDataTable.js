@@ -21,7 +21,7 @@ const YugiohCardDataTable = ( {
     collectionMap
 } ) => {
     const router = useRouter();
-    const itemsPerPage = 50;
+    const itemsPerPage = 30;
     const [ currentPage, setCurrentPage ] = useState( 1 );
     const [ sortConfig, setSortConfig ] = useState( { key: [], direction: 'ascending' } );
     const [ selectedKeys, setSelectedKeys ] = useState( new Set() );
@@ -42,7 +42,7 @@ const YugiohCardDataTable = ( {
         return internalCollection;
     }, [ collectionMap, internalCollection ] );
 
-    useEffect( () => {
+    useMemo( () => {
         if ( collectionMap || internalCollection.__hydrated ) return;
 
         const fetchCollection = async () => {
@@ -348,45 +348,48 @@ const YugiohCardDataTable = ( {
     ], [] );
 
     return (
-        <div className="mx-auto w-full mb-10 min-h-fit z-50">
+        <div class="mx-auto bg-none rounded-lg">
+
+
 
 
             { sortedAndPaginatedData.currentItems.length > 0 && (
-                <div>
-                    <div className="w-full -mt-5">
-                        <div className="w-fit mx-auto">
-                            <YugiohPagination
-                                currentPage={ currentPage }
-                                itemsPerPage={ itemsPerPage }
-                                totalItems={ sortedAndPaginatedData.totalCount }
-                                handlePageClick={ setCurrentPage }
-                            />
-                        </div>
-                        <div className="max-h-fit w-full mt-4 flex flex-wrap justify-center gap-3">
-                            <button
-                                type="button"
-                                className="button-secondary"
-                                onClick={ downloadCSV }
-                            >
-                                Download CSV
-                            </button>
-                            <button
-                                type="button"
-                                className="button-primary"
-                                onClick={ addToCollection }
-                            >
-                                Add card(s) to collection
-                            </button>
-                            <button
-                                type="button"
-                                className="button-secondary"
-                                onClick={ handleGoToCollectionPage }
-                            >
-                                View Collection
-                            </button>
-                        </div>
+                <div className="mx-auto w-full mb-10 min-h-fit">
+                    <div>
+                        <div className="w-full -mt-5">
+                            <div className="w-fit mx-auto">
+                                <YugiohPagination
+                                    currentPage={ currentPage }
+                                    itemsPerPage={ itemsPerPage }
+                                    totalItems={ sortedAndPaginatedData.totalCount }
+                                    handlePageClick={ setCurrentPage }
+                                />
+                            </div>
+                            <div className="max-h-fit w-full mt-4 flex flex-wrap justify-center gap-3">
+                                <button
+                                    type="button"
+                                    className="button-secondary"
+                                    onClick={ downloadCSV }
+                                >
+                                    Download CSV
+                                </button>
+                                <button
+                                    type="button"
+                                    className="button-primary"
+                                    onClick={ addToCollection }
+                                >
+                                    Add card(s) to collection
+                                </button>
+                                <button
+                                    type="button"
+                                    className="button-secondary"
+                                    onClick={ handleGoToCollectionPage }
+                                >
+                                    View Collection
+                                </button>
+                            </div>
 
-                        <div className="w-full mx-auto overflow-x-auto mt-4 table-container">
+
                             { selectedKeys.size > 0 && (
                                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-4 py-3 text-sm text-indigo-100">
                                     <div>
@@ -399,101 +402,117 @@ const YugiohCardDataTable = ( {
                                 </div>
                             ) }
 
-                            <table className="min-w-full max-w-7xl text-white border-collapse">
-                                <thead>
-                                    <tr className="bg-white/5 text-xs uppercase tracking-wide text-white/80">
-                                        <th className="p-3 text-left">
-                                            <input
-                                                type="checkbox"
-                                                checked={ isAllOnPage }
-                                                onChange={ ( e ) =>
-                                                    e.target.checked ? handleSelectAllOnPage() : handleDeselectAllOnPage()
-                                                }
-                                            />
-                                        </th>
-                                        <th className="p-3 text-left">Status</th>
-                                        { headers.map( ( { key, label } ) => (
-                                            <th
-                                                key={ key }
-                                                onClick={ () => handleSort( key ) }
-                                                className="p-3 text-left cursor-pointer select-none"
-                                            >
-                                                <span className="inline-flex items-center gap-1">
-                                                    { label }
-                                                    { sortConfig.key === key && (
-                                                        sortConfig.direction === 'ascending' ? (
-                                                            <ChevronUpIcon className="h-3.5 w-3.5 text-indigo-200" />
-                                                        ) : (
-                                                            <ChevronDownIcon className="h-3.5 w-3.5 text-indigo-200" />
-                                                        )
-                                                    ) }
-                                                </span>
-                                            </th>
-                                        ) ) }
-                                    </tr>
-                                </thead>
-
-                                <tbody className="divide-y divide-white/5">
-                                    { sortedAndPaginatedData.currentItems.map( ( { item, originalIndex } ) => {
-                                        const uniqueId = itemUniqueIds[ originalIndex ];
-                                        const isSelected = selectedKeys.has( uniqueId );
-                                        const { card, data } = item;
-                                        const collectionKey = baseKeys[ originalIndex ];
-                                        const inCollection = Boolean( resolvedCollection?.[ collectionKey ] );
-
-                                        return (
-                                            <tr
-                                                key={ uniqueId }
-                                                className={ `interactive-row ${ isSelected ? 'bg-indigo-500/10' : '' }` }
-                                                onClick={ ( event ) => {
-                                                    if ( event.target.closest && event.target.closest( 'input,button,a,label,svg,path' ) ) {
-                                                        return;
+                            <div className="overflow-x-auto">
+                                <table className="glass min-w-full text-sm text-white mt-10">
+                                    <thead>
+                                        <tr className="bg-white/5 text-xs uppercase tracking-wide text-white/80">
+                                            <th className="p-3 text-left">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={ isAllOnPage }
+                                                    onChange={ ( e ) =>
+                                                        e.target.checked ? handleSelectAllOnPage() : handleDeselectAllOnPage()
                                                     }
-                                                    handleRowNavigation( card, data );
-                                                } }
-                                            >
-                                                <td className="p-3 align-middle">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={ isSelected }
-                                                        onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
-                                                        onClick={ ( e ) => e.stopPropagation() }
-                                                    />
-                                                </td>
-                                                <td className="p-3 align-middle text-xs">
-                                                    { inCollection ? (
-                                                        <span className="badge badge-success inline-flex items-center gap-1">
-                                                            <CheckCircleIcon className="h-3.5 w-3.5" />
-                                                            In Collection
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-sm italic badge text-white/60 border-white/10">Unowned</span>
-                                                    ) }
-                                                </td>
-                                                <td className="p-3 align-middle text-sm font-medium text-white/90">{ card?.productName || 'N/A' }</td>
-                                                <td className="p-3 align-middle text-sm text-white/70">{ card?.setName || 'N/A' }</td>
-                                                <td className="p-3 align-middle text-sm text-white/70">{ card?.number || 'N/A' }</td>
-                                                <td className="p-3 align-middle text-sm text-white/70">{ card?.printing || 'N/A' }</td>
-                                                <td className="p-3 align-middle text-sm text-white/70">{ card?.rarity || 'N/A' }</td>
-                                                <td className="p-3 align-middle text-sm text-white/70">{ card?.condition || `${ card?.condition } ${ card?.printing }` }</td>
-                                                <td className="p-3 align-middle text-sm text-white/90">${ formatPrice( data?.marketPrice ) }</td>
-                                            </tr>
-                                        );
-                                    } ) }
-                                </tbody>
-                            </table>
-                            <Notification
-                                show={ notification.show }
-                                setShow={ ( show ) => setNotification( { ...notification, show } ) }
-                                message={ notification.message }
-                            />
+                                                />
+                                            </th>
+                                            <th className="p-3 text-left">Status</th>
+                                            { headers.map( ( { key, label } ) => (
+                                                <th
+                                                    key={ key }
+                                                    onClick={ () => handleSort( key ) }
+                                                    className="p-3 text-left cursor-pointer select-none"
+                                                >
+                                                    <span className="inline-flex items-center gap-1">
+                                                        { label }
+                                                        { sortConfig.key === key && (
+                                                            sortConfig.direction === 'ascending' ? (
+                                                                <ChevronUpIcon className="h-3.5 w-3.5 text-indigo-200" />
+                                                            ) : (
+                                                                <ChevronDownIcon className="h-3.5 w-3.5 text-indigo-200" />
+                                                            )
+                                                        ) }
+                                                    </span>
+                                                </th>
+                                            ) ) }
+                                        </tr>
+                                    </thead>
+
+                                    <tbody className="glass divide-y divide-white/5">
+                                        { sortedAndPaginatedData.currentItems.map( ( { item, originalIndex } ) => {
+                                            const uniqueId = itemUniqueIds[ originalIndex ];
+                                            const isSelected = selectedKeys.has( uniqueId );
+                                            const { card, data } = item;
+                                            const collectionKey = baseKeys[ originalIndex ];
+                                            const inCollection = Boolean( resolvedCollection?.[ collectionKey ] );
+
+                                            return (
+                                                <tr
+                                                    key={ uniqueId }
+                                                    className={ `interactive-row ${ isSelected ? 'bg-indigo-500/10' : '' }` }
+
+                                                >
+                                                    <td data-label="Select" className="p-3 align-middle">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={ isSelected }
+                                                            onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
+                                                            onClick={ ( e ) => e.stopPropagation() }
+                                                        />
+                                                    </td>
+                                                    <td data-label="Collection" className="p-3 align-middle text-xs">
+                                                        { inCollection ? (
+                                                            <span className="badge badge-success inline-flex items-center gap-1">
+                                                                <CheckCircleIcon className="h-3.5 w-3.5" />
+                                                                In Collection
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-sm italic badge text-white/60 border-white/10">Unowned</span>
+                                                        ) }
+                                                    </td>
+                                                    <td
+                                                        data-label="Card"
+                                                        onClick={ ( event ) => {
+                                                            if ( event.target.closest && event.target.closest( 'input,button,a,label,svg,path' ) ) {
+                                                                return;
+                                                            }
+                                                            handleRowNavigation( card, data );
+                                                        } }
+                                                        className="p-3 align-middle text-sm font-medium text-white/90 hover:underline hover:cursor-pointer"
+                                                        title="View details">
+                                                        { card?.productName || 'N/A' }
+                                                    </td>
+                                                    <td data-label="Set" className="p-5 align-middle text-sm text-white/70">{ card?.setName || 'N/A' }</td>
+                                                    <td data-label="Number" className="p-5 align-middle text-sm text-white/70">{ card?.number || 'N/A' }</td>
+                                                    <td data-label="Printing" className="p-5 align-middle text-sm text-white/70">{ card?.printing || 'N/A' }</td>
+                                                    <td data-label="Rarity" className="p-5 align-middle text-sm text-white/70">{ card?.rarity || 'N/A' }</td>
+                                                    <td data-label="Condition" className="p-5 align-middle text-sm text-white/70">{ card?.condition || `${ card?.condition } ${ card?.printing }` }</td>
+                                                    <td data-label="Price" className="p-5 text-right text-sm text-white/90">${ formatPrice( data?.marketPrice ) }</td>
+                                                </tr>
+                                            );
+                                        } ) }
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
+                    <Notification
+                        show={ notification.show }
+                        setShow={ ( show ) => setNotification( { ...notification, show } ) }
+                        message={ notification.message }
+                    />
                 </div>
             ) }
         </div>
+
     );
 };
 
 export default YugiohCardDataTable;
+
+
+
+
+
+
+
 

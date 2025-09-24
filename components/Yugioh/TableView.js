@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import Notification from '@/components/Notification';
 import cardData from '@/public/card-data/Yugioh/card_data.json';
 
@@ -24,32 +23,22 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
     return cardIndex[ name.toLowerCase() ]?.id || null;
   };
 
-  const calculatePriceTrend = ( previousPrice, currentPrice ) => {
-    if ( currentPrice > previousPrice ) {
-      return '+';
-    } else if ( currentPrice < previousPrice ) {
-      return '-';
-    } else {
-      return '';
-    }
-  };
-
   const handleEdit = ( cardId, field ) => {
     setEdit( ( prev ) => ( { ...prev, [ cardId ]: field } ) );
     const card = aggregatedData.find( ( c ) => c._id === cardId );
     if ( card ) {
       setEditValues( ( prev ) => ( {
         ...prev,
-        [ cardId ]: { ...card, deleteAmount: 1 }
+        [ cardId ]: { ...card, deleteAmount: 1 },
       } ) );
     }
   };
 
-  const handleChange = ( e, cardId, field ) => {
-    const { value } = e.target;
+  const handleChange = ( event, cardId, field ) => {
+    const { value } = event.target;
     setEditValues( ( prev ) => ( {
       ...prev,
-      [ cardId ]: { ...prev[ cardId ], [ field ]: value }
+      [ cardId ]: { ...prev[ cardId ], [ field ]: value },
     } ) );
   };
 
@@ -59,8 +48,8 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
       await onUpdateCard( cardId, field, value );
       setEdit( ( prev ) => ( { ...prev, [ cardId ]: null } ) );
       setNotification( { show: true, message: 'Card quantity updated successfully!' } );
-    } catch ( err ) {
-      console.error( 'Save failed', err );
+    } catch ( error ) {
+      console.error( 'Save failed', error );
     }
   };
 
@@ -73,8 +62,8 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
         await onUpdateCard( cardId, 'quantity', quantity );
         setNotification( { show: true, message: 'Card quantity updated successfully!' } );
       }
-    } catch ( err ) {
-      console.error( 'Quantity update failed', err );
+    } catch ( error ) {
+      console.error( 'Quantity update failed', error );
     }
   };
 
@@ -96,7 +85,7 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
   };
 
   const sortedData = useMemo( () => {
-    let sortableItems = [ ...aggregatedData ];
+    const sortableItems = [ ...( aggregatedData || [] ) ];
     if ( sortConfig.key !== null ) {
       sortableItems.sort( ( a, b ) => {
         if ( a[ sortConfig.key ] < b[ sortConfig.key ] ) {
@@ -113,7 +102,7 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
 
   const getSortArrow = ( key ) => {
     if ( sortConfig.key !== key ) return '';
-    return sortConfig.direction === 'ascending' ? '?' : '?';
+    return sortConfig.direction === 'ascending' ? '-' : '+';
   };
 
   const handleRowNavigation = ( card ) => {
@@ -127,7 +116,7 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
       set_code: card?.number,
       rarity: card?.rarity,
       edition: card?.printing,
-      source: 'collection'
+      source: 'collection',
     };
 
     if ( cardId ) {
@@ -138,111 +127,150 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
 
     router.push( {
       pathname: '/yugioh/sets/[letter]/cards/card-details',
-      query
+      query,
     } );
   };
 
   return (
-    <div className="overflow-x-auto table-container">
-      <Notification show={ notification.show } setShow={ ( s ) => setNotification( prev => ( { ...prev, show: s } ) ) } message={ notification.message } />
+    <>
 
-      <table className="min-w-full text-sm text-white">
-        <thead className='bg-white/5 text-xs uppercase tracking-wide text-white/70'>
-          <tr>
-            <th onClick={ () => handleSort( 'quantity' ) } className="p-3 cursor-pointer text-left">Qty { getSortArrow( 'quantity' ) }</th>
-            <th className="p-3 text-left">Status</th>
-            <th onClick={ () => handleSort( 'productName' ) } className="p-3 cursor-pointer text-left">Name { getSortArrow( 'productName' ) }</th>
-            <th onClick={ () => handleSort( 'setName' ) } className="p-3 cursor-pointer text-left">Set { getSortArrow( 'setName' ) }</th>
-            <th onClick={ () => handleSort( 'number' ) } className="p-3 cursor-pointer text-left">Number { getSortArrow( 'number' ) }</th>
-            <th onClick={ () => handleSort( 'printing' ) } className="p-3 cursor-pointer text-left">Printing { getSortArrow( 'printing' ) }</th>
-            <th onClick={ () => handleSort( 'rarity' ) } className="p-3 cursor-pointer text-left">Rarity { getSortArrow( 'rarity' ) }</th>
-            <th onClick={ () => handleSort( 'condition' ) } className="p-3 cursor-pointer text-left">Condition { getSortArrow( 'condition' ) }</th>
-            <th onClick={ () => handleSort( 'marketPrice' ) } className="p-3 cursor-pointer text-left">Price { getSortArrow( 'marketPrice' ) }</th>
-            <th className="p-3 text-left"></th>
-            <th className="p-3 text-left"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-white/5">
-          { sortedData?.map( ( card, index ) => (
-            <tr
-              key={ card._id ?? index }
-              className="interactive-row"
-              onClick={ ( event ) => {
-                if ( event.target.closest && event.target.closest( 'input,button,a,label,svg,path' ) ) {
-                  return;
-                }
-                handleRowNavigation( card );
-              } }
-            >
-              <td className="p-3 align-middle">
-                { edit[ card._id ] === 'quantity' ? (
-                  <input
-                    type="number"
-                    className="w-16 text-center rounded bg-white/5"
-                    value={ editValues[ card._id ]?.quantity || '' }
-                    onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
-                    onBlur={ () => handleSave( card._id, 'quantity' ) }
-                  />
-                ) : (
-                  <span
-                    className="cursor-pointer font-semibold"
-                    onClick={ () => handleEdit( card._id, 'quantity' ) }
-                  >
-                    { card.quantity }
-                  </span>
-                ) }
-              </td>
-              <td className="p-3 align-middle text-xs">
-                <span className="badge badge-success inline-flex items-center gap-1">
-                  <CheckCircleIcon className="h-3.5 w-3.5" />
-                  In Collection
-                </span>
-              </td>
-              <td className="p-3 align-middle text-sm font-semibold text-white">{ card?.productName }</td>
-              <td className="p-3 align-middle text-sm text-white/70">{ card?.setName }</td>
-              <td className="p-3 align-middle text-sm text-white/70">{ card?.number }</td>
-              <td className="p-3 align-middle text-sm text-white/70">{ card?.printing }</td>
-              <td className="p-3 align-middle text-sm text-white/70">{ card?.rarity }</td>
-              <td className="p-3 align-middle text-sm text-white/70">{ card?.condition }</td>
-              <td className="p-3 align-middle text-sm text-white/90">{ card?.marketPrice }</td>
-              <td className="p-3 align-middle text-white">
-                <input
-                  type="number"
-                  className="w-16 text-center rounded bg-white/5"
-                  min={ 1 }
-                  max={ card.quantity }
-                  value={ editValues[ card._id ]?.deleteAmount || 1 }
-                  onChange={ ( e ) =>
-                    setEditValues( ( prev ) => ( {
-                      ...prev,
-                      [ card._id ]: {
-                        ...prev[ card._id ],
-                        deleteAmount: parseInt( e.target.value ) || 1
+      <div class="flex flex-col overflow-x-auto glass">
+        <div class="mx-auto max-w-[90%] bg-none rounded-lg ">
+
+
+          <table className="responsive-table text-sm text-white">
+            <thead className="bg-white/5 text-xs uppercase tracking-wide text-white/70">
+              <tr>
+                <th scope="col" onClick={ () => handleSort( 'quantity' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Qty { getSortArrow( 'quantity' ) }
+                </th>
+                <th scope="col" onClick={ () => handleSort( 'productName' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Name { getSortArrow( 'productName' ) }
+                </th>
+                <th scope="col" onClick={ () => handleSort( 'setName' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Set { getSortArrow( 'setName' ) }
+                </th>
+                <th scope="col" onClick={ () => handleSort( 'number' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Number { getSortArrow( 'number' ) }
+                </th>
+                <th scope="col" onClick={ () => handleSort( 'printing' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Printing { getSortArrow( 'printing' ) }
+                </th>
+                <th scope="col" onClick={ () => handleSort( 'rarity' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Rarity { getSortArrow( 'rarity' ) }
+                </th>
+                <th scope="col" onClick={ () => handleSort( 'condition' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Condition { getSortArrow( 'condition' ) }
+                </th>
+                <th scope="col" onClick={ () => handleSort( 'marketPrice' ) } className="p-3 align-middle text-sm text-white/70 text-nowrap cursor-pointer">
+                  Price { getSortArrow( 'marketPrice' ) }
+                </th>
+                <th scope="col" className="text-left">
+                  Delete Qty
+                </th>
+                <th scope="col" className="p-3 align-middle text-sm text-white/70 text-nowrap text-left">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 lg:divide-transparent">
+              { sortedData?.map( ( card, index ) => (
+                <tr key={ card._id ?? index } className="interactive-row">
+                  <td data-label="Qty" className="align-middle">
+                    { edit[ card._id ] === 'quantity' ? (
+                      <input
+                        type="number"
+                        className="w-16 text-center rounded bg-white/5"
+                        value={ editValues[ card._id ]?.quantity || '' }
+                        onChange={ ( event ) => handleChange( event, card._id, 'quantity' ) }
+                        onBlur={ () => handleSave( card._id, 'quantity' ) }
+                      />
+                    ) : (
+                      <span
+                        className="cursor-pointer font-semibold"
+                        onClick={ () => handleEdit( card._id, 'quantity' ) }
+                      >
+                        { card.quantity }
+                      </span>
+                    ) }
+                  </td>
+                  <td
+                    data-label="Name"
+                    title="View details"
+                    className="align-middle text-sm font-semibold text-white hover:underline"
+                    onClick={ ( event ) => {
+                      if ( event.target.closest && event.target.closest( 'input,button,a,label,svg,path' ) ) {
+                        return;
                       }
-                    } ) )
-                  }
-                  onClick={ ( e ) => e.stopPropagation() }
-                />
-              </td>
-              <td className="p-3 align-middle">
-                <button
-                  type="button"
-                  onClick={ ( e ) => {
-                    e.stopPropagation();
-                    handleDelete( card._id );
-                  } }
-                  className="text-red-400 hover:text-red-200 text-sm font-semibold"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ) ) }
-        </tbody>
-      </table>
-    </div>
+                      handleRowNavigation( card );
+                    } }
+                  >
+                    { card?.productName }
+                  </td>
+                  <td data-label="Set" className="p-5 align-middle text-sm text-white/70">
+                    { card?.setName }
+                  </td>
+                  <td data-label="Number" className="p-5 align-middle text-sm text-white/70">
+                    { card?.number }
+                  </td>
+                  <td data-label="Printing" className="p-5 align-middle text-sm text-white/70">
+                    { card?.printing }
+                  </td>
+                  <td data-label="Rarity" className="p-5 align-middle text-sm text-white/70">
+                    { card?.rarity }
+                  </td>
+                  <td data-label="Condition" className="p-5 align-middle text-sm text-white/70">
+                    { card?.condition }
+                  </td>
+                  <td data-label="Price" className="p-5 align-middle text-sm text-white/70">
+                    { card?.marketPrice }
+                  </td>
+                  <td data-label="Delete Qty" className="p-5 align-middle text-sm text-white/70">
+                    <input
+                      type="number"
+                      className="w-16 text-center rounded bg-white/5"
+                      min={ 1 }
+                      max={ card.quantity }
+                      value={ editValues[ card._id ]?.deleteAmount || 1 }
+                      onChange={ ( event ) =>
+                        setEditValues( ( prev ) => ( {
+                          ...prev,
+                          [ card._id ]: {
+                            ...prev[ card._id ],
+                            deleteAmount: parseInt( event.target.value, 10 ) || 1,
+                          },
+                        } ) )
+                      }
+                      onClick={ ( event ) => event.stopPropagation() }
+                    />
+                  </td>
+                  <td data-label="Actions" className="align-middle">
+                    <button
+                      type="button"
+                      onClick={ ( event ) => {
+                        event.stopPropagation();
+                        handleDelete( card._id );
+                      } }
+                      className="text-red-400 hover:text-red-200 text-sm font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ) ) }
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+      <Notification
+        show={ notification.show }
+        setShow={ ( showValue ) => setNotification( ( prev ) => ( { ...prev, show: showValue } ) ) }
+        message={ notification.message }
+      />
+    </>
+
   );
 };
 
 export default TableView;
-

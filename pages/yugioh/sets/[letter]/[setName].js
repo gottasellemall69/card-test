@@ -1,6 +1,4 @@
-﻿"use client";
-
-import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
+﻿import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter } from "next/router";
 import { Grid, List } from 'lucide-react';
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
@@ -388,7 +386,7 @@ const CardsInSetPage = () => {
 
   return (
     <>
-      <div className="mx-auto w-full yugioh-bg min-h-screen">
+      <div className="mx-auto w-full yugioh-bg bg-fixed">
         <Breadcrumb />
         <h1 className="my-10 text-xl font-black">
           Cards in { decodeURIComponent( setName || "" ) }
@@ -407,7 +405,7 @@ const CardsInSetPage = () => {
                 Number
               </button>
               { numbersOpen && (
-                <div className="absolute mt-2 z-50 bg-white dark:bg-neutral-900 border border-dashed rounded shadow-lg p-3 max-h-64 overflow-y-auto w-56">
+                <div className="absolute mt-2 z-50 glass dark:bg-neutral-900 border border-dashed rounded shadow-lg p-3 max-h-64 overflow-y-auto w-56">
                   <div className="flex justify-between mb-2">
                     <button
                       type="button"
@@ -454,7 +452,7 @@ const CardsInSetPage = () => {
                 Rarities
               </button>
               { raritiesOpen && (
-                <div className="absolute mt-2 z-50 bg-white dark:bg-neutral-900 border border-dashed rounded shadow-lg p-3 max-h-64 overflow-y-auto w-56">
+                <div className="absolute mt-2 z-50 glass dark:bg-neutral-900 border border-dashed rounded shadow-lg p-3 max-h-64 overflow-y-auto w-56">
                   <div className="flex justify-between mb-2">
                     <button
                       type="button"
@@ -498,8 +496,8 @@ const CardsInSetPage = () => {
                 onChange={ ( e ) => setSortBy( e.target.value ) }
                 className="inline-flex h-[40px] items-center justify-center gap-1.5 rounded-md border !border-dashed bg-transparent px-3 text-sm font-medium shadow-md hover:bg-accent hover:text-accent-foreground"
               >
-                <option value="asc">Name (A-Z)</option>
-                <option value="desc">Name (Z-A)</option>
+                <option value="text-black asc">Name (A-Z)</option>
+                <option value="text-black desc">Name (Z-A)</option>
               </select>
             </div>
 
@@ -632,7 +630,7 @@ const CardsInSetPage = () => {
 
         {/* Single card modal */ }
         { modalVisible && selectedCard && (
-          <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="fixed inset-0 flex justify-center items-center z-50">
             <div className="glass p-6 rounded shadow-lg w-96">
               <h2 className="text-xl font-bold mb-4">{ selectedCard.name }</h2>
               <form

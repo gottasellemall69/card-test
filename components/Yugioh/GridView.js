@@ -106,14 +106,14 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   return (
     <>
 
-      <div className="flex gap-4 items-start mb-4 mx-auto sm:mx-0 w-fit">
+      <div className="flex gap-4 items-start mb-4 mx-auto sm:mx-0 w-full">
         <label className="text-shadow">Sort by:</label>
         <select
           value={ sortField }
           onChange={ ( e ) => setSortField( e.target.value ) }
           className="px-2 py-1 rounded bg-white text-black font-semibold text-start"
         >
-          <option disabled></option>
+          <option disabled aria-placeholder="">Sort by...</option>
           <option value="productName">Card Name</option>
           <option value="setName">Set Name</option>
           <option value="number">Card Number</option>

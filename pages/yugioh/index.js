@@ -157,17 +157,17 @@ const Home = () => {
         <meta charSet="UTF-8" />
       </Head>
 
-      <div className="yugioh-bg w-full mx-auto min-h-screen text-center sm:text-left p-5">
+      <div className="yugioh-bg w-full mx-auto min-h-screen text-center">
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
 
-        <header className="pb-3">
+        <header className="pb-3 mx-auto text-center mx-auto">
           <p>
             Enter a comma-separated (CSV format) list of cards below in the order of:
             <br />
             <span className="font-black underline">[Name],[Set],[Number],[Edition],[Rarity],[Condition]</span>
           </p>
           <p className="py-3">where the possible conditions are:</p>
-          <ul className="columns-2 space-y-1 font-semibold text-center max-w-prose text-pretty md:text-left">
+          <ul className="columns-2 space-y-1 font-semibold text-center text-pretty">
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
             <li>Moderately Played+[Edition]</li>
@@ -176,7 +176,7 @@ const Home = () => {
           </ul>
         </header>
 
-        <div className="text-center sm:text-left my-4">
+        <div className="mx-auto text-center my-4">
           <p>Try it out:</p>
           <button
             className="mx-auto sm:mx-0 text-sm border border-white rounded px-4 py-2 mt-3 text-white font-bold hover:text-black hover:bg-white"
@@ -186,8 +186,8 @@ const Home = () => {
           </button>
         </div>
 
-        <main className="mt-10 w-auto">
-          <div className="w-7xl max-w-full mx-auto">
+        <main className="mt-10 w-full">
+          <div className="w-full mx-auto">
             <YugiohCardListInput
               collection={ collection }
               selectedRows={ selectedRows }
@@ -208,7 +208,7 @@ const Home = () => {
           <div className="text-center z-50 font-black">
             { isLoading && <LoadingSpinner /> }
           </div>
-          <div className="w-full mx-auto">
+          <div className="w-full mx-auto mt-24">
             <YugiohCardDataTable
               matchedCardData={ matchedCardData }
               setMatchedCardData={ setMatchedCardData }

@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/router";
 
 const normalizePath = ( path ) => {
@@ -64,7 +64,7 @@ export default function SideNav() {
     return match?.href ?? NAV_LINKS[ 0 ].href;
   } );
 
-  useEffect( () => {
+  useMemo( () => {
     const checkAuth = async () => {
       try {
         const res = await fetch( "/api/auth/validate", {
@@ -102,13 +102,13 @@ export default function SideNav() {
   };
 
   return (
-    <nav className="mx-auto w-[300px] inline-flex max-h-screen flex-col justify-evenly">
+    <nav className="mx-auto w-[300px] max-h-screen flex-col justify-evenly sm:block">
       <ul className="block flex-1 px-2 py-2 gap-3">
         { NAV_LINKS.map( ( item ) => {
           const isActive = activeHref === item.href;
 
           return (
-            <li key={ item.href } className="navButton max-w-fit text-nowrap">
+            <li key={ item.href } className="navButton max-w-full text-nowrap -px-10">
               <Link
                 href={ item.href }
                 title={ item.title }
@@ -132,29 +132,30 @@ export default function SideNav() {
             </li>
           );
         } ) }
+        <div className="mt-6 space-y-3">
+          { isAuthenticated ? (
+            <button
+              onClick={ handleLogout }
+              className="mx-auto block w-fit px-24 py-3 rounded-lg border border-white/10 bg-red-500/20 text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
+              title="Log out"
+            >
+              Log Out
+            </button>
+          ) : (
+            !isAuthenticated && (
+              <Link
+                href="/login"
+                title="Log in"
+                className="mx-auto block w-fit px-24 py-3 rounded-lg border border-white/10 bg-white/5 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
+              >
+                Log In
+              </Link>
+            )
+          ) }
+        </div>
       </ul>
 
-      <div className="mt-6 space-y-3">
-        { isAuthenticated ? (
-          <button
-            onClick={ handleLogout }
-            className="block w-full max-w-prose rounded-lg border border-white/10 bg-red-500/20 px-2 py-2 text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
-            title="Log out"
-          >
-            Log Out
-          </button>
-        ) : (
-          !isAuthenticated && (
-            <Link
-              href="/login"
-              title="Log in"
-              className="block w-full max-w-prose rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
-            >
-              Log In
-            </Link>
-          )
-        ) }
-      </div>
+
     </nav>
   );
 }
