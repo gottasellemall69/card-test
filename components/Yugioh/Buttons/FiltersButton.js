@@ -1,3 +1,4 @@
+"use client";
 import CardFilter from '@/components/Yugioh/CardFilter.js';
 import { useState } from 'react';
 

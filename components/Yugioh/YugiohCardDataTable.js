@@ -28,6 +28,23 @@ const YugiohCardDataTable = ( {
     const [ lastCheckedKey, setLastCheckedKey ] = useState( null );
     const [ notification, setNotification ] = useState( { show: false, message: '' } );
     const [ internalCollection, setInternalCollection ] = useState( {} );
+    const [ isAuthenticated, setIsAuthenticated ] = useState( false );
+
+    useMemo( () => {
+        const checkAuth = async () => {
+            try {
+                const res = await fetch( "/api/auth/validate", {
+                    method: "GET",
+                    credentials: "include",
+                } );
+                setIsAuthenticated( res.ok );
+            } catch {
+                setIsAuthenticated( false );
+            }
+        };
+
+        checkAuth();
+    }, [ router ] );
 
     const cardIndex = useMemo( () => {
         const map = {};
@@ -348,23 +365,18 @@ const YugiohCardDataTable = ( {
     ], [] );
 
     return (
-        <div class="mx-auto bg-none rounded-lg">
-
-
-
-
-            { sortedAndPaginatedData.currentItems.length > 0 && (
+        <div className="mx-auto bg-none rounded-lg">
+            <Notification
+                show={ notification.show }
+                setShow={ ( show ) => setNotification( { ...notification, show } ) }
+                message={ notification.message }
+            />
+            { sortedAndPaginatedData.currentItems.length > 0 && isAuthenticated && (
                 <div className="mx-auto w-full mb-10 min-h-fit">
                     <div>
                         <div className="w-full -mt-5">
-                            <div className="w-fit mx-auto">
-                                <YugiohPagination
-                                    currentPage={ currentPage }
-                                    itemsPerPage={ itemsPerPage }
-                                    totalItems={ sortedAndPaginatedData.totalCount }
-                                    handlePageClick={ setCurrentPage }
-                                />
-                            </div>
+
+
                             <div className="max-h-fit w-full mt-4 flex flex-wrap justify-center gap-3">
                                 <button
                                     type="button"
@@ -389,7 +401,6 @@ const YugiohCardDataTable = ( {
                                 </button>
                             </div>
 
-
                             { selectedKeys.size > 0 && (
                                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-4 py-3 text-sm text-indigo-100">
                                     <div>
@@ -401,8 +412,15 @@ const YugiohCardDataTable = ( {
                                     </div>
                                 </div>
                             ) }
-
                             <div className="overflow-x-auto">
+                                <div className="w-fit mx-auto">
+                                    <YugiohPagination
+                                        currentPage={ currentPage }
+                                        itemsPerPage={ itemsPerPage }
+                                        totalItems={ sortedAndPaginatedData.totalCount }
+                                        handlePageClick={ setCurrentPage }
+                                    />
+                                </div>
                                 <table className="glass min-w-full text-sm text-white mt-10">
                                     <thead>
                                         <tr className="bg-white/5 text-xs uppercase tracking-wide text-white/80">
@@ -495,11 +513,7 @@ const YugiohCardDataTable = ( {
                             </div>
                         </div>
                     </div>
-                    <Notification
-                        show={ notification.show }
-                        setShow={ ( show ) => setNotification( { ...notification, show } ) }
-                        message={ notification.message }
-                    />
+
                 </div>
             ) }
         </div>

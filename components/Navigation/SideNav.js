@@ -78,7 +78,7 @@ export default function SideNav() {
     };
 
     checkAuth();
-  }, [] );
+  }, [ router ] );
 
   useEffect( () => {
     const currentPath = normalizePath( router.asPath ?? router.pathname ?? "" );

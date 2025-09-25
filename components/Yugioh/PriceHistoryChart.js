@@ -1,3 +1,4 @@
+"use client";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const PriceHistoryChart = ( { selectedVersion, priceHistory } ) => {

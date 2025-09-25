@@ -1,3 +1,4 @@
+"use client";
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import Notification from '@/components/Notification';
@@ -134,8 +135,8 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard, handleSortChan
   return (
     <>
 
-      <div class="flex flex-col overflow-x-auto glass">
-        <div class="mx-auto max-w-[90%] bg-none rounded-lg ">
+      <div className="flex flex-col overflow-x-auto glass">
+        <div className="mx-auto max-w-[90%] bg-none rounded-lg ">
 
 
           <table className="responsive-table text-sm text-white">

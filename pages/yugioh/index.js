@@ -160,7 +160,7 @@ const Home = () => {
       <div className="yugioh-bg w-full mx-auto min-h-screen text-center">
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
 
-        <header className="pb-3 mx-auto text-center mx-auto">
+        <header className="pb-3 mx-auto text-center">
           <p>
             Enter a comma-separated (CSV format) list of cards below in the order of:
             <br />
