@@ -366,18 +366,29 @@ const YugiohCardDataTable = ( {
 
     return (
         <div className="mx-auto bg-none rounded-lg">
-            <Notification
-                show={ notification.show }
-                setShow={ ( show ) => setNotification( { ...notification, show } ) }
-                message={ notification.message }
-            />
-            { sortedAndPaginatedData.currentItems.length > 0 && isAuthenticated && (
-                <div className="mx-auto w-full mb-10 min-h-fit">
-                    <div>
-                        <div className="w-full -mt-5">
+
+            { sortedAndPaginatedData.currentItems.length > 0 && (
+                <div className="mx-auto w-full min-h-fit">
 
 
-                            <div className="max-h-fit w-full mt-4 flex flex-wrap justify-center gap-3">
+
+
+                    <div className="overflow-x-auto">
+                        <Notification
+                            show={ notification.show }
+                            setShow={ ( show ) => setNotification( { ...notification, show } ) }
+                            message={ notification.message }
+                        />
+                        <div className="w-fit mx-auto">
+                            <YugiohPagination
+                                currentPage={ currentPage }
+                                itemsPerPage={ itemsPerPage }
+                                totalItems={ sortedAndPaginatedData.totalCount }
+                                handlePageClick={ setCurrentPage }
+                            />
+                        </div>
+                        { isAuthenticated && (
+                            <div className="max-h-fit w-fit sm:w-full mx-auto sm:mx-0 flex flex-col sm:flex-row flex-wrap justify-center gap-3">
                                 <button
                                     type="button"
                                     className="button-secondary"
@@ -400,120 +411,110 @@ const YugiohCardDataTable = ( {
                                     View Collection
                                 </button>
                             </div>
-
-                            { selectedKeys.size > 0 && (
-                                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-4 py-3 text-sm text-indigo-100">
-                                    <div>
-                                        <strong>{ selectedKeys.size }</strong> selected
-                                    </div>
-                                    <div className="flex gap-3 text-xs uppercase tracking-wide">
-                                        <button onClick={ handleClear } className="text-indigo-200 transition hover:text-white">Clear</button>
-                                        <button onClick={ handleSelectAllDataset } className="text-indigo-200 transition hover:text-white">Select All</button>
-                                    </div>
+                        ) }
+                        { selectedKeys.size > 0 && (
+                            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-4 py-3 text-sm text-indigo-100">
+                                <div>
+                                    <strong>{ selectedKeys.size }</strong> selected
                                 </div>
-                            ) }
-                            <div className="overflow-x-auto">
-                                <div className="w-fit mx-auto">
-                                    <YugiohPagination
-                                        currentPage={ currentPage }
-                                        itemsPerPage={ itemsPerPage }
-                                        totalItems={ sortedAndPaginatedData.totalCount }
-                                        handlePageClick={ setCurrentPage }
-                                    />
+                                <div className="flex gap-3 text-xs uppercase tracking-wide">
+                                    <button onClick={ handleClear } className="text-indigo-200 transition hover:text-white">Clear</button>
+                                    <button onClick={ handleSelectAllDataset } className="text-indigo-200 transition hover:text-white">Select All</button>
                                 </div>
-                                <table className="glass min-w-full text-sm text-white mt-10">
-                                    <thead>
-                                        <tr className="bg-white/5 text-xs uppercase tracking-wide text-white/80">
-                                            <th className="p-3 text-left">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={ isAllOnPage }
-                                                    onChange={ ( e ) =>
-                                                        e.target.checked ? handleSelectAllOnPage() : handleDeselectAllOnPage()
-                                                    }
-                                                />
-                                            </th>
-                                            <th className="p-3 text-left">Status</th>
-                                            { headers.map( ( { key, label } ) => (
-                                                <th
-                                                    key={ key }
-                                                    onClick={ () => handleSort( key ) }
-                                                    className="p-3 text-left cursor-pointer select-none"
-                                                >
-                                                    <span className="inline-flex items-center gap-1">
-                                                        { label }
-                                                        { sortConfig.key === key && (
-                                                            sortConfig.direction === 'ascending' ? (
-                                                                <ChevronUpIcon className="h-3.5 w-3.5 text-indigo-200" />
-                                                            ) : (
-                                                                <ChevronDownIcon className="h-3.5 w-3.5 text-indigo-200" />
-                                                            )
-                                                        ) }
-                                                    </span>
-                                                </th>
-                                            ) ) }
-                                        </tr>
-                                    </thead>
-
-                                    <tbody className="glass divide-y divide-white/5">
-                                        { sortedAndPaginatedData.currentItems.map( ( { item, originalIndex } ) => {
-                                            const uniqueId = itemUniqueIds[ originalIndex ];
-                                            const isSelected = selectedKeys.has( uniqueId );
-                                            const { card, data } = item;
-                                            const collectionKey = baseKeys[ originalIndex ];
-                                            const inCollection = Boolean( resolvedCollection?.[ collectionKey ] );
-
-                                            return (
-                                                <tr
-                                                    key={ uniqueId }
-                                                    className={ `interactive-row ${ isSelected ? 'bg-indigo-500/10' : '' }` }
-
-                                                >
-                                                    <td data-label="Select" className="p-3 align-middle">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={ isSelected }
-                                                            onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
-                                                            onClick={ ( e ) => e.stopPropagation() }
-                                                        />
-                                                    </td>
-                                                    <td data-label="Collection" className="p-3 align-middle text-xs">
-                                                        { inCollection ? (
-                                                            <span className="badge badge-success inline-flex items-center gap-1">
-                                                                <CheckCircleIcon className="h-3.5 w-3.5" />
-                                                                In Collection
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-sm italic badge text-white/60 border-white/10">Unowned</span>
-                                                        ) }
-                                                    </td>
-                                                    <td
-                                                        data-label="Card"
-                                                        onClick={ ( event ) => {
-                                                            if ( event.target.closest && event.target.closest( 'input,button,a,label,svg,path' ) ) {
-                                                                return;
-                                                            }
-                                                            handleRowNavigation( card, data );
-                                                        } }
-                                                        className="p-3 align-middle text-sm font-medium text-white/90 hover:underline hover:cursor-pointer"
-                                                        title="View details">
-                                                        { card?.productName || 'N/A' }
-                                                    </td>
-                                                    <td data-label="Set" className="p-5 align-middle text-sm text-white/70">{ card?.setName || 'N/A' }</td>
-                                                    <td data-label="Number" className="p-5 align-middle text-sm text-white/70">{ card?.number || 'N/A' }</td>
-                                                    <td data-label="Printing" className="p-5 align-middle text-sm text-white/70">{ card?.printing || 'N/A' }</td>
-                                                    <td data-label="Rarity" className="p-5 align-middle text-sm text-white/70">{ card?.rarity || 'N/A' }</td>
-                                                    <td data-label="Condition" className="p-5 align-middle text-sm text-white/70">{ card?.condition || `${ card?.condition } ${ card?.printing }` }</td>
-                                                    <td data-label="Price" className="p-5 text-right text-sm text-white/90">${ formatPrice( data?.marketPrice ) }</td>
-                                                </tr>
-                                            );
-                                        } ) }
-                                    </tbody>
-                                </table>
                             </div>
-                        </div>
-                    </div>
+                        ) }
+                        <table className="glass min-w-full text-sm text-white mt-10">
+                            <thead>
+                                <tr className="bg-white/5 text-xs uppercase tracking-wide text-white/80">
+                                    { isAuthenticated && (
+                                        <th className="p-3 text-left">
+                                            <input
+                                                type="checkbox"
+                                                checked={ isAllOnPage }
+                                                onChange={ ( e ) =>
+                                                    e.target.checked ? handleSelectAllOnPage() : handleDeselectAllOnPage()
+                                                }
+                                            />
+                                        </th> ) }
+                                    { isAuthenticated && ( <th className="p-3 text-left">Status</th> ) }
 
+                                    { headers.map( ( { key, label } ) => (
+                                        <th
+                                            key={ key }
+                                            onClick={ () => handleSort( key ) }
+                                            className="p-3 text-left cursor-pointer select-none"
+                                        >
+                                            <span className="inline-flex items-center gap-1">
+                                                { label }
+                                                { sortConfig.key === key && (
+                                                    sortConfig.direction === 'ascending' ? (
+                                                        <ChevronUpIcon className="h-3.5 w-3.5 text-indigo-200" />
+                                                    ) : (
+                                                        <ChevronDownIcon className="h-3.5 w-3.5 text-indigo-200" />
+                                                    )
+                                                ) }
+                                            </span>
+                                        </th>
+                                    ) ) }
+                                </tr>
+                            </thead>
+
+                            <tbody className="glass divide-y divide-white/5">
+                                { sortedAndPaginatedData.currentItems.map( ( { item, originalIndex } ) => {
+                                    const uniqueId = itemUniqueIds[ originalIndex ];
+                                    const isSelected = selectedKeys.has( uniqueId );
+                                    const { card, data } = item;
+                                    const collectionKey = baseKeys[ originalIndex ];
+                                    const inCollection = Boolean( resolvedCollection?.[ collectionKey ] );
+
+                                    return (
+                                        <tr key={ uniqueId } className={ `interactive-row ${ isSelected ? 'bg-indigo-500/10' : '' }` }>
+                                            { isAuthenticated && (
+                                                <td data-label="Select" className="p-3 align-middle">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={ isSelected }
+                                                        onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
+                                                        onClick={ ( e ) => e.stopPropagation() }
+                                                    />
+                                                </td> ) }
+                                            { isAuthenticated && (
+                                                <td data-label="Collection" className="p-3 align-middle text-xs">
+                                                    { inCollection ? (
+                                                        <span className="badge badge-success inline-flex items-center gap-1">
+                                                            <CheckCircleIcon className="h-3.5 w-3.5" />
+                                                            In Collection
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-sm italic badge text-white/60 border-white/10">Unowned</span>
+                                                    ) }
+                                                </td>
+                                            ) }
+
+                                            <td
+                                                data-label="Card"
+                                                onClick={ ( event ) => {
+                                                    if ( event.target.closest && event.target.closest( 'input,button,a,label,svg,path' ) ) {
+                                                        return;
+                                                    }
+                                                    handleRowNavigation( card, data );
+                                                } }
+                                                className="p-3 align-middle text-sm font-medium text-white/90 hover:underline hover:cursor-pointer"
+                                                title="View details">
+                                                { card?.productName || 'N/A' }
+                                            </td>
+                                            <td data-label="Set" className="p-5 align-middle text-sm text-white/70">{ card?.setName || 'N/A' }</td>
+                                            <td data-label="Number" className="p-5 align-middle text-sm text-white/70">{ card?.number || 'N/A' }</td>
+                                            <td data-label="Printing" className="p-5 align-middle text-sm text-white/70">{ card?.printing || 'N/A' }</td>
+                                            <td data-label="Rarity" className="p-5 align-middle text-sm text-white/70">{ card?.rarity || 'N/A' }</td>
+                                            <td data-label="Condition" className="p-5 align-middle text-sm text-white/70">{ card?.condition || `${ card?.condition } ${ card?.printing }` }</td>
+                                            <td data-label="Price" className="p-5 text-right text-sm text-white/90">${ formatPrice( data?.marketPrice ) }</td>
+                                        </tr>
+                                    );
+                                } ) }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             ) }
         </div>

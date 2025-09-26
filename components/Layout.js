@@ -14,10 +14,7 @@ export default function Layout( { children } ) {
     <div className="w-full overflow-x-hidden bg-slate-950 text-white">
       <div className="relative flex min-h-screen w-full flex-wrap text-white">
         {/* Sidebar */ }
-        <div
-          className={ `fixed inset-y-0 left-0 z-50 w-auto max-w-xs transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:relative lg:translate-x-0 ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-            }` }
-        >
+        <div className={ `fixed inset-y-0 left-0 z-50 w-auto max-w-xs transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:relative lg:translate-x-0 ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0' }` }>
           <div className="glass-strong h-full border-r border-white/20 shadow-xl">
             <div className="flex items-center justify-between gap-4 border-b border-white/5 px-5 py-4 backdrop-blur">
               <Link

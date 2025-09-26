@@ -86,13 +86,13 @@ const SportsTable: React.FC<SportsTableProps> = ( {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-2 sm:px-4">
+    <div className="h-full mx-auto w-full max-w-7xl space-y-6 px-2 sm:px-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SportsCSVButton sportsData={sportsData} />
-        {showPagination && <div className="sm:ml-auto">{renderPagination()}</div>}
+        {showPagination && <div className="w-fit mx-auto">{renderPagination()}</div>}
       </div>
 
-      <div className="grid gap-4 md:hidden">
+      <div className="grid gap-4 md:hidden w-[85%] mx-auto">
         {paginatedData.map( ( product, index ) => {
           const isSelected = isCardSelected( product.id );
 
@@ -108,9 +108,9 @@ const SportsTable: React.FC<SportsTableProps> = ( {
                   toggleCardSelection( product );
                 }
               }}
-              className={`rounded-2xl border p-4 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-0 ${ isSelected
-                ? 'border-indigo-500/60 bg-indigo-500/10'
-                : 'border-white/10 bg-slate-900/60'
+              className={`backdrop rounded-2xl border p-4 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-0 ${ isSelected
+                ? 'border-indigo-500/60'
+                : 'border-white/10'
                 }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -150,7 +150,7 @@ const SportsTable: React.FC<SportsTableProps> = ( {
         <div className="table-container overflow-hidden">
           <div className="overflow-x-auto">
             <table className="glass text-shadow font-black min-w-full divide-y divide-white/10 text-left text-sm text-white">
-              <thead className="bg-slate-900/40 text-xs uppercase tracking-wide text-white/60">
+              <thead className="bg-transparent backdrop text-xs uppercase tracking-wide text-white/60">
                 <tr>
                   <TableHeader title="Name" sortKey="productName" onSort={handleSort} getSortIcon={getSortIcon} />
                   <TableHeader
@@ -179,12 +179,6 @@ const SportsTable: React.FC<SportsTableProps> = ( {
           </div>
         </div>
       </div>
-
-      {showPagination && (
-        <div className="flex justify-center sm:justify-end">
-          {renderPagination()}
-        </div>
-      )}
     </div>
   );
 };

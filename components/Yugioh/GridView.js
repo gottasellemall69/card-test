@@ -113,7 +113,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
           onChange={ ( e ) => setSortField( e.target.value ) }
           className="px-2 py-1 rounded bg-white text-black font-semibold text-start"
         >
-          <option disabled aria-placeholder="">Sort by...</option>
+          <option disabled aria-placeholder="Sort by..."></option>
           <option value="productName">Card Name</option>
           <option value="setName">Set Name</option>
           <option value="number">Card Number</option>
@@ -131,14 +131,14 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
           { sortDirection === 'asc' ? '▲ Ascending' : '▼ Descending' }
         </button>
       </div>
-
+      <Notification
+        show={ notification.show }
+        setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
+        message={ notification.message }
+      />
       <div className="container box-content w-full mx-auto flex flex-wrap flex-col gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 
-        <Notification
-          show={ notification.show }
-          setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
-          message={ notification.message }
-        />
+
 
 
         { memoizedAggregatedData?.map( ( card ) => {
@@ -153,11 +153,11 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
               className={ `glass rounded-md h-96 flip-card card group mx-auto ${ flippedCards[ card._id ] ? 'flipped' : '' }` }
             >
               <div
-                className="flip-card-inner hover:cursor-pointer "
+                className="flip-card-inner hover:cursor-pointer rounded-md"
                 onClick={ () => toggleFlip( card._id ) }
               >
                 {/* FRONT */ }
-                <div className="flip-card-front">
+                <div className="flip-card-front rounded-md">
                   <img
                     className="w-full h-auto aspect-auto object-scale-down object-center"
                     as="image"
@@ -171,7 +171,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 </div>
 
                 {/* BACK */ }
-                <div className="flip-card-back h-96 p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
+                <div className="flip-card-back h-96 rounded-md p-5 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow overflow-hidden">
 
                   <div>
                     <h3 className="text-xl font-bold text-center">{ card.productName }</h3>

@@ -14,24 +14,19 @@ const Card = ( { cardData } ) => {
 
   return (
     <>
-      <Link
-        href={ {
-          pathname: "/yugioh/sets/[letter]/cards/card-details",
-          query: {
-            card: cardData.id,
-            letter: letter,
-            set_name: setName,
-            source: "set", // flag so card-details knows this came from a set page
-          },
-        } }
-        passHref
-      >
-
-
-
-
-
-        <div className="hover:scale-95 hover:duration-100 transition-transform">
+      <div className="hover:scale-95 hover:duration-100 transition-transform -p-5 ">
+        <Link
+          href={ {
+            pathname: "/yugioh/sets/[letter]/cards/card-details",
+            query: {
+              card: cardData.id,
+              letter: letter,
+              set_name: setName,
+              source: "set", // flag so card-details knows this came from a set page
+            },
+          } }
+          passHref
+        >
           <img
             className="object-scale-down object-center w-full h-full max-h-96"
             as="image"
@@ -42,8 +37,8 @@ const Card = ( { cardData } ) => {
             width={ 1600 }
             height={ 1600 }
           />
-        </div>
-      </Link>
+        </Link>
+      </div>
     </>
   );
 };

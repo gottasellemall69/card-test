@@ -388,7 +388,7 @@ const CardsInSetPage = () => {
     <>
       <div className="mx-auto w-full yugioh-bg bg-fixed">
         <Breadcrumb />
-        <h1 className="my-10 text-xl font-black">
+        <h1 className="my-10 text-2xl text-shadow font-black">
           Cards in { decodeURIComponent( setName || "" ) }
         </h1>
 
@@ -589,7 +589,7 @@ const CardsInSetPage = () => {
 
         {/* Content */ }
         { viewMode === "grid" ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             { processedCards?.map( ( cardItem ) => (
               <div key={ cardItem.id } className="mx-auto p-4 rounded shadow">
                 <Card cardData={ cardItem } as="image" source="set" />
@@ -606,7 +606,7 @@ const CardsInSetPage = () => {
             ) ) }
           </div>
         ) : (
-          <Suspense fallback={ <div className="text-center py-8">Loading...</div> }>
+          <Suspense fallback={ <div className="text-center">Loading...</div> }>
             <YugiohCardDataTable
               matchedCardData={ matchedCardData }
               selectedRowIds={ selectedRowIds }
@@ -631,7 +631,7 @@ const CardsInSetPage = () => {
         {/* Single card modal */ }
         { modalVisible && selectedCard && (
           <div className="fixed inset-0 flex justify-center items-center z-50">
-            <div className="glass p-6 rounded shadow-lg w-96">
+            <div className="glass p-6 rounded shadow-lg w-auto">
               <h2 className="text-xl font-bold mb-4">{ selectedCard.name }</h2>
               <form
                 onSubmit={ ( e ) => {

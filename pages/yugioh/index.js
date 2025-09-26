@@ -112,7 +112,6 @@ const Home = () => {
     event.preventDefault();
     setIsLoading( true );
     setError( null );
-
     const setCache = {};
 
     try {
@@ -156,37 +155,37 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
+      <main className="mx-auto -p-2 w-full">
+        <div className="yugioh-bg w-full mx-auto min-h-screen text-center">
+          <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
 
-      <div className="yugioh-bg w-full mx-auto min-h-screen text-center">
-        <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
+          <span className="pb-3 mx-auto text-center">
+            <p>
+              Enter a comma-separated (CSV format) list of cards below in the order of:
+              <br />
+              <span className="font-black underline">[Name],[Set],[Number],[Edition],[Rarity],[Condition]</span>
+            </p>
+            <p className="py-3">where the possible conditions are:</p>
+            <ul className="columns-2 space-y-1 font-semibold text-center text-pretty">
+              <li>Near Mint+[Edition]</li>
+              <li>Lightly Played+[Edition]</li>
+              <li>Moderately Played+[Edition]</li>
+              <li>Heavily Played+[Edition]</li>
+              <li>Damaged+[Edition]</li>
+            </ul>
+          </span>
 
-        <header className="pb-3 mx-auto text-center">
-          <p>
-            Enter a comma-separated (CSV format) list of cards below in the order of:
-            <br />
-            <span className="font-black underline">[Name],[Set],[Number],[Edition],[Rarity],[Condition]</span>
-          </p>
-          <p className="py-3">where the possible conditions are:</p>
-          <ul className="columns-2 space-y-1 font-semibold text-center text-pretty">
-            <li>Near Mint+[Edition]</li>
-            <li>Lightly Played+[Edition]</li>
-            <li>Moderately Played+[Edition]</li>
-            <li>Heavily Played+[Edition]</li>
-            <li>Damaged+[Edition]</li>
-          </ul>
-        </header>
+          <div className="mx-auto text-center my-4">
+            <p>Try it out:</p>
+            <button
+              className="mx-auto sm:mx-0 text-sm border border-white rounded px-4 py-2 mt-3 text-white font-bold hover:text-black hover:bg-white"
+              onClick={ handleLoadExampleData }
+            >
+              Load Example Data
+            </button>
+          </div>
 
-        <div className="mx-auto text-center my-4">
-          <p>Try it out:</p>
-          <button
-            className="mx-auto sm:mx-0 text-sm border border-white rounded px-4 py-2 mt-3 text-white font-bold hover:text-black hover:bg-white"
-            onClick={ handleLoadExampleData }
-          >
-            Load Example Data
-          </button>
-        </div>
 
-        <main className="mt-10 w-full">
           <div className="w-full mx-auto">
             <YugiohCardListInput
               collection={ collection }
@@ -202,20 +201,21 @@ const Home = () => {
               setMatchedCardData={ setMatchedCardData }
             />
           </div>
-        </main>
 
-        <footer className="mt-10 mx-auto w-full">
-          <div className="text-center z-50 font-black">
-            { isLoading && <LoadingSpinner /> }
-          </div>
-          <div className="w-full mx-auto mt-24">
+
+
+          <div className="w-full mx-auto">
+            <div className="text-center z-50 font-black">
+              { isLoading && <LoadingSpinner /> }
+            </div>
             <YugiohCardDataTable
               matchedCardData={ matchedCardData }
               setMatchedCardData={ setMatchedCardData }
             />
           </div>
-        </footer>
-      </div>
+        </div>
+      </main>
+
 
       <SpeedInsights />
     </>

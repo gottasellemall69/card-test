@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="mx-auto min-h-screen w-full">
+      <div className="mx-auto min-h-screen w-full bg-black">
         <Head>
           <title>Sports Card Collection</title>
           <meta name="description" content="Browse and collect sports cards" />
