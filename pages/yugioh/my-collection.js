@@ -663,7 +663,7 @@ const MyCollection = () => {
         <title>My Collection | Yu-Gi-Oh! Tracker</title>
       </Head>
 
-      <div className="w-full max-w-7xl">
+      <div className="w-full max-h-max">
         <div className="mx-auto">{ content }</div>
       </div>
       <SpeedInsights />

@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 
 const normalizePath = ( path ) => {
@@ -75,7 +75,7 @@ export default function SideNav() {
 
 
 
-  useMemo( () => {
+  useEffect( () => {
     const checkAuth = async () => {
       try {
         const res = await fetch( "/api/auth/validate", {
@@ -105,13 +105,13 @@ export default function SideNav() {
   };
 
   return (
-    <nav className="mx-auto w-full">
+    <nav className="mx-auto w-auto">
       <ul className="block flex-1 px-2 py-2 gap-3">
         { NAV_LINKS.map( ( item ) => {
           const isActive = activeHref === item.href;
 
           return (
-            <li key={ item.href } className="navButton max-w-full text-nowrap -px-10">
+            <li key={ item.href } className="navButton max-w-full text-nowrap">
               <Link
                 href={ item.href }
                 title={ item.title }

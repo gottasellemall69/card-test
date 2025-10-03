@@ -21,10 +21,10 @@ export default function Layout( { children } ) {
         <div className="fixed inset-0 flex">
           <DialogPanel
             transition
-            className="relative mr-16 flex w-fit max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full"
+            className="relative flex w-fit max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full"
           >
             <TransitionChild>
-              <div className="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
+              <div className="absolute top-0 left-full flex w-fit justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
                 <button type="button" onClick={ toggleSidebar } className="-m-2.5 p-2.5">
                   <span className="sr-only">Close sidebar</span>
                   <X title="Close" aria-hidden="true" className="size-7 text-red-600" />
@@ -32,19 +32,7 @@ export default function Layout( { children } ) {
               </div>
             </TransitionChild>
             <div className="glass backdrop flex grow flex-col gap-y-5 overflow-y-auto pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10 dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-black/10">
-              <div className="relative flex shrink-0 items-start">
-                <img
-                  alt="Card Price App"
-                  src="images/logo-with-name-side.jpg"
-                  className="h-8 w-auto dark:hidden"
-                />
-                <img
-                  alt="Card Price App"
-                  src="images/logo-with-name-side.jpg"
-                  className="hidden h-8 w-auto dark:block"
-                />
-              </div>
-              <nav className="relative flex flex-1 flex-col">
+              <nav className="relative flex flex-1 flex-col mt-10">
                 <SideNav />
               </nav>
             </div>
@@ -53,14 +41,7 @@ export default function Layout( { children } ) {
       </Dialog>
       <div className="glass hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col dark:bg-gray-900">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 px-6 dark:border-white/10 dark:bg-black/10">
-          <div className="flex shrink-0 items-center">
-            <img
-              alt="Card Price App"
-              src="images/logo-with-name-side.jpg"
-              className="h-16 w-full object-cover rounded bg-fixed bg-clip-padding"
-            />
-          </div>
-          <nav className="flex flex-1 flex-col">
+          <nav className="flex flex-1 flex-col mt-10">
             <SideNav />
           </nav>
         </div>

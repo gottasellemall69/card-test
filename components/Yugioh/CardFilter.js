@@ -88,12 +88,12 @@ const CardFilter = ( {
 
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16">
+            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-12 sm:pl-2 glass backdrop">
               <DialogPanel
                 transition
                 className="pointer-events-auto w-screen max-w-md transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
               >
-                <div className="relative flex h-full flex-col overflow-y-auto backdrop glass py-6 shadow-xl dark:bg-gray-800 dark:after:absolute dark:after:inset-y-0 dark:after:left-0 dark:after:w-px dark:after:bg-white/10">
+                <div className="relative flex h-full flex-col overflow-y-auto py-6 shadow-xl dark:bg-gray-800 dark:after:absolute dark:after:inset-y-0 dark:after:left-0 dark:after:w-px dark:after:bg-white/10">
                   <div className="px-4 sm:px-6">
                     <div className="flex items-start justify-between">
                       <DialogTitle className="text-base font-semibold text-white">
@@ -113,8 +113,8 @@ const CardFilter = ( {
                       </div>
                     </div>
                   </div>
-                  <div className="relative mt-6 flex-1 px-4 sm:px-6 ">
-                    <div className="space-y-6 backdrop">
+                  <div className="relative mt-6 flex-1 px-4 sm:px-6">
+                    <div className="space-y-6">
                       { filtersDef.map( filter => (
                         <div key={ filter.id } className="space-y-3">
                           <p className="text-sm font-semibold text-white">{ filter.label }</p>
