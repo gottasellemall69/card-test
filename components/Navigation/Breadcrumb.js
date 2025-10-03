@@ -44,22 +44,19 @@ const Breadcrumb = () => {
   }
 
   // 4. Cards In Set: [SET NAME]
-  const onSetPage = pathname.includes( '/[setName]' ) || pathname.includes( '/card-details' );
-  if ( query.set_name && onSetPage ) {
-    crumbs.push( {
-      label: `Cards In Set: ${ query.set_name }`,
-      href: `/yugioh/sets/${ encodeURIComponent( query.letter ) }/${ encodeURIComponent( query.set_name ) }`,
-    } );
-  }
 
   // 5. Context-specific parent
-  if ( pathname.includes( 'card-details' ) ) {
+  if ( pathname.includes( '/card-details' ) ) {
     if ( query.source === 'set' ) {
       crumbs.push( {
         label: `Cards In Set: ${ query.set_name }`,
         href: `/yugioh/sets/${ encodeURIComponent( query.letter ) }/${ encodeURIComponent( query.set_name ) }`
       } );
     } else if ( query.source === 'collection' ) {
+      crumbs.push( {
+        label: `Cards In Set: ${ query.set_name }`,
+        href: `/yugioh/sets/${ encodeURIComponent( query.letter ) }/${ encodeURIComponent( query.set_name ) }`
+      } );
       crumbs.push( {
         label: 'My Collection',
         href: '/yugioh/my-collection'
@@ -76,7 +73,7 @@ const Breadcrumb = () => {
 
   return (
     <nav
-      className="flex flex-wrap whitespace-break-spaces border-2 border-zinc-200 bg-transparent glass text-shadow rounded-sm w-full"
+      className="flex flex-wrap whitespace-break-spaces bg-transparent backdrop glass text-shadow rounded-sm w-full"
       aria-label="Breadcrumb"
     >
       <ol className="mx-auto sm:mx-0 sm:float-start flex flex-wrap w-fit space-x-4 px-4 sm:px-6 lg:px-8">

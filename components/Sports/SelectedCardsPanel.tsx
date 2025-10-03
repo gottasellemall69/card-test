@@ -19,13 +19,13 @@ const SelectedCardsPanel: React.FC<SelectedCardsPanelProps> = ( {
   }
 
   return (
-    <div className="  rounded-lg p-4 mb-4">
+    <div className="rounded-lg p-4 mb-4">
       <h2 className="text-xl font-bold text-white mb-4">Selected Cards</h2>
       <div className="space-y-2">
         {selectedCards.map( ( card ) => (
           <div
             key={card.id}
-            className="flex items-center justify-between bg-zinc-900 rounded p-2"
+            className="flex items-center justify-between bg-zinc-900 rounded p-2 text-shadow font-extrabold"
           >
             <div className="flex-1 backdrop text-shadow glass-card ">
               <p className="text-white">{card.productName}</p>

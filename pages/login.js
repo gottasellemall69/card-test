@@ -39,7 +39,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="text-black h-full flex flex-col items-center justify-center bg-transparent text-shadow">
+    <div className="mt-10 p-5 text-black min-h-screen flex flex-col items-center justify-items-start bg-transparent text-shadow">
       <h1 className="text-3xl text-white font-bold mb-6">Login</h1>
       <form
         id="login-form"
@@ -56,7 +56,7 @@ export default function LoginPage() {
             type="text"
             value={ username }
             onChange={ ( e ) => setUsername( e.target.value ) }
-            className="w-full px-3 py-2 border border-black rounded-lg text-black"
+            className="w-full px-3 py-2 border border-white rounded-sm  text-white text-shadow bg-transparent"
             required={ true }
           />
         </div>

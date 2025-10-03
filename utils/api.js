@@ -84,16 +84,13 @@ export async function getCardSetsData() {
 
 export const updateCardPrices = async ( setName, cardData ) => {
   try {
-    const token = localStorage.getItem( "token" ); // Retrieve the token from local storage
-    if ( !token ) {
-      throw new Error( "User is not authenticated." );
-    }
+
 
     const response = await fetch( '/api/Yugioh/updateCardPrices', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${ token }`, // Include the token for authentication
+        credentials: 'include',
       },
       body: JSON.stringify( { setName, cardData } ),
     } );

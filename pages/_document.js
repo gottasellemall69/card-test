@@ -3,16 +3,14 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export default function Document() {
   return (
-    <Html lang="en">
+    <Html className="h-full" lang="en">
       <Head>
         <meta name="description" content="Enter list of TCG cards, get data back" />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <body className="mx-auto ">
-        <div className="transition-all mx-auto min-h-screen w-full">
-          <Main />
-        </div>
+      <body className="mx-auto h-full max-w-full">
+        <Main />
         <NextScript />
         <SpeedInsights />
       </body>

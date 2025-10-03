@@ -54,7 +54,7 @@ const SetsByLetterPage = () => {
 
   return (
     <>
-      <div className="mx-auto w-full yugioh-bg min-h-screen">
+      <div className="mx-auto w-full yugioh-bg h-svh">
         <Breadcrumb />
         <div>
           <h1 className="my-10 text-xl font-black text-shadow">

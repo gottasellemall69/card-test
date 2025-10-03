@@ -71,8 +71,8 @@ const SportsTable: React.FC<SportsTableProps> = ( {
 
   if ( isLoading ) {
     return (
-      <div className="w-full py-8 text-center">
-        <p className="text-white">Loading sports card data...</p>
+      <div className="mx-auto w-fit py-8 text-center min-h-screen">
+        <p className="text-white backdrop glass text-shadow text-2xl px-2 py-4">Loading sports card data...</p>
       </div>
     );
   }

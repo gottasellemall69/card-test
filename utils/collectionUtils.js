@@ -1,10 +1,11 @@
 export const buildCollectionKey = ( card ) => {
   if ( !card ) return '';
   const productName = card.productName || card.name || '';
-  const setName = card.setName || card.set_name || '';
-  const number = card.number || card.set_code || '';
-  const printing = card.printing || card.set_edition || '';
-  return [ productName, setName, number, printing ].map( ( value ) => value?.toString().trim() || '' ).join( '|' );
+  const setName = card.setName || card?.card_sets[ 'set_name' ] || '';
+  const number = card.number || card?.card_sets[ 'set_code' ] || '';
+  const printing = card.printing || card?.card_sets[ 'set_edition' ] || '';
+  const rarity = card.rarity || '';
+  return [ productName, setName, number, printing, rarity ].map( ( value ) => value?.toString().trim() || '' ).join( '|' );
 };
 
 export const buildCollectionMap = ( cards ) => {

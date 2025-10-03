@@ -273,12 +273,12 @@ const MyCollection = () => {
     return badges;
   }, [ filters ] );
 
-  const handleSearchChange = useCallback( ( event ) => {
+  const handleSearchChange = useCallback( async ( event ) => {
     setSearchValue( event.target.value );
     setCurrentPage( 1 );
   }, [] );
 
-  const handleFilterChange = useCallback( ( filterName, selectedOptions ) => {
+  const handleFilterChange = useCallback( async ( filterName, selectedOptions ) => {
     setFilters( ( prev ) => ( {
       ...prev,
       [ filterName ]: selectedOptions,
@@ -286,12 +286,12 @@ const MyCollection = () => {
     setCurrentPage( 1 );
   }, [] );
 
-  const handleClearFilters = useCallback( () => {
+  const handleClearFilters = useCallback( async () => {
     setFilters( { ...DEFAULT_FILTERS } );
     setCurrentPage( 1 );
   }, [] );
 
-  const handleSortChange = useCallback( ( key, direction ) => {
+  const handleSortChange = useCallback( async ( key, direction ) => {
     setSortConfig( ( prev ) => {
       if ( direction ) {
         return { key, direction };
@@ -452,11 +452,11 @@ const MyCollection = () => {
   }, [ hasCards ] );
 
   const renderViewToggle = () => (
-    <div className="rounded-xl border border-white/20 bg-white/10 text-sm font-semibold text-white/80">
+    <div className="rounded-sm border border-white/20 bg-white/10 text-sm font-semibold text-white/80">
       <button
         type="button"
         onClick={ () => setViewMode( "grid" ) }
-        className={ `flex items-center gap-2 px-4 py-2 transition ${ viewMode === "grid" ? "bg-purple-600 text-white" : "hover:bg-white/10"
+        className={ `rounded-xl flex items-center gap-2 px-4 py-2 transition ${ viewMode === "grid" ? "bg-purple-600 text-white" : "hover:bg-white/10"
           }` }
       >
         <Grid className="h-4 w-4" />
@@ -465,7 +465,7 @@ const MyCollection = () => {
       <button
         type="button"
         onClick={ () => setViewMode( "table" ) }
-        className={ `flex items-center gap-2 px-4 py-2 transition ${ viewMode === "table" ? "bg-purple-600 text-white" : "hover:bg-white/10"
+        className={ `flex items-center gap-2 px-4 py-2 transition ${ viewMode === "table" ? "bg-purple-600 text-white rounded-lg" : "hover:bg-white/10"
           }` }
       >
         <List className="h-4 w-4" />
@@ -478,14 +478,14 @@ const MyCollection = () => {
 
   if ( isLoading ) {
     content = (
-      <div className="min-h-[50vh] flex-row items-center justify-center gap-3 text-white/80">
+      <div className="flex-col min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-center gap-3 text-white/80">
         <Loader2 className="h-12 w-12 animate-spin" />
         <p className="text-lg font-semibold">Loading your collection...</p>
       </div>
     );
   } else if ( !isAuthenticated ) {
     content = (
-      <div className="glass mx-auto max-w-xl rounded-3xl p-10 text-center text-white">
+      <div className="min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-items-center glass mx-auto w-full rounded-3xl p-10 text-center text-white">
         <h2 className="text-3xl font-bold text-shadow">Please log in</h2>
         <p className="mt-3 text-white/70">
           You need to be logged in to view your Yu-Gi-Oh! collection.
@@ -501,8 +501,8 @@ const MyCollection = () => {
     );
   } else {
     content = (
-      <div className="space-y-10 mx-auto">
-        <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 p-8 backdrop-blur">
+      <div className="space-y-10 mx-auto min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat">
+        <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 p-8 backdrop">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-shadow md:text-4xl">My Yu-Gi-Oh! Collection</h1>
             <p className="text-white/70">
@@ -530,7 +530,7 @@ const MyCollection = () => {
           </div>
         </header>
 
-        <section className="space-y-6 rounded-3xl border border-white/10 p-6 backdrop-blur mx-auto">
+        <section className="space-y-6 rounded-3xl border border-white/10 p-6 backdrop mx-auto">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="relative w-full max-w-xl">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
@@ -543,23 +543,7 @@ const MyCollection = () => {
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <CardFilter
-                filters={ filters }
-                updateFilters={ handleFilterChange }
-                isModalOpen={ isFilterMenuOpen }
-                setIsModalOpen={ setIsFilterMenuOpen }
-              />
-              { activeFilterBadges.length > 0 && (
-                <button
-                  type="button"
-                  onClick={ handleClearFilters }
-                  className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
-                >
-                  Clear filters
-                </button>
-              ) }
-            </div>
+
           </div>
 
           { activeFilterBadges.length > 0 && (
@@ -598,9 +582,26 @@ const MyCollection = () => {
           </div>
         </section>
 
-        <section className=" rounded-3xl  bg-fixed">
+        <section className="rounded-3xl bg-fixed">
           { hasCards ? (
             <>
+              <div className="flex max-h-24 h-fit items-center gap-3">
+                <CardFilter
+                  filters={ filters }
+                  updateFilters={ handleFilterChange }
+                  isModalOpen={ isFilterMenuOpen }
+                  setIsModalOpen={ setIsFilterMenuOpen }
+                />
+                { activeFilterBadges.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={ handleClearFilters }
+                    className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                  >
+                    Clear filters
+                  </button>
+                ) }
+              </div>
               { totalItems > ITEMS_PER_PAGE && (
                 <YugiohPagination
                   currentPage={ currentPage }
@@ -612,21 +613,44 @@ const MyCollection = () => {
               { viewMode === "grid" ? (
                 <GridView aggregatedData={ gridCards } onDeleteCard={ onDeleteCard } onUpdateCard={ onUpdateCard } />
               ) : (
-                <TableView
-                  aggregatedData={ paginatedCards }
-                  onDeleteCard={ onDeleteCard }
-                  onUpdateCard={ onUpdateCard }
-                  handleSortChange={ handleSortChange }
-                />
+                <>
+                  <div className="mx-auto">
+                    <TableView
+                      aggregatedData={ paginatedCards }
+                      onDeleteCard={ onDeleteCard }
+                      onUpdateCard={ onUpdateCard }
+                      handleSortChange={ handleSortChange }
+                    />
+                  </div>
+                </>
               ) }
 
 
             </>
           ) : (
-            <div className="py-16 text-center text-white/70">
-              <p className="text-lg font-semibold">Your collection is empty.</p>
-              <p className="mt-2">Add cards to start tracking your inventory and market prices.</p>
-            </div>
+            <>
+              <div className="py-16 text-center text-white/70">
+                <p className="text-lg font-semibold">Your collection is empty.</p>
+                <p className="mt-2">Add cards to start tracking your inventory and market prices.</p>
+              </div>
+              <div className="flex max-h-24 h-fit items-center gap-3">
+                <CardFilter
+                  filters={ filters }
+                  updateFilters={ handleFilterChange }
+                  isModalOpen={ isFilterMenuOpen }
+                  setIsModalOpen={ setIsFilterMenuOpen }
+                />
+                { activeFilterBadges.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={ handleClearFilters }
+                    className="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/10"
+                  >
+                    Clear filters
+                  </button>
+                ) }
+              </div>
+            </>
           ) }
         </section>
       </div>
@@ -638,10 +662,11 @@ const MyCollection = () => {
       <Head>
         <title>My Collection | Yu-Gi-Oh! Tracker</title>
       </Head>
-      <SpeedInsights />
-      <div className="w-full min-h-screen bg-cover bg-fixed text-white yugioh-bg bg-transprent">
-        <div className=" mx-auto py-10 p-5">{ content }</div>
+
+      <div className="w-full max-w-7xl">
+        <div className="mx-auto">{ content }</div>
       </div>
+      <SpeedInsights />
     </>
   );
 };

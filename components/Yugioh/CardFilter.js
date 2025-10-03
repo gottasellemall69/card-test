@@ -1,14 +1,35 @@
-﻿"use client";
+﻿'use client';
+
+import { useState } from 'react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { X } from 'lucide-react';
-// components/Yugioh/CardFilter.js
-import React from 'react';
 
 const CardFilter = ( {
   filters,            // { rarity: [], condition: [] }
   updateFilters,      // (filterType, updatedValues) => void
-  isModalOpen,        // boolean
-  setIsModalOpen      // (open: boolean) => void
+  open,        // boolean (optional controlled prop)
+  setOpen,     // (open: boolean) => void (optional controlled setter)
+  isModalOpen, // legacy boolean prop
+  setIsModalOpen, // legacy setter
 } ) => {
+  const [ internalOpen, setInternalOpen ] = useState( false );
+
+  const resolvedOpen =
+    typeof open === 'boolean'
+      ? open
+      : typeof isModalOpen === 'boolean'
+        ? isModalOpen
+        : internalOpen;
+
+  const resolvedSetOpen =
+    typeof setOpen === 'function'
+      ? setOpen
+      : typeof setIsModalOpen === 'function'
+        ? setIsModalOpen
+        : setInternalOpen;
+
+  const closeFilters = () => resolvedSetOpen( false );
+
   const handleCheckboxChange = async ( event, filterType ) => {
     const { value, checked } = event.target;
     const prev = filters[ filterType ] || [];
@@ -54,68 +75,89 @@ const CardFilter = ( {
   ];
 
   return (
-    <>
-      {/* 📌 trigger button */ }
+    <div>
       <button
         type="button"
-        className="px-1.5 py-1.5 my-2 glass font-semibold text-black bg-white hover:bg-black hover:text-white rounded-xs"
-        onClick={ () => setIsModalOpen( true ) }
+        onClick={ () => resolvedSetOpen( true ) }
+        className="rounded-sm glass px-3 py-2 text-sm font-semibold text-white text-shadow hover:bg-white/40 dark:bg-white/10 dark:text-white dark:inset-ring dark:inset-ring-white/5 dark:hover:bg-white/20"
       >
         Open Filters
       </button>
+      <Dialog open={ resolvedOpen } onClose={ resolvedSetOpen } className="relative z-10 ">
+        <div className="fixed inset-0" />
 
-      { isModalOpen && (
-        <aside className="absolute flex items-start justify-items-start bg-black bg-opacity-60">
-          <div className="z-50 h-full w-96 text-white bg-opacity-60 glass shadow-xl transform transition-transform duration-300 ease-in-out translate-x-0">
-            {/* Close */ }
-            <div className="flex border-b">
-              <button
-                type="button"
-                className="text-red-600 text-2xl hover:text-red-800 font-black px-4 py-2"
-                title={ "Close" }
-                onClick={ () => setIsModalOpen( false ) }
+        <div className="fixed inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10 sm:pl-16">
+              <DialogPanel
+                transition
+                className="pointer-events-auto w-screen max-w-md transform transition duration-500 ease-in-out data-closed:translate-x-full sm:duration-700"
               >
-                <X size={ 40 } color={ "Red" } />
-              </button>
-            </div>
-
-            {/* Filters */ }
-            <div className="items-start justify-center sticky overflow-y-auto h-72 p-4 space-y-4 text-white text-shadow font-medium z-50">
-              { filtersDef.map( filter => (
-                <div key={ filter.id }>
-                  <div className="block mb-2 font-semibold">{ filter.label }:</div>
-                  <div className="space-y-2">
-                    { filter.values.map( value => (
-                      <div key={ value } className="flex items-start space-x-2">
-                        <input
-                          type="checkbox"
-                          id={ `${ filter.id }-${ value }` }
-                          value={ value }
-                          checked={ filters[ filter.id ]?.includes( value ) || false }
-                          onChange={ e => handleCheckboxChange( e, filter.id ) }
-                        />
-                        <label htmlFor={ `${ filter.id }-${ value }` }>{ value }</label>
+                <div className="relative flex h-full flex-col overflow-y-auto backdrop glass py-6 shadow-xl dark:bg-gray-800 dark:after:absolute dark:after:inset-y-0 dark:after:left-0 dark:after:w-px dark:after:bg-white/10">
+                  <div className="px-4 sm:px-6">
+                    <div className="flex items-start justify-between">
+                      <DialogTitle className="text-base font-semibold text-white">
+                        Card Filters
+                      </DialogTitle>
+                      <div className="ml-3 flex h-7 items-center">
+                        <button
+                          type="button"
+                          title={ "Close" }
+                          onClick={ closeFilters }
+                          className="relative rounded-md text-white hover:text-gray-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:hover:text-white dark:focus-visible:outline-indigo-500"
+                        >
+                          <span className="absolute -inset-2.5" />
+                          <span className="sr-only">Close filters</span>
+                          <X color={ `red` } aria-hidden="true" className="size-6" />
+                        </button>
                       </div>
-                    ) ) }
+                    </div>
+                  </div>
+                  <div className="relative mt-6 flex-1 px-4 sm:px-6 ">
+                    <div className="space-y-6 backdrop">
+                      { filtersDef.map( filter => (
+                        <div key={ filter.id } className="space-y-3">
+                          <p className="text-sm font-semibold text-white">{ filter.label }</p>
+                          <div className="space-y-2">
+                            { filter.values.map( value => (
+                              <label
+                                key={ value }
+                                htmlFor={ `${ filter.id }-${ value }` }
+                                className="flex items-start gap-2 text-sm text-gray-200"
+                              >
+                                <input
+                                  type="checkbox"
+                                  id={ `${ filter.id }-${ value }` }
+                                  value={ value }
+                                  checked={ filters[ filter.id ]?.includes( value ) || false }
+                                  onChange={ e => handleCheckboxChange( e, filter.id ) }
+                                  className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700"
+                                />
+                                <span>{ value }</span>
+                              </label>
+                            ) ) }
+                          </div>
+                        </div>
+                      ) ) }
+                    </div>
+
+                    <div className="mt-6 border-t border-gray-200 pt-4 dark:border-white/10">
+                      <button
+                        type="button"
+                        className="flex w-full justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                        onClick={ closeFilters }
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
                   </div>
                 </div>
-              ) ) }
-            </div>
-
-            {/* Apply */ }
-            <div className=" border-t">
-              <button
-                type="button"
-                className="z-50 flex w-full h-full mx-auto justify-center px-4 py-2 bg-blue-600 text-white font-bold hover:bg-blue-900"
-                onClick={ () => setIsModalOpen( false ) }
-              >
-                Apply Filters
-              </button>
+              </DialogPanel>
             </div>
           </div>
-        </aside>
-      ) }
-    </>
+        </div>
+      </Dialog>
+    </div>
   );
 };
 

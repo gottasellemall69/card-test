@@ -1,7 +1,8 @@
 ﻿import { useState } from 'react';
-import SideNav from '@/components/Navigation/SideNav';
 import Link from 'next/link';
-import { MenuIcon, X } from 'lucide-react';
+import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react';
+import { Bars3Icon as MenuIcon, XMarkIcon as X } from '@heroicons/react/24/outline';
+import SideNav from '@/components/Navigation/SideNav';
 
 export default function Layout( { children } ) {
   const [ isSidebarOpen, setIsSidebarOpen ] = useState( false );
@@ -11,70 +12,83 @@ export default function Layout( { children } ) {
   };
 
   return (
-    <div className="w-full overflow-x-hidden bg-slate-950 text-white">
-      <div className="relative flex min-h-screen w-full flex-wrap text-white">
-        {/* Sidebar */ }
-        <div className={ `fixed inset-y-0 left-0 z-50 w-auto max-w-xs transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:relative lg:translate-x-0 ${ isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0' }` }>
-          <div className="glass-strong h-full border-r border-white/20 shadow-xl">
-            <div className="flex items-center justify-between gap-4 border-b border-white/5 px-5 py-4 backdrop-blur">
-              <Link
-                className="group flex items-center gap-2 text-lg font-semibold tracking-wide"
-                href="/"
-                passHref
-              >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500/10 to-indigo-500/10 text-sm font-bold uppercase shadow-ring">
-                  CPA
-                </span>
-                <span className="text-shadow transition-colors group-hover:text-indigo-100">
-                  CARD PRICE APP
-                </span>
-              </Link>
-              <button
-                className="text-white/80 transition hover:text-white lg:hidden"
-                onClick={ toggleSidebar }
-                title="Close"
-              >
-                <X size={ 26 } />
-              </button>
-            </div>
-            <SideNav />
-          </div>
-        </div>
-
-        {/* Main Content */ }
-        <div className="flex w-full flex-1 flex-col overflow-x-hidden">
-          <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/50 bg-slate-900/10 px-4 py-3 backdrop-blur lg:hidden">
-            <Link href="/" passHref className="text-base font-semibold tracking-wide">
-              <span className="text-shadow backdrop font-semibold">CARD PRICE APP</span>
-            </Link>
-            <button
-              className="rounded-md border border-white/10 bg-white/5 p-2 text-white/90 transition hover:bg-white/10"
-              title="Menu"
-              onClick={ toggleSidebar }
-            >
-              <MenuIcon size={ 30 } />
-            </button>
-          </header>
-
-          <main className="mx-auto w-full max-w-7xl">
-            <div className="w-full">
-              <div className="backdrop text-shadow relative p-2">
-                { children }
+    <div className=" w-full glass dark:bg-gray-900">
+      <Dialog open={ isSidebarOpen } onClose={ setIsSidebarOpen } className="relative z-50 lg:hidden">
+        <DialogBackdrop
+          transition
+          className="fixed inset-0 backdrop bg-black/20 transition-opacity duration-300 ease-linear data-closed:opacity-0"
+        />
+        <div className="fixed inset-0 flex">
+          <DialogPanel
+            transition
+            className="relative mr-16 flex w-fit max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full"
+          >
+            <TransitionChild>
+              <div className="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
+                <button type="button" onClick={ toggleSidebar } className="-m-2.5 p-2.5">
+                  <span className="sr-only">Close sidebar</span>
+                  <X title="Close" aria-hidden="true" className="size-7 text-red-600" />
+                </button>
               </div>
+            </TransitionChild>
+            <div className="glass backdrop flex grow flex-col gap-y-5 overflow-y-auto pb-2 dark:bg-gray-900 dark:ring dark:ring-white/10 dark:before:pointer-events-none dark:before:absolute dark:before:inset-0 dark:before:bg-black/10">
+              <div className="relative flex shrink-0 items-start">
+                <img
+                  alt="Card Price App"
+                  src="images/logo-with-name-side.jpg"
+                  className="h-8 w-auto dark:hidden"
+                />
+                <img
+                  alt="Card Price App"
+                  src="images/logo-with-name-side.jpg"
+                  className="hidden h-8 w-auto dark:block"
+                />
+              </div>
+              <nav className="relative flex flex-1 flex-col">
+                <SideNav />
+              </nav>
             </div>
-          </main>
+          </DialogPanel>
+        </div>
+      </Dialog>
+      <div className="glass hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col dark:bg-gray-900">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 px-6 dark:border-white/10 dark:bg-black/10">
+          <div className="flex shrink-0 items-center">
+            <img
+              alt="Card Price App"
+              src="images/logo-with-name-side.jpg"
+              className="h-16 w-full object-cover rounded bg-fixed bg-clip-padding"
+            />
+          </div>
+          <nav className="flex flex-1 flex-col">
+            <SideNav />
+          </nav>
         </div>
       </div>
-
-      { isSidebarOpen && (
-        <button
-          type="button"
-          className="fixed inset-0 z-30 bg-black/85 lg:hidden"
-          onClick={ toggleSidebar }
-          aria-label="Close sidebar overlay"
-        />
-      ) }
+      <div className="lg:pl-72 w-full">
+        <div className="sticky top-0 z-40 flex items-center gap-x-6 glass backdrop px-4 py-4 shadow-xs sm:px-6 lg:hidden dark:bg-gray-900 dark:shadow-none dark:after:pointer-events-none dark:after:absolute dark:after:inset-0 dark:after:border-b dark:after:border-white/10 dark:after:bg-black/10">
+          <button
+            type="button"
+            onClick={ toggleSidebar }
+            className=" text-gray-700 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:text-white"
+            title="Open sidebar"
+          >
+            <span className="sr-only">Open sidebar</span>
+            <MenuIcon color={ "white" } aria-hidden="true" className="size-6" />
+          </button>
+          <Link href="/" className="flex-1 text-sm font-semibold leading-6 text-shadow text-white">
+            CARD PRICE APP
+          </Link>
+          <div className=" flex items-center">
+            <span className="sr-only">User profile placeholder</span>
+          </div>
+        </div>
+        <main className="mx-auto">
+          <div className=" mx-1 my-2 ">
+            { children }
+          </div>
+        </main>
+      </div>
     </div>
   );
-}
-
+};

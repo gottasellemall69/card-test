@@ -30,13 +30,13 @@ const YugiohPagination = ( { currentPage, itemsPerPage, totalItems, handlePageCl
   };
 
   return (
-    <nav className="w-full glass p-4 my-8">
+    <nav className="w-full glass max-w-2xl mx-auto p-4 my-8">
       <div className="flex items-center justify-center space-x-4">
         <button
           type='button'
           onClick={ () => handlePageClick( currentPage - 1 ) }
           disabled={ currentPage === 1 }
-          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-transparent transition-colors"
+          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700/40 transition-colors"
         >
           Previous
         </button>
@@ -48,7 +48,7 @@ const YugiohPagination = ( { currentPage, itemsPerPage, totalItems, handlePageCl
             onChange={ handleInputChange }
             onBlur={ handleInputSubmit }
             onKeyDown={ ( e ) => e.key === 'Enter' && handleInputSubmit() }
-            className="w-16 px-3 py-2 text-center glass"
+            className="w-16 px-3 py-2 text-center text-black text-shadow"
             aria-label="Page number input"
           />
           <span className="text-white/80">of { totalPages }</span>
@@ -58,7 +58,7 @@ const YugiohPagination = ( { currentPage, itemsPerPage, totalItems, handlePageCl
           type='button'
           onClick={ () => handlePageClick( currentPage + 1 ) }
           disabled={ currentPage === totalPages }
-          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-transparent transition-colors"
+          className="px-4 py-2 glass disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700/40 transition-colors"
         >
           Next
         </button>

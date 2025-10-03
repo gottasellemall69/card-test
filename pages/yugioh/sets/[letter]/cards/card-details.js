@@ -6,7 +6,14 @@ import { useRouter } from "next/router";
 import useSWR, { mutate } from "swr";
 import PriceHistoryChart from "@/components/Yugioh/PriceHistoryChart";
 
-const fetcher = ( url ) => fetch( url ).then( ( res ) => res.json() );
+const fetcher = async ( url ) => {
+  const response = await fetch( url );
+  if ( !response.ok ) {
+    const message = await response.text();
+    throw new Error( message || "Request failed" );
+  }
+  return response.json();
+};
 
 const CardDetails = () => {
   const router = useRouter();
@@ -18,6 +25,7 @@ const CardDetails = () => {
     rarity: queryRarity,
     edition: queryEdition,
     source,
+    card_name: queryCardName,
   } = router.query;
 
   const letter = Array.isArray( queryLetter ) ? queryLetter[ 0 ] : queryLetter;
@@ -25,14 +33,27 @@ const CardDetails = () => {
   const set_code = Array.isArray( querySetCode ) ? querySetCode[ 0 ] : querySetCode;
   const rarity = Array.isArray( queryRarity ) ? queryRarity[ 0 ] : queryRarity;
   const edition = Array.isArray( queryEdition ) ? queryEdition[ 0 ] : queryEdition;
+  const cardName = Array.isArray( queryCardName ) ? queryCardName[ 0 ] : queryCardName;
 
   const cardId = card?.toString();
   const [ selectedVersion, setSelectedVersion ] = useState( undefined );
 
   const { data: cardData, error: cardError } = useSWR(
-    card ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }` : null,
+    cardId ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }` : null,
     fetcher
   );
+
+  const shouldLookupByName = ( !cardId || cardError ) && cardName;
+  const { data: cardLookupData, error: cardLookupError } = useSWR(
+    shouldLookupByName ? `/api/Yugioh/card/lookup?name=${ encodeURIComponent( cardName ) }` : null,
+    fetcher
+  );
+
+  const resolvedCardData = cardData || cardLookupData;
+  const resolvedCardError = resolvedCardData ? null : ( cardLookupError || cardError );
+  const effectiveCardId = ( cardId || resolvedCardData?.id )
+    ? ( cardId || resolvedCardData?.id ).toString()
+    : undefined;
 
   useEffect( () => {
     if ( cardData?.card_sets ) {
@@ -147,7 +168,7 @@ const CardDetails = () => {
 
   return (
     <>
-      <div className="mx-auto w-full yugioh-bg min-h-screen">
+      <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg">
         {/* 🔹 Breadcrumb shows Sets → SetName → Card Name */ }
         <Breadcrumb
           items={ [
@@ -159,8 +180,8 @@ const CardDetails = () => {
           ].filter( Boolean ) }
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          <div className="glass p-6 text-white rounded-md shadow-md text-shadow">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 w-full mx-auto">
+          <div className="glass h-8/12 p-6 text-white rounded-md shadow-md text-shadow">
             <h1 className="text-2xl font-extrabold mb-4">{ cardData.name }</h1>
             <p className="mb-1">
               <span className="font-bold">Card Type:</span> { cardData.type }

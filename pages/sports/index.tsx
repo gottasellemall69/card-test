@@ -22,16 +22,16 @@ export default function Home() {
 
   return (
     <>
-      <div className="mx-auto min-h-screen w-full bg-black">
+      <div className="mx-auto min-h-screen w-full bg-black backdrop glass">
         <Head>
           <title>Sports Card Collection</title>
           <meta name="description" content="Browse and collect sports cards" />
         </Head>
 
-        <div className="sports-bg text-white mx-auto">
-          <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="sports-bg text-white mx-auto w-full ">
+          <div className="mx-auto px-4 py-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-              <h1 className="text-3xl font-bold">Sports Card Browser</h1>
+              <h1 className="text-3xl font-bold glass backdrop text-shadow p-3 bg-transparent mx-auto sm:mx-0">Sports Card Browser</h1>
               <div className="mx-auto sm:mx-0 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
                 <CardSetSelector
                   value={selectedCardSet}

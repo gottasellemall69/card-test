@@ -64,6 +64,17 @@ export default function SideNav() {
     return match?.href ?? NAV_LINKS[ 0 ].href;
   } );
 
+
+  useEffect( () => {
+    const currentPath = normalizePath( router.asPath ?? router.pathname ?? "" );
+    const match = NAV_LINKS.find( ( link ) => link.matcher( currentPath ) );
+    if ( match ) {
+      setActiveHref( match.href );
+    }
+  }, [ router.asPath, router.pathname ] );
+
+
+
   useMemo( () => {
     const checkAuth = async () => {
       try {
@@ -80,14 +91,6 @@ export default function SideNav() {
     checkAuth();
   }, [ router ] );
 
-  useEffect( () => {
-    const currentPath = normalizePath( router.asPath ?? router.pathname ?? "" );
-    const match = NAV_LINKS.find( ( link ) => link.matcher( currentPath ) );
-    if ( match ) {
-      setActiveHref( match.href );
-    }
-  }, [ router.asPath, router.pathname ] );
-
   const handleLogout = async () => {
     try {
       await fetch( "/api/auth/logout", {
@@ -102,7 +105,7 @@ export default function SideNav() {
   };
 
   return (
-    <nav className="mx-auto w-[300px] max-h-screen flex-col justify-evenly sm:block">
+    <nav className="mx-auto w-full">
       <ul className="block flex-1 px-2 py-2 gap-3">
         { NAV_LINKS.map( ( item ) => {
           const isActive = activeHref === item.href;
@@ -120,8 +123,8 @@ export default function SideNav() {
                   <Image
                     src={ item.icon }
                     alt={ `${ item.label } icon` }
-                    width={ 40 }
-                    height={ 40 }
+                    width={ 24 }
+                    height={ 24 }
                     className="navLink-iconImage object-center object-cover"
                   />
                 </span>
@@ -132,11 +135,11 @@ export default function SideNav() {
             </li>
           );
         } ) }
-        <div className="mt-6 space-y-3">
+        <div className="block mt-5 py-1 text-sm/6 text-gray-900 focus:bg-gray-50 focus:outline-hidden">
           { isAuthenticated ? (
             <button
               onClick={ handleLogout }
-              className="mx-auto block w-fit px-24 py-3 rounded-lg border border-white/10 bg-red-500/20 text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
+              className="mx-auto w-full block text-nowrap px-16 py-3 rounded-lg border border-white bg-red-500/20 text-center text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
               title="Log out"
             >
               Log Out
@@ -146,7 +149,7 @@ export default function SideNav() {
               <Link
                 href="/login"
                 title="Log in"
-                className="mx-auto block w-fit px-24 py-3 rounded-lg border border-white/10 bg-white/5 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
+                className="mx-auto w-full text-nowrap block px-16 py-3 rounded-lg border border-white bg-white/5 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
               >
                 Log In
               </Link>
@@ -154,8 +157,6 @@ export default function SideNav() {
           ) }
         </div>
       </ul>
-
-
     </nav>
   );
 }
