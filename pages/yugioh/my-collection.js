@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Grid, List, Loader2, TrendingUp, Trash2, Search } from "lucide-react";
-
+import Notification from '@/components/Notification';
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
@@ -12,7 +12,7 @@ import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
   ssr: false,
   loading: () => (
-    <div className="py-12 text-center text-lg font-semibold text-white/80">
+    <div className="mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
       Loading table...
     </div>
   ),
@@ -21,19 +21,19 @@ const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
 const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
   ssr: false,
   loading: () => (
-    <div className="py-12 text-center text-lg font-semibold text-white/80">
+    <div className="mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
       Loading cards...
     </div>
   ),
 } );
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 12;
 const DEFAULT_FILTERS = { rarity: [], condition: [], printing: [] };
 const DEFAULT_SORT = { key: "number", direction: "ascending" };
 
 const MyCollection = () => {
   const router = useRouter();
-
+  const [ notification, setNotification ] = useState( { show: false, message: '' } );
   const [ cards, setCards ] = useState( [] );
   const [ viewMode, setViewMode ] = useState( "grid" );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
@@ -347,6 +347,7 @@ const MyCollection = () => {
       }
 
       if ( !response.ok ) {
+        setNotification( { show: true, message: 'Card deleted successfully!' } );
         throw new Error( "Failed to update card prices." );
       }
 
@@ -354,7 +355,7 @@ const MyCollection = () => {
       window.alert( "Prices updated successfully." );
     } catch ( error ) {
       console.error( "Error updating card prices:", error );
-      window.alert( "An error occurred while updating prices. Please try again later." );
+      setNotification( { show: true, message: 'Failed to update card prices! Please try again!' } );
     } finally {
       setIsUpdatingPrices( false );
     }
@@ -407,7 +408,7 @@ const MyCollection = () => {
       }
 
       if ( !response.ok ) {
-        throw new Error( "Failed to delete card" );
+        setNotification( { show: true, message: 'Failed to delete card!' } );
       }
 
       setCards( ( current ) => current.filter( ( card ) => card?._id !== cardId ) );
@@ -501,7 +502,7 @@ const MyCollection = () => {
     );
   } else {
     content = (
-      <div className="space-y-10 mx-auto min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat">
+      <div className="space-y-10 mx-auto h-full max-h-fit overflow-hidden yugioh-bg bg-fixed bg-center bg-no-repeat">
         <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 p-8 backdrop">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-shadow md:text-4xl">My Yu-Gi-Oh! Collection</h1>
@@ -582,7 +583,7 @@ const MyCollection = () => {
           </div>
         </section>
 
-        <section className="rounded-3xl bg-fixed">
+        <section className="sticky">
           { hasCards ? (
             <>
               <div className="flex max-h-24 h-fit items-center gap-3">
@@ -660,12 +661,20 @@ const MyCollection = () => {
   return (
     <>
       <Head>
-        <title>My Collection | Yu-Gi-Oh! Tracker</title>
+        <title>
+          My Collection | Yu-Gi-Oh! Tracker
+        </title>
       </Head>
 
-      <div className="w-full max-h-max">
-        <div className="mx-auto">{ content }</div>
+
+      <div className="mx-auto h-auto w-full">
+        { content }
       </div>
+      <Notification
+        show={ notification.show }
+        setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
+        message={ notification.message }
+      />
       <SpeedInsights />
     </>
   );

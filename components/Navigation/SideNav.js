@@ -75,7 +75,7 @@ export default function SideNav() {
 
 
 
-  useEffect( () => {
+  useMemo( () => {
     const checkAuth = async () => {
       try {
         const res = await fetch( "/api/auth/validate", {
@@ -105,13 +105,13 @@ export default function SideNav() {
   };
 
   return (
-    <nav className="mx-auto w-auto">
+    <nav className="mx-auto w-full">
       <ul className="block flex-1 px-2 py-2 gap-3">
         { NAV_LINKS.map( ( item ) => {
           const isActive = activeHref === item.href;
 
           return (
-            <li key={ item.href } className="navButton max-w-full text-nowrap">
+            <li key={ item.href } className="navButton max-w-prose text-nowrap">
               <Link
                 href={ item.href }
                 title={ item.title }
@@ -139,7 +139,7 @@ export default function SideNav() {
           { isAuthenticated ? (
             <button
               onClick={ handleLogout }
-              className="mx-auto w-full block text-nowrap px-16 py-3 rounded-lg border border-white bg-red-500/20 text-center text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
+              className="mx-auto w-3/4 block text-nowrap px-16 py-3 rounded-lg border border-white bg-red-500/20 text-center text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
               title="Log out"
             >
               Log Out
@@ -149,7 +149,7 @@ export default function SideNav() {
               <Link
                 href="/login"
                 title="Log in"
-                className="mx-auto w-full text-nowrap block px-16 py-3 rounded-lg border border-white bg-white/5 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
+                className="mx-auto w-3/4 text-nowrap block px-16 py-3 rounded-lg border border-white bg-white/5 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
               >
                 Log In
               </Link>

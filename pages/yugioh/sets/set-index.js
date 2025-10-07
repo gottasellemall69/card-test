@@ -4,7 +4,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 export default function SetsPage() {
   return (
     <>
-      <div className="mx-auto w-full yugioh-bg min-h-screen">
+      <div className="p-2 mx-auto w-full yugioh-bg h-screen">
         <AlphabeticalIndex />
       </div>
       <SpeedInsights></SpeedInsights>

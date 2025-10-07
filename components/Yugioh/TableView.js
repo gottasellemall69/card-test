@@ -156,13 +156,13 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                   </span>
                 ) }
               </td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-pretty">{ card?.productName }</td>
+              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.productName }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.setName }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.number }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.printing }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.rarity }</td>
+              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.printing }</td>
+              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.rarity }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.condition }</td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left">{ card?.marketPrice }</td>
+              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.marketPrice }</td>
               <td className="text-white p-2 flex flex-row items-center gap-2">
                 <input
                   type="number"

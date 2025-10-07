@@ -56,56 +56,61 @@ const CardDetails = () => {
     : undefined;
 
   useEffect( () => {
-    if ( cardData?.card_sets ) {
-      const savedVersion = localStorage.getItem( `selectedVersion-${ cardId }` );
+    if ( !cardData?.card_sets?.length ) {
+      return;
+    }
 
-      // ✅ Case 1: From [setName] page → match by set_name only
-      if ( source === "set" && set_name ) {
-        const matchBySetName = cardData.card_sets.find(
-          ( set ) => set.set_name === set_name
-        );
-        if ( matchBySetName ) {
-          const version = `${ matchBySetName.set_name } - ${ matchBySetName.set_code } - ${ matchBySetName.set_rarity } - ${ matchBySetName.set_edition || "Unknown Edition"
-            }`;
-          setSelectedVersion( version );
-          return;
-        }
+    const normalizeEdition = ( value ) => value || "Unknown Edition";
+    const buildVersion = ( set ) =>
+      `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ normalizeEdition( set.set_edition ) }`;
+    const storageKey = effectiveCardId ? `selectedVersion-${ effectiveCardId }` : null;
+
+    const commitSelection = ( version ) => {
+      setSelectedVersion( ( current ) => ( current === version ? current : version ) );
+      if ( storageKey ) {
+        localStorage.setItem( storageKey, version );
       }
+    };
 
-      // ✅ Case 2: From collection → require full version match
-      if ( source === "collection" && set_name && set_code && rarity && edition ) {
-        const queryVersion = `${ set_name } - ${ set_code } - ${ rarity } - ${ edition }`;
-        const hasQueryVersion = cardData.card_sets.some(
-          ( set ) =>
-            `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
-            }` === queryVersion
-        );
-        if ( hasQueryVersion ) {
-          setSelectedVersion( queryVersion );
-          return;
-        }
-      }
+    const cardSets = cardData.card_sets;
+    const normalizedQueryEdition = normalizeEdition( edition );
 
-      // ✅ Otherwise use saved version if valid
-      if (
-        savedVersion &&
-        cardData.card_sets.some(
-          ( set ) =>
-            `${ set.set_name } - ${ set.set_code } - ${ set.set_rarity } - ${ set.set_edition || "Unknown Edition"
-            }` === savedVersion
-        )
-      ) {
-        setSelectedVersion( savedVersion );
-      } else {
-        // ✅ Fallback to first version
-        const defaultVersion = `${ cardData.card_sets[ 0 ].set_name } - ${ cardData.card_sets[ 0 ].set_code } - ${ cardData.card_sets[ 0 ].set_rarity } - ${ cardData.card_sets[ 0 ].set_edition || "Unknown Edition"
-          }`;
-        setSelectedVersion( defaultVersion );
+    if ( set_name && set_code && rarity && edition ) {
+      const exactMatch = cardSets.find(
+        ( set ) =>
+          set.set_name === set_name &&
+          set.set_code === set_code &&
+          set.set_rarity === rarity &&
+          normalizeEdition( set.set_edition ) === normalizedQueryEdition
+      );
+
+      if ( exactMatch ) {
+        commitSelection( buildVersion( exactMatch ) );
+        return;
       }
     }
-  }, [ cardData, cardId, set_name, set_code, rarity, edition, source ] );
 
-  const handleVersionChange = ( e ) => {
+    if ( storageKey ) {
+      const savedVersion = localStorage.getItem( storageKey );
+      if ( savedVersion ) {
+        const savedMatch = cardSets.find( ( set ) => buildVersion( set ) === savedVersion );
+        if ( savedMatch ) {
+          commitSelection( savedVersion );
+          return;
+        }
+      }
+    }
+
+    if ( set_name ) {
+      const matchBySetName = cardSets.find( ( set ) => set.set_name === set_name );
+      if ( matchBySetName ) {
+        commitSelection( buildVersion( matchBySetName ) );
+        return;
+      }
+    }
+
+    commitSelection( buildVersion( cardSets[ 0 ] ) );
+  }, [ cardData, effectiveCardId, set_name, set_code, rarity, edition ] ); const handleVersionChange = ( e ) => {
     const newVersion = e.target.value;
     setSelectedVersion( newVersion );
 
@@ -164,7 +169,7 @@ const CardDetails = () => {
   }, [ selectedVersion, cardId ] );
 
   if ( cardError ) return <div>Error loading card data.</div>;
-  if ( !cardData ) return <div>Loading card data...</div>;
+  if ( !cardData ) return <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg">Loading card data...</div>;
 
   return (
     <>
@@ -244,3 +249,4 @@ const CardDetails = () => {
 };
 
 export default CardDetails;
+

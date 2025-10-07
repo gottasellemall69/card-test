@@ -131,7 +131,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
         </button>
       </div>
 
-      <div className="container box-content w-full mx-auto flex flex-wrap flex-row gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="container box-content glass sm:px-5 rounded-xl w-full mx-auto flex flex-wrap flex-row gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 
 
 
@@ -166,7 +166,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 </div>
 
                 {/* BACK */ }
-                <div className="flip-card-back h-full rounded-none p-2 mx-auto cursor-default glass backdrop-opacity-15 text-white text-shadow">
+                <div className="flip-card-back h-full rounded-none p-2 mx-auto cursor-default glass text-white text-shadow">
 
                   <div>
                     <h3 className="text-xl font-bold text-center">{ card.productName }</h3>
@@ -293,7 +293,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       onClick={ () => handleEdit( card._id, 'deleteAmount' ) }
                       onBlur={ () => handleDelete( card._id, 'deleteAmount' ) }
                     >
-                      { editValues[ card._id ]?.deleteAmount || 0 }
+                      { editValues[ card._id ]?.deleteAmount || 1 }
                     </span>
                   ) }
                 </div>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -151,7 +151,7 @@ const Card = ( { cardData } ) => {
           passHref
         >
           <img
-            className=" max-w-full w-full h-full max-h-96"
+            className=" max-w-full w-full h-96 max-h-96"
             src={ imageSource }
             onError={ handleImageError }
             alt={ `Card Image - ${ cardData.productName || cardData.name || 'Unknown' }` }

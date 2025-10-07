@@ -113,7 +113,7 @@ const CardFilter = ( {
                       </div>
                     </div>
                   </div>
-                  <div className="relative mt-6 flex-1 px-4 sm:px-6">
+                  <div className="relative mt-6 flex-1 px-4 ">
                     <div className="space-y-6">
                       { filtersDef.map( filter => (
                         <div key={ filter.id } className="space-y-3">

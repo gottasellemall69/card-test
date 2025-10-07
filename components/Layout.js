@@ -4,15 +4,15 @@ import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessu
 import { Bars3Icon as MenuIcon, XMarkIcon as X } from '@heroicons/react/24/outline';
 import SideNav from '@/components/Navigation/SideNav';
 
+
 export default function Layout( { children } ) {
   const [ isSidebarOpen, setIsSidebarOpen ] = useState( false );
-
   const toggleSidebar = () => {
     setIsSidebarOpen( !isSidebarOpen );
   };
 
   return (
-    <div className=" w-full glass dark:bg-gray-900">
+    <div className="h-full w-full glass dark:bg-gray-900">
       <Dialog open={ isSidebarOpen } onClose={ setIsSidebarOpen } className="relative z-50 lg:hidden">
         <DialogBackdrop
           transition
@@ -21,13 +21,13 @@ export default function Layout( { children } ) {
         <div className="fixed inset-0 flex">
           <DialogPanel
             transition
-            className="relative flex w-fit max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full"
+            className="relative flex w-auto max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full"
           >
             <TransitionChild>
-              <div className="absolute top-0 left-full flex w-fit justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
+              <div className="absolute top-0 left-full flex w-auto justify-center pt-5 duration-300 ease-in-out data-closed:opacity-0">
                 <button type="button" onClick={ toggleSidebar } className="-m-2.5 p-2.5">
                   <span className="sr-only">Close sidebar</span>
-                  <X title="Close" aria-hidden="true" className="size-7 text-red-600" />
+                  <X title="Close" onClick={ setIsSidebarOpen } aria-hidden="true" className="size-7 text-red-600" />
                 </button>
               </div>
             </TransitionChild>
@@ -51,7 +51,7 @@ export default function Layout( { children } ) {
           <button
             type="button"
             onClick={ toggleSidebar }
-            className=" text-gray-700 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:text-white"
+            className=" text-gray-700 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:text-white justify-self-end place-items-end"
             title="Open sidebar"
           >
             <span className="sr-only">Open sidebar</span>
@@ -61,11 +61,11 @@ export default function Layout( { children } ) {
             CARD PRICE APP
           </Link>
           <div className=" flex items-center">
-            <span className="sr-only">User profile placeholder</span>
+            <span className="">User profile placeholder</span>
           </div>
         </div>
         <main className="mx-auto">
-          <div className=" mx-1 my-2 ">
+          <div className="h-full mx-1 my-2 ">
             { children }
           </div>
         </main>

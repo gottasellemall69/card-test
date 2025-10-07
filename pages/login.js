@@ -39,7 +39,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mt-10 p-5 text-black min-h-screen flex flex-col items-center justify-items-start bg-transparent text-shadow">
+    <div className="mt-10 p-5 text-black min-h-screen flex flex-col items-center justify-items-start bg-transparent backdrop text-shadow">
       <h1 className="text-3xl text-white font-bold mb-6">Login</h1>
       <form
         id="login-form"
