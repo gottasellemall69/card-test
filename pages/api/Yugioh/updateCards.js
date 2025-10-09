@@ -1,5 +1,22 @@
 import { MongoClient, ObjectId } from "mongodb";
-import jwt from "jsonwebtoken";
+import { requireUser } from "@/middleware/authenticate";
+
+const ALLOWED_FIELDS = new Set( [
+  "quantity",
+  "condition",
+  "marketPrice",
+  "lowPrice",
+  "oldPrice",
+  "printing",
+  "rarity"
+] );
+
+const NUMERIC_FIELDS = new Set( [
+  "quantity",
+  "marketPrice",
+  "lowPrice",
+  "oldPrice"
+] );
 
 export default async function handler( req, res ) {
   if ( req.method !== "PATCH" ) {
@@ -7,44 +24,62 @@ export default async function handler( req, res ) {
     return res.status( 405 ).json( { message: `Method ${ req.method } Not Allowed` } );
   }
 
-  // Cookie-only
-  const token = req.cookies?.token;
-  if ( !token ) {
-    return res.status( 401 ).json( { message: "Unauthorized: No token provided" } );
+  const auth = await requireUser( req, res );
+  if ( !auth ) {
+    return;
   }
 
-  let decodedToken;
-  try {
-    decodedToken = jwt.verify( token, process.env.JWT_SECRET );
-  } catch ( error ) {
-    console.error( "Invalid token:", error );
-    return res.status( 401 ).json( { message: "Unauthorized: Invalid token" } );
+  const { cardId, field, value } = req.body ?? {};
+
+  if ( typeof cardId !== "string" || !ObjectId.isValid( cardId ) ) {
+    return res.status( 400 ).json( { message: "Invalid card identifier" } );
   }
 
-  const userId = decodedToken.username; // ✅ keep using username
+  if ( typeof field !== "string" || !ALLOWED_FIELDS.has( field ) ) {
+    return res.status( 400 ).json( { message: "Invalid update field" } );
+  }
+
+  if ( value === undefined || value === null ) {
+    return res.status( 400 ).json( { message: "Missing update value" } );
+  }
+
+  let sanitizedValue = value;
+
+  if ( NUMERIC_FIELDS.has( field ) ) {
+    const numericValue = Number( value );
+    if ( Number.isNaN( numericValue ) || !Number.isFinite( numericValue ) ) {
+      return res.status( 400 ).json( { message: "Invalid numeric value" } );
+    }
+
+    if ( field === "quantity" && numericValue < 0 ) {
+      return res.status( 400 ).json( { message: "Quantity cannot be negative" } );
+    }
+
+    sanitizedValue = numericValue;
+  }
+
   const client = new MongoClient( process.env.MONGODB_URI );
-  await client.connect();
-  const db = client.db( "cardPriceApp" );
-  const cards = db.collection( "myCollection" );
-  const { cardId, field, value } = req.body;
 
   try {
+    await client.connect();
+    const db = client.db( "cardPriceApp" );
+    const cards = db.collection( "myCollection" );
+
     const result = await cards.updateOne(
-      { _id: new ObjectId( cardId ), userId }, // restrict by username
-      { $set: { [ field ]: value } }
+      { _id: new ObjectId( cardId ), userId: auth.decoded.username },
+      { $set: { [ field ]: sanitizedValue } }
     );
 
     if ( result.modifiedCount > 0 ) {
       return res.status( 200 ).json( { message: "Card updated successfully" } );
     }
-    return res
-      .status( 404 )
-      .json( { message: "Card not found or does not belong to the user" } );
+
+    return res.status( 404 ).json( {
+      message: "Card not found or does not belong to the user"
+    } );
   } catch ( error ) {
     console.error( "Update error:", error );
-    return res
-      .status( 500 )
-      .json( { message: `Internal server error: ${ error.message }` } );
+    return res.status( 500 ).json( { message: `Internal server error: ${ error.message }` } );
   } finally {
     await client.close();
   }

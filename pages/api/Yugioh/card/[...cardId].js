@@ -6,7 +6,7 @@ export default async function handler( req, res ) {
     const response = await fetch( url );
     const data = await response.json();
 
-    if ( !data || data.data.length === 0 ) {
+    if ( !data || data?.data[ 0 ]?.length === 0 ) {
       return res.status( 404 ).json( { error: "Card not found" } );
     }
 
@@ -25,11 +25,16 @@ export default async function handler( req, res ) {
         set_name: set.set_name,
         set_code: set.set_code,
         set_rarity: set.set_rarity,
+        rarity_code: set.set_rarity_code,
         set_edition: set.set_edition || "Unknown Edition",
         set_price: set.set_price
       } ) ) || [],
-      card_prices: card?.card_prices?.[ 0 ] || {},
-      ebay_price: card?.card_prices?.[ 0 ]?.ebay_price || {}
+      card_prices: card?.card_prices?.map( price => ( {
+        tcgplayer_price: price.tcgplayer_price || "0.00",
+        ebay_price: price.ebay_price || "0.00",
+        amazon_price: price.amazon_price || "0.00"
+      }
+      ) ) || [],
     };
 
     res.status( 200 ).json( formattedCard );

@@ -1,28 +1,26 @@
 // /utils/updateCardPricesLogic.js
-import { MongoClient } from 'mongodb';
+import { MongoClient } from "mongodb";
 import jwt from "jsonwebtoken";
 
 const RARITY_NORMALIZATION_MAP = {
-  'Common': 'Common',
-  'Common / Short Print': 'Common',
-  'Rare': 'Rare',
-  'Super Rare': 'Super Rare',
-  'Ultra Rare': 'Ultra Rare',
-  'Secret Rare': 'Secret Rare',
-  'Ultimate Rare': 'Ultimate Rare',
-  'Prismatic Secret Rare': 'Prismatic Secret Rare',
-  'Starfoil Rare': 'Starfoil Rare',
-  'Mosaic Rare': 'Mosaic Rare',
-  'Shatterfoil Rare': 'Shatterfoil Rare',
+  "Common": "Common",
+  "Common / Short Print": "Common",
+  "Rare": "Rare",
+  "Super Rare": "Super Rare",
+  "Ultra Rare": "Ultra Rare",
+  "Secret Rare": "Secret Rare",
+  "Ultimate Rare": "Ultimate Rare",
+  "Prismatic Secret Rare": "Prismatic Secret Rare",
+  "Starfoil Rare": "Starfoil Rare",
+  "Mosaic Rare": "Mosaic Rare",
+  "Shatterfoil Rare": "Shatterfoil Rare",
   "Collector's Rare": "Collector's Rare",
-  'Starlight Rare': 'Starlight Rare',
-  'Ghost Rare': 'Ghost Rare',
-  'Gold Rare': 'Gold Rare',
-  'Gold Secret Rare': 'Gold Secret Rare',
-  'Premium Gold Rare': 'Premium Gold Rare',
-  'Quarter Century Secret Rare': 'Quarter Century Secret Rare'
-
-
+  "Starlight Rare": "Starlight Rare",
+  "Ghost Rare": "Ghost Rare",
+  "Gold Rare": "Gold Rare",
+  "Gold Secret Rare": "Gold Secret Rare",
+  "Premium Gold Rare": "Premium Gold Rare",
+  "Quarter Century Secret Rare": "Quarter Century Secret Rare"
 };
 
 function normalizeRarity( rarity ) {
@@ -33,35 +31,68 @@ function normalizeRarity( rarity ) {
   return normalized || rarity;
 }
 
-export default async function updateCardPricesLogic( authorizationHeader ) {
-  if ( !authorizationHeader ) {
-    throw new Error( "Authorization token is required." );
+function createAuthError( message ) {
+  const error = new Error( message );
+  error.statusCode = 401;
+  return error;
+}
+
+function resolveAuthContext( authContext ) {
+  if ( !authContext ) {
+    throw createAuthError( "Authorization token is required." );
   }
 
-  const token = authorizationHeader.split( " " )[ 1 ];
-  if ( !token ) {
-    throw new Error( "Invalid authorization format." );
+  if ( typeof authContext === "string" ) {
+    const parts = authContext.trim().split( " " );
+    const token = parts.length === 2 ? parts[ 1 ] : parts[ 0 ];
+    if ( !token ) {
+      throw createAuthError( "Invalid authorization format." );
+    }
+
+    try {
+      const decoded = jwt.verify( token, process.env.JWT_SECRET );
+      return { token, decoded };
+    } catch ( error ) {
+      console.error( "Invalid token:", error );
+      throw createAuthError( "Unauthorized: Invalid token" );
+    }
   }
 
-  let decodedToken;
-  let userId;
+  const { token, decoded } = authContext;
+
+  if ( !decoded && !token ) {
+    throw createAuthError( "Authorization token is required." );
+  }
+
+  if ( decoded ) {
+    if ( !decoded.username ) {
+      throw createAuthError( "Unauthorized: Invalid token payload" );
+    }
+    return { token, decoded };
+  }
+
   try {
-    // Verify the token
-    decodedToken = jwt.verify( token, process.env.JWT_SECRET );
-    userId = decodedToken.username; // Use the username from the token payload as the user identifier
+    const verified = jwt.verify( token, process.env.JWT_SECRET );
+    if ( !verified.username ) {
+      throw createAuthError( "Unauthorized: Invalid token payload" );
+    }
+    return { token, decoded: verified };
   } catch ( error ) {
     console.error( "Invalid token:", error );
-    return res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
+    throw createAuthError( "Unauthorized: Invalid token" );
   }
+}
 
-
+export default async function updateCardPricesLogic( authContext ) {
+  const { decoded } = resolveAuthContext( authContext );
+  const userId = decoded.username;
 
   const client = new MongoClient( process.env.MONGODB_URI );
 
   try {
     await client.connect();
-    const db = client.db( 'cardPriceApp' );
-    const cardsCollection = db.collection( 'myCollection' );
+    const db = client.db( "cardPriceApp" );
+    const cardsCollection = db.collection( "myCollection" );
 
     const cards = await cardsCollection.find( { userId } ).toArray();
     const updateResults = [];
@@ -71,6 +102,11 @@ export default async function updateCardPricesLogic( authorizationHeader ) {
         const response = await fetch(
           `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${ encodeURIComponent( card.productName ) }&tcgplayer_data=true`
         );
+
+        if ( !response.ok ) {
+          console.warn( `Failed to fetch card info for ${ card.productName }` );
+          continue;
+        }
 
         const data = await response.json();
 
@@ -96,15 +132,14 @@ export default async function updateCardPricesLogic( authorizationHeader ) {
             {
               $set: {
                 marketPrice: newPrice,
-                oldPrice: card.marketPrice,
-
+                oldPrice: card.marketPrice
               },
               $push: {
                 priceHistory: {
                   date: new Date(),
-                  price: newPrice,
-                },
-              },
+                  price: newPrice
+                }
+              }
             }
           );
 

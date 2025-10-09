@@ -39,12 +39,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mt-10 p-5 text-black min-h-screen flex flex-col items-center justify-items-start bg-transparent backdrop text-shadow">
+    <div className="mt-10 p-5 text-black min-h-screen flex flex-col items-center justify-items-start login">
       <h1 className="text-3xl text-white font-bold mb-6">Login</h1>
       <form
         id="login-form"
         onSubmit={ handleSubmit }
-        className="bg-transparent border text-black shadow-lg rounded-lg p-6 w-full max-w-md glass"
+        className="border text-black shadow-lg rounded-lg p-6 w-full max-w-md glass backdrop text-shadow"
       >
         { error && <p className="text-red-500 text-sm mb-4">{ error }</p> }
         <div className="mb-4 text-black">
@@ -56,7 +56,7 @@ export default function LoginPage() {
             type="text"
             value={ username }
             onChange={ ( e ) => setUsername( e.target.value ) }
-            className="w-full px-3 py-2 border border-white rounded-sm  text-white text-shadow bg-transparent"
+            className="w-full px-3 py-2 border border-white rounded-sm text-white text-shadow bg-transparent"
             required={ true }
           />
         </div>
@@ -69,7 +69,7 @@ export default function LoginPage() {
             type="password"
             value={ password }
             onChange={ ( e ) => setPassword( e.target.value ) }
-            className="w-full px-3 py-2 border rounded-lg text-black"
+            className="w-full px-3 py-2 border border-white rounded-sm text-white text-shadow bg-transparent"
             required={ true }
           />
         </div>

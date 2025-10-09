@@ -1,32 +1,20 @@
-import jwt from "jsonwebtoken";
 import clientPromise from "@/utils/mongo.js";
+import { requireUser } from "@/middleware/authenticate";
 
 export default async function handler( req, res ) {
   if ( req.method !== "POST" ) {
+    res.setHeader( "Allow", [ "POST" ] );
     return res.status( 405 ).json( { message: "Method Not Allowed" } );
   }
 
+  const auth = await requireUser( req, res );
+  if ( !auth ) {
+    return;
+  }
+
   try {
-    const token = req.cookies?.token;
-    if ( !token ) {
-      return res.status( 401 ).json( { error: "Unauthorized: No token provided" } );
-    }
-
-    let decodedToken;
-    try {
-      decodedToken = jwt.verify( token, process.env.JWT_SECRET );
-    } catch ( error ) {
-      console.error( "Invalid token:", error );
-      return res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
-    }
-
-    const userId = decodedToken.username; // ✅ keep using username
-    if ( !userId ) {
-      return res.status( 401 ).json( { error: "Unauthorized: Missing username in token" } );
-    }
-
-    const { cards } = req.body;
-    if ( !cards || cards.length === 0 ) {
+    const { cards } = req.body ?? {};
+    if ( !Array.isArray( cards ) || cards.length === 0 ) {
       return res.status( 400 ).json( { error: "No cards provided." } );
     }
 
@@ -34,16 +22,21 @@ export default async function handler( req, res ) {
     const db = client.db( "cardPriceApp" );
     const collection = db.collection( "myCollection" );
 
-    const bulkOps = cards.map( ( card ) => ( {
+    const sanitizedCards = cards.filter( ( card ) => card && typeof card === "object" );
+    if ( sanitizedCards.length === 0 ) {
+      return res.status( 400 ).json( { error: "No valid card data provided." } );
+    }
+
+    const bulkOps = sanitizedCards.map( ( card ) => ( {
       updateOne: {
         filter: {
-          userId, // username stored in userId field
+          userId: auth.decoded.username,
           productName: card.productName,
           setName: card.setName,
           number: card.number,
           printing: card.printing,
           rarity: card.rarity,
-          condition: card.condition,
+          condition: card.condition
         },
         update: {
           $inc: { quantity: card.quantity || 1 },
@@ -51,11 +44,11 @@ export default async function handler( req, res ) {
           $setOnInsert: {
             marketPrice: card.marketPrice || 0,
             lowPrice: card.lowPrice || 0,
-            userId,
-          },
+            userId: auth.decoded.username
+          }
         },
-        upsert: true,
-      },
+        upsert: true
+      }
     } ) );
 
     await collection.bulkWrite( bulkOps );

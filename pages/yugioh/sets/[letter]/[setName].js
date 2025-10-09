@@ -1,5 +1,4 @@
 ﻿import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/router";
 import { Grid, List } from "lucide-react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
@@ -16,7 +15,8 @@ import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.
 const DEFAULT_AUTO_CONDITION = "";
 const DEFAULT_AUTO_PRINTING = "";
 
-const PRINTING_TOKENS = [ "1st Edition", "Limited", "Unlimited" ];
+// Order matters: check "Unlimited" before "Limited" to avoid substring collisions
+const PRINTING_TOKENS = [ "1st Edition", "Unlimited", "Limited" ];
 const STANDARD_CONDITION_VALUES = [
   "Near Mint 1st Edition",
   "Lightly Played 1st Edition",
@@ -59,7 +59,7 @@ const canonicalizePrintingLabel = ( value = "" ) => {
     return "Unlimited";
   }
 
-  if ( normalized.includes( "limit" ) ) {
+  if ( normalized.includes( "limited" ) ) {
     return "Limited";
   }
 

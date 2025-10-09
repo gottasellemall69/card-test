@@ -131,7 +131,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
         </button>
       </div>
 
-      <div className="container box-content glass sm:px-5 rounded-xl w-full mx-auto flex flex-wrap flex-row gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="container box-content bg-black/30 border border-white/10 rounded-md divide-x-2 inset-1 max-w-7xl mx-auto flex flex-wrap flex-row gap-5 sm:grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 
 
 

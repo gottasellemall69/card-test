@@ -457,7 +457,7 @@ const MyCollection = () => {
       <button
         type="button"
         onClick={ () => setViewMode( "grid" ) }
-        className={ `rounded-xl flex items-center gap-2 px-4 py-2 transition ${ viewMode === "grid" ? "bg-purple-600 text-white" : "hover:bg-white/10"
+        className={ ` flex items-center gap-2 px-4 py-2 transition ${ viewMode === "grid" ? "bg-purple-600 text-white" : "hover:bg-white/10"
           }` }
       >
         <Grid className="h-4 w-4" />
@@ -502,8 +502,8 @@ const MyCollection = () => {
     );
   } else {
     content = (
-      <div className="space-y-10 mx-auto h-full max-h-fit overflow-hidden yugioh-bg bg-fixed bg-center bg-no-repeat">
-        <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 p-8 backdrop">
+      <div className="space-y-10 mx-auto h-full yugioh-bg bg-fixed bg-center bg-no-repeat">
+        <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 backdrop">
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-shadow md:text-4xl">My Yu-Gi-Oh! Collection</h1>
             <p className="text-white/70">
@@ -511,8 +511,8 @@ const MyCollection = () => {
             </p>
           </div>
 
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="grid w-full gap-4 sm:grid-cols-3">
+          <div className="max-w-full w-[80%] sm:w-full mx-auto sm:mx-0 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="grid w-auto gap-4 sm:grid-cols-3">
               <div className="glass rounded-2xl border border-white/10 p-5">
                 <p className="text-xs uppercase tracking-wide text-white/60">Total cards</p>
                 <p className="mt-2 text-3xl font-semibold text-white">{ totalOwnedCards }</p>
@@ -527,13 +527,13 @@ const MyCollection = () => {
               </div>
             </div>
 
-            <div className="flex justify-start lg:justify-end">{ renderViewToggle() }</div>
+
           </div>
         </header>
 
-        <section className="space-y-6 rounded-3xl border border-white/10 p-6 backdrop mx-auto">
+        <section className="space-y-6 border border-white/10 p-6 backdrop mx-auto">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="relative w-full max-w-xl">
+            <div className="relative w-auto max-w-xl">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
               <input
                 type="text"
@@ -586,7 +586,10 @@ const MyCollection = () => {
         <section className="sticky">
           { hasCards ? (
             <>
+
               <div className="flex max-h-24 h-fit items-center gap-3">
+                <div className="flex justify-start lg:justify-end">{ renderViewToggle() }</div>
+
                 <CardFilter
                   filters={ filters }
                   updateFilters={ handleFilterChange }
@@ -667,7 +670,7 @@ const MyCollection = () => {
       </Head>
 
 
-      <div className="mx-auto h-auto w-full">
+      <div className="mx-auto h-auto w-7xl">
         { content }
       </div>
       <Notification

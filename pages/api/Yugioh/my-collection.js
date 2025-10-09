@@ -1,26 +1,13 @@
 import { MongoClient } from "mongodb";
-import jwt from "jsonwebtoken";
+import { requireUser } from "@/middleware/authenticate";
 
 export default async function handler( req, res ) {
-  // Read token from cookie
-  const token = req.cookies?.token;
-  if ( !token ) {
-    return res.status( 401 ).json( { error: "Unauthorized: No token provided" } );
+  const auth = await requireUser( req, res );
+  if ( !auth ) {
+    return;
   }
 
-  let decodedToken;
-  let userId; // this remains the field name in the DB, but it stores the username string
-  try {
-    decodedToken = jwt.verify( token, process.env.JWT_SECRET );
-    userId = decodedToken.username; // ✅ keep using username
-    if ( !userId ) {
-      return res.status( 401 ).json( { error: "Unauthorized: Invalid token payload" } );
-    }
-  } catch ( error ) {
-    console.error( "Invalid token:", error );
-    return res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
-  }
-
+  const userId = auth.decoded.username; // keep using username in the myCollection userId field
   const client = new MongoClient( process.env.MONGODB_URI );
 
   try {
@@ -30,7 +17,7 @@ export default async function handler( req, res ) {
     switch ( req.method ) {
       case "GET": {
         const agg = [
-          { $match: { userId } }, // match by username stored in userId field
+          { $match: { userId } },
           {
             $project: {
               _id: 1,

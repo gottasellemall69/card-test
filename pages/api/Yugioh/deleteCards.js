@@ -1,47 +1,44 @@
 import { MongoClient, ObjectId } from "mongodb";
-import jwt from "jsonwebtoken";
+import { requireUser } from "@/middleware/authenticate";
 
 export default async function handler( req, res ) {
-  if ( req.method === "DELETE" ) {
-    const authHeader =
-      req.headers.authorization ||
-      ( req.cookies.token ? `Bearer ${ req.cookies.token }` : undefined );
+  if ( req.method !== "DELETE" ) {
+    res.setHeader( "Allow", [ "DELETE" ] );
+    return res.status( 405 ).json( { message: `Method ${ req.method } Not Allowed` } );
+  }
 
-    if ( !authHeader || !authHeader.startsWith( "Bearer " ) ) {
-      return res.status( 401 ).json( { message: "Unauthorized: No token provided" } );
-    }
+  const auth = await requireUser( req, res );
+  if ( !auth ) {
+    return;
+  }
 
-    const token = authHeader.split( " " )[ 1 ];
-    let decodedToken;
-    try {
-      decodedToken = jwt.verify( token, process.env.JWT_SECRET );
-    } catch ( error ) {
-      console.error( "Invalid token:", error );
-      return res.status( 401 ).json( { message: "Unauthorized: Invalid token" } );
-    }
-    const userId = decodedToken.username;
+  const { cardId } = req.body ?? {};
 
-    const client = new MongoClient( process.env.MONGODB_URI );
+  if ( typeof cardId !== "string" || !ObjectId.isValid( cardId ) ) {
+    return res.status( 400 ).json( { message: "Invalid card identifier" } );
+  }
+
+  const client = new MongoClient( process.env.MONGODB_URI );
+
+  try {
     await client.connect();
     const db = client.db( "cardPriceApp" );
     const cards = db.collection( "myCollection" );
-    const { cardId } = req.body;
 
-    try {
-      const result = await cards.deleteOne( { _id: new ObjectId( cardId ), userId } );
-      if ( result.deletedCount >= 1 ) {
-        res.status( 200 ).json( { message: "Card deleted successfully" } );
-      } else {
-        res.status( 404 ).json( { message: "Card not found or does not belong to the user" } );
-      }
-    } catch ( error ) {
-      console.error( "Delete error:", error );
-      res.status( 500 ).json( { message: `Internal server error: ${ error.message }` } );
-    } finally {
-      await client.close();
+    const result = await cards.deleteOne( {
+      _id: new ObjectId( cardId ),
+      userId: auth.decoded.username
+    } );
+
+    if ( result.deletedCount >= 1 ) {
+      return res.status( 200 ).json( { message: "Card deleted successfully" } );
     }
-  } else {
-    res.setHeader( "Allow", [ "DELETE" ] );
-    res.status( 405 ).json( { message: `Method ${ req.method } Not Allowed` } );
+
+    return res.status( 404 ).json( { message: "Card not found or does not belong to the user" } );
+  } catch ( error ) {
+    console.error( "Delete error:", error );
+    return res.status( 500 ).json( { message: `Internal server error: ${ error.message }` } );
+  } finally {
+    await client.close();
   }
 }
