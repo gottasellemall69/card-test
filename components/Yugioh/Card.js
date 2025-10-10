@@ -26,18 +26,16 @@ const Card = ( { cardData } ) => {
         } }
         passHref
       >
-        <div className="hover:scale-95 hover:duration-100 transition-transform">
-          <img
-            className="lg:object-cover object-scale-down object-top w-full h-72 aspect-video"
-            as="image"
-            priority="true"
-            unoptimized="true"
-            src={ getLocalImagePath( cardData.id ) }
-            alt={ `Card Image - ${ cardData.productName }` }
-            width={ "auto" }
-            height={ "auto" }
-          />
-        </div>
+        <img
+          className="lg:object-cover object-scale-down object-top w-full h-72 aspect-video"
+          as="image"
+          priority="true"
+          unoptimized="true"
+          src={ getLocalImagePath( cardData.id ) }
+          alt={ `Card Image - ${ cardData.productName }` }
+          width={ "100%" }
+          height={ "full" }
+        />
       </Link>
     </>
   );

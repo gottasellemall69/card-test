@@ -453,25 +453,27 @@ const MyCollection = () => {
   }, [ hasCards ] );
 
   const renderViewToggle = () => (
-    <div className="rounded-sm border border-white/20 bg-white/10 text-sm font-semibold text-white/80">
-      <button
-        type="button"
-        onClick={ () => setViewMode( "grid" ) }
-        className={ ` flex items-center gap-2 px-4 py-2 transition ${ viewMode === "grid" ? "bg-purple-600 text-white" : "hover:bg-white/10"
-          }` }
-      >
-        <Grid className="h-4 w-4" />
-        Grid
-      </button>
-      <button
-        type="button"
-        onClick={ () => setViewMode( "table" ) }
-        className={ `flex items-center gap-2 px-4 py-2 transition ${ viewMode === "table" ? "bg-purple-600 text-white rounded-lg" : "hover:bg-white/10"
-          }` }
-      >
-        <List className="h-4 w-4" />
-        Table
-      </button>
+    <div className="flex-grow ml-5 w-full flex items-center justify-around md:justify-between space-x-4">
+      <span className="inline-flex">
+        <button
+          type="button"
+          onClick={ () => setViewMode( "grid" ) }
+          className={ `p-2 inline-flex justify-center items-center transition ${ viewMode === "grid" ? "bg-purple-600 text-white" : "hover:bg-white/10"
+            }` }
+        >
+          <Grid className="h-4 w-4" />
+          Grid
+        </button>
+        <button
+          type="button"
+          onClick={ () => setViewMode( "table" ) }
+          className={ `p-2 ml-2 inline-flex justify-center items-center transition ${ viewMode === "table" ? "bg-purple-600 text-white rounded-lg" : "hover:bg-white/10"
+            }` }
+        >
+          <List className="h-4 w-4" />
+          Table
+        </button>
+      </span>
     </div>
   );
 
@@ -503,16 +505,16 @@ const MyCollection = () => {
   } else {
     content = (
       <div className="space-y-10 mx-auto h-full yugioh-bg bg-fixed bg-center bg-no-repeat">
-        <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 backdrop">
-          <div className="space-y-2">
+        <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 backdrop p-2">
+          <div className="space-y-2 text-center sm:text-left text-pretty">
             <h1 className="text-3xl font-bold text-shadow md:text-4xl">My Yu-Gi-Oh! Collection</h1>
             <p className="text-white/70">
               Track cards, monitor market prices, and manage your collection with powerful tools.
             </p>
           </div>
 
-          <div className="max-w-full w-[80%] sm:w-full mx-auto sm:mx-0 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="grid w-auto gap-4 sm:grid-cols-3">
+          <div className="max-w-full sm:w-fit mx-auto inline-flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-items-stretch">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="glass rounded-2xl border border-white/10 p-5">
                 <p className="text-xs uppercase tracking-wide text-white/60">Total cards</p>
                 <p className="mt-2 text-3xl font-semibold text-white">{ totalOwnedCards }</p>
@@ -532,9 +534,9 @@ const MyCollection = () => {
         </header>
 
         <section className="space-y-6 border border-white/10 p-6 backdrop mx-auto">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="relative w-auto max-w-xl">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/50" />
+          <div className="py-5 sm:px-4 flex flex-col-reverse md:flex-row items-center justify-between">
+            <div className="flex-shrink-0 mt-5 md:mt-0 max-w-sm sm:max-w-none w-full md:w-auto grid sm:grid-flow-col grid-cols-1 sm:auto-cols-fr gap-4">
+              <Search className="pointer-events-none absolute mt-4 ml-5 h-5 w-5 text-white/50" />
               <input
                 type="text"
                 value={ searchValue }
@@ -547,15 +549,7 @@ const MyCollection = () => {
 
           </div>
 
-          { activeFilterBadges.length > 0 && (
-            <div className="flex flex-wrap gap-2 text-sm text-white/70">
-              { activeFilterBadges.map( ( badge ) => (
-                <span key={ badge.id } className="glass rounded-full px-3 py-1">
-                  { badge.label }
-                </span>
-              ) ) }
-            </div>
-          ) }
+
 
           <div className="flex flex-wrap items-center gap-3">
             <button
@@ -605,7 +599,9 @@ const MyCollection = () => {
                     Clear filters
                   </button>
                 ) }
+
               </div>
+
               { totalItems > ITEMS_PER_PAGE && (
                 <YugiohPagination
                   currentPage={ currentPage }
@@ -638,12 +634,22 @@ const MyCollection = () => {
                 <p className="mt-2">Add cards to start tracking your inventory and market prices.</p>
               </div>
               <div className="flex max-h-24 h-fit items-center gap-3">
+
                 <CardFilter
                   filters={ filters }
                   updateFilters={ handleFilterChange }
                   isModalOpen={ isFilterMenuOpen }
                   setIsModalOpen={ setIsFilterMenuOpen }
                 />
+                { activeFilterBadges.length > 0 && (
+                  <div className="flex flex-wrap gap-2 text-sm text-white/70">
+                    { activeFilterBadges.map( ( badge ) => (
+                      <span key={ badge.id } className="glass rounded-full px-3 py-1">
+                        { badge.label }
+                      </span>
+                    ) ) }
+                  </div>
+                ) }
                 { activeFilterBadges.length > 0 && (
                   <button
                     type="button"
@@ -653,9 +659,13 @@ const MyCollection = () => {
                     Clear filters
                   </button>
                 ) }
+
               </div>
+
             </>
+
           ) }
+
         </section>
       </div>
     );
