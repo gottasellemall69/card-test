@@ -22,7 +22,17 @@ export default async function handler( req, res ) {
     const db = client.db( "cardPriceApp" );
     const collection = db.collection( "myCollection" );
 
-    const sanitizedCards = cards.filter( ( card ) => card && typeof card === "object" );
+    const sanitizedCards = cards
+      .filter( ( card ) => card && typeof card === "object" )
+      .map( ( card ) => {
+        const rawCardId = card?.cardId;
+        const normalizedCardId =
+          rawCardId === null || rawCardId === undefined ? null : String( rawCardId );
+        return {
+          ...card,
+          cardId: normalizedCardId,
+        };
+      } );
     if ( sanitizedCards.length === 0 ) {
       return res.status( 400 ).json( { error: "No valid card data provided." } );
     }
@@ -40,7 +50,10 @@ export default async function handler( req, res ) {
         },
         update: {
           $inc: { quantity: card.quantity || 1 },
-          $set: { oldPrice: null },
+          $set: {
+            oldPrice: null,
+            cardId: card.cardId || null,
+          },
           $setOnInsert: {
             marketPrice: card.marketPrice || 0,
             lowPrice: card.lowPrice || 0,

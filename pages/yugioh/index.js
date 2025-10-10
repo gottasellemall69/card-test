@@ -155,7 +155,7 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <div className="yugioh-bg h-svh w-full mx-auto text-center">
+      <div className="yugioh-bg min-h-screen w-full mx-auto text-center">
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
 
         <span className="pb-3 mx-auto text-center">

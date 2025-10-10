@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import Notification from '@/components/Notification';
 
@@ -156,7 +157,50 @@ const TableView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                   </span>
                 ) }
               </td>
-              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.productName }</td>
+              <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">
+                { (() => {
+                  const letterFromSet =
+                    typeof card?.setName === 'string' && card.setName.length > 0
+                      ? card.setName.charAt( 0 ).toUpperCase()
+                      : null;
+                  const fallbackLetter =
+                    typeof card?.productName === 'string' && card.productName.length > 0
+                      ? card.productName.charAt( 0 ).toUpperCase()
+                      : null;
+                  const letter = letterFromSet || fallbackLetter || undefined;
+
+                  const query = {
+                    source: 'collection',
+                  };
+
+                  if ( card?.cardId ) {
+                    query.card = String( card.cardId );
+                  }
+                  if ( card?.productName ) {
+                    query.card_name = card.productName;
+                  }
+                  if ( card?.setName ) query.set_name = card.setName;
+                  if ( card?.number ) query.set_code = card.number;
+                  if ( card?.rarity ) {
+                    query.rarity = card.rarity;
+                    query.set_rarity = card.rarity;
+                  }
+                  if ( card?.printing ) query.edition = card.printing;
+                  if ( letter ) query.letter = letter;
+
+                  return (
+                    <Link
+                      href={ {
+                        pathname: '/yugioh/sets/[letter]/cards/card-details',
+                        query,
+                      } }
+                      className="block h-full w-full cursor-pointer text-inherit hover:underline"
+                    >
+                      { card?.productName || 'Unknown Name' }
+                    </Link>
+                  );
+                } )() }
+              </td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.setName }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.number }</td>
               <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-nowrap">{ card?.printing }</td>

@@ -21,6 +21,7 @@ export default async function handler( req, res ) {
           {
             $project: {
               _id: 1,
+              cardId: 1,
               productName: 1,
               setName: 1,
               number: 1,

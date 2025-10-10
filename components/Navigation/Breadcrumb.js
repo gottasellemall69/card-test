@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -24,6 +24,14 @@ const Breadcrumb = () => {
         .catch( ( err ) => console.error( 'Breadcrumb: failed to fetch card name', err ) );
     }
   }, [ query.card ] );
+
+  // Fall back to the card name passed in the query if no id lookup is available
+  useEffect( () => {
+    if ( !query.card && query.card_name ) {
+      const nameValue = Array.isArray( query.card_name ) ? query.card_name[ 0 ] : query.card_name;
+      setCardName( nameValue || null );
+    }
+  }, [ query.card, query.card_name ] );
 
   if ( !isReady || !hasMounted ) return null;
 
@@ -64,8 +72,13 @@ const Breadcrumb = () => {
     }
 
     // 6. Card Details
+    const fallbackCardName =
+      cardName ||
+      ( Array.isArray( query.card_name ) ? query.card_name[ 0 ] : query.card_name ) ||
+      ( Array.isArray( query.card ) ? query.card[ 0 ] : query.card );
+
     crumbs.push( {
-      label: `Card Details: ${ cardName || query.card }`,
+      label: `Card Details: ${ fallbackCardName || 'Unknown Card' }`,
       href: null
     } );
   }

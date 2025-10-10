@@ -12,7 +12,7 @@ import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
   ssr: false,
   loading: () => (
-    <div className="mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
+    <div className="h-screen mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
       Loading table...
     </div>
   ),
@@ -21,7 +21,7 @@ const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
 const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
   ssr: false,
   loading: () => (
-    <div className="mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
+    <div className="h-screen mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
       Loading cards...
     </div>
   ),
@@ -477,17 +477,18 @@ const MyCollection = () => {
     </div>
   );
 
-  let content;
 
   if ( isLoading ) {
-    content = (
+    return (
       <div className="flex-col min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-center gap-3 text-white/80">
         <Loader2 className="h-12 w-12 animate-spin" />
         <p className="text-lg font-semibold">Loading your collection...</p>
       </div>
     );
-  } else if ( !isAuthenticated ) {
-    content = (
+  }
+
+  if ( !isAuthenticated ) {
+    return (
       <div className="min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-items-center glass mx-auto w-full rounded-3xl p-10 text-center text-white">
         <h2 className="text-3xl font-bold text-shadow">Please log in</h2>
         <p className="mt-3 text-white/70">
@@ -502,9 +503,17 @@ const MyCollection = () => {
         </button>
       </div>
     );
-  } else {
-    content = (
-      <div className="space-y-10 mx-auto h-full yugioh-bg bg-fixed bg-center bg-no-repeat">
+  }
+
+  return (
+    <>
+      <Head>
+        <title>My Yu-Gi-Oh! Collection</title>
+        <meta name="description" content="Track cards, monitor market prices, and manage your collection with powerful tools." />
+        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta charSet="UTF-8" />
+      </Head>
+      <div className="space-y-10 mx-auto min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat">
         <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 backdrop p-2">
           <div className="space-y-2 text-center sm:text-left text-pretty">
             <h1 className="text-3xl font-bold text-shadow md:text-4xl">My Yu-Gi-Oh! Collection</h1>
@@ -513,83 +522,86 @@ const MyCollection = () => {
             </p>
           </div>
 
-          <div className="max-w-full sm:w-fit mx-auto inline-flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-items-stretch">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="glass rounded-2xl border border-white/10 p-5">
-                <p className="text-xs uppercase tracking-wide text-white/60">Total cards</p>
-                <p className="mt-2 text-3xl font-semibold text-white">{ totalOwnedCards }</p>
-              </div>
-              <div className="glass rounded-2xl border border-white/10 p-5">
-                <p className="text-xs uppercase tracking-wide text-white/60">Distinct sets</p>
-                <p className="mt-2 text-3xl font-semibold text-white">{ distinctSets }</p>
-              </div>
-              <div className="glass rounded-2xl border border-white/10 p-5">
-                <p className="text-xs uppercase tracking-wide text-white/60">Estimated value</p>
-                <p className="mt-2 text-3xl font-semibold text-emerald-400">{ formattedEstimatedValue }</p>
+          { hasCards && (
+            <div className="max-w-full sm:w-fit mx-auto inline-flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-items-stretch">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="glass rounded-2xl border border-white/10 p-5">
+                  <p className="text-xs uppercase tracking-wide text-white/60">Total cards</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{ totalOwnedCards }</p>
+                </div>
+                <div className="glass rounded-2xl border border-white/10 p-5">
+                  <p className="text-xs uppercase tracking-wide text-white/60">Distinct sets</p>
+                  <p className="mt-2 text-3xl font-semibold text-white">{ distinctSets }</p>
+                </div>
+                <div className="glass rounded-2xl border border-white/10 p-5">
+                  <p className="text-xs uppercase tracking-wide text-white/60">Estimated value</p>
+                  <p className="mt-2 text-3xl font-semibold text-emerald-400">{ formattedEstimatedValue }</p>
+                </div>
               </div>
             </div>
-
-
-          </div>
+          ) }
         </header>
 
-        <section className="space-y-6 border border-white/10 p-6 backdrop mx-auto">
-          <div className="py-5 sm:px-4 flex flex-col-reverse md:flex-row items-center justify-between">
-            <div className="flex-shrink-0 mt-5 md:mt-0 max-w-sm sm:max-w-none w-full md:w-auto grid sm:grid-flow-col grid-cols-1 sm:auto-cols-fr gap-4">
-              <Search className="pointer-events-none absolute mt-4 ml-5 h-5 w-5 text-white/50" />
-              <input
-                type="text"
-                value={ searchValue }
-                onChange={ handleSearchChange }
-                placeholder="Search by name, set, rarity, or number..."
-                className="w-full rounded-xl border border-white/10 bg-black/40 px-12 py-3 text-base text-white placeholder-white/50 focus:border-purple-500/60 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
-              />
-            </div>
+        { hasCards ? (
+          <>
+            <section className="space-y-6 border border-white/10 p-6 backdrop mx-auto">
+              <div className="py-5 flex flex-col-reverse md:flex-row items-center justify-between">
+                <div className="flex-shrink-0 mt-5 md:mt-0 max-w-7xl w-full md:w-auto grid sm:grid-flow-col grid-cols-1 sm:auto-cols-fr gap-4">
+                  <Search className="pointer-events-none absolute mt-4 ml-5 h-5 w-5 text-white/50" />
+                  <input
+                    type="text"
+                    value={ searchValue }
+                    onChange={ handleSearchChange }
+                    placeholder="Search by name, set, rarity, or number..."
+                    className="w-full rounded-xl border border-white/10 bg-black/40 px-12 py-3 text-base text-white placeholder-white/50 focus:border-purple-500/60 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  />
+                </div>
+              </div>
 
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={ handleUpdatePrices }
+                  disabled={ isUpdatingPrices }
+                  className={ `inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 font-semibold transition hover:from-blue-500 hover:to-purple-500 ${ isUpdatingPrices ? "opacity-70" : ""
+                    }` }
+                >
+                  { isUpdatingPrices ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" /> }
+                  <span>{ isUpdatingPrices ? "Updating..." : "Refresh prices" }</span>
+                </button>
 
-          </div>
+                <DownloadYugiohCSVButton aggregatedData={ sortedCards } userCardList={ [] } />
 
+                <button
+                  type="button"
+                  onClick={ onDeleteAllCards }
+                  disabled={ !hasCards }
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 font-semibold transition hover:from-red-500 hover:to-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete all</span>
+                </button>
+              </div>
+            </section>
 
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={ handleUpdatePrices }
-              disabled={ isUpdatingPrices }
-              className={ `inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 font-semibold transition hover:from-blue-500 hover:to-purple-500 ${ isUpdatingPrices ? "opacity-70" : ""
-                }` }
-            >
-              { isUpdatingPrices ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" /> }
-              <span>{ isUpdatingPrices ? "Updating..." : "Refresh prices" }</span>
-            </button>
-
-            <DownloadYugiohCSVButton aggregatedData={ sortedCards } userCardList={ [] } />
-
-            <button
-              type="button"
-              onClick={ onDeleteAllCards }
-              disabled={ !hasCards }
-              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 font-semibold transition hover:from-red-500 hover:to-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>Delete all</span>
-            </button>
-          </div>
-        </section>
-
-        <section className="sticky">
-          { hasCards ? (
-            <>
-
-              <div className="flex max-h-24 h-fit items-center gap-3">
+            <div className="w-full mx-auto">
+              <div className="flex max-h-24 items-center gap-3">
                 <div className="flex justify-start lg:justify-end">{ renderViewToggle() }</div>
-
                 <CardFilter
                   filters={ filters }
                   updateFilters={ handleFilterChange }
                   isModalOpen={ isFilterMenuOpen }
                   setIsModalOpen={ setIsFilterMenuOpen }
                 />
+                { activeFilterBadges.length > 0 && (
+                  <div className="flex flex-wrap gap-2 text-sm text-white/70">
+                    { activeFilterBadges.map( ( badge ) => (
+                      <span key={ badge.id } className="glass px-1 rounded-xl py-2">
+                        { badge.label }
+                      </span>
+                    ) ) }
+                  </div>
+                ) }
                 { activeFilterBadges.length > 0 && (
                   <button
                     type="button"
@@ -599,7 +611,6 @@ const MyCollection = () => {
                     Clear filters
                   </button>
                 ) }
-
               </div>
 
               { totalItems > ITEMS_PER_PAGE && (
@@ -610,31 +621,26 @@ const MyCollection = () => {
                   handlePageClick={ handlePageClick }
                 />
               ) }
-              { viewMode === "grid" ? (
-                <GridView aggregatedData={ gridCards } onDeleteCard={ onDeleteCard } onUpdateCard={ onUpdateCard } />
+
+              { viewMode === "table" ? (
+                <TableView
+                  aggregatedData={ paginatedCards }
+                  onDeleteCard={ onDeleteCard }
+                  onUpdateCard={ onUpdateCard }
+                  handleSortChange={ handleSortChange }
+                />
               ) : (
-                <>
-                  <div className="mx-auto">
-                    <TableView
-                      aggregatedData={ paginatedCards }
-                      onDeleteCard={ onDeleteCard }
-                      onUpdateCard={ onUpdateCard }
-                      handleSortChange={ handleSortChange }
-                    />
-                  </div>
-                </>
+                <GridView aggregatedData={ gridCards } onDeleteCard={ onDeleteCard } onUpdateCard={ onUpdateCard } />
               ) }
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="min-h-screen py-16 text-center text-white/70">
 
 
-            </>
-          ) : (
-            <>
-              <div className="py-16 text-center text-white/70">
-                <p className="text-lg font-semibold">Your collection is empty.</p>
-                <p className="mt-2">Add cards to start tracking your inventory and market prices.</p>
-              </div>
-              <div className="flex max-h-24 h-fit items-center gap-3">
-
+              <div className="mb-10 flex max-h-24 h-fit items-center gap-3">
+                <div className="flex justify-start lg:justify-end">{ renderViewToggle() }</div>
                 <CardFilter
                   filters={ filters }
                   updateFilters={ handleFilterChange }
@@ -659,38 +665,24 @@ const MyCollection = () => {
                     Clear filters
                   </button>
                 ) }
-
               </div>
+              <p className="text-lg font-semibold">Your collection is empty.</p>
+              <p className="mt-2">Add cards to start tracking your inventory and market prices.</p>
+            </div>
+          </>
+        ) }
 
-            </>
-
-          ) }
-
-        </section>
+        <Notification
+          show={ notification.show }
+          setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
+          message={ notification.message }
+        />
       </div>
-    );
-  }
 
-  return (
-    <>
-      <Head>
-        <title>
-          My Collection | Yu-Gi-Oh! Tracker
-        </title>
-      </Head>
-
-
-      <div className="mx-auto h-auto w-7xl">
-        { content }
-      </div>
-      <Notification
-        show={ notification.show }
-        setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
-        message={ notification.message }
-      />
       <SpeedInsights />
     </>
   );
+
 };
 
 export default MyCollection;

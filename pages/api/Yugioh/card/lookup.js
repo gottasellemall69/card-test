@@ -1,13 +1,13 @@
 export default async function handler( req, res ) {
-  const { cardId } = req.query;
-  const normalizedCardId = Array.isArray( cardId ) ? cardId[ 0 ] : cardId;
+  const { name } = req.query;
+  const normalizedName = Array.isArray( name ) ? name[ 0 ] : name;
 
-  if ( !normalizedCardId ) {
-    return res.status( 400 ).json( { error: "Missing card identifier" } );
+  if ( !normalizedName ) {
+    return res.status( 400 ).json( { error: "Missing card name" } );
   }
 
   try {
-    const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent( normalizedCardId ) }&tcgplayer_data=true`;
+    const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${ encodeURIComponent( normalizedName ) }&tcgplayer_data=true`;
     const response = await fetch( url );
     const data = await response.json();
 
@@ -43,7 +43,7 @@ export default async function handler( req, res ) {
 
     res.status( 200 ).json( formattedCard );
   } catch ( error ) {
-    console.error( "Fetching card data failed:", error );
+    console.error( "Card lookup failed:", error );
     res.status( 500 ).json( { error: "Internal Server Error" } );
   }
 }

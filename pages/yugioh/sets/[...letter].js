@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Head from "next/head";
 
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { fetchCardData } from "@/utils/api";
@@ -54,7 +55,13 @@ const SetsByLetterPage = () => {
 
   return (
     <>
-      <div className="mx-auto w-full yugioh-bg h-screen">
+      <Head>
+        <title>Yu-Gi-Oh! Cards in Set</title>
+        <meta name="description" content={ `Sets Starting with ${ letter }` } />
+        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta charSet="UTF-8" />
+      </Head>
+      <div className="mx-auto w-full yugioh-bg min-h-screen">
         <Breadcrumb />
         <div>
           <h1 className="my-10 text-xl font-black text-shadow">

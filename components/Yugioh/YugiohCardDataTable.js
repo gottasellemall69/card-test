@@ -1,6 +1,7 @@
 ﻿// components/Yugioh/YugiohCardDataTable.js
 "use client";
 import React, { useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import dynamic from 'next/dynamic';
@@ -336,7 +337,47 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                                     />
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { card?.productName || 'N/A' }
+                                                    { ( () => {
+                                                        const detailParams = item.detailParams || {};
+                                                        const rawLetter = router.query?.letter;
+                                                        const resolvedLetter = Array.isArray( rawLetter )
+                                                            ? rawLetter[ 0 ]
+                                                            : rawLetter;
+                                                        const fallbackSetName = detailParams.setName || card?.setName || '';
+                                                        const computedLetter =
+                                                            resolvedLetter ||
+                                                            ( typeof fallbackSetName === 'string' && fallbackSetName.length > 0
+                                                                ? fallbackSetName.charAt( 0 ).toUpperCase()
+                                                                : undefined );
+
+                                                        const query = { source: 'set' };
+
+                                                        if ( detailParams.cardId ) query.card = detailParams.cardId;
+                                                        if ( detailParams.cardName || card?.productName ) query.card_name = detailParams.cardName || card?.productName;
+                                                        if ( fallbackSetName ) query.set_name = fallbackSetName;
+                                                        const fallbackSetCode = detailParams.setCode || card?.number || '';
+                                                        if ( fallbackSetCode ) query.set_code = fallbackSetCode;
+                                                        const fallbackRarity = detailParams.rarity || detailParams.setRarity || card?.rarity || '';
+                                                        if ( fallbackRarity ) {
+                                                            query.rarity = fallbackRarity;
+                                                            query.set_rarity = fallbackRarity;
+                                                        }
+                                                        const fallbackEdition = detailParams.edition || card?.printing || '';
+                                                        if ( fallbackEdition ) query.edition = fallbackEdition;
+                                                        if ( computedLetter ) query.letter = computedLetter;
+
+                                                        return (
+                                                            <Link
+                                                                href={ {
+                                                                    pathname: '/yugioh/sets/[letter]/cards/card-details',
+                                                                    query,
+                                                                } }
+                                                                className="block h-full w-full cursor-pointer text-inherit hover:underline"
+                                                            >
+                                                                { card?.productName || 'N/A' }
+                                                            </Link>
+                                                        );
+                                                    } )() }
                                                 </td>
                                                 <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.setName || 'N/A' }

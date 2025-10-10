@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter } from "next/router";
+import Head from "next/head";
 import { Grid, List } from "lucide-react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import Card from "@/components/Yugioh/Card";
@@ -1095,6 +1096,17 @@ const CardsInSetPage = () => {
           lowPrice: variant?.lowPrice ?? null,
         },
         collectionKey: card.collectionKey,
+        cardDetailId: card.cardDetailId,
+        setLabel: card.setLabel,
+        detailParams: {
+          cardId: card.cardDetailId,
+          cardName: card.productName,
+          setName: card.setLabel || activeSetDisplayName,
+          setCode: variant?.number || "",
+          rarity: variant?.rarity || "Unknown Rarity",
+          setRarity: variant?.rarity || "Unknown Rarity",
+          edition: variant?.printing || "Unknown Edition",
+        },
         variant,
         resolvedVariant: card.resolvedVariant,
         variants: card.variants,
@@ -1192,6 +1204,11 @@ const CardsInSetPage = () => {
         body: JSON.stringify( {
           cards: [
             {
+              cardId:
+                selectedCard.cardDetailId ||
+                modalVariant.productID ||
+                modalVariant.id ||
+                null,
               productName: selectedCard.productName,
               setName: modalVariant.set || activeSetDisplayName,
               number: modalVariant.number || "",
@@ -1262,6 +1279,12 @@ const CardsInSetPage = () => {
         }
 
         return {
+          cardId:
+            row.cardDetailId ||
+            variant.productID ||
+            row.variant?.productID ||
+            row.card?.cardDetailId ||
+            null,
           productName: row.card.productName,
           setName: variant.set || activeSetDisplayName,
           number: variant.number || "",
@@ -1444,6 +1467,12 @@ const CardsInSetPage = () => {
   }, [ collectionLookup, gridSelectionMode, isAuthenticated, selectedRowIds, toggleSelection, openModal, handleRarityOverrideChange ] );
   return (
     <>
+      <Head>
+        <title>Yu-Gi-Oh! Set Contents</title>
+        <meta name="description" content={ `Explore ${ processedCards.length || 0 } card listings with live pricing and quick filters.` } />
+        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta charSet="UTF-8" />
+      </Head>
       <Notification
         show={ notification.show }
         setShow={ updateNotificationVisibility }
