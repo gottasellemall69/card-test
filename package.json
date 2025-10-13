@@ -33,7 +33,7 @@
         "react-table": "^7.8.0",
         "react-window": "^1.8.11",
         "recharts": "^2.15.3",
-        "repomix": "^0.2.43",
+        "repomix": "^1.7.0",
         "swr": "^2.3.3",
         "upgrade": "^1.1.0"
     },
