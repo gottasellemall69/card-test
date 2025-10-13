@@ -37,7 +37,20 @@ export default async function handler( req, res ) {
       { expiresIn: 86400 }
     );
 
-    res.setHeader( "Set-Cookie", `token=${ token }; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict; Secure` );
+    const isProduction = process.env.NODE_ENV === "production";
+    const sharedAttributes = [
+      "Path=/",
+      "Max-Age=86400",
+      "SameSite=Strict",
+    ];
+    if ( isProduction ) {
+      sharedAttributes.push( "Secure" );
+    }
+
+    res.setHeader( "Set-Cookie", [
+      `token=${ token }; HttpOnly; ${ sharedAttributes.join( "; " ) }`,
+      `auth_state=1; ${ sharedAttributes.join( "; " ) }`,
+    ] );
     res.status( 200 ).json( { message: "Logged in!" } );
 
   } catch ( error ) {

@@ -1,7 +1,8 @@
 ﻿import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
+import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
 
 const normalizePath = ( path ) => {
   if ( !path ) {
@@ -75,21 +76,29 @@ export default function SideNav() {
 
 
 
-  useMemo( () => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch( "/api/auth/validate", {
-          method: "GET",
-          credentials: "include",
-        } );
-        setIsAuthenticated( res.ok );
-      } catch {
-        setIsAuthenticated( false );
-      }
-    };
+  const refreshAuthState = useCallback( () => {
+    setIsAuthenticated( readAuthStateFromCookie() );
+  }, [] );
 
-    checkAuth();
-  }, [ router ] );
+  useEffect( () => {
+    refreshAuthState();
+
+    const unsubscribe = subscribeToAuthState( ( state ) => {
+      setIsAuthenticated( state );
+    } );
+
+    const handleFocus = () => refreshAuthState();
+    window.addEventListener( "focus", handleFocus );
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener( "focus", handleFocus );
+    };
+  }, [ refreshAuthState ] );
+
+  useEffect( () => {
+    refreshAuthState();
+  }, [ router.asPath, refreshAuthState ] );
 
   const handleLogout = async () => {
     try {
@@ -98,6 +107,7 @@ export default function SideNav() {
         credentials: "include",
       } );
       setIsAuthenticated( false );
+      dispatchAuthStateChange( false );
       router.push( "/logout" );
     } catch {
       console.error( "Logout failed" );

@@ -1,4 +1,6 @@
-﻿import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
+import fs from "fs/promises";
+import path from "path";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { Grid, List } from "lucide-react";
@@ -12,6 +14,43 @@ import Notification from "@/components/Notification";
 import { fetchCardData as fetchAllCardData } from "@/utils/api";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
+import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
+
+const CARD_SETS_FILE_PATH = path.join(
+  process.cwd(),
+  "public",
+  "card-data",
+  "Yugioh",
+  "card_sets.json",
+);
+
+let cachedCardSets = null;
+
+async function loadCardSets() {
+  if ( cachedCardSets ) {
+    return cachedCardSets;
+  }
+
+  try {
+    const fileContents = await fs.readFile( CARD_SETS_FILE_PATH, "utf8" );
+    const parsed = JSON.parse( fileContents );
+    cachedCardSets = Array.isArray( parsed ) ? parsed : [];
+  } catch ( error ) {
+    console.error( "Failed to load Yu-Gi-Oh! card set catalogue:", error );
+    cachedCardSets = [];
+  }
+
+  return cachedCardSets;
+}
+
+const normalizeSetLetter = ( value ) => {
+  if ( !value ) {
+    return "";
+  }
+
+  const stringValue = value.toString().trim();
+  return stringValue ? stringValue.charAt( 0 ).toUpperCase() : "";
+};
 
 const DEFAULT_AUTO_CONDITION = "";
 const DEFAULT_AUTO_PRINTING = "";
@@ -383,7 +422,7 @@ const aggregateEntries = ( entries = [], cardIndex = {} ) => {
 
 const AUTO_RARITY_OPTION = null;
 
-const CardsInSetPage = () => {
+const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
   const router = useRouter();
   const { setName } = router.query;
 
@@ -391,13 +430,16 @@ const CardsInSetPage = () => {
     if ( typeof setName === "string" ) {
       return decodeURIComponent( setName );
     }
+    if ( initialSetName ) {
+      return initialSetName;
+    }
     return "";
-  }, [ setName ] );
+  }, [ setName, initialSetName ] );
 
   const [ cards, setCards ] = useState( [] );
   const [ rawEntries, setRawEntries ] = useState( [] );
   const [ cardIndex, setCardIndex ] = useState( {} );
-  const [ resolvedSetName, setResolvedSetName ] = useState( [] );
+  const [ resolvedSetName, setResolvedSetName ] = useState( initialSetName || "" );
   const [ isLoading, setIsLoading ] = useState( false );
   const [ fetchError, setFetchError ] = useState( "" );
   const [ filters, setFilters ] = useState( { rarity: [], condition: [], printing: [] } );
@@ -553,27 +595,33 @@ const CardsInSetPage = () => {
       setFetchError( "" );
 
       try {
-        const mapResponse = await fetch( "/api/Yugioh/setNameIdMap" );
-        if ( !mapResponse.ok ) {
-          throw new Error( "Failed to load set catalogue" );
+        let effectiveSetId = setNameId;
+        let officialName = initialSetName || decodedSetName;
+
+        if ( !effectiveSetId ) {
+          const mapResponse = await fetch( "/api/Yugioh/setNameIdMap" );
+          if ( !mapResponse.ok ) {
+            throw new Error( "Failed to load set catalogue" );
+          }
+
+          const setMap = await mapResponse.json();
+          const match = Object.entries( setMap || {} ).find( ( [ name ] ) =>
+            name.toLowerCase() === decodedSetName.toLowerCase()
+          );
+
+          if ( !match ) {
+            throw new Error( "Set not found in catalogue" );
+          }
+
+          officialName = match[ 0 ];
+          effectiveSetId = match[ 1 ];
         }
 
-        const setMap = await mapResponse.json();
-        const match = Object.entries( setMap || {} ).find( ( [ name ] ) =>
-          name.toLowerCase() === decodedSetName.toLowerCase()
-        );
-
-        if ( !match ) {
-          throw new Error( "Set not found in catalogue" );
-        }
-
-        const [ officialName, setId ] = match;
-
-        if ( !setId ) {
+        if ( !effectiveSetId ) {
           throw new Error( "Missing set identifier" );
         }
 
-        const priceResponse = await fetch( `/api/Yugioh/cards/${ setId }` );
+        const priceResponse = await fetch( `/api/Yugioh/cards/${ effectiveSetId }` );
         if ( !priceResponse.ok ) {
           throw new Error( "Failed to load pricing" );
         }
@@ -586,7 +634,7 @@ const CardsInSetPage = () => {
         }
 
         if ( isMounted ) {
-          setResolvedSetName( officialName );
+          setResolvedSetName( officialName || decodedSetName );
           setRawEntries( results );
           setSelectedRowIds( {} );
           setBulkSelections( {} );
@@ -615,7 +663,7 @@ const CardsInSetPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [ decodedSetName ] );
+  }, [ decodedSetName, initialSetName, setNameId ] );
 
   useEffect( () => {
     if ( !Array.isArray( rawEntries ) || rawEntries.length === 0 ) {
@@ -627,19 +675,22 @@ const CardsInSetPage = () => {
   }, [ rawEntries, cardIndex ] );
 
   useEffect( () => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch( "/api/auth/validate", {
-          method: "GET",
-          credentials: "include",
-        } );
-        setIsAuthenticated( res.ok );
-      } catch {
-        setIsAuthenticated( false );
-      }
+    const syncAuthState = () => {
+      setIsAuthenticated( readAuthStateFromCookie() );
     };
 
-    checkAuth();
+    syncAuthState();
+
+    const unsubscribe = subscribeToAuthState( ( state ) => {
+      setIsAuthenticated( state );
+    } );
+
+    window.addEventListener( "focus", syncAuthState );
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener( "focus", syncAuthState );
+    };
   }, [] );
 
   useEffect( () => {
@@ -655,6 +706,13 @@ const CardsInSetPage = () => {
           credentials: "include",
         } );
 
+        if ( response.status === 401 ) {
+          setCollectionCards( [] );
+          setIsAuthenticated( false );
+          dispatchAuthStateChange( false );
+          return;
+        }
+
         if ( !response.ok ) {
           setCollectionCards( [] );
           return;
@@ -665,6 +723,10 @@ const CardsInSetPage = () => {
       } catch ( error ) {
         console.error( "Failed to load collection for set view:", error );
         setCollectionCards( [] );
+        if ( error?.status === 401 ) {
+          setIsAuthenticated( false );
+          dispatchAuthStateChange( false );
+        }
       }
     };
 
@@ -1945,6 +2007,35 @@ const CardsInSetPage = () => {
     </>
   );
 };
+
+export async function getServerSideProps( { params } ) {
+  const rawLetter = Array.isArray( params?.letter ) ? params.letter[ 0 ] : params?.letter;
+  const rawSetName = Array.isArray( params?.setName ) ? params.setName[ 0 ] : params?.setName;
+
+  if ( !rawSetName ) {
+    return { notFound: true };
+  }
+
+  const sets = await loadCardSets();
+
+  const matchedSet = sets.find(
+    ( set ) => set?.name?.toLowerCase() === rawSetName.toLowerCase()
+  );
+
+  if ( !matchedSet ) {
+    return { notFound: true };
+  }
+
+  const normalizedLetter = normalizeSetLetter( rawLetter || matchedSet.name );
+
+  return {
+    props: {
+      initialSetName: matchedSet.name || rawSetName,
+      setNameId: matchedSet.setNameId ?? null,
+      letter: normalizedLetter,
+    },
+  };
+}
 
 export default CardsInSetPage;
 

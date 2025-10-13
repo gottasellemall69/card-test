@@ -8,6 +8,7 @@ import Notification from '@/components/Notification';
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
+import { dispatchAuthStateChange } from "@/utils/authState";
 
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
   ssr: false,
@@ -31,13 +32,13 @@ const ITEMS_PER_PAGE = 12;
 const DEFAULT_FILTERS = { rarity: [], condition: [], printing: [] };
 const DEFAULT_SORT = { key: "number", direction: "ascending" };
 
-const MyCollection = () => {
+const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
   const router = useRouter();
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
-  const [ cards, setCards ] = useState( [] );
+  const [ cards, setCards ] = useState( () => ( Array.isArray( initialCards ) ? initialCards : [] ) );
   const [ viewMode, setViewMode ] = useState( "grid" );
-  const [ isAuthenticated, setIsAuthenticated ] = useState( false );
-  const [ isLoading, setIsLoading ] = useState( true );
+  const [ isAuthenticated, setIsAuthenticated ] = useState( () => Boolean( initialAuthState ) );
+  const [ isLoading, setIsLoading ] = useState( () => !initialAuthState );
   const [ isUpdatingPrices, setIsUpdatingPrices ] = useState( false );
   const [ searchValue, setSearchValue ] = useState( "" );
   const [ filters, setFilters ] = useState( () => ( { ...DEFAULT_FILTERS } ) );
@@ -62,39 +63,39 @@ const MyCollection = () => {
   }, [] );
 
   useEffect( () => {
+    if ( initialAuthState ) {
+      setIsAuthenticated( true );
+      setCards( Array.isArray( initialCards ) ? initialCards : [] );
+      setIsLoading( false );
+      dispatchAuthStateChange( true );
+      return;
+    }
+
     let isActive = true;
 
     const initialize = async () => {
       setIsLoading( true );
       try {
-        const response = await fetch( "/api/auth/validate", {
-          method: "GET",
-          credentials: "include",
-        } );
-
-        if ( !isActive ) {
-          return;
-        }
-
-        if ( !response.ok ) {
-          setIsAuthenticated( false );
-          setCards( [] );
-          return;
-        }
-
-        setIsAuthenticated( true );
         const data = await fetchCards();
 
         if ( !isActive ) {
           return;
         }
 
+        setIsAuthenticated( true );
         setCards( data );
+        dispatchAuthStateChange( true );
       } catch ( error ) {
         if ( isActive ) {
           console.error( "Error loading collection:", error );
-          setIsAuthenticated( false );
-          setCards( [] );
+          if ( error?.status === 401 ) {
+            setIsAuthenticated( false );
+            setCards( [] );
+            dispatchAuthStateChange( false );
+          } else {
+            setIsAuthenticated( true );
+            dispatchAuthStateChange( true );
+          }
         }
       } finally {
         if ( isActive ) {
@@ -108,7 +109,7 @@ const MyCollection = () => {
     return () => {
       isActive = false;
     };
-  }, [ fetchCards ] );
+  }, [ fetchCards, initialAuthState, initialCards ] );
 
   const refreshCollection = useCallback( async () => {
     try {
@@ -118,6 +119,7 @@ const MyCollection = () => {
       console.error( "Error refreshing collection:", error );
       if ( error.status === 401 ) {
         setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
       }
     }
   }, [ fetchCards ] );
@@ -684,5 +686,80 @@ const MyCollection = () => {
   );
 
 };
+
+export async function getServerSideProps( { req } ) {
+  const hasAuthCookie = Boolean( req?.cookies?.token );
+  const hasAuthHeader = Boolean( req?.headers?.authorization );
+  const authenticatedHeader = req?.headers?.[ "x-authenticated-user" ];
+  const authenticatedHeaderValue = Array.isArray( authenticatedHeader ) ? authenticatedHeader[ 0 ] : authenticatedHeader;
+  const hasAuthenticatedHeader = Boolean( authenticatedHeaderValue );
+
+  if ( !hasAuthCookie && !hasAuthHeader && !hasAuthenticatedHeader ) {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
+
+  const forwardedProto = req?.headers?.[ "x-forwarded-proto" ];
+  const forwardedHost = req?.headers?.[ "x-forwarded-host" ];
+  const host = forwardedHost || req?.headers?.host;
+
+  if ( !host ) {
+    return {
+      props: {
+        initialCards: [],
+        initialAuthState: false,
+      },
+    };
+  }
+
+  const protocol = Array.isArray( forwardedProto ) ? forwardedProto[ 0 ] : forwardedProto;
+  const baseUrl = `${ protocol || "http" }://${ host }`;
+
+  try {
+    const response = await fetch( `${ baseUrl }/api/Yugioh/my-collection`, {
+      method: "GET",
+      headers: {
+        cookie: req?.headers?.cookie ?? "",
+        ...( hasAuthHeader ? { authorization: req.headers.authorization } : {} ),
+        ...( hasAuthenticatedHeader ? { "x-authenticated-user": authenticatedHeaderValue } : {} ),
+      },
+      cache: "no-store",
+    } );
+
+    if ( response.status === 401 ) {
+      return {
+        redirect: {
+          destination: "/login",
+          permanent: false,
+        },
+      };
+    }
+
+    if ( !response.ok ) {
+      throw new Error( `Failed to load collection: ${ response.status }` );
+    }
+
+    const data = await response.json();
+
+    return {
+      props: {
+        initialCards: Array.isArray( data ) ? data : [],
+        initialAuthState: true,
+      },
+    };
+  } catch ( error ) {
+    console.error( "getServerSideProps my-collection error:", error );
+    return {
+      props: {
+        initialCards: [],
+        initialAuthState: false,
+      },
+    };
+  }
+}
 
 export default MyCollection;

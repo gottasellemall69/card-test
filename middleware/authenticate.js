@@ -30,24 +30,58 @@ export function getTokenFromRequest( req ) {
   );
 }
 
+function getUserFromMiddleware( req ) {
+  const headerValue = req.headers?.[ "x-authenticated-user" ];
+  const rawValue = Array.isArray( headerValue ) ? headerValue[ 0 ] : headerValue;
+
+  if ( typeof rawValue !== "string" || rawValue.length === 0 ) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse( rawValue );
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      parsed.userId &&
+      parsed.username
+    ) {
+      return parsed;
+    }
+  } catch ( error ) {
+    console.warn( "Failed to parse x-authenticated-user header:", error );
+  }
+
+  return null;
+}
+
 export async function requireUser(
   req,
   res,
   { ensureDatabaseUser = false } = {}
 ) {
+  const middlewareUser = getUserFromMiddleware( req );
   const token = getTokenFromRequest( req );
 
-  if ( !token ) {
+  if ( !token && !middlewareUser ) {
     res.status( 401 ).json( { error: "Unauthorized: No token provided" } );
     return null;
   }
 
-  let decoded;
-  try {
-    decoded = jwt.verify( token, process.env.JWT_SECRET );
-  } catch ( error ) {
-    console.error( "Invalid token:", error );
-    res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
+  let decoded = middlewareUser;
+
+  if ( !decoded ) {
+    try {
+      decoded = jwt.verify( token, process.env.JWT_SECRET );
+    } catch ( error ) {
+      console.error( "Invalid token:", error );
+      res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
+      return null;
+    }
+  }
+
+  if ( !decoded ) {
+    res.status( 401 ).json( { error: "Unauthorized: Invalid token payload" } );
     return null;
   }
 

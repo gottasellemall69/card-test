@@ -1,8 +1,21 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 import Link from "next/link";
+import { dispatchAuthStateChange } from "@/utils/authState";
 
+const DEFAULT_REDIRECT_PATH = "/yugioh/my-collection";
 
+const resolveRedirectPath = ( queryParam ) => {
+  if ( typeof queryParam !== "string" ) {
+    return DEFAULT_REDIRECT_PATH;
+  }
+
+  if ( !queryParam.startsWith( "/" ) || queryParam.startsWith( "//" ) ) {
+    return DEFAULT_REDIRECT_PATH;
+  }
+
+  return queryParam;
+};
 
 export default function LoginPage() {
   const [ username, setUsername ] = useState( "" );
@@ -29,7 +42,9 @@ export default function LoginPage() {
       const data = await response.json();
 
       if ( response.ok ) {
-        router.push( "/yugioh/my-collection" );
+        dispatchAuthStateChange( true );
+        const redirectTarget = resolveRedirectPath( router.query?.from );
+        router.push( redirectTarget );
       } else {
         setError( data.error || "Login failed. Please try again." );
       }
