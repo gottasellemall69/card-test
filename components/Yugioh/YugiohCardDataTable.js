@@ -12,7 +12,7 @@ const YugiohPagination = dynamic(
     { ssr: false }
 );
 
-const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
+const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthenticated = false } ) => {
     const router = useRouter();
     const itemsPerPage = 15;
     const [ currentPage, setCurrentPage ] = useState( 1 );
@@ -146,6 +146,11 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
     );
 
     const addToCollection = useCallback( async () => {
+        if ( !isAuthenticated ) {
+            triggerNotification( "Log in to add cards to your collection." );
+            return;
+        }
+
         if ( selectedKeys.size === 0 ) {
             triggerNotification( "No cards were selected to add to the collection!" );
             return;
@@ -181,7 +186,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
         } catch {
             triggerNotification( "Card(s) failed to save!" );
         }
-    }, [ selectedKeys, matchedCardData, itemUniqueIds, triggerNotification ] );
+    }, [ isAuthenticated, selectedKeys, matchedCardData, itemUniqueIds, triggerNotification ] );
 
 
     const downloadCSV = useCallback( () => {
@@ -215,8 +220,13 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
     }, [ selectedKeys, matchedCardData, setMatchedCardData, itemUniqueIds, triggerNotification ] );
 
     const handleGoToCollectionPage = useCallback( () => {
+        if ( !isAuthenticated ) {
+            triggerNotification( "Log in to view your collection." );
+            return;
+        }
+
         router.push( '/yugioh/my-collection' );
-    }, [ router ] );
+    }, [ isAuthenticated, router, triggerNotification ] );
 
     // Format helper for prices
     const formatPrice = ( val ) => {
@@ -252,20 +262,24 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                             >
                                 Download CSV
                             </button>
-                            <button
-                                type="button"
-                                className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
-                                onClick={ addToCollection }
-                            >
-                                Add card(s) to collection
-                            </button>
-                            <button
-                                type="button"
-                                className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
-                                onClick={ handleGoToCollectionPage }
-                            >
-                                View Collection
-                            </button>
+                            { isAuthenticated && (
+                                <>
+                                    <button
+                                        type="button"
+                                        className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
+                                        onClick={ addToCollection }
+                                    >
+                                        Add card(s) to collection
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
+                                        onClick={ handleGoToCollectionPage }
+                                    >
+                                        View Collection
+                                    </button>
+                                </>
+                            ) }
                         </div>
                         {/* Table */ }
                         <div className="w-full mx-auto overflow-x-auto">
@@ -336,7 +350,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                                         onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
                                                     />
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                <td className="p-2 text-center text-nowrap border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { ( () => {
                                                         const detailParams = item.detailParams || {};
                                                         const rawLetter = router.query?.letter;
@@ -379,22 +393,22 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData } ) => {
                                                         );
                                                     } )() }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.setName || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm  sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.number || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.printing || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.rarity || 'N/A' }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
                                                     { card?.condition || card?.condition + " " + card?.printing }
                                                 </td>
-                                                <td className="p-2 text-center border-t border-gray-100 text-xs lg:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
                                                     { formatPrice( data?.marketPrice ) }
                                                 </td>
                                             </tr>

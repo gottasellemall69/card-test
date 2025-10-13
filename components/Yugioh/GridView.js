@@ -154,7 +154,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                 {/* FRONT */ }
                 <div className="flip-card-front rounded-none">
                   <img
-                    className="aspect-auto object-contain w-fit object-center"
+                    className="aspect-auto object-cover w-full object-center"
                     as="image"
                     priority="true"
                     unoptimized="true"
@@ -201,35 +201,35 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                       </div>
                     </div>
                   </div>
-          <Link
-            href={ {
-              pathname: "/yugioh/sets/[letter]/cards/card-details",
-              query: ( () => {
-                const fallbackSetName = card.setName || "";
-                const fallbackCardName = card.productName || "";
-                const fallbackNumber = card.number || "";
-                const fallbackRarity = card.rarity || "";
-                const fallbackEdition = card.printing || "Unknown Edition";
-                const letterCandidate = ( fallbackSetName || fallbackCardName ).trim();
-                const computedLetter = letterCandidate ? letterCandidate.charAt( 0 ).toUpperCase() : undefined;
+                  <Link
+                    href={ {
+                      pathname: "/yugioh/sets/[letter]/cards/card-details",
+                      query: ( () => {
+                        const fallbackSetName = card.setName || "";
+                        const fallbackCardName = card.productName || "";
+                        const fallbackNumber = card.number || "";
+                        const fallbackRarity = card.rarity || "";
+                        const fallbackEdition = card.printing || "Unknown Edition";
+                        const letterCandidate = ( fallbackSetName || fallbackCardName ).trim();
+                        const computedLetter = letterCandidate ? letterCandidate.charAt( 0 ).toUpperCase() : undefined;
 
-                const query = { source: "collection" };
+                        const query = { source: "collection" };
 
-                if ( cardInfo?.id ) query.card = cardInfo.id;
-                if ( computedLetter ) query.letter = computedLetter;
-                if ( fallbackSetName ) query.set_name = fallbackSetName;
-                if ( fallbackCardName ) query.card_name = fallbackCardName;
-                if ( fallbackNumber ) query.set_code = fallbackNumber;
-                if ( fallbackRarity ) {
-                  query.rarity = fallbackRarity;
-                  query.set_rarity = fallbackRarity;
-                }
-                if ( fallbackEdition ) query.edition = fallbackEdition;
+                        if ( cardInfo?.id ) query.card = cardInfo.id;
+                        if ( computedLetter ) query.letter = computedLetter;
+                        if ( fallbackSetName ) query.set_name = fallbackSetName;
+                        if ( fallbackCardName ) query.card_name = fallbackCardName;
+                        if ( fallbackNumber ) query.set_code = fallbackNumber;
+                        if ( fallbackRarity ) {
+                          query.rarity = fallbackRarity;
+                          query.set_rarity = fallbackRarity;
+                        }
+                        if ( fallbackEdition ) query.edition = fallbackEdition;
 
-                return query;
-              } )()
-            } }
-          >
+                        return query;
+                      } )()
+                    } }
+                  >
 
                     <p className='hover:cursor-pointer items-end p-2 mx-auto text-shadow text-xl max-w-prose text-center underline hover:no-underline underline-offset-2'>
                       More Details

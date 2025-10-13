@@ -27,7 +27,7 @@ const Card = ( { cardData } ) => {
         passHref
       >
         <img
-          className="lg:object-cover object-scale-down object-top w-full h-72 aspect-video"
+          className="lg:object-cover object-scale-down object-top w-auto mx-auto h-72 aspect-video"
           as="image"
           priority="true"
           unoptimized="true"

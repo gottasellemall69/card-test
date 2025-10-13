@@ -14,7 +14,16 @@ const resolveRedirectPath = ( queryParam ) => {
     return DEFAULT_REDIRECT_PATH;
   }
 
-  return queryParam;
+  const sanitizedPath = queryParam.trim();
+
+  if (
+    sanitizedPath.startsWith( "/api/" ) ||
+    sanitizedPath === "/api"
+  ) {
+    return DEFAULT_REDIRECT_PATH;
+  }
+
+  return sanitizedPath;
 };
 
 export default function LoginPage() {

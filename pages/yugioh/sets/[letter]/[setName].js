@@ -734,6 +734,20 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
   }, [ isAuthenticated ] );
 
   useEffect( () => {
+    if ( isAuthenticated ) {
+      return;
+    }
+
+    setGridSelectionMode( false );
+    setSelectedRowIds( ( prev ) => ( Object.keys( prev ).length === 0 ? prev : {} ) );
+    setBulkSelections( ( prev ) => ( Object.keys( prev ).length === 0 ? prev : {} ) );
+    setModalVisible( false );
+    setBulkModalVisible( false );
+    setSelectedCard( ( prev ) => ( prev === null ? prev : null ) );
+    setModalVariant( ( prev ) => ( prev === null ? prev : null ) );
+  }, [ isAuthenticated ] );
+
+  useEffect( () => {
     if ( viewMode !== "grid" ) {
       setGridSelectionMode( false );
     }
@@ -1426,7 +1440,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
       >
         <div className="relative">
           <div className={ cardContainerClasses }>
-            { isCollected && (
+            { isAuthenticated && isCollected && (
               <span className="absolute left-3 top-3 z-20 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
                 In Collection
               </span>
@@ -1831,13 +1845,15 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
                     collectionMap={ collectionLookup }
                     onRarityChange={ handleRarityOverrideChange }
                     autoRarityOptionValue={ AUTO_RARITY_OPTION }
+                    isAuthenticated={ isAuthenticated }
                   />
                 </Suspense>
               </div>
             ) }
           </section>
 
-          { Object.values( selectedRowIds ).some( Boolean ) &&
+          { isAuthenticated &&
+            Object.values( selectedRowIds ).some( Boolean ) &&
             ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
               <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-6 text-center shadow-lg">
@@ -1848,7 +1864,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
               </div>
             ) }
         </main>
-        { modalVisible && selectedCard && (
+        { isAuthenticated && modalVisible && selectedCard && (
           <div className="sticky inset-0 z-50 flex items-start justify-center bg-black/70 p-4 sm:p-6">
             <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-xl">
               <h2 className="mb-4 text-xl font-bold">{ selectedCard.productName }</h2>
@@ -1939,7 +1955,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
           </div>
         ) }
 
-        { bulkModalVisible && (
+        { isAuthenticated && bulkModalVisible && (
           <div className="sticky inset-0 z-50 flex items-start justify-start bg-black/70 p-4 sm:p-6">
             <div className="glass w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-xl">
               <h2 className="mb-4 text-xl font-bold">Add Selected Cards</h2>
