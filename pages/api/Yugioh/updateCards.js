@@ -1,5 +1,7 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { requireUser } from "@/middleware/authenticate";
+import clientPromise from "@/utils/mongo.js";
+import { ensureSafeUserId, coerceNumberField, coerceStringField } from "@/utils/securityValidators.js";
 
 const ALLOWED_FIELDS = new Set( [
   "quantity",
@@ -43,30 +45,24 @@ export default async function handler( req, res ) {
     return res.status( 400 ).json( { message: "Missing update value" } );
   }
 
-  let sanitizedValue = value;
-
-  if ( NUMERIC_FIELDS.has( field ) ) {
-    const numericValue = Number( value );
-    if ( Number.isNaN( numericValue ) || !Number.isFinite( numericValue ) ) {
-      return res.status( 400 ).json( { message: "Invalid numeric value" } );
-    }
-
-    if ( field === "quantity" && numericValue < 0 ) {
-      return res.status( 400 ).json( { message: "Quantity cannot be negative" } );
-    }
-
-    sanitizedValue = numericValue;
-  }
-
-  const client = new MongoClient( process.env.MONGODB_URI );
-
   try {
-    await client.connect();
+    let sanitizedValue;
+
+    if ( NUMERIC_FIELDS.has( field ) ) {
+      sanitizedValue = coerceNumberField( value, {
+        min: field === "quantity" ? 0 : Number.NEGATIVE_INFINITY,
+      } );
+    } else {
+      sanitizedValue = coerceStringField( value, { maxLength: 256, allowEmpty: true } );
+    }
+
+    const client = await clientPromise;
     const db = client.db( "cardPriceApp" );
     const cards = db.collection( "myCollection" );
+    const safeUserId = ensureSafeUserId( auth.decoded.username );
 
     const result = await cards.updateOne(
-      { _id: new ObjectId( cardId ), userId: auth.decoded.username },
+      { _id: new ObjectId( cardId ), userId: safeUserId },
       { $set: { [ field ]: sanitizedValue } }
     );
 
@@ -80,7 +76,5 @@ export default async function handler( req, res ) {
   } catch ( error ) {
     console.error( "Update error:", error );
     return res.status( 500 ).json( { message: `Internal server error: ${ error.message }` } );
-  } finally {
-    await client.close();
   }
 }

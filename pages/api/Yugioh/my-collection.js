@@ -1,5 +1,6 @@
-import { MongoClient } from "mongodb";
 import { requireUser } from "@/middleware/authenticate";
+import clientPromise from "@/utils/mongo.js";
+import { ensureSafeUserId } from "@/utils/securityValidators.js";
 
 export default async function handler( req, res ) {
   const auth = await requireUser( req, res );
@@ -7,11 +8,10 @@ export default async function handler( req, res ) {
     return;
   }
 
-  const userId = auth.decoded.username; // keep using username in the myCollection userId field
-  const client = new MongoClient( process.env.MONGODB_URI );
+  const userId = ensureSafeUserId( auth.decoded.username );
+  const client = await clientPromise;
 
   try {
-    await client.connect();
     const collection = client.db( "cardPriceApp" ).collection( "myCollection" );
 
     switch ( req.method ) {
@@ -48,7 +48,5 @@ export default async function handler( req, res ) {
   } catch ( error ) {
     console.error( "Error executing aggregation query:", error );
     return res.status( 500 ).json( { message: "Server error" } );
-  } finally {
-    await client.close();
   }
 }

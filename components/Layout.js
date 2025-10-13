@@ -60,12 +60,12 @@ export default function Layout( { children } ) {
           <Link href="/" className="flex-1 text-sm font-semibold leading-6 text-shadow text-white">
             CARD PRICE APP
           </Link>
-          <div className=" flex items-center">
-            <span className="">User profile placeholder</span>
+          <div className="flex items-center">
+            <span className="rounded-full border border-dashed border-white py-1 px-1 font-black text-shadow text-sm">PIC</span>
           </div>
         </div>
         <main className="mx-auto">
-          <div className="h-full mx-1 my-2 ">
+          <div className="min-h-screen p-3 w-full max-w-screen-2xl">
             { children }
           </div>
         </main>

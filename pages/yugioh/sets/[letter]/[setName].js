@@ -570,8 +570,30 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
     ( productName ) => `${ productName }::${ activeSetDisplayName }`,
     [ activeSetDisplayName ]
   );
+const deriveSetFromCatalogue = useCallback( ( catalogue, targetName ) => {
+  if ( !Array.isArray( catalogue ) || !targetName ) {
+    return null;
+  }
 
-  const handleRarityOverrideChange = useCallback(
+  const normalizedTarget = targetName.toLowerCase();
+  const match = catalogue.find(
+    ( entry ) =>
+      entry?.name &&
+      entry?.setNameId &&
+      entry.name.toLowerCase() === normalizedTarget
+  );
+
+  if ( !match ) {
+    return null;
+  }
+
+  return {
+    officialName: match.name,
+    setNameId: match.setNameId,
+  };
+}, [] );
+
+const handleRarityOverrideChange = useCallback(
     ( productName, value ) => {
       const key = makeOverrideKey( productName );
       setRarityOverrides( ( prev ) => {
@@ -599,22 +621,55 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
         let officialName = initialSetName || decodedSetName;
 
         if ( !effectiveSetId ) {
-          const mapResponse = await fetch( "/api/Yugioh/setNameIdMap" );
-          if ( !mapResponse.ok ) {
-            throw new Error( "Failed to load set catalogue" );
+          const fetchFallbackCatalogue = async () => {
+            const response = await fetch( "/card-data/Yugioh/card_sets.json", { cache: "force-cache" } );
+            if ( !response.ok ) {
+              throw new Error( `Failed to load fallback set catalogue (${ response.status })` );
+            }
+
+            const catalogue = await response.json();
+            const derived = deriveSetFromCatalogue( catalogue, decodedSetName );
+            if ( !derived ) {
+              throw new Error( "Set not found in catalogue" );
+            }
+
+            return derived;
+          };
+
+          let resolvedSet = null;
+
+          try {
+            const mapResponse = await fetch( "/api/Yugioh/setNameIdMap" );
+            if ( !mapResponse.ok ) {
+              throw new Error( `Failed to load set catalogue (${ mapResponse.status })` );
+            }
+
+            const setMap = await mapResponse.json();
+            if ( setMap && !Array.isArray( setMap ) ) {
+              const match = Object.entries( setMap ).find(
+                ( [ name ] ) => name.toLowerCase() === decodedSetName.toLowerCase()
+              );
+
+              if ( match ) {
+                resolvedSet = {
+                  officialName: match[ 0 ],
+                  setNameId: match[ 1 ],
+                };
+              } else {
+                throw new Error( "Set not found in catalogue" );
+              }
+            } else {
+              throw new Error( "Unexpected set catalogue format" );
+            }
+          } catch ( catalogueError ) {
+            console.warn( "Falling back to static set catalogue:", catalogueError );
+            resolvedSet = await fetchFallbackCatalogue();
           }
 
-          const setMap = await mapResponse.json();
-          const match = Object.entries( setMap || {} ).find( ( [ name ] ) =>
-            name.toLowerCase() === decodedSetName.toLowerCase()
-          );
-
-          if ( !match ) {
-            throw new Error( "Set not found in catalogue" );
+          if ( resolvedSet ) {
+            officialName = resolvedSet.officialName;
+            effectiveSetId = resolvedSet.setNameId;
           }
-
-          officialName = match[ 0 ];
-          effectiveSetId = match[ 1 ];
         }
 
         if ( !effectiveSetId ) {
@@ -663,7 +718,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
     return () => {
       isMounted = false;
     };
-  }, [ decodedSetName, initialSetName, setNameId ] );
+  }, [ decodedSetName, initialSetName, setNameId, deriveSetFromCatalogue ] );
 
   useEffect( () => {
     if ( !Array.isArray( rawEntries ) || rawEntries.length === 0 ) {

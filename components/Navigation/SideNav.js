@@ -133,8 +133,8 @@ export default function SideNav() {
                   <Image
                     src={ item.icon }
                     alt={ `${ item.label } icon` }
-                    width={ 24 }
-                    height={ 24 }
+                    width={ 32 }
+                    height={ 32 }
                     className="navLink-iconImage object-center object-cover"
                   />
                 </span>
@@ -149,7 +149,7 @@ export default function SideNav() {
           { isAuthenticated ? (
             <button
               onClick={ handleLogout }
-              className="mx-auto w-3/4 block text-nowrap px-16 py-3 rounded-lg border border-white bg-red-500/20 text-center text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
+              className="mx-auto w-4/5 block text-nowrap px-5 py-3 rounded-lg border border-white bg-red-500/20 text-center text-sm font-semibold tracking-wide text-red-100 transition hover:bg-red-500/30"
               title="Log out"
             >
               Log Out
@@ -159,7 +159,7 @@ export default function SideNav() {
               <Link
                 href="/login"
                 title="Log in"
-                className="mx-auto w-3/4 text-nowrap block px-16 py-3 rounded-lg border border-white bg-white/5 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
+                className="mx-auto w-4/5 text-nowrap block px-5 py-3 rounded-lg border border-white bg-white/5 text-center text-sm font-semibold tracking-wide text-white/90 transition hover:bg-white/10"
               >
                 Log In
               </Link>

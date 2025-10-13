@@ -1,5 +1,7 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { requireUser } from "@/middleware/authenticate";
+import clientPromise from "@/utils/mongo.js";
+import { ensureSafeUserId } from "@/utils/securityValidators.js";
 
 export default async function handler( req, res ) {
   if ( req.method !== "DELETE" ) {
@@ -18,16 +20,15 @@ export default async function handler( req, res ) {
     return res.status( 400 ).json( { message: "Invalid card identifier" } );
   }
 
-  const client = new MongoClient( process.env.MONGODB_URI );
-
   try {
-    await client.connect();
+    const client = await clientPromise;
     const db = client.db( "cardPriceApp" );
     const cards = db.collection( "myCollection" );
+    const safeUserId = ensureSafeUserId( auth.decoded.username );
 
     const result = await cards.deleteOne( {
       _id: new ObjectId( cardId ),
-      userId: auth.decoded.username
+      userId: safeUserId
     } );
 
     if ( result.deletedCount >= 1 ) {
@@ -38,7 +39,5 @@ export default async function handler( req, res ) {
   } catch ( error ) {
     console.error( "Delete error:", error );
     return res.status( 500 ).json( { message: `Internal server error: ${ error.message }` } );
-  } finally {
-    await client.close();
   }
 }

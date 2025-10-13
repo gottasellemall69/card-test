@@ -9,6 +9,10 @@ import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohC
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import { dispatchAuthStateChange } from "@/utils/authState";
+import clientPromise from "@/utils/mongo.js";
+import jwt from "jsonwebtoken";
+import { getTokenFromRequest } from "@/middleware/authenticate";
+import { ensureSafeUserId } from "@/utils/securityValidators.js";
 
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
   ssr: false,
@@ -525,8 +529,8 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
           </div>
 
           { hasCards && (
-            <div className="max-w-full sm:w-fit mx-auto inline-flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-items-stretch">
-              <div className="grid gap-4 sm:grid-cols-3">
+            <div className="max-w-7xl sm:w-full mx-auto inline-flex flex-row gap-6 lg:flex-col lg:items-stretch lg:justify-items-center">
+              <div className="grid gap-4 grid-cols-3">
                 <div className="glass rounded-2xl border border-white/10 p-5">
                   <p className="text-xs uppercase tracking-wide text-white/60">Total cards</p>
                   <p className="mt-2 text-3xl font-semibold text-white">{ totalOwnedCards }</p>
@@ -536,7 +540,7 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
                   <p className="mt-2 text-3xl font-semibold text-white">{ distinctSets }</p>
                 </div>
                 <div className="glass rounded-2xl border border-white/10 p-5">
-                  <p className="text-xs uppercase tracking-wide text-white/60">Estimated value</p>
+                  <p className="text-nowrap text-xs uppercase tracking-wide text-white/60">Estimated value</p>
                   <p className="mt-2 text-3xl font-semibold text-emerald-400">{ formattedEstimatedValue }</p>
                 </div>
               </div>
@@ -688,49 +692,25 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
 };
 
 export async function getServerSideProps( { req } ) {
-  const hasAuthCookie = Boolean( req?.cookies?.token );
-  const hasAuthHeader = Boolean( req?.headers?.authorization );
   const authenticatedHeader = req?.headers?.[ "x-authenticated-user" ];
   const authenticatedHeaderValue = Array.isArray( authenticatedHeader ) ? authenticatedHeader[ 0 ] : authenticatedHeader;
-  const hasAuthenticatedHeader = Boolean( authenticatedHeaderValue );
+  let decodedUser = null;
 
-  if ( !hasAuthCookie && !hasAuthHeader && !hasAuthenticatedHeader ) {
-    return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
-    };
+  if ( authenticatedHeaderValue ) {
+    try {
+      const parsed = JSON.parse( authenticatedHeaderValue );
+      if ( parsed && typeof parsed === "object" && parsed.username ) {
+        decodedUser = parsed;
+      }
+    } catch ( error ) {
+      console.warn( "Failed to parse x-authenticated-user header:", error );
+    }
   }
 
-  const forwardedProto = req?.headers?.[ "x-forwarded-proto" ];
-  const forwardedHost = req?.headers?.[ "x-forwarded-host" ];
-  const host = forwardedHost || req?.headers?.host;
+  if ( !decodedUser ) {
+    const token = getTokenFromRequest( req );
 
-  if ( !host ) {
-    return {
-      props: {
-        initialCards: [],
-        initialAuthState: false,
-      },
-    };
-  }
-
-  const protocol = Array.isArray( forwardedProto ) ? forwardedProto[ 0 ] : forwardedProto;
-  const baseUrl = `${ protocol || "http" }://${ host }`;
-
-  try {
-    const response = await fetch( `${ baseUrl }/api/Yugioh/my-collection`, {
-      method: "GET",
-      headers: {
-        cookie: req?.headers?.cookie ?? "",
-        ...( hasAuthHeader ? { authorization: req.headers.authorization } : {} ),
-        ...( hasAuthenticatedHeader ? { "x-authenticated-user": authenticatedHeaderValue } : {} ),
-      },
-      cache: "no-store",
-    } );
-
-    if ( response.status === 401 ) {
+    if ( !token ) {
       return {
         redirect: {
           destination: "/login",
@@ -739,15 +719,66 @@ export async function getServerSideProps( { req } ) {
       };
     }
 
-    if ( !response.ok ) {
-      throw new Error( `Failed to load collection: ${ response.status }` );
+    try {
+      decodedUser = jwt.verify( token, process.env.JWT_SECRET );
+    } catch ( error ) {
+      console.error( "Failed to verify authentication token:", error );
+      return {
+        redirect: {
+          destination: "/login",
+          permanent: false,
+        },
+      };
     }
+  }
 
-    const data = await response.json();
+  let safeUserId;
+  try {
+    safeUserId = ensureSafeUserId( decodedUser?.username ?? "" );
+  } catch {
+    return {
+      redirect: {
+        destination: "/login",
+        permanent: false,
+      },
+    };
+  }
+
+  try {
+    const client = await clientPromise;
+    const collection = client.db( "cardPriceApp" ).collection( "myCollection" );
+
+    const agg = [
+      { $match: { userId: safeUserId } },
+      {
+        $project: {
+          _id: 1,
+          cardId: 1,
+          productName: 1,
+          setName: 1,
+          number: 1,
+          printing: 1,
+          rarity: 1,
+          condition: 1,
+          oldPrice: 1,
+          marketPrice: 1,
+          lowPrice: 1,
+          quantity: 1,
+        },
+      },
+      { $sort: { _id: 1 } },
+    ];
+
+    const results = await collection.aggregate( agg ).toArray();
+    const initialCards = results.map( ( card ) => ( {
+      ...card,
+      _id: card._id?.toString?.() ?? null,
+      cardId: card.cardId === null || card.cardId === undefined ? null : String( card.cardId ),
+    } ) );
 
     return {
       props: {
-        initialCards: Array.isArray( data ) ? data : [],
+        initialCards,
         initialAuthState: true,
       },
     };

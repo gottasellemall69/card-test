@@ -58,6 +58,22 @@ const getToken = ( request: NextRequest ): string | null => {
   return cookieToken?.value ?? null;
 };
 
+const PUBLIC_GET_API_PREFIXES = [
+  "/api/Yugioh/cards",
+  "/api/Yugioh/setNameIdMap",
+];
+
+const isPublicApiRequest = ( request: NextRequest ): boolean => {
+  if ( request.method !== "GET" ) {
+    return false;
+  }
+
+  const pathname = request.nextUrl.pathname;
+  return PUBLIC_GET_API_PREFIXES.some( ( prefix ) =>
+    pathname === prefix || pathname.startsWith( `${ prefix }/` )
+  );
+};
+
 const handleUnauthorized = ( request: NextRequest ) => {
   if ( request.nextUrl.pathname.startsWith( "/api/" ) ) {
     const response = NextResponse.json(
@@ -87,6 +103,10 @@ export function middleware( request: NextRequest ) {
   }
 
   if ( request.method === "OPTIONS" ) {
+    return NextResponse.next();
+  }
+
+  if ( pathname.startsWith( "/api/Yugioh" ) && isPublicApiRequest( request ) ) {
     return NextResponse.next();
   }
 

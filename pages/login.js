@@ -10,20 +10,21 @@ const resolveRedirectPath = ( queryParam ) => {
     return DEFAULT_REDIRECT_PATH;
   }
 
-  if ( !queryParam.startsWith( "/" ) || queryParam.startsWith( "//" ) ) {
+  try {
+    const candidate = new URL( queryParam, "http://localhost" );
+
+    if ( candidate.origin !== "http://localhost" ) {
+      return DEFAULT_REDIRECT_PATH;
+    }
+
+    if ( candidate.pathname.startsWith( "/api" ) ) {
+      return DEFAULT_REDIRECT_PATH;
+    }
+
+    return `${ candidate.pathname }${ candidate.search }${ candidate.hash }` || DEFAULT_REDIRECT_PATH;
+  } catch {
     return DEFAULT_REDIRECT_PATH;
   }
-
-  const sanitizedPath = queryParam.trim();
-
-  if (
-    sanitizedPath.startsWith( "/api/" ) ||
-    sanitizedPath === "/api"
-  ) {
-    return DEFAULT_REDIRECT_PATH;
-  }
-
-  return sanitizedPath;
 };
 
 export default function LoginPage() {

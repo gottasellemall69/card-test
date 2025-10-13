@@ -4,6 +4,7 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { readAuthStateFromCookie, subscribeToAuthState } from '@/utils/authState';
 
 const LoadingSpinner = dynamic( () => import( '@/components/LoadingSpinner' ), { ssr: false } );
 const YugiohCardListInput = dynamic( () => import( '@/components/Yugioh/YugiohCardListInput' ), { ssr: false } );
@@ -24,12 +25,17 @@ const Home = () => {
   const [ isLoading, setIsLoading ] = useState( false );
   const [ error, setError ] = useState( null );
   const fetchedSetData = useRef( {} );
+  const [ isAuthenticated, setIsAuthenticated ] = useState( false );
   const [ setNameIdMap, setSetNameIdMap ] = useState( {} );
 
   useEffect( () => {
     const fetchSetNameIdMap = async () => {
       try {
         const response = await fetch( '/api/Yugioh/setNameIdMap' );
+        if ( !response.ok ) {
+          throw new Error( `Set map request failed with status ${ response.status }` );
+        }
+
         const data = await response.json();
         setSetNameIdMap( data );
       } catch ( error ) {
@@ -38,6 +44,21 @@ const Home = () => {
     };
 
     fetchSetNameIdMap();
+  }, [] );
+
+  useEffect( () => {
+    const syncAuthState = () => {
+      setIsAuthenticated( readAuthStateFromCookie() );
+    };
+
+    syncAuthState();
+    const unsubscribe = subscribeToAuthState( ( state ) => setIsAuthenticated( Boolean( state ) ) );
+    window.addEventListener( 'focus', syncAuthState );
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener( 'focus', syncAuthState );
+    };
   }, [] );
 
   const handleLoadExampleData = () => {
@@ -210,6 +231,7 @@ const Home = () => {
           <YugiohCardDataTable
             matchedCardData={ matchedCardData }
             setMatchedCardData={ setMatchedCardData }
+            isAuthenticated={ isAuthenticated }
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 // /utils/updateCardPricesLogic.js
-import { MongoClient } from "mongodb";
+import clientPromise from "@/utils/mongo.js";
 import jwt from "jsonwebtoken";
+import { ensureSafeUserId } from "@/utils/securityValidators.js";
 
 const RARITY_NORMALIZATION_MAP = {
   "Common": "Common",
@@ -85,77 +86,69 @@ function resolveAuthContext( authContext ) {
 
 export default async function updateCardPricesLogic( authContext ) {
   const { decoded } = resolveAuthContext( authContext );
-  const userId = decoded.username;
+  const userId = ensureSafeUserId( decoded.username );
+  const client = await clientPromise;
+  const db = client.db( "cardPriceApp" );
+  const cardsCollection = db.collection( "myCollection" );
+  const cards = await cardsCollection.find( { userId } ).toArray();
+  const updateResults = [];
 
-  const client = new MongoClient( process.env.MONGODB_URI );
+  for ( const card of cards ) {
+    try {
+      const response = await fetch(
+        `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${ encodeURIComponent( card.productName ) }&tcgplayer_data=true`
+      );
 
-  try {
-    await client.connect();
-    const db = client.db( "cardPriceApp" );
-    const cardsCollection = db.collection( "myCollection" );
+      if ( !response.ok ) {
+        console.warn( `Failed to fetch card info for ${ card.productName }` );
+        continue;
+      }
 
-    const cards = await cardsCollection.find( { userId } ).toArray();
-    const updateResults = [];
+      const data = await response.json();
 
-    for ( const card of cards ) {
-      try {
-        const response = await fetch(
-          `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${ encodeURIComponent( card.productName ) }&tcgplayer_data=true`
-        );
+      if ( !data.data || data.data.length === 0 ) {
+        console.warn( `No data found for card: ${ card.productName }` );
+        continue;
+      }
 
-        if ( !response.ok ) {
-          console.warn( `Failed to fetch card info for ${ card.productName }` );
-          continue;
-        }
+      const cardData = data.data[ 0 ];
+      const matchingSet = cardData.card_sets?.find(
+        ( set ) =>
+          set.set_name === card.setName &&
+          set.set_code === card.number &&
+          set.set_edition === card.printing &&
+          normalizeRarity( set.set_rarity ) === normalizeRarity( card.rarity )
+      );
 
-        const data = await response.json();
+      if ( matchingSet ) {
+        const newPrice = matchingSet.set_price ? parseFloat( matchingSet.set_price ) : null;
 
-        if ( !data.data || data.data.length === 0 ) {
-          console.warn( `No data found for card: ${ card.productName }` );
-          continue;
-        }
-
-        const cardData = data.data[ 0 ];
-        const matchingSet = cardData.card_sets?.find(
-          ( set ) =>
-            set.set_name === card.setName &&
-            set.set_code === card.number &&
-            set.set_edition === card.printing &&
-            normalizeRarity( set.set_rarity ) === normalizeRarity( card.rarity )
-        );
-
-        if ( matchingSet ) {
-          const newPrice = matchingSet.set_price ? parseFloat( matchingSet.set_price ) : null;
-
-          const result = await cardsCollection.updateOne(
-            { _id: card._id, userId },
-            {
-              $set: {
-                marketPrice: newPrice,
-                oldPrice: card.marketPrice
-              },
-              $push: {
-                priceHistory: {
-                  date: new Date(),
-                  price: newPrice
-                }
+        const result = await cardsCollection.updateOne(
+          { _id: card._id, userId },
+          {
+            $set: {
+              marketPrice: newPrice,
+              oldPrice: card.marketPrice
+            },
+            $push: {
+              priceHistory: {
+                date: new Date(),
+                price: newPrice
               }
             }
-          );
+          }
+        );
 
-          updateResults.push( { cardId: card._id, newPrice, modifiedCount: result.modifiedCount } );
-        } else {
-          console.warn(
-            `No matching set found for card: ${ card.productName } (Set: ${ card.setName }, Number: ${ card.number }, Rarity: ${ card.rarity })`
-          );
-        }
-      } catch ( error ) {
-        console.error( `Error updating card ${ card.productName }:`, error );
+        updateResults.push( { cardId: card._id, newPrice, modifiedCount: result.modifiedCount } );
+      } else {
+        console.warn(
+          `No matching set found for card: ${ card.productName } (Set: ${ card.setName }, Number: ${ card.number }, Rarity: ${ card.rarity })`
+        );
       }
+    } catch ( error ) {
+      console.error( `Error updating card ${ card.productName }:`, error );
     }
-
-    return updateResults;
-  } finally {
-    await client.close();
   }
+
+  return updateResults;
 }
