@@ -1,11 +1,11 @@
-import fs from "fs/promises";
+﻿import fs from "fs/promises";
 import path from "path";
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Link from "next/link";
 import { Grid, List } from "lucide-react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
-import Card from "@/components/Yugioh/Card";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import YugiohCardDataTable from "@/components/Yugioh/YugiohCardDataTable";
@@ -424,7 +424,7 @@ const AUTO_RARITY_OPTION = null;
 
 const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
   const router = useRouter();
-  const { setName } = router.query;
+  const { setName, letter: routeLetter, rarity: routeRarity } = router.query;
 
   const decodedSetName = useMemo( () => {
     if ( typeof setName === "string" ) {
@@ -455,6 +455,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
   const [ collectionCards, setCollectionCards ] = useState( [] );
   const [ gridSelectionMode, setGridSelectionMode ] = useState( false );
+  const [ flippedGridCards, setFlippedGridCards ] = useState( {} );
   const [ searchTerm, setSearchTerm ] = useState( "" );
   const [ sortField, setSortField ] = useState( "productName" );
   const [ sortDirection, setSortDirection ] = useState( "asc" );
@@ -570,30 +571,30 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
     ( productName ) => `${ productName }::${ activeSetDisplayName }`,
     [ activeSetDisplayName ]
   );
-const deriveSetFromCatalogue = useCallback( ( catalogue, targetName ) => {
-  if ( !Array.isArray( catalogue ) || !targetName ) {
-    return null;
-  }
+  const deriveSetFromCatalogue = useCallback( ( catalogue, targetName ) => {
+    if ( !Array.isArray( catalogue ) || !targetName ) {
+      return null;
+    }
 
-  const normalizedTarget = targetName.toLowerCase();
-  const match = catalogue.find(
-    ( entry ) =>
-      entry?.name &&
-      entry?.setNameId &&
-      entry.name.toLowerCase() === normalizedTarget
-  );
+    const normalizedTarget = targetName.toLowerCase();
+    const match = catalogue.find(
+      ( entry ) =>
+        entry?.name &&
+        entry?.setNameId &&
+        entry.name.toLowerCase() === normalizedTarget
+    );
 
-  if ( !match ) {
-    return null;
-  }
+    if ( !match ) {
+      return null;
+    }
 
-  return {
-    officialName: match.name,
-    setNameId: match.setNameId,
-  };
-}, [] );
+    return {
+      officialName: match.name,
+      setNameId: match.setNameId,
+    };
+  }, [] );
 
-const handleRarityOverrideChange = useCallback(
+  const handleRarityOverrideChange = useCallback(
     ( productName, value ) => {
       const key = makeOverrideKey( productName );
       setRarityOverrides( ( prev ) => {
@@ -1194,6 +1195,10 @@ const handleRarityOverrideChange = useCallback(
   }, [ gridTotalPages, viewMode ] );
 
   useEffect( () => {
+    setFlippedGridCards( {} );
+  }, [ viewMode, safeGridPage, processedCards ] );
+
+  useEffect( () => {
     if ( !selectedCard ) return;
     const latest = processedCards.find(
       ( card ) => card.productName === selectedCard.productName
@@ -1253,6 +1258,19 @@ const handleRarityOverrideChange = useCallback(
   const getSelectedCards = useCallback( () =>
     matchedCardData.filter( ( row ) => selectedRowIds[ row.collectionKey ] ),
     [ matchedCardData, selectedRowIds ] );
+
+  const toggleGridCardFlip = useCallback( ( key, forceValue = null ) => {
+    setFlippedGridCards( ( prev ) => {
+      const next = { ...prev };
+      const nextValue = forceValue === null ? !prev[ key ] : Boolean( forceValue );
+      if ( nextValue ) {
+        next[ key ] = true;
+      } else {
+        delete next[ key ];
+      }
+      return next;
+    } );
+  }, [] );
 
   const toggleSelection = useCallback( ( key ) => {
     setSelectedRowIds( ( prev ) => {
@@ -1463,111 +1481,195 @@ const handleRarityOverrideChange = useCallback(
     const isSelected = Boolean( selectedRowIds[ selectionKey ] );
     const isCollected = Boolean( collectionLookup[ selectionKey ] );
     const hasImage = Boolean( cardItem.cardImageId || cardItem.remoteImageUrl );
-    const cardPayload = { id: cardItem.cardImageId, detailId: cardItem.cardDetailId, fallbackId: cardItem.cardDetailId, remoteUrl: cardItem.remoteImageUrl, fallbackRemoteUrl: cardItem.remoteImageUrl, productName: cardItem.productName, name: cardItem.productName, };
+    const localImageSrc = cardItem.cardImageId ? `/images/yugiohImages/${ String( cardItem.cardImageId ) }.jpg` : null;
+    const imageSrc = localImageSrc || cardItem.remoteImageUrl || "/images/yugioh-card.png";
     const raritySelectValue = cardItem.selectedRarityOption || AUTO_RARITY_OPTION;
     const currentRarityLabel = cardItem.selectedRarity || "Unknown Rarity";
     const activeVariant = cardItem.activeVariant || null;
-
-    const detailLineParts = [];
-    if ( cardItem.cardNumber ) {
-      detailLineParts.push( `Card #${ cardItem.cardNumber }` );
-    }
-    if ( activeVariant?.rarity ) {
-      detailLineParts.push( activeVariant.rarity );
-    } else if ( cardItem.selectedRarity ) {
-      detailLineParts.push( cardItem.selectedRarity );
-    }
-    if ( activeVariant?.printing ) {
-      detailLineParts.push( activeVariant.printing );
-    }
-
-    const detailLine = detailLineParts.join( " - " );
     const overlayLabel = activeVariant ? buildVariantLabel( activeVariant ) : currentRarityLabel;
     const cardContainerClasses = [
-      "relative h-auto w-full object-scale-down overflow-hidden rounded-xl border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
+      "relative min-h-[24rem] w-full object-cover overflow-hidden rounded-xl border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
       isSelected ? "ring-2 ring-indigo-400/70" : "",
     ].filter( Boolean ).join( " " );
+    const isFlipped = Boolean( flippedGridCards[ selectionKey ] );
+    const resolvedSetLabel = cardItem.setLabel || activeSetDisplayName;
+    const rarityLabel = activeVariant?.rarity || cardItem.selectedRarity || "";
+    const printingLabel = activeVariant?.printing || "";
+    const conditionLabel =
+      activeVariant?.conditionLabel ||
+      buildConditionLabel( activeVariant?.baseCondition || "", activeVariant?.printing || "" );
+    const marketPriceLabel =
+      activeVariant && Number.isFinite( Number( activeVariant.marketPrice ) )
+        ? formatPriceLabel( activeVariant.marketPrice )
+        : null;
+    const lowPriceLabel =
+      activeVariant && Number.isFinite( Number( activeVariant.lowPrice ) )
+        ? formatPriceLabel( activeVariant.lowPrice )
+        : null;
+
+    const detailEntries = [
+      { label: "Set", value: resolvedSetLabel },
+      { label: "Number", value: cardItem.cardNumber || "" },
+      { label: "Rarity", value: rarityLabel },
+      { label: "Printing", value: printingLabel },
+      { label: "Condition", value: conditionLabel },
+      marketPriceLabel ? { label: "Market Price", value: marketPriceLabel } : null,
+      lowPriceLabel ? { label: "Low Price", value: lowPriceLabel } : null,
+    ].filter( ( entry ) => entry && entry.value );
+
+    const detailLetter =
+      typeof routeLetter === "string" && routeLetter.trim()
+        ? routeLetter.trim().charAt( 0 ).toUpperCase()
+        : resolvedSetLabel
+          ? resolvedSetLabel.charAt( 0 ).toUpperCase()
+          : undefined;
+    const rarityForDetails =
+      rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
+
+    const cardDetailsQuery = Object.fromEntries(
+      Object.entries( {
+        card: cardItem.cardDetailId || cardItem.cardImageId || undefined,
+        letter: detailLetter,
+        set_name: resolvedSetLabel,
+        card_name: cardItem.productName,
+        set_code: cardItem.cardNumber,
+        rarity: rarityForDetails,
+        set_rarity: rarityForDetails,
+        edition: printingLabel,
+        source: "set",
+      } ).filter( ( [ , value ] ) => value !== undefined && value !== null && value !== "" )
+    );
+
+    const handleFrontKeyDown = ( event ) => {
+      if ( event.key === "Enter" || event.key === " " ) {
+        event.preventDefault();
+        toggleGridCardFlip( selectionKey );
+      }
+    };
 
     return (
       <div
         key={ selectionKey }
         className="group relative flex flex-col border border-white/10 bg-black/40 p-4 transition hover:border-indigo-400/50 sm:p-6"
       >
-        <div className="relative">
-          <div className={ cardContainerClasses }>
-            { isAuthenticated && isCollected && (
-              <span className="absolute left-3 top-3 z-20 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-                In Collection
-              </span>
-            ) }
-            { gridSelectionMode && isAuthenticated && (
-              <button
-                type="button"
-                className="multi-select-checkbox absolute right-3 top-3 z-20 flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/60 text-white transition hover:bg-black/70"
-                onClick={ ( event ) => {
-                  event.stopPropagation();
-                  toggleSelection( selectionKey );
-                } }
-                aria-pressed={ isSelected }
-                aria-label={ isSelected ? "Deselect card" : "Select card" }
-              >
-                <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
-              </button>
-            ) }
-            <div className="size-full">
-              { hasImage ? (
-                <Card cardData={ cardPayload } as="image" source="set" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm text-gray-500 dark:bg-gray-800 dark:text-gray-300">
-                  Image unavailable
-                </div>
-              ) }
-            </div>
-            { activeVariant && (
-              <div className="pointer-events-none absolute inset-x-0 top-0 flex h-72 items-end justify-start overflow-hidden rounded-lg p-4">
-                <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90" />
-                <div className="relative flex flex-col gap-1 text-white">
-                  <p className="text-lg font-semibold">{ formatPriceLabel( activeVariant.marketPrice ) }</p>
-                  { overlayLabel && (
-                    <p className="text-xs font-medium uppercase tracking-wide">{ overlayLabel }</p>
+        <div className={ `relative w-full flip-card ${ isFlipped ? "flipped" : "" }` }>
+          <div className="flip-card-inner h-full min-h-[380px]">
+            <div
+              className="flip-card-front flex h-full flex-col gap-4"
+              role="button"
+              tabIndex={ 0 }
+              aria-pressed={ isFlipped }
+              onClick={ () => toggleGridCardFlip( selectionKey ) }
+              onKeyDown={ handleFrontKeyDown }
+            >
+              <div className={ cardContainerClasses }>
+                { isAuthenticated && isCollected && (
+                  <span className="absolute left-3 top-3 z-20 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                    In Collection
+                  </span>
+                ) }
+                { gridSelectionMode && isAuthenticated && (
+                  <button
+                    type="button"
+                    className="multi-select-checkbox absolute right-3 top-3 z-20 flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/60 text-white transition hover:bg-black/70"
+                    onClick={ ( event ) => {
+                      event.stopPropagation();
+                      toggleSelection( selectionKey );
+                    } }
+                    aria-pressed={ isSelected }
+                    aria-label={ isSelected ? "Deselect card" : "Select card" }
+                  >
+                    <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
+                  </button>
+                ) }
+                <div className="size-full">
+                  { hasImage ? (
+                    <img
+                      className="object-cover object-top w-full mx-auto aspect-square min-h-[385px]"
+                      src={ imageSrc }
+                      alt={ `Card Image - ${ cardItem.productName }` }
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm text-gray-500 dark:bg-gray-800 dark:text-gray-300">
+                      Image unavailable
+                    </div>
                   ) }
                 </div>
+                { activeVariant && (
+                  <div className="pointer-events-none absolute inset-x-0 top-0 flex h-[385px] items-end justify-start overflow-hidden rounded-lg p-4">
+                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90" />
+                    <div className="relative flex flex-col gap-1 text-white">
+                      <p className="text-lg font-semibold">{ formatPriceLabel( activeVariant.marketPrice ) }</p>
+                      { overlayLabel && (
+                        <p className="text-xs font-medium uppercase tracking-wide">{ overlayLabel }</p>
+                      ) }
+                    </div>
+                  </div>
+                ) }
               </div>
-            ) }
-          </div>
-          <div className="relative mt-4">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">{ cardItem.productName }</h3>
-            { detailLine && (
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">{ detailLine }</p>
-            ) }
-            { cardItem.selectionMissing && (
-              <p className="mt-1 text-xs font-semibold text-amber-500 dark:text-amber-300">
-                { cardItem.selectionLabel
-                  ? `No pricing data for ${ cardItem.selectionLabel }. Showing closest match.`
-                  : "No pricing data for the selected filters. Showing closest match." }
-              </p>
-            ) }
-          </div>
-          { cardItem.hasMultipleRarities && (
-            <div className="mt-4 space-y-2">
-              <span className="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-100">
-                Multiple rarities available
-              </span>
-              <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300">
-                Select Rarity
-                <select
-                  className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900 transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-white/10 dark:bg-gray-900 dark:text-white"
-                  value={ raritySelectValue }
-                  onChange={ ( event ) => handleRarityOverrideChange( cardItem.productName, event.target.value ) }
-                >
-                  <option value={ AUTO_RARITY_OPTION }>{ `Auto (${ currentRarityLabel })` }</option>
-                  { cardItem.rarityOptions.map( ( option ) => (
-                    <option key={ option } value={ option }>{ option }</option>
-                  ) ) }
-                </select>
-              </label>
             </div>
-          ) }
+            <div className="flip-card-back flex h-full flex-col justify-between gap-4 rounded-xl border border-white/10 bg-black/80 p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">{ cardItem.productName }</h3>
+                <div className="space-y-2 text-sm text-white/80">
+                  { detailEntries.map( ( entry ) => (
+                    <div key={ entry.label } className="flex items-start justify-between gap-3">
+                      <span className="font-semibold uppercase tracking-wide text-white/60">{ entry.label }</span>
+                      <span className="text-right text-white">{ entry.value }</span>
+                    </div>
+                  ) ) }
+                </div>
+                { cardItem.selectionMissing && (
+                  <p className="rounded-md bg-amber-500/10 p-2 text-xs font-semibold text-amber-300">
+                    { cardItem.selectionLabel
+                      ? `No pricing data for ${ cardItem.selectionLabel }. Showing closest match.`
+                      : "No pricing data for the selected filters. Showing closest match." }
+                  </p>
+                ) }
+              </div>
+              <div className="flex flex-col gap-3">
+                { cardItem.hasMultipleRarities && (
+                  <div className="space-y-2">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-100">
+                      Multiple rarities available
+                    </span>
+                    <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-white/70">
+                      Select Rarity
+                      <select
+                        className="rounded-md border border-white/20 bg-white/10 px-2 py-1 text-sm text-white transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        value={ raritySelectValue }
+                        onChange={ ( event ) => handleRarityOverrideChange( cardItem.productName, event.target.value ) }
+                      >
+                        <option value={ AUTO_RARITY_OPTION }>{ `Auto (${ currentRarityLabel })` }</option>
+                        { cardItem.rarityOptions.map( ( option ) => (
+                          <option key={ option } value={ option }>{ option }</option>
+                        ) ) }
+                      </select>
+                    </label>
+                  </div>
+                ) }
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Link
+                    href={ {
+                      pathname: "/yugioh/sets/[letter]/cards/card-details",
+                      query: cardDetailsQuery,
+                    } }
+                    className="inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-indigo-400 hover:bg-indigo-500/20"
+                  >
+                    View Details
+                  </Link>
+                  <button
+                    type="button"
+                    className="inline-flex w-full items-center justify-center rounded-md border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:border-indigo-400 hover:text-indigo-200"
+                    onClick={ () => toggleGridCardFlip( selectionKey, false ) }
+                  >
+                    Show Card Front
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         { isAuthenticated && (
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -1595,7 +1697,20 @@ const handleRarityOverrideChange = useCallback(
         ) }
       </div>
     );
-  }, [ collectionLookup, gridSelectionMode, isAuthenticated, selectedRowIds, toggleSelection, openModal, handleRarityOverrideChange ] );
+  }, [
+    collectionLookup,
+    gridSelectionMode,
+    isAuthenticated,
+    selectedRowIds,
+    toggleSelection,
+    openModal,
+    handleRarityOverrideChange,
+    flippedGridCards,
+    toggleGridCardFlip,
+    activeSetDisplayName,
+    routeLetter,
+    routeRarity,
+  ] );
   return (
     <>
       <Head>
