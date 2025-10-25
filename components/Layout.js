@@ -39,14 +39,14 @@ export default function Layout( { children } ) {
           </DialogPanel>
         </div>
       </Dialog>
-      <div className="glass hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col dark:bg-gray-900">
+      <div className="glass hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col dark:bg-gray-900">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 px-6 dark:border-white/10 dark:bg-black/10">
           <nav className="flex flex-1 flex-col mt-10">
             <SideNav />
           </nav>
         </div>
       </div>
-      <div className="lg:pl-72 w-full">
+      <div className="lg:pl-80 w-full">
         <div className="sticky top-0 z-40 flex items-center gap-x-6 glass backdrop px-4 py-4 shadow-xs sm:px-6 lg:hidden dark:bg-gray-900 dark:shadow-none dark:after:pointer-events-none dark:after:absolute dark:after:inset-0 dark:after:border-b dark:after:border-white/10 dark:after:bg-black/10">
           <button
             type="button"

@@ -520,7 +520,7 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
         <meta charSet="UTF-8" />
       </Head>
       <div className="space-y-10 mx-auto min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat">
-        <header className="space-y-6 rounded-3xl border border-white/10 bg-black/30 backdrop p-2">
+        <header className="p-2 space-y-6 rounded-3xl border border-white/10 bg-black/30 backdrop p-2">
           <div className="space-y-2 text-center sm:text-left text-pretty">
             <h1 className="text-3xl font-bold text-shadow md:text-4xl">My Yu-Gi-Oh! Collection</h1>
             <p className="text-white/70">

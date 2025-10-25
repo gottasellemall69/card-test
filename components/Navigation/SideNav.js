@@ -135,10 +135,10 @@ export default function SideNav() {
                     alt={ `${ item.label } icon` }
                     width={ 32 }
                     height={ 32 }
-                    className="navLink-iconImage object-center object-cover"
+                    className="navLink-iconImage object-center object-cover rounded-2xl bg-clip-text"
                   />
                 </span>
-                <span className="navLink-label">
+                <span className="navLink-label w-fit text-nowrap">
                   { item.label }
                 </span>
               </Link>

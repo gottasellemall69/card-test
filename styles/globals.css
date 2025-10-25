@@ -102,27 +102,48 @@ img:hover
 {
   display: flex;
   justify-content: flex-start;
+  overflow: hidden;
 }
 
 .navLink
 {
+  --nav-icon-size: clamp(3.2rem, 5.8vw, 3.6rem);
+  --nav-icon-offset: clamp(0px, calc((100% - var(--nav-icon-size)) / 2), 12rem);
+  --nav-expanded-padding-start: clamp(0.2rem, 0.6vw, 0.45rem);
+  --nav-padding-end: clamp(0.25rem, 0.7vw, 0.5rem);
+  --nav-expanded-gap: clamp(0.22rem, 0.6vw, 0.4rem);
+  --nav-label-padding-y: clamp(0.25rem, 0.65vw, 0.42rem);
+  --nav-label-padding-x: clamp(0.3rem, 0.9vw, 0.52rem);
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0;
   width: 100%;
-  padding: 2% 1%;
+  gap: 0;
+  padding-block: clamp(0.6rem, 1.6vw, 0.9rem);
+  padding-inline-start: var(--nav-icon-offset);
+  padding-inline-end: var(--nav-padding-end);
   color: var(--text-primary);
   letter-spacing: 0.01em;
   text-align: left;
-  overflow: visible;
-  transition: color var(--transition-slow), transform var(--transition-slow);
+  overflow: hidden;
+  transition: color var(--transition-slow),
+    transform var(--transition-slow),
+    padding-inline-start var(--transition-slow),
+    gap var(--transition-slow);
 }
 
 .navLink:focus-visible
 {
   outline: 2px solid rgba(99, 102, 241, 0.45);
   outline-offset: 4px;
+}
+
+.navLink:hover,
+.navLink:focus-visible,
+.navLink.navLink-active
+{
+  padding-inline-start: var(--nav-expanded-padding-start);
+  gap: var(--nav-expanded-gap);
 }
 
 .navLink-circle
@@ -132,8 +153,8 @@ img:hover
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: fit-content;
-  height: auto;
+  width: var(--nav-icon-size);
+  height: var(--nav-icon-size);
   border-radius: 80%;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(14, 116, 144, 0.72));
   color: inherit;
@@ -156,8 +177,8 @@ img:hover
 
 .navLink-iconImage
 {
-  width: 64px;
-  height: 64px;
+  width: var(--nav-icon-size);
+  height: var(--nav-icon-size);
   object-fit: cover;
   filter: brightness(0) saturate(100%) invert(100%) drop-shadow(0 8px 18px rgba(15, 23, 42, 0.45));
   transition: filter 320ms ease;
@@ -166,13 +187,14 @@ img:hover
 .navLink-label
 {
   position: relative;
-  display: inline-flex;
+  box-sizing: border-box;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  flex: none;
-  max-width: 90%;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 0;
   padding: 0;
-  margin-left: 0.1rem;
   border-radius: 20%;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.32), rgba(14, 116, 144, 0.2));
   border: 0px solid rgba(148, 163, 184, 0.2);
@@ -184,15 +206,25 @@ img:hover
   color: var(--text-primary);
   text-shadow: 0 0 8px rgba(99, 102, 241, 0.25);
   opacity: 0;
-  overflow: clip;
+  overflow: hidden;
+  white-space: nowrap;
   transform-origin: left;
-  transform: translateX(-32px) scaleX(0.82);
-  transition: max-width var(--transition-slow), padding 280ms ease, margin 320ms ease, opacity 220ms ease, transform var(--transition-slow), box-shadow 360ms ease, border-color 360ms ease, color var(--transition-slow), text-shadow var(--transition-slow);
+  transform: translateX(-45%);
+  transition:
+    max-width var(--transition-slow),
+    padding 220ms ease,
+    opacity 180ms ease,
+    transform var(--transition-slow),
+    box-shadow 320ms ease,
+    border-color 320ms ease,
+    color var(--transition-slow),
+    text-shadow var(--transition-slow);
+  text-align: left;
 }
 
 .navLink:hover .navLink-circle::before,
 .navLink:focus-visible .navLink-circle::before,
-.navLink-active .navLink-circle::before
+.navLink.navLink-active .navLink-circle::before
 {
   transform: scale(1.1);
   box-shadow: 0 0 26px rgba(99, 102, 241, 0.6);
@@ -200,7 +232,7 @@ img:hover
 
 .navLink:hover .navLink-circle,
 .navLink:focus-visible .navLink-circle,
-.navLink-active .navLink-circle
+.navLink.navLink-active .navLink-circle
 {
   transform: translateY(-4px);
   box-shadow: 0 22px 38px -18px rgba(99, 102, 241, 0.65);
@@ -208,13 +240,14 @@ img:hover
 
 .navLink:hover .navLink-label,
 .navLink:focus-visible .navLink-label,
-.navLink-active .navLink-label
+.navLink.navLink-active .navLink-label
 {
-  max-width: 280px;
-  padding: 2%;
-  margin-left: 0rem;
+  flex: 1 1 auto;
+  max-width: calc(100% - var(--nav-expanded-padding-start) - var(--nav-padding-end));
+  padding: var(--nav-label-padding-y) var(--nav-label-padding-x);
   opacity: 1;
-  transform: translateX(0) scaleX(1);
+  transform: translateX(0);
+  white-space: nowrap;
   box-shadow: 0 20px 35px -18px rgba(0, 0, 0, 0.6), 0 0 14px rgba(99, 102, 241, 0.4);
   border-color: rgba(148, 163, 184, 0);
   color: var(--text-secondary);

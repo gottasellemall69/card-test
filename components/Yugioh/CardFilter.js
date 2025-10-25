@@ -45,9 +45,12 @@ const CardFilter = ( {
       label: 'Rarity',
       values: [
         "Common / Short Print", "Rare", "Super Rare", "Ultra Rare",
-        "Secret Rare", "Prismatic Secret Rare", "Gold Rare",
+        "Secret Rare", "Prismatic Secret Rare", "Gold Rare", "Gold Secret Rare",
         "Premium Gold Rare", "Shatterfoil Rare", "Mosaic Rare",
-        "Collector's Rare", "Starfoil Rare", "Ultimate Rare"
+        "Collector's Rare", "Prismatic Collector's Rare", "Starfoil Rare", "Ultimate Rare",
+        "Starlight Rare", "Ghost Rare", "Gold Ghost Rare",
+        "Platinum Secret Rare", "Quarter Century Secret Rare", "Prismatic Ultimate Rare", "Pharaoh's Rare",
+        "Duel Terminal Rare", "Parallel Rare"
       ]
     },
     {

@@ -61,6 +61,10 @@ const getToken = ( request: NextRequest ): string | null => {
 const PUBLIC_GET_API_PREFIXES = [
   "/api/Yugioh/cards",
   "/api/Yugioh/setNameIdMap",
+  "/api/Yugioh/card/[...cardId]",
+  "/api/Yugioh/card/lookup",
+  "/api/Yugioh/card/[cardId]/price-history",
+  "/api/Yugioh/card/[cardId]/update-price"
 ];
 
 const isPublicApiRequest = ( request: NextRequest ): boolean => {
@@ -147,7 +151,7 @@ export function middleware( request: NextRequest ) {
 export const config = {
   runtime: "nodejs",
   matcher: [
-    "/yugioh/my-collection/:path*",
+    "/yugioh/my-collection",
     "/yugioh/test-page/:path*",
     "/api/Yugioh/:path*",
   ],
