@@ -121,7 +121,7 @@ export default function SideNav() {
           const isActive = activeHref === item.href;
 
           return (
-            <li key={ item.href } className="navButton max-w-prose text-nowrap">
+            <li key={ item.href } className="navButton">
               <Link
                 href={ item.href }
                 title={ item.title }
@@ -129,17 +129,21 @@ export default function SideNav() {
                 onClick={ () => setActiveHref( item.href ) }
                 aria-current={ isActive ? "page" : undefined }
               >
-                <span className="navLink-circle">
-                  <Image
-                    src={ item.icon }
-                    alt={ `${ item.label } icon` }
-                    width={ 32 }
-                    height={ 32 }
-                    className="navLink-iconImage object-center object-cover rounded-2xl bg-clip-text"
-                  />
+                <span className="navLink-circle" aria-hidden="true">
+                  <span className="navLink-circleInner">
+                    <Image
+                      src={ item.icon }
+                      alt=""
+                      width={ 32 }
+                      height={ 32 }
+                      className="navLink-iconImage object-center object-contain"
+                    />
+                  </span>
                 </span>
-                <span className="navLink-label w-fit text-nowrap">
-                  { item.label }
+                <span className="navLink-label">
+                  <span className="navLink-labelText" data-label={ item.label }>
+                    { item.label }
+                  </span>
                 </span>
               </Link>
             </li>

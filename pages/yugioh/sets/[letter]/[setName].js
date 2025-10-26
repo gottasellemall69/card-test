@@ -1840,7 +1840,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
                 ) }
               </div>
 
-              <div className="mt-6 grid gap-4 grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 w-fit">
+              <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 w-full">
                 <div className="md:col-span-2 lg:col-span-2">
                   <div className="rounded-xl border border-white/10 bg-white/10 p-1 shadow-inner backdrop-blur">
                     <YugiohSearchBar onSearch={ setSearchTerm } />
@@ -1992,7 +1992,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
             ) : viewMode === "grid" ? (
               <>
                 <div className="w-auto overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-2xl">
-                  <div className=" grid grid-cols-1 border-l border-white/5 sm:mx-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className=" grid grid-cols-1 border-l border-white/5 sm:mx-0 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                     { paginatedGridCards.map( ( cardItem ) => renderGridCard( cardItem ) ) }
                   </div>
                 </div>
