@@ -89,10 +89,6 @@ const handleUnauthorized = ( request: NextRequest ) => {
   }
 
   const redirectUrl = new URL( LOGIN_ROUTE, request.url );
-  const returnPath = collectReturnPath( request );
-  if ( returnPath ) {
-    redirectUrl.searchParams.set( "from", returnPath );
-  }
 
   const response = NextResponse.redirect( redirectUrl );
   clearAuthenticatedCookie( response );
