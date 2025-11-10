@@ -12,14 +12,27 @@ const YugiohPagination = dynamic(
     { ssr: false }
 );
 
-const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthenticated = false } ) => {
+const DEFAULT_SORT_KEY = 'productName';
+const SORTABLE_KEYS = new Set( [
+    'productName',
+    'setName',
+    'number',
+    'printing',
+    'rarity',
+    'condition',
+    'marketPrice',
+] );
+
+const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } ) => {
     const router = useRouter();
     const itemsPerPage = 15;
     const [ currentPage, setCurrentPage ] = useState( 1 );
-    const [ sortConfig, setSortConfig ] = useState( { key: [], direction: 'ascending' } );
+    const [ sortConfig, setSortConfig ] = useState( {
+        key: DEFAULT_SORT_KEY,
+        direction: 'ascending',
+    } );
     const [ selectedKeys, setSelectedKeys ] = useState( new Set() );
     const [ lastCheckedKey, setLastCheckedKey ] = useState( null );
-    const [ selectAllChecked, setSelectAllChecked ] = useState( false );
     const [ notification, setNotification ] = useState( { show: false, message: '' } );
 
     const triggerNotification = useCallback( ( message ) => {
@@ -35,40 +48,45 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
         `${ card?.productName }|${ card?.setName }|${ card?.number }|${ card?.printing }`;
 
     // Stable unique IDs including duplicate counts
+    const safeMatchedData = Array.isArray( matchedCardData ) ? matchedCardData : [];
+
     const itemUniqueIds = useMemo( () => {
         const counts = {};
-        return matchedCardData.map( ( item ) => {
+        return safeMatchedData.map( ( item ) => {
             const baseKey = makeKey( item );
             counts[ baseKey ] = ( counts[ baseKey ] || 0 ) + 1;
             return `${ baseKey }|${ counts[ baseKey ] }`;
         } );
-    }, [ matchedCardData ] );
+    }, [ safeMatchedData ] );
 
     // Sorted data with index
     const sortedDataWithIndex = useMemo( () => {
-        if ( !Array.isArray( matchedCardData ) ) return [];
-        const sorted = [ ...matchedCardData ].map( ( item, index ) => ( { item, originalIndex: index } ) );
+        if ( !safeMatchedData.length ) return [];
+
+        const sortKey = SORTABLE_KEYS.has( sortConfig.key ) ? sortConfig.key : DEFAULT_SORT_KEY;
+        const isMarketPriceSort = sortKey === 'marketPrice';
+
+        const sorted = safeMatchedData.map( ( item, index ) => ( { item, originalIndex: index } ) );
         sorted.sort( ( a, b ) => {
-            const aValue = sortConfig.key === 'marketPrice'
-                ? parseFloat( a.item.data?.marketPrice ) || 0
-                : a.item.card[ sortConfig.key ];
-            const bValue = sortConfig.key === 'marketPrice'
-                ? parseFloat( b.item.data?.marketPrice ) || 0
-                : b.item.card[ sortConfig.key ];
+            const rawA = isMarketPriceSort ? a.item.data?.marketPrice : a.item.card?.[ sortKey ];
+            const rawB = isMarketPriceSort ? b.item.data?.marketPrice : b.item.card?.[ sortKey ];
+            const aValue = isMarketPriceSort ? parseFloat( rawA ) || 0 : ( rawA ?? '' ).toString().toLowerCase();
+            const bValue = isMarketPriceSort ? parseFloat( rawB ) || 0 : ( rawB ?? '' ).toString().toLowerCase();
+
             if ( aValue < bValue ) return sortConfig.direction === 'ascending' ? -1 : 1;
             if ( aValue > bValue ) return sortConfig.direction === 'ascending' ? 1 : -1;
             return 0;
         } );
         return sorted;
-    }, [ matchedCardData, sortConfig ] );
+    }, [ safeMatchedData, sortConfig ] );
 
     // Pagination slice
     const sortedAndPaginatedData = useMemo( () => {
         const indexOfLast = currentPage * itemsPerPage;
         const indexOfFirst = indexOfLast - itemsPerPage;
         const currentItems = sortedDataWithIndex.slice( indexOfFirst, indexOfLast );
-        return { currentItems, totalCount: matchedCardData.length };
-    }, [ sortedDataWithIndex, currentPage, matchedCardData.length ] );
+        return { currentItems, totalCount: safeMatchedData.length };
+    }, [ sortedDataWithIndex, currentPage, safeMatchedData.length ] );
 
     const sortedUniqueIds = useMemo(
         () => sortedDataWithIndex.map( ( { originalIndex } ) => itemUniqueIds[ originalIndex ] ),
@@ -97,7 +115,6 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
             }
 
             setSelectedKeys( newSelected );
-            setSelectAllChecked( false );
         },
         [ selectedKeys, lastCheckedKey, sortedUniqueIds ]
     );
@@ -128,11 +145,13 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
     const handleClear = () => {
         setSelectedKeys( new Set() );
         setLastCheckedKey( null );
-        setSelectAllChecked( false );
     };
 
     const handleSort = useCallback(
         ( key ) => {
+            if ( !SORTABLE_KEYS.has( key ) ) {
+                return;
+            }
             setSortConfig( ( prev ) => {
                 let direction = 'ascending';
                 if ( prev.key === key && prev.direction === 'ascending' ) {
@@ -156,7 +175,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
             return;
         }
 
-        const selectedData = matchedCardData.filter( ( _, index ) =>
+        const selectedData = safeMatchedData.filter( ( _, index ) =>
             selectedKeys.has( itemUniqueIds[ index ] )
         );
 
@@ -186,7 +205,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
         } catch {
             triggerNotification( "Card(s) failed to save!" );
         }
-    }, [ isAuthenticated, selectedKeys, matchedCardData, itemUniqueIds, triggerNotification ] );
+    }, [ isAuthenticated, selectedKeys, safeMatchedData, itemUniqueIds, triggerNotification ] );
 
 
     const downloadCSV = useCallback( () => {
@@ -194,30 +213,42 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
             triggerNotification( 'No cards selected to download!' );
             return;
         }
+
         const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price" ];
-        const rows = matchedCardData
+        const rows = safeMatchedData
             .filter( ( _, index ) => selectedKeys.has( itemUniqueIds[ index ] ) )
             .map( ( { card, data } ) => [
-                card?.productName,
-                card?.setName,
-                card?.number,
-                card?.printing,
-                card?.rarity,
-                card?.condition,
-                data?.marketPrice,
+                card?.productName ?? '',
+                card?.setName ?? '',
+                card?.number ?? '',
+                card?.printing ?? '',
+                card?.rarity ?? '',
+                card?.condition ?? '',
+                data?.marketPrice ?? '',
             ] );
-        const csvBody = headers.join( "|" ) + "\n" +
-            rows.map( ( r ) => r.map( ( v ) => `"${ v }"` ).join( "|" ) ).join( "\n" );
-        const blob = new Blob( [ "\uFEFF" + csvBody ], { type: "text/csv;charset=utf-8;" } );
-        const url = URL.createObjectURL( blob );
-        const link = document.createElement( "a" );
-        link.href = url;
-        link.download = "yugioh_card_prices.csv";
-        document.body.appendChild( link );
-        link.click();
-        document.body.removeChild( link );
-        URL.revokeObjectURL( url );
-    }, [ selectedKeys, matchedCardData, setMatchedCardData, itemUniqueIds, triggerNotification ] );
+
+        const csvBody = [
+            headers.join( "|" ),
+            ...rows.map( ( row ) => row.map( ( value ) => `"${ String( value ).replace( /"/g, '""' ) }"` ).join( "|" ) ),
+        ].join( "\n" );
+
+        let url;
+
+        try {
+            const blob = new Blob( [ "\uFEFF" + csvBody ], { type: "text/csv;charset=utf-8;" } );
+            url = URL.createObjectURL( blob );
+            const link = document.createElement( "a" );
+            link.href = url;
+            link.download = "yugioh_card_prices.csv";
+            document.body.appendChild( link );
+            link.click();
+            document.body.removeChild( link );
+        } finally {
+            if ( url ) {
+                URL.revokeObjectURL( url );
+            }
+        }
+    }, [ selectedKeys, safeMatchedData, itemUniqueIds, triggerNotification ] );
 
     const handleGoToCollectionPage = useCallback( () => {
         if ( !isAuthenticated ) {
@@ -231,7 +262,7 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
     // Format helper for prices
     const formatPrice = ( val ) => {
         const num = parseFloat( val );
-        return isNaN( num ) ? "0.00" : `${ num.toFixed( 2 ) }`;
+        return Number.isFinite( num ) ? `${ num.toFixed( 2 ) }` : "0.00";
     };
 
     return (
@@ -257,8 +288,9 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
                         <div className="max-h-fit w-full mt-2 flex justify-center space-x-2">
                             <button
                                 type="button"
-                                className="border border-white rounded-lg px-2 py-2 text-white text-sm font-bold hover:text-black hover:bg-white"
+                                className="border border-white rounded-lg px-2 py-2 text-white text-sm font-bold hover:text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                                 onClick={ downloadCSV }
+                                disabled={ selectedKeys.size === 0 }
                             >
                                 Download CSV
                             </button>
@@ -266,8 +298,9 @@ const YugiohCardDataTable = ( { matchedCardData, setMatchedCardData, isAuthentic
                                 <>
                                     <button
                                         type="button"
-                                        className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
+                                        className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                                         onClick={ addToCollection }
+                                        disabled={ selectedKeys.size === 0 }
                                     >
                                         Add card(s) to collection
                                     </button>

@@ -1,35 +1,58 @@
-import React, { useState, useCallback } from 'react';
+import useSWR from 'swr';
+import type { SportsData } from '@/types/Card';
 
-export const useSportsData = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [sportsData, setSportsData] = useState([]);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const buildApiBasePath = () => {
+  const basePath = process.env.NEXT_PUBLIC_API_URL;
 
-  const fetchData = useCallback(async (cardSet: string, page: number) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`/${ process.env.NEXT_PUBLIC_API_URL }/Sports/sportsData?cardSet=${encodeURIComponent(cardSet)}`);
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      const data = await response.json();
-      setSportsData(data);
-      setDataLoaded(true);
-    } catch (err: any) {
-      setError(err.message);
-      setSportsData([]);
-    } finally {
-      setIsLoading(false);
+  if (!basePath) {
+    return '/api';
+  }
+
+  if (basePath.startsWith('http')) {
+    return basePath.replace(/\/$/, '');
+  }
+
+  const trimmed = basePath.replace(/^\/|\/$/g, '');
+  return trimmed ? `/${trimmed}` : '';
+};
+
+const API_BASE_PATH = buildApiBasePath();
+
+const fetchSportsData = async (cardSet: string): Promise<SportsData> => {
+  const params = new URLSearchParams({ cardSet });
+  const url = `${API_BASE_PATH}/Sports/sportsData?${params.toString()}`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load sports data (status ${response.status})`);
+  }
+
+  return response.json();
+};
+
+type SportsDataKey = readonly [ 'sportsData', string ];
+
+export const useSportsData = (cardSet: string | null) => {
+  const shouldFetch = Boolean(cardSet);
+  const swrKey: SportsDataKey | null = shouldFetch && cardSet ? [ 'sportsData', cardSet ] : null;
+
+  const { data, error, isLoading, isValidating, mutate } = useSWR<SportsData>(
+    swrKey,
+    ( [ , currentSet ]: SportsDataKey ) => fetchSportsData( currentSet ),
+    {
+      revalidateOnFocus: false,
     }
-  }, []);
+  );
+
+  const normalizedData = data ?? [];
+  const normalizedError = error instanceof Error ? error.message : null;
 
   return {
-    isLoading,
-    sportsData,
-    dataLoaded,
-    error,
-    fetchData,
+    isLoading: Boolean( isLoading ),
+    isValidating,
+    sportsData: normalizedData,
+    dataLoaded: shouldFetch && ( !!data || !!normalizedError ) && !isLoading,
+    error: normalizedError,
+    refresh: () => mutate(),
   };
 };

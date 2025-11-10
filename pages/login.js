@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { dispatchAuthStateChange } from "@/utils/authState";
 
-const DEFAULT_REDIRECT_PATH = "/yugioh/my-collection";
+const DEFAULT_REDIRECT_PATH = "yugioh/my-collection";
 const LOCALHOST_FALLBACK_ORIGIN = "http://localhost:3000";
 
 const getBaseOrigin = () => {

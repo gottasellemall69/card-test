@@ -43,6 +43,7 @@ const isProtectedPath = ( pathname: string ): boolean =>
 const collectReturnPath = ( request: NextRequest ): string => {
   const target = request.nextUrl.pathname + request.nextUrl.search;
   return target === LOGIN_ROUTE ? "/" : target;
+
 };
 
 const getToken = ( request: NextRequest ): string | null => {
@@ -59,12 +60,15 @@ const getToken = ( request: NextRequest ): string | null => {
 };
 
 const PUBLIC_GET_API_PREFIXES = [
+  "/api/Yugioh/cards/[setNameId]",
   "/api/Yugioh/cards",
   "/api/Yugioh/setNameIdMap",
   "/api/Yugioh/card/[...cardId]",
   "/api/Yugioh/card/lookup",
   "/api/Yugioh/card/[cardId]/price-history",
-  "/api/Yugioh/card/[cardId]/update-price"
+  "/api/Yugioh/card/[cardId]/update-price",
+  "/api/Yugioh/updateCardPrices",
+  "/api/Yugioh/updateCards",
 ];
 
 const isPublicApiRequest = ( request: NextRequest ): boolean => {
@@ -89,6 +93,10 @@ const handleUnauthorized = ( request: NextRequest ) => {
   }
 
   const redirectUrl = new URL( LOGIN_ROUTE, request.url );
+  const returnPath = collectReturnPath( request );
+  if ( returnPath ) {
+    redirectUrl.searchParams.set( "from", returnPath );
+  }
 
   const response = NextResponse.redirect( redirectUrl );
   clearAuthenticatedCookie( response );
@@ -98,7 +106,7 @@ const handleUnauthorized = ( request: NextRequest ) => {
 export function middleware( request: NextRequest ) {
   const { pathname } = request.nextUrl;
 
-  if ( !isProtectedPath( pathname ) && !pathname.startsWith( "/api/Yugioh" ) ) {
+  if ( !isProtectedPath( pathname ) && !pathname.startsWith( "/api/Yugioh/" ) ) {
     return NextResponse.next();
   }
 
@@ -106,7 +114,7 @@ export function middleware( request: NextRequest ) {
     return NextResponse.next();
   }
 
-  if ( pathname.startsWith( "/api/Yugioh" ) && isPublicApiRequest( request ) ) {
+  if ( pathname.startsWith( "/api/Yugioh/" ) && isPublicApiRequest( request ) ) {
     return NextResponse.next();
   }
 
@@ -148,7 +156,6 @@ export const config = {
   runtime: "nodejs",
   matcher: [
     "/yugioh/my-collection",
-    "/yugioh/test-page/:path*",
     "/api/Yugioh/:path*",
   ],
 };

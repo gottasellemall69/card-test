@@ -1,17 +1,82 @@
-import { useState } from "react";
+"use client";
+
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
+
+const MAIN_DECK_MIN = 40;
+const MAIN_DECK_MAX = 60;
+const EXTRA_DECK_MAX = 15;
+const MAX_COPIES_PER_CARD = 3;
+const EXTRA_DECK_TYPES = [ "Fusion", "Synchro", "XYZ", "Link" ];
+
+const isExtraDeckCard = ( card ) => {
+  const type = card?.type ?? "";
+  return EXTRA_DECK_TYPES.some( ( classification ) => type.includes( classification ) );
+};
+
+const buildDeckWarnings = ( mainDeck, extraDeck ) => {
+  const warnings = [];
+  const mainDeckCount = mainDeck.filter( Boolean ).length;
+  const extraDeckCount = extraDeck.length;
+
+  if ( mainDeckCount < MAIN_DECK_MIN ) warnings.push( `Main Deck must have at least ${ MAIN_DECK_MIN } cards.` );
+  if ( mainDeckCount > MAIN_DECK_MAX ) warnings.push( `Main Deck cannot exceed ${ MAIN_DECK_MAX } cards.` );
+  if ( extraDeckCount > EXTRA_DECK_MAX ) warnings.push( `Extra Deck cannot exceed ${ EXTRA_DECK_MAX } cards.` );
+
+  const cardCounts = {};
+  [ ...mainDeck, ...extraDeck ].forEach( ( card ) => {
+    if ( !card ) return;
+    cardCounts[ card.id ] = ( cardCounts[ card.id ] || 0 ) + 1;
+    if ( cardCounts[ card.id ] > MAX_COPIES_PER_CARD ) {
+      warnings.push( `${ card.name } exceeds the maximum of ${ MAX_COPIES_PER_CARD } copies allowed.` );
+    }
+  } );
+
+  return warnings;
+};
+
 export default function DeckBuilder() {
   const [ search, setSearch ] = useState( "" );
   const [ cards, setCards ] = useState( null );
-  const [ deck, setDeck ] = useState( Array( 40 ).fill( null ) );
+  const [ deck, setDeck ] = useState( Array( MAIN_DECK_MIN ).fill( null ) );
   const [ extraDeck, setExtraDeck ] = useState( [] );
   const [ error, setError ] = useState( null );
   const [ archetypeSuggestions, setArchetypeSuggestions ] = useState( null );
   const [ deckWarnings, setDeckWarnings ] = useState( [] );
-  const [ searchTerm, setSearchTerm ] = useState( "" ); // For archetype filtering
+  const [ searchTerm, setSearchTerm ] = useState( "" );
+  const [ statusMessage, setStatusMessage ] = useState( null );
 
-  const searchCards = async () => {
+  useEffect( () => {
+    setDeckWarnings( buildDeckWarnings( deck, extraDeck ) );
+  }, [ deck, extraDeck ] );
+
+  const fetchArchetypeSuggestions = useCallback( async ( archetype ) => {
+    if ( !archetype ) {
+      setArchetypeSuggestions( null );
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/Yugioh/cards/recommendations?archetype=${ encodeURIComponent( archetype ) }`
+      );
+      const data = await response.json();
+
+      if ( !response.ok || !data.relatedCards?.length ) {
+        setArchetypeSuggestions( null );
+      } else {
+        setArchetypeSuggestions( data.relatedCards );
+      }
+    } catch ( err ) {
+      console.error( "Failed to fetch archetype suggestions:", err );
+      setArchetypeSuggestions( null );
+    }
+  }, [] );
+
+  const searchCards = useCallback( async () => {
     setError( null );
+    setStatusMessage( null );
     try {
       const response = await fetch(
         `/api/Yugioh/cards/recommendations?search=${ encodeURIComponent( search ) }`
@@ -23,109 +88,59 @@ export default function DeckBuilder() {
         setCards( null );
       } else {
         setCards( data );
-        if ( data.searchedCard?.archetype ) {
-          fetchArchetypeSuggestions( data.searchedCard.archetype );
-        } else {
-          setArchetypeSuggestions( null ); // No archetype, clear suggestions
-        }
+        fetchArchetypeSuggestions( data.searchedCard?.archetype );
       }
     } catch ( err ) {
       setError( "Failed to fetch cards" );
     }
-  };
+  }, [ fetchArchetypeSuggestions, search ] );
 
-  const fetchArchetypeSuggestions = async ( archetype ) => {
-    try {
-      const response = await fetch(
-        `/api/Yugioh/cards/recommendations?archetype=${ encodeURIComponent(
-          archetype
-        ) }`
-      );
-      const data = await response.json();
+  const addToDeck = useCallback( ( card ) => {
+    if ( !card ) return;
+    const extraDeckCard = isExtraDeckCard( card );
 
-      if ( !response.ok || !data.relatedCards || data.relatedCards.length === 0 ) {
-        setArchetypeSuggestions( null ); // No related cards found
-      } else {
-        setArchetypeSuggestions( data.relatedCards ); // Populate archetype suggestions
-      }
-    } catch ( err ) {
-      console.error( "Failed to fetch archetype suggestions:", err );
-      setArchetypeSuggestions( null ); // Handle error gracefully
-    }
-  };
-
-  const validateDeck = ( deck, extraDeck ) => {
-    const warnings = [];
-    const mainDeckCount = deck.filter( ( card ) => card !== null ).length;
-    const extraDeckCount = extraDeck.length;
-
-    if ( mainDeckCount < 40 )
-      warnings.push( "Main Deck must have at least 40 cards." );
-    if ( mainDeckCount > 60 )
-      warnings.push( "Main Deck cannot exceed 60 cards." );
-    if ( extraDeckCount > 15 )
-      warnings.push( "Extra Deck cannot exceed 15 cards." );
-
-    const cardCounts = {};
-    [ ...deck, ...extraDeck ].forEach( ( card ) => {
-      if ( card ) {
-        cardCounts[ card.id ] = ( cardCounts[ card.id ] || 0 ) + 1;
-        if ( cardCounts[ card.id ] > 3 ) {
-          warnings.push( `${ card.name } exceeds the maximum of 3 copies allowed.` );
+    if ( extraDeckCard ) {
+      setExtraDeck( ( prev ) => {
+        if ( prev.length >= EXTRA_DECK_MAX ) {
+          setStatusMessage( "Extra Deck is full. Cannot add more cards." );
+          return prev;
         }
+
+        setStatusMessage( null );
+        return [ ...prev, card ];
+      } );
+      return;
+    }
+
+    setDeck( ( prev ) => {
+      const emptySlotIndex = prev.findIndex( ( slot ) => slot === null );
+      if ( emptySlotIndex === -1 ) {
+        setStatusMessage( "Main Deck is full. Cannot add more cards." );
+        return prev;
       }
+
+      const nextDeck = [ ...prev ];
+      nextDeck[ emptySlotIndex ] = card;
+      setStatusMessage( null );
+      return nextDeck;
     } );
+  }, [] );
 
-    setDeckWarnings( warnings );
-  };
-
-  const addToDeck = ( card ) => {
-    const deckCopy = [ ...deck ];
-    const isExtraDeckType = [ "Fusion", "Synchro", "XYZ", "Link" ].some( ( type ) =>
-      card.type.includes( type )
-    );
-
-    if ( isExtraDeckType ) {
-      if ( extraDeck.length < 15 ) {
-        setExtraDeck( ( prevExtraDeck ) => [ ...prevExtraDeck, card ] );
-      } else {
-        setDeckWarnings( ( prev ) => [
-          ...prev,
-          "Extra Deck is full. Cannot add more cards.",
-        ] );
-      }
-    } else {
-      const emptySlot = deckCopy.findIndex( ( slot ) => slot === null );
-      if ( emptySlot !== -1 ) {
-        deckCopy[ emptySlot ] = card;
-        setDeck( deckCopy );
-      } else {
-        setDeckWarnings( ( prev ) => [
-          ...prev,
-          "Main Deck is full. Cannot add more cards.",
-        ] );
-      }
-    }
-
-    validateDeck( deckCopy, extraDeck );
-  };
-
-  const removeFromDeck = ( index, isExtraDeck = false ) => {
+  const removeFromDeck = useCallback( ( index, isExtraDeck = false ) => {
     if ( isExtraDeck ) {
-      const updatedExtraDeck = extraDeck.filter( ( _, i ) => i !== index );
-      setExtraDeck( updatedExtraDeck );
-      validateDeck( deck, updatedExtraDeck );
-    } else {
-      const deckCopy = [ ...deck ];
-      deckCopy[ index ] = null;
-      setDeck( deckCopy );
-      validateDeck( deckCopy, extraDeck );
+      setExtraDeck( ( prev ) => prev.filter( ( _, i ) => i !== index ) );
+      return;
     }
-  };
 
-  const filteredArchetypeSuggestions = archetypeSuggestions?.filter( ( card ) =>
-    card.name.toLowerCase().includes( searchTerm.toLowerCase() )
-  );
+    setDeck( ( prev ) => prev.map( ( slot, slotIndex ) => ( slotIndex === index ? null : slot ) ) );
+  }, [] );
+
+  const filteredArchetypeSuggestions = useMemo( () => {
+    if ( !archetypeSuggestions ) return null;
+    return archetypeSuggestions.filter( ( card ) =>
+      card.name.toLowerCase().includes( searchTerm.toLowerCase() )
+    );
+  }, [ archetypeSuggestions, searchTerm ] );
 
   return (
     <>
@@ -142,13 +157,18 @@ export default function DeckBuilder() {
           {/* Deck Panel */ }
           <div className="flex-1 glass p-4 shadow overflow-auto">
             <h2 className="text-2xl font-bold text-white">Deck</h2>
-            <p className="text-sm text-white">Main Deck: { deck.filter( ( card ) => card !== null ).length }/60 | Extra Deck: { extraDeck.length }/15</p>
+            <p className="text-sm text-white">
+              Main Deck: { deck.filter( Boolean ).length }/{ MAIN_DECK_MAX } | Extra Deck: { extraDeck.length }/{ EXTRA_DECK_MAX }
+            </p>
             { deckWarnings.length > 0 && (
               <div className="mt-2 text-red-700 font-semibold">
                 { deckWarnings.map( ( warning, idx ) => (
                   <p key={ idx }>{ warning }</p>
                 ) ) }
               </div>
+            ) }
+            { statusMessage && (
+              <p className="mt-2 text-amber-300 font-semibold">{ statusMessage }</p>
             ) }
             {/* Main Deck */ }
             <div className="mt-4">
@@ -157,24 +177,26 @@ export default function DeckBuilder() {
                 { deck.map( ( slot, index ) => (
                   <div
                     key={ index }
-                    className="w-20 h-28 bg-white flex items-center justify-center border border-gray-400 rounded">
+                    className="relative w-20 h-28 bg-white flex items-center justify-center border border-gray-400 rounded"
+                  >
                     { slot ? (
                       <>
-                        <img
-                          src={ slot.card_images[ 0 ].image_url }
+                        <Image
+                          src={ slot.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
                           alt={ slot.name }
                           width={ 80 }
                           height={ 112 }
                           className="rounded w-full h-fit object-scale-down"
+                          unoptimized
                         />
-                        <>
-                          <button
-                            onClick={ () => removeFromDeck( index ) }
-                            className="text-red-700 absolute z-50 text-4xl outline-2 outline-white outline-offset-1  font-black"
-                          >
-                            X
-                          </button>
-                        </>
+                        <button
+                          type="button"
+                          onClick={ () => removeFromDeck( index ) }
+                          className="text-red-700 absolute -top-1 -right-1 text-xl font-black bg-white/80 rounded-full px-1"
+                          aria-label={ `Remove ${ slot.name } from deck` }
+                        >
+                          ×
+                        </button>
                       </>
                     ) : (
                       <span className="text-gray-500">Empty</span>
@@ -190,20 +212,24 @@ export default function DeckBuilder() {
               <div className="grid grid-cols-8 gap-2 mt-2">
                 { extraDeck.map( ( card, index ) => (
                   <div
-                    key={ index }
-                    className="w-20 h-28 bg-gray-200 flex flex-col items-center justify-center border border-gray-400 rounded">
-                    <img
-                      src={ card.card_images[ 0 ].image_url }
+                    key={ card.id ?? `${ card.name }-${ index }` }
+                    className="relative w-20 h-28 bg-gray-200 flex flex-col items-center justify-center border border-gray-400 rounded"
+                  >
+                    <Image
+                      src={ card.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
                       alt={ card.name }
                       width={ 80 }
                       height={ 112 }
                       className="rounded w-full h-fit object-scale-down"
+                      unoptimized
                     />
                     <button
+                      type="button"
                       onClick={ () => removeFromDeck( index, true ) }
-                      className="text-red-700 absolute z-50 text-4xl outline-2 outline-white outline-offset-1  font-black"
+                      className="text-red-700 absolute -top-1 -right-1 text-xl font-black bg-white/80 rounded-full px-1"
+                      aria-label={ `Remove ${ card.name } from extra deck` }
                     >
-                      X
+                      ×
                     </button>
                   </div>
                 ) ) }
@@ -238,12 +264,13 @@ export default function DeckBuilder() {
                 <div className="mt-4">
                   <h3 className="text-xl font-semibold text-white">Searched Card</h3>
                   <div className="p-4 bg-transparent text-white rounded shadow mb-4">
-                    <img
-                      src={ cards.searchedCard.card_images[ 0 ].image_url }
+                    <Image
+                      src={ cards.searchedCard.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
                       alt={ cards.searchedCard.name }
                       width={ 240 }
                       height={ 320 }
                       className="rounded w-fit h-48 content-around"
+                      unoptimized
                     />
                     <p><strong>Name:</strong> { cards.searchedCard.name }</p>
                     <p><strong>Archetype:</strong> { cards.searchedCard.archetype }</p>
@@ -276,28 +303,30 @@ export default function DeckBuilder() {
               { filteredArchetypeSuggestions && filteredArchetypeSuggestions.length > 0 ? (
                 <div className="inline-grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-[400px]">
                   { filteredArchetypeSuggestions.map( ( card, index ) => (
-                    <>
-                      <div key={ ( card.id || index ) } className="w-full p-2 bg-white rounded shadow">
-                        <button
-                          onClick={ () => addToDeck( card ) }
-                          className="mt-4 align-top px-1 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          Add to Deck
-                        </button>
-                        <img
-                          src={ card.card_images[ 0 ].image_url }
+                    <div key={ card.id ?? `${ card.name }-${ index }` } className="w-full rounded bg-white p-3 shadow">
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <Image
+                          src={ card.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
                           alt={ card.name }
-                          as={ "image" }
                           width={ 120 }
                           height={ 160 }
-                          className="m-2 rounded w-fit object-contain max-h-48 float-left ..." />
-
-                        <p><strong>Name:</strong> { card.name }</p>
-                        <p className="text-sm mt-1"><strong className="text-base">Archetype:</strong> { card.archetype } </p>
-                        <p className="text-sm mt-1"><strong className="text-base">Text:</strong> { card.desc }</p>
+                          className="rounded object-contain"
+                          unoptimized
+                        />
+                        <div className="flex-1 text-gray-800">
+                          <p><strong>Name:</strong> { card.name }</p>
+                          <p className="text-sm mt-1"><strong className="text-base">Archetype:</strong> { card.archetype }</p>
+                          <p className="text-sm mt-1"><strong className="text-base">Text:</strong> { card.desc }</p>
+                        </div>
                       </div>
-                    </>
-
+                      <button
+                        type="button"
+                        onClick={ () => addToDeck( card ) }
+                        className="mt-3 inline-flex px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                      >
+                        Add to Deck
+                      </button>
+                    </div>
                   ) ) }
                 </div>
               ) : (

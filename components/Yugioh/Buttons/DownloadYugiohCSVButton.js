@@ -1,55 +1,95 @@
-const DownloadYugiohCSVButton = ( { aggregatedData, userCardList } ) => {
+'use client';
+
+const CSV_DELIMITER = '|';
+const CSV_HEADER = [
+  '"Name"',
+  '"Set"',
+  '"Number"',
+  '"Printing"',
+  '"Rarity"',
+  '"Condition"',
+  '"Price"',
+  '"Low Price"',
+  '"Quantity"',
+].join( CSV_DELIMITER );
+
+const escapeCsvValue = ( value ) => {
+  if ( value === null || value === undefined ) {
+    return '""';
+  }
+
+  const stringValue = String( value );
+  return `"${ stringValue.replace( /"/g, '""' ) }"`;
+};
+
+const buildCsvRow = ( card = {} ) => {
+  const {
+    productName = '',
+    setName = '',
+    number = '',
+    printing = '',
+    rarity = '',
+    condition = '',
+    marketPrice = '',
+    lowPrice = '',
+    quantity = '',
+  } = card ?? {};
+
+  return [
+    escapeCsvValue( productName ),
+    escapeCsvValue( setName ),
+    escapeCsvValue( number ),
+    escapeCsvValue( printing ),
+    escapeCsvValue( rarity ),
+    escapeCsvValue( condition ),
+    escapeCsvValue( marketPrice ),
+    escapeCsvValue( lowPrice ),
+    escapeCsvValue( quantity ),
+  ].join( CSV_DELIMITER );
+};
+
+const DownloadYugiohCSVButton = ( {
+  aggregatedData = [],
+  fileName = 'yugioh_card_collection.csv',
+  className = '',
+} ) => {
+  const hasCards = Array.isArray( aggregatedData ) && aggregatedData.length > 0;
+
   const downloadCSV = () => {
+    if ( !hasCards ) {
+      return;
+    }
+
+    let url;
+
     try {
-      const csvHeader = '"Name"|"Set"|"Number"|"Printing"|"Rarity"|"Condition"|"Price"|"Low Price"|"Quantity"';
-      const csvData = aggregatedData?.map( ( card ) => {
-        const productName = card?.productName || '';
-        const userCard = userCardList?.filter( ( entry ) =>
-          entry.toLowerCase().includes( productName.toLowerCase() )
-        );
-
-        const relevantCard = userCard.filter( ( userEntry ) =>
-          userEntry.toLowerCase().includes( card.productName?.toLowerCase() ) &&
-          userEntry.toLowerCase().includes( card.number?.toLowerCase() ) &&
-          userEntry.toLowerCase().includes( card.printing?.toLowerCase() ) &&
-          userEntry.toLowerCase().includes( card.condition?.toLowerCase() )
-        );
-
-        return [
-          `"${ card.productName.replace( /"/g, '""' ) }"`,
-          `"${ card?.setName.replace( /"/g, '""' ) || '' }"`,
-          `"${ card?.number.replace( /"/g, '""' ) || '' }"`,
-          `"${ card?.printing.replace( /"/g, '""' ) || '' }"`,
-          `"${ card?.rarity.replace( /"/g, '""' ) || '' }"`,
-          `"${ card?.condition.replace( /"/g, '""' ) || '' }"`,
-          `"${ card?.marketPrice ? card.marketPrice.toString().replace( /"/g, '""' ) : '' }"`,
-          `"${ card?.lowPrice ? card.lowPrice.toString().replace( /"/g, '""' ) : '' }"`,
-          `"${ card?.quantity ? card.quantity.toString().replace( /"/g, '""' ) : '' }"`
-        ].join( '|' );  // Updated delimiter
-      } ).join( "\n" );
-
-      const csvContent = "\uFEFF" + csvHeader + "\n" + csvData;
+      const csvBody = aggregatedData.map( buildCsvRow ).join( '\n' );
+      const csvContent = `\uFEFF${ CSV_HEADER }\n${ csvBody }`;
       const blob = new Blob( [ csvContent ], { type: 'text/csv;charset=utf-8;' } );
-      const url = URL.createObjectURL( blob );
+      url = URL.createObjectURL( blob );
 
       const element = document.createElement( 'a' );
       element.href = url;
-      element.download = 'yugioh_card_collection.csv';
+      element.download = fileName;
       document.body.appendChild( element );
       element.click();
       document.body.removeChild( element );
-
-      URL.revokeObjectURL( url ); // Clean up the URL object
     } catch ( error ) {
       console.error( 'Error generating CSV:', error );
+    } finally {
+      if ( url ) {
+        URL.revokeObjectURL( url );
+      }
     }
   };
 
   return (
     <button
       name="DownloadYugiohCSVButton"
-      className="relative bg-white text-black font-bold m-1 px-2 py-2 text-nowrap rounded-lg border border-zinc-400 hover:bg-black hover:text-white"
+      type="button"
+      className={ `relative m-1 rounded-lg border border-zinc-400 px-4 py-2 font-semibold text-black transition hover:bg-black hover:text-white ${ className }` }
       onClick={ downloadCSV }
+      disabled={ !hasCards }
     >
       Download CSV
     </button>

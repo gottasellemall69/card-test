@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useSportsData } from '@/hooks/useSportsData';
 import SportsTable from '@/components/Sports/SportsTable';
@@ -10,11 +10,7 @@ import { CARD_SETS } from '@/constants/cardSets';
 
 export default function Home() {
   const [ selectedCardSet, setSelectedCardSet ] = useState( CARD_SETS[ 0 ] );
-  const { isLoading, sportsData, dataLoaded, error, fetchData } = useSportsData();
-
-  useEffect( () => {
-    fetchData( selectedCardSet, 1 );
-  }, [ selectedCardSet, fetchData ] );
+  const { isLoading, sportsData, dataLoaded, error } = useSportsData( selectedCardSet );
 
   const handleCardSetChange = ( cardSet: string ) => {
     setSelectedCardSet( cardSet );

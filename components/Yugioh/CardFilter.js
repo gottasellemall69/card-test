@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { X } from 'lucide-react';
+import { YUGIOH_FILTER_SECTIONS } from '@/constants/yugiohFilters';
 
 const CardFilter = ( {
   filters,            // { rarity: [], condition: [] }
@@ -11,6 +12,10 @@ const CardFilter = ( {
   setOpen,     // (open: boolean) => void (optional controlled setter)
   isModalOpen, // legacy boolean prop
   setIsModalOpen, // legacy setter
+  renderTrigger,
+  triggerLabel = 'Open Filters',
+  triggerClassName = 'rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40 hover:text-white',
+  title = 'Card Filters',
 } ) => {
   const [ internalOpen, setInternalOpen ] = useState( false );
 
@@ -28,6 +33,7 @@ const CardFilter = ( {
         ? setIsModalOpen
         : setInternalOpen;
 
+  const openFilters = () => resolvedSetOpen( true );
   const closeFilters = () => resolvedSetOpen( false );
 
   const handleCheckboxChange = async ( event, filterType ) => {
@@ -39,53 +45,22 @@ const CardFilter = ( {
     updateFilters( filterType, updatedValues );
   };
 
-  const filtersDef = [
-    {
-      id: 'rarity',
-      label: 'Rarity',
-      values: [
-        "Common / Short Print", "Rare", "Super Rare", "Ultra Rare",
-        "Secret Rare", "Prismatic Secret Rare", "Gold Rare", "Gold Secret Rare",
-        "Premium Gold Rare", "Shatterfoil Rare", "Mosaic Rare",
-        "Collector's Rare", "Prismatic Collector's Rare", "Starfoil Rare", "Ultimate Rare",
-        "Starlight Rare", "Ghost Rare", "Gold Ghost Rare",
-        "Platinum Secret Rare", "Quarter Century Secret Rare", "Prismatic Ultimate Rare", "Pharaoh's Rare",
-        "Duel Terminal Rare", "Parallel Rare"
-      ]
-    },
-    {
-      id: 'condition',
-      label: 'Condition',
-      values: [
-        "Near Mint 1st Edition", "Lightly Played 1st Edition",
-        "Moderately Played 1st Edition", "Heavily Played 1st Edition",
-        "Damaged 1st Edition", "Near Mint Limited", "Lightly Played Limited",
-        "Moderately Played Limited", "Heavily Played Limited", "Damaged Limited",
-        "Near Mint Unlimited", "Lightly Played Unlimited",
-        "Moderately Played Unlimited", "Heavily Played Unlimited",
-        "Damaged Unlimited"
-      ]
-    },
-    {
-      id: 'printing',
-      label: 'Printing',
-      values: [
-        "1st Edition",
-        "Unlimited",
-        "Limited"
-      ]
-    }
-  ];
+  const triggerContent =
+    typeof renderTrigger === 'function'
+      ? renderTrigger( { openFilters, closeFilters, isOpen: resolvedOpen } )
+      : (
+        <button
+          type="button"
+          onClick={ openFilters }
+          className={ triggerClassName }
+        >
+          { triggerLabel }
+        </button>
+      );
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={ () => resolvedSetOpen( true ) }
-        className="rounded-sm glass px-3 py-2 text-sm font-semibold text-white text-shadow hover:bg-white/40 dark:bg-white/10 dark:text-white dark:inset-ring dark:inset-ring-white/5 dark:hover:bg-white/20"
-      >
-        Open Filters
-      </button>
+      { triggerContent }
       <Dialog open={ resolvedOpen } onClose={ resolvedSetOpen } className="relative z-10 ">
         <div className="fixed inset-0" />
 
@@ -100,7 +75,7 @@ const CardFilter = ( {
                   <div className="px-4 sm:px-6">
                     <div className="flex items-start justify-between">
                       <DialogTitle className="text-base font-semibold text-white">
-                        Card Filters
+                        { title }
                       </DialogTitle>
                       <div className="ml-3 flex h-7 items-center">
                         <button
@@ -118,11 +93,11 @@ const CardFilter = ( {
                   </div>
                   <div className="relative mt-6 flex-1 px-4 ">
                     <div className="space-y-6">
-                      { filtersDef.map( filter => (
+                      { YUGIOH_FILTER_SECTIONS.map( filter => (
                         <div key={ filter.id } className="space-y-3">
                           <p className="text-sm font-semibold text-white">{ filter.label }</p>
                           <div className="space-y-2">
-                            { filter.values.map( value => (
+                            { filter.options.map( value => (
                               <label
                                 key={ value }
                                 htmlFor={ `${ filter.id }-${ value }` }

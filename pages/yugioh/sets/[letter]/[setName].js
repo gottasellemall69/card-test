@@ -4,9 +4,10 @@ import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
-import { Grid, List } from "lucide-react";
+import { Filter, Grid, List } from "lucide-react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import CardFilter from "@/components/Yugioh/CardFilter";
+import FilterPanel from "@/components/Yugioh/FilterPanel";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import YugiohCardDataTable from "@/components/Yugioh/YugiohCardDataTable";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
@@ -422,7 +423,7 @@ const aggregateEntries = ( entries = [], cardIndex = {} ) => {
 
 const AUTO_RARITY_OPTION = null;
 
-const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
+const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } ) => {
   const router = useRouter();
   const { setName, letter: routeLetter, rarity: routeRarity } = router.query;
 
@@ -463,6 +464,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
   const [ gridPage, setGridPage ] = useState( 1 );
   const [ isClient, setIsClient ] = useState( false );
   const [ isFilterDrawerOpen, setIsFilterDrawerOpen ] = useState( false );
+  const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( true );
 
   const selectedConditions = filters.condition;
   const selectedPrintings = filters.printing;
@@ -507,6 +509,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
 
   const clearFilters = useCallback( () => {
     setFilters( { rarity: [], condition: [], printing: [] } );
+  }, [] );
+  const toggleDesktopFilters = useCallback( () => {
+    setIsDesktopFilterOpen( ( prev ) => !prev );
   }, [] );
   const [ notification, setNotification ] = useState( { show: false, message: "" } );
 
@@ -561,6 +566,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
 
   const collectionLookup = useMemo( () => buildCollectionMap( collectionCards ), [ collectionCards ] );
   const activeSetDisplayName = resolvedSetName || decodedSetName || "Unknown Set";
+  const letterLabel = routeLetter || letter || "";
 
   const preferences = useMemo( () => ( {
     condition: primaryCondition,
@@ -1488,7 +1494,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
     const activeVariant = cardItem.activeVariant || null;
     const overlayLabel = activeVariant ? buildVariantLabel( activeVariant ) : currentRarityLabel;
     const cardContainerClasses = [
-      "relative min-h-[24rem] w-full object-cover overflow-hidden rounded-xl border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
+      "relative min-h-[24rem] w-full max-w-[350px] mx-auto object-cover overflow-hidden rounded-xl border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
       isSelected ? "ring-2 ring-indigo-400/70" : "",
     ].filter( Boolean ).join( " " );
     const isFlipped = Boolean( flippedGridCards[ selectionKey ] );
@@ -1550,9 +1556,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
     return (
       <div
         key={ selectionKey }
-        className="group relative flex flex-col border border-white/10 bg-black/40 p-4 transition hover:border-indigo-400/50 sm:p-6"
+        className="group relative flex flex-col border border-white/10 bg-black/40 p-4 transition hover:border-indigo-400/50 lg:p-6"
       >
-        <div className={ `relative w-full flip-card ${ isFlipped ? "flipped" : "" }` }>
+        <div className={ `relative w-fit mx-auto flip-card ${ isFlipped ? "flipped" : "" }` }>
           <div className="flip-card-inner h-full min-h-[380px]">
             <div
               className="flip-card-front flex h-full flex-col gap-4"
@@ -1649,7 +1655,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
                     </label>
                   </div>
                 ) }
-                <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="flex flex-col gap-2 lg:flex-row">
                   <Link
                     href={ {
                       pathname: "/yugioh/sets/[letter]/cards/card-details",
@@ -1672,7 +1678,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
           </div>
         </div>
         { isAuthenticated && (
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col gap-3 lg:flex-row">
             <button
               type="button"
               className="relative flex w-full items-center justify-center rounded-md border border-transparent bg-gray-900 px-8 py-2 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
@@ -1725,181 +1731,216 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
         message={ notification.message }
       />
 
-      <div className="mx-auto min-h-max w-full yugioh-bg bg-fixed overflow-clip">
+      <div className="yugioh-bg bg-fixed bg-center bg-no-repeat w-full min-h-screen text-white">
         <Breadcrumb />
-        <main className="pb-24">
-          <div className="px-4 py-16 text-center sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-bold tracking-tight text-white md:text-5xl">
+        <main
+          className={ `w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "lg:pr-80" : "" }` }
+        >
+          <div className="hidden pb-4 lg:flex lg:justify-end">
+            <button
+              type="button"
+              onClick={ toggleDesktopFilters }
+              aria-expanded={ isDesktopFilterOpen }
+              aria-controls="set-desktop-filter-panel"
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+            >
+              <Filter size={ 16 } />
+              { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
+              { hasActiveFilters && (
+                <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
+                  { activeFilterCount }
+                </span>
+              ) }
+            </button>
+          </div>
+          <div className="border-b border-white/10 pb-12 text-center lg:text-left">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
+              Yu-Gi-Oh! Sets
+              { letterLabel ? ` - ${ letterLabel.toString().toUpperCase() }` : "" }
+            </p>
+            <h1 className="mt-6 text-4xl font-bold tracking-tight text-white lg:text-5xl">
               Cards in { activeSetDisplayName }
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-white/70">
+            <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 lg:mx-0">
               Explore { processedCards.length || 0 } card listings with live pricing and quick filters.
             </p>
           </div>
-
-          <section aria-labelledby="filter-heading" className="border-y border-white/10 bg-black/40 backdrop-blur">
-            <h2 id="filter-heading" className="sr-only">Filters</h2>
-            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
-                  <span className="font-medium uppercase tracking-wide text-white/50">View</span>
-                  <div
-                    role="group"
-                    className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur"
-                  >
-                    <button
-                      type="button"
-                      onClick={ () => setViewMode( "grid" ) }
-                      title="Grid view"
-                      className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "grid"
-                        ? "bg-indigo-500/80 text-white shadow"
-                        : "text-white/70 hover:text-white"
-                        }` }
-                    >
-                      <Grid size={ 20 } />
-                      Grid
-                    </button>
-                    <button
-                      type="button"
-                      onClick={ () => setViewMode( "table" ) }
-                      title="Table view"
-                      className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "table"
-                        ? "bg-indigo-500/80 text-white shadow"
-                        : "text-white/70 hover:text-white"
-                        }` }
-                    >
-                      <List size={ 20 } />
-                      Table
-                    </button>
-                  </div>
-                  <div className="hidden h-6 w-px bg-white/20 sm:block" />
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={ () => setNumbersOpen( ( open ) => !open ) }
-                      className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70"
-                      aria-expanded={ numbersOpen }
-                      aria-haspopup="true"
-                    >
-                      Card Numbers
-                    </button>
-                    { numbersOpen && (
-                      <div className="absolute left-0 z-50 mt-3 w-64 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-black/90 p-4 text-sm text-white/80 shadow-2xl backdrop-blur">
-                        <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-white/50">
-                          <button
-                            type="button"
-                            onClick={ () => setSelectedNumbers( [] ) }
-                            className="font-medium text-red-300 transition hover:text-red-200"
-                          >
-                            Clear All
-                          </button>
-                          <button
-                            type="button"
-                            onClick={ () => setNumbersOpen( false ) }
-                            className="font-medium text-indigo-300 transition hover:text-indigo-200"
-                          >
-                            Done
-                          </button>
-                        </div>
-                        <div className="space-y-2">
-                          { availableNumbers.map( ( num ) => (
-                            <label
-                              key={ num }
-                              className="flex items-center gap-3 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 hover:border-white/30"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={ selectedNumbers.includes( num ) }
-                                onChange={ ( event ) =>
-                                  setSelectedNumbers( ( prev ) =>
-                                    event.target.checked
-                                      ? [ ...prev, num ]
-                                      : prev.filter( ( value ) => value !== num )
-                                  )
-                                }
-                              />
-                              { num }
-                            </label>
-                          ) ) }
-                        </div>
-                      </div>
-                    ) }
-                  </div>
-                </div>
-                { viewMode === "grid" && isAuthenticated && (
-                  <button
-                    type="button"
-                    onClick={ () => setGridSelectionMode( ( prev ) => !prev ) }
-                    className={ `inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition ${ gridSelectionMode
-                      ? "bg-indigo-500/80 text-white shadow hover:bg-indigo-500"
-                      : "border border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:text-white"
-                      }` }
-                  >
-                    { gridSelectionMode ? "Done Selecting" : "Enable Multi-Select" }
-                  </button>
-                ) }
-              </div>
-
-              <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 w-full">
-                <div className="md:col-span-2 lg:col-span-2">
-                  <div className="rounded-xl border border-white/10 bg-white/10 p-1 shadow-inner backdrop-blur">
-                    <YugiohSearchBar onSearch={ setSearchTerm } />
-                  </div>
-                </div>
-                <div className="md:col-span-3 lg:col-span-3 flex flex-col gap-4 text-sm text-white/80">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <CardFilter
-                        filters={ filters }
-                        updateFilters={ handleFilterChange }
-                        open={ isFilterDrawerOpen }
-                        setOpen={ setIsFilterDrawerOpen }
-                      />
-                      { hasActiveFilters && (
+          <section aria-labelledby="cards-layout" className=" pt-10 w-full mx-auto">
+            <h2 id="cards-layout" className="sr-only">Card explorer</h2>
+            <div className="space-y-8">
+              <div className="space-y-8">
+                <div className="rounded-sm border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
+                      <span className="font-medium uppercase tracking-wide text-white/50">View</span>
+                      <div
+                        role="group"
+                        className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur"
+                      >
                         <button
                           type="button"
-                          onClick={ () => {
-                            clearFilters();
-                            setIsFilterDrawerOpen( false );
-                          } }
-                          className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white"
+                          onClick={ () => setViewMode( "grid" ) }
+                          title="Grid view"
+                          className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "grid"
+                            ? "bg-indigo-500/80 text-white shadow"
+                            : "text-white/70 hover:text-white"
+                            }` }
                         >
-                          Clear Filters
+                          <Grid size={ 20 } />
+                          Grid
+                        </button>
+                        <button
+                          type="button"
+                          onClick={ () => setViewMode( "table" ) }
+                          title="Table view"
+                          className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "table"
+                            ? "bg-indigo-500/80 text-white shadow"
+                            : "text-white/70 hover:text-white"
+                            }` }
+                        >
+                          <List size={ 20 } />
+                          Table
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 shadow-sm transition hover:border-white/40 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
+                          onClick={ () => setNumbersOpen( ( open ) => !open ) }
+                          aria-expanded={ numbersOpen }
+                          aria-haspopup="true"
+                        >
+                          Card Numbers
+                        </button>
+                        { numbersOpen && (
+                          <div className="absolute right-0 z-50 mt-3 w-64 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-black/90 p-4 text-sm text-white/80 shadow-2xl backdrop-blur">
+                            <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-white/50">
+                              <button
+                                type="button"
+                                onClick={ () => setSelectedNumbers( [] ) }
+                                className="font-medium text-red-300 transition hover:text-red-200"
+                              >
+                                Clear All
+                              </button>
+                              <button
+                                type="button"
+                                onClick={ () => setNumbersOpen( false ) }
+                                className="font-medium text-indigo-300 transition hover:text-indigo-200"
+                              >
+                                Done
+                              </button>
+                            </div>
+                            <div className="space-y-2">
+                              { availableNumbers.map( ( num ) => (
+                                <label
+                                  key={ num }
+                                  className="flex items-center gap-3 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 hover:border-white/30"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={ selectedNumbers.includes( num ) }
+                                    onChange={ ( event ) =>
+                                      setSelectedNumbers( ( prev ) =>
+                                        event.target.checked
+                                          ? [ ...prev, num ]
+                                          : prev.filter( ( value ) => value !== num )
+                                      )
+                                    }
+                                  />
+                                  { num }
+                                </label>
+                              ) ) }
+                            </div>
+                          </div>
+                        ) }
+                      </div>
+                      { viewMode === "grid" && isAuthenticated && (
+                        <button
+                          type="button"
+                          onClick={ () => setGridSelectionMode( ( prev ) => !prev ) }
+                          className={ `inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition ${ gridSelectionMode
+                            ? "bg-indigo-500/80 text-white shadow hover:bg-indigo-500"
+                            : "border border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:text-white"
+                            }` }
+                        >
+                          { gridSelectionMode ? "Done Selecting" : "Enable Multi-Select" }
                         </button>
                       ) }
-                      { hasActiveFilters && (
-                        <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-indigo-100/90">
-                          { activeFilterCount } active
-                        </span>
-                      ) }
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-white/70">Sort</span>
-                      <select
-                        value={ sortField }
-                        onChange={ ( event ) => setSortField( event.target.value ) }
-                        className="rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                      >
-                        <option value="productName">Card Name</option>
-                        <option value="setName">Set Name</option>
-                        <option value="number">Card Number</option>
-                        <option value="rarity">Card Rarity</option>
-                        <option value="condition">Condition</option>
-                        <option value="printing">Printing</option>
-                        <option value="marketPrice">Market Price</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={ () => setSortDirection( ( prev ) => ( prev === "asc" ? "desc" : "asc" ) ) }
-                        className="inline-flex items-center rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                      >
-                        { sortDirection === "asc" ? "Asc" : "Desc" }
-                      </button>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white/70">Sort</span>
+                        <select
+                          value={ sortField }
+                          onChange={ ( event ) => setSortField( event.target.value ) }
+                          className="rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                        >
+                          <option value="productName">Card Name</option>
+                          <option value="setName">Set Name</option>
+                          <option value="number">Card Number</option>
+                          <option value="rarity">Rarity</option>
+                          <option value="condition">Condition</option>
+                          <option value="printing">Printing</option>
+                          <option value="marketPrice">Market Price</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={ () =>
+                            setSortDirection( ( prev ) => ( prev === "asc" ? "desc" : "asc" ) )
+                          }
+                          className="rounded-full border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white"
+                        >
+                          { sortDirection === "asc" ? "Ascending" : "Descending" }
+                        </button>
+                      </div>
+                      <div className="lg:hidden">
+                        <CardFilter
+                          filters={ filters }
+                          updateFilters={ handleFilterChange }
+                          open={ isFilterDrawerOpen }
+                          setOpen={ setIsFilterDrawerOpen }
+                          title="Filter cards"
+                          renderTrigger={ ( { openFilters } ) => (
+                            <button
+                              type="button"
+                              onClick={ openFilters }
+                              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                            >
+                              <Filter size={ 16 } />
+                              Filters
+                              { hasActiveFilters && (
+                                <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
+                                  { activeFilterCount }
+                                </span>
+                              ) }
+                            </button>
+                          ) }
+                        />
+                      </div>
                     </div>
                   </div>
-
+                  <div className="mt-6 rounded-2xl border border-white/10 bg-black/60 p-2 shadow-inner">
+                    <YugiohSearchBar onSearch={ setSearchTerm } />
+                  </div>
                   { hasActiveFilters && (
-                    <div className="flex flex-wrap gap-2 text-sm text-white/80">
+                    <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/80">
+                      <button
+                        type="button"
+                        onClick={ () => {
+                          clearFilters();
+                          setIsFilterDrawerOpen( false );
+                        } }
+                        className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white"
+                      >
+                        Clear Filters
+                      </button>
+                      <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-indigo-100/90">
+                        { activeFilterCount } active
+                      </span>
+                    </div>
+                  ) }
+                  { hasActiveFilters && (
+                    <div className="mt-4 flex flex-wrap gap-2 text-sm text-white/80">
                       { selectedConditions.map( ( value ) => (
                         <span
                           key={ `condition-${ value }` }
@@ -1947,85 +1988,95 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
                       ) ) }
                     </div>
                   ) }
+                  { selectedNumbers.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                      { selectedNumbers.map( ( num ) => (
+                        <span
+                          key={ num }
+                          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
+                        >
+                          { num }
+                          <button
+                            type="button"
+                            onClick={ () =>
+                              setSelectedNumbers( ( prev ) => prev.filter( ( value ) => value !== num ) )
+                            }
+                            className="text-xs text-red-300 transition hover:text-red-200"
+                          >
+                            x
+                          </button>
+                        </span>
+                      ) ) }
+                    </div>
+                  ) }
                 </div>
-              </div>
-
-              { selectedNumbers.length > 0 && (
-                <div className="mt-6 flex flex-wrap gap-2 text-sm z-50">
-                  { selectedNumbers.map( ( num ) => (
-                    <span
-                      key={ num }
-                      className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
-                    >
-                      { num }
-                      <button
-                        type="button"
-                        onClick={ () =>
-                          setSelectedNumbers( ( prev ) => prev.filter( ( value ) => value !== num ) )
-                        }
-                        className="text-xs text-red-300 transition hover:text-red-200"
-                      >
-                        x
+                { fetchError && (
+                  <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100 shadow-lg">
+                    { fetchError }
+                  </div>
+                ) }
+                { isLoading ? (
+                  <div className="min-h-[28rem] py-16 text-center text-white/70">Loading latest prices...</div>
+                ) : processedCards.length === 0 ? (
+                  <div className="min-h-[28rem] py-16 text-center text-white/70">
+                    No cards found for this set with the selected filters.
+                  </div>
+                ) : viewMode === "grid" ? (
+                  <>
+                    <div className="w-full overflow-hidden rounded-sm border border-white/10 bg-black/40 shadow-2xl">
+                      <div className="grid grid-cols-1 border-l border-white/5 lg:mx-0 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+                        { paginatedGridCards.map( ( card ) => (
+                          <div key={ card.collectionKey } className="border-t border-white/5 bg-transparent p-4 text-white">
+                            { renderGridCard( card ) }
+                          </div>
+                        ) ) }
+                      </div>
+                    </div>
+                    <div className="mt-8 flex justify-center">
+                      <YugiohPagination
+                        currentPage={ safeGridPage }
+                        itemsPerPage={ GRID_ITEMS_PER_PAGE }
+                        totalItems={ processedCards.length }
+                        handlePageClick={ handleGridPageChange }
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="overflow-hidden rounded-sm border border-white/10 bg-black/40 p-4 shadow-2xl">
+                    <Suspense fallback={ <div className="py-10 text-center text-white/70">Loading...</div> }>
+                      <YugiohCardDataTable
+                        matchedCardData={ matchedCardData }
+                        selectedRowIds={ selectedRowIds }
+                        setSelectedRowIds={ setSelectedRowIds }
+                        collectionMap={ collectionLookup }
+                        onRarityChange={ handleRarityOverrideChange }
+                        autoRarityOptionValue={ AUTO_RARITY_OPTION }
+                        isAuthenticated={ isAuthenticated }
+                      />
+                    </Suspense>
+                  </div>
+                ) }
+                { isAuthenticated &&
+                  Object.values( selectedRowIds ).some( Boolean ) &&
+                  ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
+                    <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-6 text-center shadow-lg">
+                      <button onClick={ openBulkModal } className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-indigo-400">
+                        Add Selected to Collection
                       </button>
-                    </span>
-                  ) ) }
-                </div>
-              ) }
+                    </div>
+                  ) }
+              </div>
             </div>
           </section>
 
-          <section aria-labelledby="cards-heading" className="mx-auto px-4 py-10 sm:px-6 lg:px-8">
-            <h2 id="cards-heading" className="sr-only">Card Results</h2>
 
-            { fetchError && (
-              <div className="mb-6 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100 shadow-lg">
-                { fetchError }
-              </div>
-            ) }
 
-            { isLoading ? (
-              <div className="min-h-screen py-16 text-center text-white/70">Loading latest prices...</div>
-            ) : processedCards.length === 0 ? (
-              <div className="min-h-screen py-16 text-center text-white/70">
-                No cards found for this set with the selected filters.
-              </div>
-            ) : viewMode === "grid" ? (
-              <>
-                <div className="w-auto overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-2xl">
-                  <div className=" grid grid-cols-1 border-l border-white/5 sm:mx-0 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                    { paginatedGridCards.map( ( cardItem ) => renderGridCard( cardItem ) ) }
-                  </div>
-                </div>
-                { gridTotalPages > 1 && (
-                  <YugiohPagination
-                    currentPage={ safeGridPage }
-                    itemsPerPage={ GRID_ITEMS_PER_PAGE }
-                    totalItems={ processedCards.length }
-                    handlePageClick={ handleGridPageChange }
-                  />
-                ) }
-              </>
-            ) : (
-              <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl">
-                <Suspense fallback={ <div className="py-10 text-center text-white/70">Loading...</div> }>
-                  <YugiohCardDataTable
-                    matchedCardData={ matchedCardData }
-                    selectedRowIds={ selectedRowIds }
-                    setSelectedRowIds={ setSelectedRowIds }
-                    collectionMap={ collectionLookup }
-                    onRarityChange={ handleRarityOverrideChange }
-                    autoRarityOptionValue={ AUTO_RARITY_OPTION }
-                    isAuthenticated={ isAuthenticated }
-                  />
-                </Suspense>
-              </div>
-            ) }
-          </section>
+
 
           { isAuthenticated &&
             Object.values( selectedRowIds ).some( Boolean ) &&
             ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
-              <div className="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="mx-auto mt-8 px-4">
                 <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-6 text-center shadow-lg">
                   <button onClick={ openBulkModal } className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-indigo-400">
                     Add Selected to Collection
@@ -2034,8 +2085,23 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
               </div>
             ) }
         </main>
+        { isDesktopFilterOpen && (
+          <aside
+            id="set-desktop-filter-panel"
+            className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:z-40 lg:flex lg:w-80"
+          >
+            <div className="flex h-full w-full flex-col border-l border-white/10 bg-black/40 px-4 py-8 backdrop-blur">
+              <FilterPanel
+                className="h-full overflow-y-auto rounded-2xl border-white/10 bg-black/60 text-white shadow-none"
+                filters={ filters }
+                updateFilters={ handleFilterChange }
+                clearFilters={ clearFilters }
+              />
+            </div>
+          </aside>
+        ) }
         { isAuthenticated && modalVisible && selectedCard && (
-          <div className="sticky inset-0 z-50 flex items-start justify-center bg-black/70 p-4 sm:p-6">
+          <div className="sticky inset-0 z-50 flex items-start justify-center bg-black/70 p-4 lg:p-6">
             <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-xl">
               <h2 className="mb-4 text-xl font-bold">{ selectedCard.productName }</h2>
               <form
@@ -2126,7 +2192,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null } ) => {
         ) }
 
         { isAuthenticated && bulkModalVisible && (
-          <div className="sticky inset-0 z-50 flex items-start justify-start bg-black/70 p-4 sm:p-6">
+          <div className="sticky inset-0 z-50 flex items-start justify-start bg-black/70 p-4 lg:p-6">
             <div className="glass w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-xl">
               <h2 className="mb-4 text-xl font-bold">Add Selected Cards</h2>
               <form onSubmit={ handleBulkSubmit } className="space-y-6">
@@ -2224,6 +2290,8 @@ export async function getServerSideProps( { params } ) {
 }
 
 export default CardsInSetPage;
+
+
 
 
 

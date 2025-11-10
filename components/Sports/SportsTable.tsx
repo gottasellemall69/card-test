@@ -6,10 +6,10 @@ import { usePagination } from '@/hooks/usePagination';
 import { useSelectedCards } from '@/hooks/useSelectedCards';
 import SportsCSVButton from '@/components/Sports/Buttons/SportsCSVButton';
 import SportsPagination from '@/components/Sports/SportsPagination';
-import { Card } from '@/types/Card';
+import { Card, SportsData } from '@/types/Card';
 
 interface SportsTableProps {
-  sportsData: any[];
+  sportsData: SportsData;
   dataLoaded: boolean;
   setSelectedCardSet?: ( cardSet: string ) => void;
   pageSize: number;

@@ -1,13 +1,19 @@
 "use client";
 import Link from 'next/link';
+import { useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
+const ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 const AlphabeticalIndex = () => {
-  const alphabet = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const router = useRouter();
-  const { letter } = router.query;
+  const activeLetter = Array.isArray( router.query?.letter )
+    ? router.query.letter[ 0 ]
+    : router.query?.letter ?? '';
+
+  const letters = useMemo( () => ALPHABET.split( '' ), [] );
+
   return (
     <>
       <div className="w-full inline-block flex-col sm:flex-row my-10 m-2 mx-auto justify-between">
@@ -20,21 +26,28 @@ const AlphabeticalIndex = () => {
           </p>
         </span>
 
-        <div className="mx-auto mt-5 max-w-7xl text-pretty text-shadow flex flex-wrap gap-2 place-content-center md:text-nowrap">
-          { alphabet.split( '' ).map( ( letter ) => (
-            <Link
-              key={ letter }
-              href={ {
-                pathname: '/yugioh/sets/[...letter]',
-                query: { letter }
-              } }
-            >
-              <div className="mx-auto p-2 leading-7 text-3xl font-bold no-underline hover:underline hover:bg-stone-600">
+        <nav
+          aria-label="Browse sets by starting letter"
+          className="mx-auto mt-5 max-w-7xl text-pretty text-shadow flex flex-wrap gap-2 place-content-center md:text-nowrap"
+        >
+          { letters.map( ( letter ) => {
+            const isActive = letter === activeLetter;
+            return (
+              <Link
+                key={ letter }
+                href={ {
+                  pathname: '/yugioh/sets/[...letter]',
+                  query: { letter },
+                } }
+                prefetch={ false }
+                aria-current={ isActive ? 'page' : undefined }
+                className={`mx-auto rounded px-3 py-2 leading-7 text-2xl font-bold transition hover:bg-stone-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${ isActive ? 'bg-white/10 text-white underline' : 'text-white/80 no-underline' }`}
+              >
                 { letter }
-              </div>
-            </Link>
-          ) ) }
-        </div>
+              </Link>
+            );
+          } ) }
+        </nav>
       </div>
       <SpeedInsights />
     </>

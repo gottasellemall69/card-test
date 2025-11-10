@@ -1,11 +1,9 @@
 {
   "functions": {
     "pages/api/Yugioh/updateCardPrices": {
-      "memory": 1024,
       "maxDuration": 300
     },
     "pages/api/**/*.js": {
-      "memory": 1024,
       "maxDuration": 300
     }
   }

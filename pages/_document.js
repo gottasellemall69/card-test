@@ -9,7 +9,7 @@ export default function Document() {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <body className="mx-auto w-full">
+      <body className="mx-auto h-full max-w-full">
         <Main />
         <NextScript />
         <SpeedInsights />

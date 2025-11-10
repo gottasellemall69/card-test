@@ -177,6 +177,7 @@ const Home = () => {
         <meta charSet="UTF-8" />
       </Head>
       <div className="yugioh-bg min-h-screen w-full mx-auto text-center">
+
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
 
         <span className="pb-3 mx-auto text-center">
@@ -186,7 +187,7 @@ const Home = () => {
             <span className="font-black underline">[Name],[Set],[Number],[Edition],[Rarity],[Condition]</span>
           </p>
           <p className="py-3">where the possible conditions are:</p>
-          <ul className="columns-2 space-y-1 font-semibold text-center text-pretty">
+          <ul className="columns-2 space-y-1 font-semibold text-center text-pretty object-center justify-evenly">
             <li>Near Mint+[Edition]</li>
             <li>Lightly Played+[Edition]</li>
             <li>Moderately Played+[Edition]</li>
@@ -204,39 +205,39 @@ const Home = () => {
             Load Example Data
           </button>
         </div>
+        <div className="p-2 min-h-fit w-auto">
 
-
-        <div className="w-full mx-auto">
-          <YugiohCardListInput
-            collection={ collection }
-            selectedRows={ selectedRows }
-            setSelectedRows={ setSelectedRows }
-            setCollection={ setCollection }
-            cardList={ cardList }
-            setCardList={ setCardList }
-            handleSubmit={ handleSubmit }
-            isLoading={ isLoading }
-            error={ error }
-            matchedCardData={ matchedCardData }
-            setMatchedCardData={ setMatchedCardData }
-          />
-        </div>
-
-
-
-        <div className="w-full mx-auto">
-          <div className="text-center z-50 font-black">
-            { isLoading && <LoadingSpinner /> }
+          <div className="w-full mx-auto">
+            <YugiohCardListInput
+              collection={ collection }
+              selectedRows={ selectedRows }
+              setSelectedRows={ setSelectedRows }
+              setCollection={ setCollection }
+              cardList={ cardList }
+              setCardList={ setCardList }
+              handleSubmit={ handleSubmit }
+              isLoading={ isLoading }
+              error={ error }
+              matchedCardData={ matchedCardData }
+              setMatchedCardData={ setMatchedCardData }
+            />
           </div>
-          <YugiohCardDataTable
-            matchedCardData={ matchedCardData }
-            setMatchedCardData={ setMatchedCardData }
-            isAuthenticated={ isAuthenticated }
-          />
+
+
+
+          <div className="mt-5 w-full mx-auto">
+            <div className="text-center z-50 font-black">
+              { isLoading && <LoadingSpinner /> }
+            </div>
+            <div className="mt-2 w-full max-w-7xl mx-auto">
+              <YugiohCardDataTable
+                matchedCardData={ matchedCardData }
+                isAuthenticated={ isAuthenticated }
+              />
+            </div>
+          </div>
         </div>
       </div>
-
-
       <SpeedInsights />
     </>
   );
