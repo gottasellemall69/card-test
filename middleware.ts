@@ -95,7 +95,8 @@ const handleUnauthorized = ( request: NextRequest ) => {
   const redirectUrl = new URL( LOGIN_ROUTE, request.url );
   const returnPath = collectReturnPath( request );
   if ( returnPath ) {
-    redirectUrl.searchParams.set( "from", returnPath );
+    const encodedReturnPath = encodeURIComponent( returnPath ).replace( /%2F/gi, "/" );
+    redirectUrl.search = `?from=${ encodedReturnPath }`;
   }
 
   const response = NextResponse.redirect( redirectUrl );

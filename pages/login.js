@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { dispatchAuthStateChange } from "@/utils/authState";
 
-const DEFAULT_REDIRECT_PATH = "yugioh/my-collection";
+const DEFAULT_REDIRECT_PATH = "/yugioh/my-collection";
 const LOCALHOST_FALLBACK_ORIGIN = "http://localhost:3000";
 
 const getBaseOrigin = () => {
@@ -22,37 +22,42 @@ const getBaseOrigin = () => {
   return LOCALHOST_FALLBACK_ORIGIN;
 };
 
-const resolveRedirectPath = ( queryParam ) => {
-  const baseOrigin = getBaseOrigin();
+const BLOCKED_PATHS = new Set( [ "/login", "/register", "/api", "/api/auth/login", "/api/auth/register" ] );
 
+const resolveRedirectPath = ( queryParam ) => {
   if ( typeof queryParam !== "string" ) {
     return DEFAULT_REDIRECT_PATH;
   }
 
-  const sanitizedParam = queryParam.trim();
+  const trimmed = queryParam.trim();
 
-  if ( !sanitizedParam || sanitizedParam.startsWith( "/" ) ) {
+  if ( !trimmed ) {
     return DEFAULT_REDIRECT_PATH;
   }
 
-  if ( sanitizedParam.startsWith( "/" ) ) {
-    return sanitizedParam.startsWith( "/api" )
-      ? DEFAULT_REDIRECT_PATH
-      : sanitizedParam;
+  // Reject protocol-relative, absolute URLs to other origins, and javascript: style values early.
+  if ( /^([a-zA-Z][a-zA-Z\d+\-.]*:)?\/\//.test( trimmed ) ) {
+    return DEFAULT_REDIRECT_PATH;
   }
 
+  const relativePath = trimmed.startsWith( "/" ) ? trimmed : `/${ trimmed }`;
+
   try {
-    const candidate = new URL( sanitizedParam, baseOrigin );
+    const baseOrigin = getBaseOrigin();
+    const candidate = new URL( relativePath, baseOrigin );
 
     if ( candidate.origin !== baseOrigin ) {
       return DEFAULT_REDIRECT_PATH;
     }
 
-    if ( candidate.pathname.startsWith( "/api" ) ) {
+    const { pathname } = candidate;
+
+    if ( BLOCKED_PATHS.has( pathname ) || pathname.startsWith( "/api" ) ) {
       return DEFAULT_REDIRECT_PATH;
     }
 
-    return `${ candidate.pathname }${ candidate.search }${ candidate.hash }` || DEFAULT_REDIRECT_PATH;
+    const safePath = `${ pathname }${ candidate.search }${ candidate.hash }`.trim();
+    return safePath || DEFAULT_REDIRECT_PATH;
   } catch {
     return DEFAULT_REDIRECT_PATH;
   }
