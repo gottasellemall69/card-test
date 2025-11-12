@@ -462,7 +462,6 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
   const [ sortDirection, setSortDirection ] = useState( "asc" );
   const [ viewMode, setViewMode ] = useState( "grid" );
   const [ gridPage, setGridPage ] = useState( 1 );
-  const [ isClient, setIsClient ] = useState( false );
   const [ isFilterDrawerOpen, setIsFilterDrawerOpen ] = useState( false );
   const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( true );
 
@@ -1559,7 +1558,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         className="group relative flex flex-col border border-white/10 bg-black/40 p-4 transition hover:border-indigo-400/50 lg:p-6"
       >
         <div className={ `relative w-fit mx-auto flip-card ${ isFlipped ? "flipped" : "" }` }>
-          <div className="flip-card-inner h-full min-h-[380px]">
+          <div className="flip-card-inner h-full min-h-[24rem]">
             <div
               className="flip-card-front flex h-full flex-col gap-4"
               role="button"
@@ -1588,10 +1587,10 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
                   </button>
                 ) }
-                <div className="size-full">
+                <div className="size-full max-w-fit mx-auto">
                   { hasImage ? (
                     <img
-                      className="object-cover object-top w-full mx-auto aspect-square min-h-[385px]"
+                      className="object-cover object-top w-full mx-auto aspect-square h-full"
                       src={ imageSrc }
                       alt={ `Card Image - ${ cardItem.productName }` }
                       loading="lazy"
@@ -1603,8 +1602,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                   ) }
                 </div>
                 { activeVariant && (
-                  <div className="pointer-events-none absolute inset-x-0 top-0 flex h-[385px] items-end justify-start overflow-hidden rounded-lg p-4">
-                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90" />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 flex min-h-[385px] items-end justify-start overflow-hidden rounded-lg p-4">
+                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90" />
                     <div className="relative flex flex-col gap-1 text-white">
                       <p className="text-lg font-semibold">{ formatPriceLabel( activeVariant.marketPrice ) }</p>
                       { overlayLabel && (
@@ -1615,7 +1614,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 ) }
               </div>
             </div>
-            <div className="flip-card-back flex h-full flex-col justify-between gap-4 rounded-xl border border-white/10 bg-black/80 p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
+            <div className="flip-card-back w-full max-w-[355px] mx-auto flex h-full flex-col justify-between gap-1 rounded-xl border border-white/10 bg-black/80 p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold">{ cardItem.productName }</h3>
                 <div className="space-y-2 text-sm text-white/80">
@@ -1655,7 +1654,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     </label>
                   </div>
                 ) }
-                <div className="flex flex-col gap-2 lg:flex-row">
+                <div className="flex flex-wrap flex-col gap-2 lg:flex-row">
                   <Link
                     href={ {
                       pathname: "/yugioh/sets/[letter]/cards/card-details",
@@ -1681,7 +1680,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           <div className="mt-6 flex flex-col gap-3 lg:flex-row">
             <button
               type="button"
-              className="relative flex w-full items-center justify-center rounded-md border border-transparent bg-gray-900 px-8 py-2 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+              className="relative flex mx-auto w-full max-w-prose items-center justify-center rounded-md border border-transparent bg-gray-900 px-8 py-2 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
               onClick={ () => openModal( cardItem ) }
             >
               Add to Collection
@@ -2024,9 +2023,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 ) : viewMode === "grid" ? (
                   <>
                     <div className="w-full overflow-hidden rounded-sm border border-white/10 bg-black/40 shadow-2xl">
-                      <div className="grid grid-cols-1 border-l border-white/5 lg:mx-0 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+                      <div className="grid grid-cols-1 border-l border-white/5 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
                         { paginatedGridCards.map( ( card ) => (
-                          <div key={ card.collectionKey } className="border-t border-white/5 bg-transparent p-4 text-white">
+                          <div key={ card.collectionKey } className="border-t border-white/5 bg-transparent p-2 text-white">
                             { renderGridCard( card ) }
                           </div>
                         ) ) }

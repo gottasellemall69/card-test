@@ -109,8 +109,18 @@ export default function LoginPage() {
 
       if ( response.ok ) {
         dispatchAuthStateChange( true );
-        const redirectTarget = resolveRedirectPath( router.query?.from );
-        await router.push( redirectTarget );
+        const rawFromParam = Array.isArray( router.query?.from )
+          ? router.query?.from[ 0 ]
+          : router.query?.from;
+        const decodedFromParam =
+          typeof rawFromParam === "string" ? decodeURIComponent( rawFromParam ) : rawFromParam;
+        const redirectTarget = resolveRedirectPath( decodedFromParam );
+
+        if ( typeof window !== "undefined" ) {
+          window.location.assign( redirectTarget );
+        } else {
+          await router.push( redirectTarget );
+        }
       } else {
         setError( data?.error || "Login failed. Please try again." );
       }

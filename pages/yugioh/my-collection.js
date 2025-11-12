@@ -10,10 +10,8 @@ import CardFilter from "@/components/Yugioh/CardFilter";
 import FilterPanel from "@/components/Yugioh/FilterPanel";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import { dispatchAuthStateChange } from "@/utils/authState";
-import clientPromise from "@/utils/mongo.js";
 import jwt from "jsonwebtoken";
 import { getTokenFromRequest } from "@/middleware/authenticate";
-import { ensureSafeUserId } from "@/utils/securityValidators.js";
 
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
   ssr: false,
@@ -37,13 +35,13 @@ const ITEMS_PER_PAGE = 12;
 const DEFAULT_FILTERS = { rarity: [], condition: [], printing: [] };
 const DEFAULT_SORT = { key: "number", direction: "ascending" };
 
-const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
+const MyCollection = ( { initialAuthState = false } ) => {
   const router = useRouter();
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
-  const [ cards, setCards ] = useState( () => ( Array.isArray( initialCards ) ? initialCards : [] ) );
+  const [ cards, setCards ] = useState( [] );
   const [ viewMode, setViewMode ] = useState( "grid" );
   const [ isAuthenticated, setIsAuthenticated ] = useState( () => Boolean( initialAuthState ) );
-  const [ isLoading, setIsLoading ] = useState( () => !initialAuthState );
+  const [ isLoading, setIsLoading ] = useState( true );
   const [ isUpdatingPrices, setIsUpdatingPrices ] = useState( false );
   const [ searchValue, setSearchValue ] = useState( "" );
   const [ filters, setFilters ] = useState( () => ( { ...DEFAULT_FILTERS } ) );
@@ -69,14 +67,6 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
   }, [] );
 
   useEffect( () => {
-    if ( initialAuthState ) {
-      setIsAuthenticated( true );
-      setCards( Array.isArray( initialCards ) ? initialCards : [] );
-      setIsLoading( false );
-      dispatchAuthStateChange( true );
-      return;
-    }
-
     let isActive = true;
 
     const initialize = async () => {
@@ -88,20 +78,26 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
           return;
         }
 
-        setIsAuthenticated( true );
         setCards( data );
+        setIsAuthenticated( true );
         dispatchAuthStateChange( true );
       } catch ( error ) {
-        if ( isActive ) {
-          console.error( "Error loading collection:", error );
-          if ( error?.status === 401 ) {
-            setIsAuthenticated( false );
-            setCards( [] );
-            dispatchAuthStateChange( false );
-          } else {
-            setIsAuthenticated( true );
-            dispatchAuthStateChange( true );
-          }
+        if ( !isActive ) {
+          return;
+        }
+
+        console.error( "Error loading collection:", error );
+        if ( error?.status === 401 ) {
+          setIsAuthenticated( false );
+          setCards( [] );
+          dispatchAuthStateChange( false );
+        } else {
+          setIsAuthenticated( true );
+          setNotification( ( prev ) => ( {
+            ...prev,
+            show: true,
+            message: "Failed to load your collection. Please try again.",
+          } ) );
         }
       } finally {
         if ( isActive ) {
@@ -115,7 +111,7 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
     return () => {
       isActive = false;
     };
-  }, [ fetchCards, initialAuthState, initialCards ] );
+  }, [ fetchCards ] );
 
   const refreshCollection = useCallback( async () => {
     try {
@@ -531,25 +527,9 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
         <main
           className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "lg:pr-80" : "" }` }
         >
-          <div className="hidden pb-4 lg:flex lg:justify-end">
-            <button
-              type="button"
-              onClick={ toggleDesktopFilters }
-              aria-expanded={ isDesktopFilterOpen }
-              aria-controls="desktop-filter-panel"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
-            >
-              <Filter size={ 16 } />
-              { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
-              { activeFilterBadges.length > 0 && (
-                <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
-                  { activeFilterBadges.length }
-                </span>
-              ) }
-            </button>
-          </div>
-          <header className="rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+
+          <header className="rounded-xl border border-white/10 bg-black/40 p-8 shadow-2xl">
+            <div className="flex flex-wrap flex-col lg:flex-row lg:items-end lg:justify-between">
               <div className="text-center lg:text-left">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Collection</p>
                 <h1 className="mt-4 text-3xl font-bold md:text-4xl">My Yu-Gi-Oh! Collection</h1>
@@ -558,17 +538,17 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
                 </p>
               </div>
               { hasCards && (
-                <div className="grid gap-4 text-left sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <p className="text-xs uppercase tracking-wide text-white/60">Total cards</p>
+                <div className="grid gap-2 text-left sm:grid-cols-3 mt-3">
+                  <div className="bg-white/5">
+                    <p className="text-wrap text-xs uppercase tracking-wide text-white/60">Total cards</p>
                     <p className="mt-2 text-3xl font-semibold text-white">{ totalOwnedCards }</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <p className="text-xs uppercase tracking-wide text-white/60">Distinct sets</p>
+                  <div className="bg-white/5">
+                    <p className="text-wrap text-xs uppercase tracking-wide text-white/60">Distinct sets</p>
                     <p className="mt-2 text-3xl font-semibold text-white">{ distinctSets }</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                    <p className="text-xs uppercase tracking-wide text-white/60">Estimated value</p>
+                  <div className="bg-white/5">
+                    <p className="text-wrap text-xs uppercase tracking-wide text-white/60">Estimated value</p>
                     <p className="mt-2 text-3xl font-semibold text-emerald-400">{ formattedEstimatedValue }</p>
                   </div>
                 </div>
@@ -633,6 +613,23 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
                           ) }
                         />
                       </div>
+                    </div>
+                    <div className="hidden pb-4 lg:flex lg:justify-end">
+                      <button
+                        type="button"
+                        onClick={ toggleDesktopFilters }
+                        aria-expanded={ isDesktopFilterOpen }
+                        aria-controls="desktop-filter-panel"
+                        className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                      >
+                        <Filter size={ 16 } />
+                        { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
+                        { activeFilterBadges.length > 0 && (
+                          <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
+                            { activeFilterBadges.length }
+                          </span>
+                        ) }
+                      </button>
                     </div>
                   </div>
                   <div className="mt-6">
@@ -715,9 +712,9 @@ const MyCollection = ( { initialCards = [], initialAuthState = false } ) => {
         { isDesktopFilterOpen && (
           <aside
             id="desktop-filter-panel"
-            className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:z-40 lg:flex lg:w-80"
+            className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:z-40 lg:flex lg:w-72"
           >
-            <div className="flex h-full w-full flex-col border-l border-white/10 bg-black/40 px-4 py-8 backdrop-blur">
+            <div className="flex h-full w-full flex-col border-l border-white/10 bg-black/40 px-2 py-8 backdrop-blur">
               <FilterPanel
                 className="h-full overflow-y-auto rounded-2xl border-white/10 bg-black/60 text-white shadow-none"
                 filters={ filters }
@@ -776,65 +773,11 @@ export async function getServerSideProps( { req } ) {
     }
   }
 
-  let safeUserId;
-  try {
-    safeUserId = ensureSafeUserId( decodedUser?.username ?? "" );
-  } catch {
-    return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
-    };
-  }
-
-  try {
-    const client = await clientPromise;
-    const collection = client.db( "cardPriceApp" ).collection( "myCollection" );
-
-    const agg = [
-      { $match: { userId: safeUserId } },
-      {
-        $project: {
-          _id: 1,
-          cardId: 1,
-          productName: 1,
-          setName: 1,
-          number: 1,
-          printing: 1,
-          rarity: 1,
-          condition: 1,
-          oldPrice: 1,
-          marketPrice: 1,
-          lowPrice: 1,
-          quantity: 1,
-        },
-      },
-      { $sort: { _id: 1 } },
-    ];
-
-    const results = await collection.aggregate( agg ).toArray();
-    const initialCards = results.map( ( card ) => ( {
-      ...card,
-      _id: card._id?.toString?.() ?? null,
-      cardId: card.cardId === null || card.cardId === undefined ? null : String( card.cardId ),
-    } ) );
-
-    return {
-      props: {
-        initialCards,
-        initialAuthState: true,
-      },
-    };
-  } catch ( error ) {
-    console.error( "getServerSideProps my-collection error:", error );
-    return {
-      props: {
-        initialCards: [],
-        initialAuthState: false,
-      },
-    };
-  }
+  return {
+    props: {
+      initialAuthState: Boolean( decodedUser ),
+    },
+  };
 }
 
 export default MyCollection;

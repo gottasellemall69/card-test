@@ -294,7 +294,7 @@ const CardDetails = () => {
   return (
     <>
 
-      <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg">
+      <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg p-3">
         {/* 🔹 Breadcrumb shows Sets → SetName → Card Name */ }
         <Breadcrumb
           items={ [
@@ -331,7 +331,7 @@ const CardDetails = () => {
               >
                 { resolvedCardData.card_sets?.map( ( set, idx ) => (
                   <option
-                    key={`${ set.set_code }-${ set.set_rarity }-${ idx }`}
+                    key={ `${ set.set_code }-${ set.set_rarity }-${ idx }` }
                     value={ serializeVersion( set ) }
                   >
                     { set.set_name } - { set.set_code } - { set.set_rarity } - { normalizeEditionLabel( set.set_edition ) }

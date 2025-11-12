@@ -64,8 +64,8 @@ export default function Layout( { children } ) {
             <span className="rounded-full border border-dashed border-white py-1 px-1 font-black text-shadow text-sm">PIC</span>
           </div>
         </div>
-        <main className="mx-auto">
-          <div className="min-h-screen p-3 w-full max-w-screen-2xl">
+        <main className="min-h-screen mx-auto">
+          <div className="max-w-full w-auto">
             { children }
           </div>
         </main>

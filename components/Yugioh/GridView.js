@@ -249,7 +249,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
             return (
               <div
                 key={ card._id }
-                className="group relative flex mx-auto w-full h-[550px] max-h-full max-w-[355px] flex-col rounded-xl border border-white/10 bg-black/30 p-4 transition hover:border-indigo-400/50"
+                className="group relative flex mx-auto max-w-full h-[550px] max-h-full w-[325px] flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
               >
                 <div className={ `relative flex-1 flip-card ${ isFlipped ? "flipped" : "" }` }>
                   <div className="flip-card-inner">
@@ -266,15 +266,15 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         }
                       } }
                     >
-                      <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
+                      <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded border p-4 border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
                         <img
-                          className="mx-auto h-full w-full object-contain"
+                          className="mx-auto h-full w-full object-fill aspect-1"
                           src={ imageSrc }
                           alt={ `Card Image - ${ card.productName }` }
                           loading="lazy"
                         />
                         { ( formatCurrency( card.marketPrice ) || card.rarity || card.printing ) && (
-                          <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full items-end justify-start overflow-hidden rounded-lg p-4">
+                          <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full items-end justify-start overflow-hidden rounded-lg">
                             <div
                               aria-hidden="true"
                               className="absolute inset-x-0 bottom-0 min-h-[24rem] bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90"
@@ -291,7 +291,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         ) }
                       </div>
                     </div>
-                    <div className="flip-card-back flex min-h-[26rem] w-fit flex-col justify-between gap-3 rounded border border-white/10 bg-black/80 p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
+                    <div className="flip-card-back flex min-h-[24rem] w-fit flex-col justify-between gap-3 rounded border border-white/10 bg-black/80 p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
                       <div className="space-y-3">
                         <h3 className="text-lg font-semibold text-center text-pretty break-words">{ card.productName }</h3>
                         <div className="space-y-1 text-xs text-white/70 sm:text-sm">
@@ -326,7 +326,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                     </div>
                   </div>
                 </div>
-                <div className="mt-5 space-y-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+                <div className="mt-5 space-y-5 rounded border border-white/10 bg-white/5 p-4 text-sm text-white/80">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Quantity</span>
                     { edit[ card._id ] === "quantity" ? (
