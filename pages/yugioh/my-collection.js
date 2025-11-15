@@ -499,7 +499,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
 
   if ( !isAuthenticated ) {
     return (
-      <div className="min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-items-center glass mx-auto w-full rounded-3xl p-10 text-center text-white">
+      <div className="flex-col min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-items-center glass mx-auto w-full rounded-3xl p-10 text-center text-white">
         <h2 className="text-3xl font-bold text-shadow">Please log in</h2>
         <p className="mt-3 text-white/70">
           You need to be logged in to view your Yu-Gi-Oh! collection.
@@ -523,12 +523,12 @@ const MyCollection = ( { initialAuthState = false } ) => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <div className="yugioh-bg bg-fixed bg-center bg-no-repeat text-white">
+      <div className="min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat text-white">
         <main
-          className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "lg:pr-80" : "" }` }
+          className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "lg:pr-80" : "" }` }
         >
 
-          <header className="rounded-xl border border-white/10 bg-black/40 p-8 shadow-2xl">
+          <header className="rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl">
             <div className="flex flex-wrap flex-col lg:flex-row lg:items-end lg:justify-between">
               <div className="text-center lg:text-left">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Collection</p>
@@ -692,9 +692,17 @@ const MyCollection = ( { initialAuthState = false } ) => {
                         />
                       ) }
                     </div>
+                    { totalItems > ITEMS_PER_PAGE && (
+                      <YugiohPagination
+                        currentPage={ currentPage }
+                        itemsPerPage={ ITEMS_PER_PAGE }
+                        totalItems={ totalItems }
+                        handlePageClick={ handlePageClick }
+                      />
+                    ) }
                   </>
                 ) : (
-                  <div className="rounded-3xl border border-dashed border-white/20 bg-black/30 p-12 text-center text-white/70">
+                  <div className="min-h-screen rounded-3xl border border-dashed border-white/20 bg-black/30 p-12 text-center text-white/70">
                     <p className="text-lg font-semibold">Your collection is empty.</p>
                     <p className="mt-2">Add cards to start tracking your inventory and market prices.</p>
                   </div>

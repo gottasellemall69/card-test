@@ -22,9 +22,9 @@ export default function LandingPage() {
             {/* Yu-Gi-Oh! Panel */ }
             <div
                 onClick={ () => goTo( "/yugioh" ) }
-                className={ `relative flex-1 flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out ${ animate ? "translate-x-0" : "-translate-x-full" } bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 group ` }
+                className={ `yugioh-bg mix-blend-color-dodge relative flex-1 flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out ${ animate ? "translate-x-0" : "-translate-x-full" } group ` }
             >
-                <div className="text-center text-white">
+                <div className="text-shadow glass p-3 text-center text-white">
                     <h1 className="text-4xl font-extrabold mb-4 group-hover:scale-95 transition-transform">
                         Yu-Gi-Oh! Cards Prices
                     </h1>
@@ -35,9 +35,9 @@ export default function LandingPage() {
             {/* Sports Panel */ }
             <div
                 onClick={ () => goTo( "/sports" ) }
-                className={ `relative flex-1 flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out ${ animate ? "translate-x-0" : "translate-x-full" } bg-gradient-to-br from-red-500 via-orange-600 to-yellow-500 group ` }
+                className={ `relative flex-1 flex items-center justify-center cursor-pointer transition-all duration-700 ease-in-out ${ animate ? "translate-x-0" : "translate-x-full" } sports-bg bg-black/80 mix-blend-color-dodge group ` }
             >
-                <div className="text-center text-white">
+                <div className="text-shadow glass p-3 text-center text-white">
                     <h1 className="text-4xl font-extrabold mb-4 group-hover:scale-95 transition-transform">
                         Sports Cards Prices
                     </h1>
