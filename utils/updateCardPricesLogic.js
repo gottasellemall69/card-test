@@ -2,6 +2,7 @@
 import clientPromise from "@/utils/mongo.js";
 import jwt from "jsonwebtoken";
 import { ensureSafeUserId } from "@/utils/securityValidators.js";
+import { recordPriceHistoryEntry } from "@/utils/priceHistoryStore";
 
 const RARITY_NORMALIZATION_MAP = {
   "Common": "Common",
@@ -123,23 +124,26 @@ export default async function updateCardPricesLogic( authContext ) {
       if ( matchingSet ) {
         const newPrice = matchingSet.set_price ? parseFloat( matchingSet.set_price ) : null;
 
-        const result = await cardsCollection.updateOne(
+        const updateResult = await cardsCollection.updateOne(
           { _id: card._id, userId },
           {
             $set: {
               marketPrice: newPrice,
               oldPrice: card.marketPrice
-            },
-            $push: {
-              priceHistory: {
-                date: new Date(),
-                price: newPrice
-              }
             }
           }
         );
 
-        updateResults.push( { cardId: card._id, newPrice, modifiedCount: result.modifiedCount } );
+        await recordPriceHistoryEntry( {
+          cardId: card.cardId ?? cardData?.id?.toString() ?? null,
+          setName: card.setName,
+          number: card.number,
+          rarity: card.rarity,
+          edition: card.printing,
+          price: newPrice
+        } );
+
+        updateResults.push( { cardId: card._id, newPrice, modifiedCount: updateResult.modifiedCount } );
       } else {
         console.warn(
           `No matching set found for card: ${ card.productName } (Set: ${ card.setName }, Number: ${ card.number }, Rarity: ${ card.rarity })`

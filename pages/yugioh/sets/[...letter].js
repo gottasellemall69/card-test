@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
@@ -44,11 +44,24 @@ const normalizeLetter = ( value ) => {
   return stringValue ? stringValue.charAt( 0 ).toUpperCase() : "";
 };
 
+const parseReleaseDate = ( value ) => {
+  if ( !value ) {
+    return 0;
+  }
+
+  const parsed = Date.parse( value );
+
+  return Number.isNaN( parsed ) ? 0 : parsed;
+};
+
 const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
   const router = useRouter();
   const routerLetter = Array.isArray( router.query.letter )
     ? router.query.letter[ 0 ]
     : router.query.letter;
+  const [ searchTerm, setSearchTerm ] = useState( "" );
+  const [ sortOption, setSortOption ] = useState( "name-asc" );
+  const [ supplementalFilter, setSupplementalFilter ] = useState( "all" );
 
   if ( router.isFallback ) {
     return (
@@ -63,19 +76,68 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
     [ letter, routerLetter ]
   );
 
-  const memoizedSets = useMemo( () => {
+  const filteredAndSortedSets = useMemo( () => {
     if ( !Array.isArray( sets ) || sets.length === 0 ) {
+      return [];
+    }
+
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    const filtered = sets.filter( ( set ) => {
+      if ( supplementalFilter === "mainline" && set.isSupplemental ) {
+        return false;
+      }
+
+      if ( supplementalFilter === "supplemental" && !set.isSupplemental ) {
+        return false;
+      }
+
+      if ( !normalizedSearch ) {
+        return true;
+      }
+
+      const haystack = `${ set.set_name ?? "" } ${ set.abbreviation ?? "" }`
+        .toLowerCase();
+
+      return haystack.includes( normalizedSearch );
+    } );
+
+    const compareByName = ( a, b ) =>
+      a.set_name.localeCompare( b.set_name, undefined, { sensitivity: "base" } );
+
+    const compareByRelease = ( a, b ) =>
+      parseReleaseDate( b.releaseDate ) - parseReleaseDate( a.releaseDate );
+
+    const sorted = [ ...filtered ].sort( ( a, b ) => {
+      switch ( sortOption ) {
+        case "name-desc":
+          return compareByName( b, a );
+        case "release-old":
+          return compareByRelease( b, a );
+        case "release-new":
+          return compareByRelease( a, b );
+        case "name-asc":
+        default:
+          return compareByName( a, b );
+      }
+    } );
+
+    return sorted;
+  }, [ sets, searchTerm, sortOption, supplementalFilter ] );
+
+  const memoizedSets = useMemo( () => {
+    if ( filteredAndSortedSets.length === 0 ) {
       return (
         <p className="p-5 text-white">
-          No sets are currently available for { effectiveLetter || "this index" }.
+          No sets match your filters for { effectiveLetter || "this index" }.
         </p>
       );
     }
 
-    return sets.map( ( set ) => (
+    return filteredAndSortedSets.map( ( set ) => (
       <div
         key={ set.urlName || set.set_name }
-        className="w-7xl p-5 font-medium leading-5 text-white"
+        className="w-7xl rounded-lg p-5 font-medium leading-5 text-white transition hover:bg-white/5"
       >
         <Link
           className="w-fit hover:font-semibold hover:underline"
@@ -91,9 +153,22 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
         >
           { set.set_name }
         </Link>
+        <div className="mt-2 text-sm text-gray-200">
+          { set.abbreviation ? <span className="mr-3">Abbr: { set.abbreviation }</span> : null }
+          { set.releaseDate ? (
+            <span>
+              Release: { new Date( set.releaseDate ).toLocaleDateString() }
+            </span>
+          ) : null }
+          { typeof set.isSupplemental === "boolean" ? (
+            <span className="ml-3">
+              { set.isSupplemental ? "Supplemental" : "Mainline" }
+            </span>
+          ) : null }
+        </div>
       </div>
     ) );
-  }, [ sets, effectiveLetter ] );
+  }, [ filteredAndSortedSets, effectiveLetter ] );
 
   const pageLetter = effectiveLetter || "—";
 
@@ -111,7 +186,44 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
           <h1 className="my-10 text-xl font-black text-shadow">
             Sets Starting with { pageLetter }
           </h1>
-          <div className="mx-5 grid grid-flow-row grid-cols-1 flex-wrap md:grid-cols-2 lg:grid-cols-3">
+          <div className="mx-5 mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <label className="flex flex-col text-sm font-semibold text-gray-200">
+              Search by name or abbreviation
+              <input
+                type="search"
+                value={ searchTerm }
+                onChange={ ( event ) => setSearchTerm( event.target.value ) }
+                placeholder="e.g. Starter Deck"
+                className="mt-2 rounded-md border border-gray-400 bg-gray-900/60 p-2 text-white placeholder:text-gray-400 focus:border-teal-400 focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col text-sm font-semibold text-gray-200">
+              Sort sets
+              <select
+                value={ sortOption }
+                onChange={ ( event ) => setSortOption( event.target.value ) }
+                className="mt-2 rounded-md border border-gray-400 bg-gray-900/60 p-2 text-white focus:border-teal-400 focus:outline-none"
+              >
+                <option value="name-asc">Name (A → Z)</option>
+                <option value="name-desc">Name (Z → A)</option>
+                <option value="release-new">Release (Newest)</option>
+                <option value="release-old">Release (Oldest)</option>
+              </select>
+            </label>
+            <label className="flex flex-col text-sm font-semibold text-gray-200">
+              Filter by set type
+              <select
+                value={ supplementalFilter }
+                onChange={ ( event ) => setSupplementalFilter( event.target.value ) }
+                className="mt-2 rounded-md border border-gray-400 bg-gray-900/60 p-2 text-white focus:border-teal-400 focus:outline-none"
+              >
+                <option value="all">All sets</option>
+                <option value="mainline">Mainline</option>
+                <option value="supplemental">Supplemental</option>
+              </select>
+            </label>
+          </div>
+          <div className="mx-5 pb-10 p-3 grid grid-flow-row grid-cols-1 flex-wrap md:grid-cols-2 lg:grid-cols-3">
             { memoizedSets }
           </div>
         </div>
@@ -161,6 +273,8 @@ export async function getStaticProps( { params } ) {
       urlName: set?.urlName ?? null,
       setNameId: set?.setNameId ?? null,
       abbreviation: set?.abbreviation ?? null,
+      releaseDate: set?.releaseDate ?? null,
+      isSupplemental: set?.isSupplemental ?? null,
     } ) )
     .sort( ( a, b ) => a.set_name.localeCompare( b.set_name ) );
 
