@@ -23,7 +23,7 @@
         "jsonwebtoken": "^9.0.2",
         "lodash": "^4.17.21",
         "lucide-react": "^0.513.0",
-        "mongodb": "^6.21.0",
+        "mongodb": "^7.0.0",
         "next": "^15.5.6",
         "next-auth": "^4.24.13",
         "node-cron": "^4.2.1",
