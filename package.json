@@ -41,7 +41,7 @@
         "@eslint/js": "^9.22.0",
         "@types/bcryptjs": "^2.4.6",
         "@types/jsonwebtoken": "^9.0.10",
-        "@types/lodash": "^4.17.20",
+        "@types/lodash": "^4.17.21",
         "@types/react": "^19.2.5",
         "@types/react-window": "^1.8.8",
         "autoprefixer": "^10.4.22",
