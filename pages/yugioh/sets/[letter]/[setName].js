@@ -1501,16 +1501,11 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     const rarityLabel = activeVariant?.rarity || cardItem.selectedRarity || "";
     const printingLabel = activeVariant?.printing || "";
     const conditionLabel =
-      activeVariant?.conditionLabel ||
-      buildConditionLabel( activeVariant?.baseCondition || "", activeVariant?.printing || "" );
+      activeVariant?.conditionLabel || buildConditionLabel( activeVariant?.baseCondition || "", activeVariant?.printing || "" );
     const marketPriceLabel =
-      activeVariant && Number.isFinite( Number( activeVariant.marketPrice ) )
-        ? formatPriceLabel( activeVariant.marketPrice )
-        : null;
+      activeVariant && Number.isFinite( Number( activeVariant.marketPrice ) ) ? formatPriceLabel( activeVariant.marketPrice ) : null;
     const lowPriceLabel =
-      activeVariant && Number.isFinite( Number( activeVariant.lowPrice ) )
-        ? formatPriceLabel( activeVariant.lowPrice )
-        : null;
+      activeVariant && Number.isFinite( Number( activeVariant.lowPrice ) ) ? formatPriceLabel( activeVariant.lowPrice ) : null;
 
     const detailEntries = [
       { label: "Set", value: resolvedSetLabel },
@@ -1523,13 +1518,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     ].filter( ( entry ) => entry && entry.value );
 
     const detailLetter =
-      typeof routeLetter === "string" && routeLetter.trim()
-        ? routeLetter.trim().charAt( 0 ).toUpperCase()
-        : resolvedSetLabel
-          ? resolvedSetLabel.charAt( 0 ).toUpperCase()
-          : undefined;
-    const rarityForDetails =
-      rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
+      typeof routeLetter === "string" && routeLetter.trim() ? routeLetter.trim().charAt( 0 ).toUpperCase() : resolvedSetLabel ? resolvedSetLabel.charAt( 0 ).toUpperCase() : undefined;
+    const rarityForDetails = rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
 
     const cardDetailsQuery = Object.fromEntries(
       Object.entries( {
@@ -1560,7 +1550,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         <div className={ `relative w-fit mx-auto flip-card ${ isFlipped ? "flipped" : "" }` }>
           <div className="flip-card-inner h-full min-h-[24rem]">
             <div
-              className="flip-card-front flex h-full flex-col gap-4"
+              className="flip-card-front flex h-full flex-col gap-4 backdrop-blur"
               role="button"
               tabIndex={ 0 }
               aria-pressed={ isFlipped }
@@ -1587,10 +1577,10 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
                   </button>
                 ) }
-                <div className="size-full max-w-fit mx-auto">
+                <div className="size-full max-w-fit mx-auto -inset-1">
                   { hasImage ? (
                     <img
-                      className="object-cover object-top w-full mx-auto aspect-square h-full"
+                      className="object-scale-down sm:object-cover object-center w-full mx-auto aspect-square h-full"
                       src={ imageSrc }
                       alt={ `Card Image - ${ cardItem.productName }` }
                       loading="lazy"
@@ -1603,8 +1593,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 </div>
                 { activeVariant && (
                   <div className="pointer-events-none absolute inset-x-0 top-0 flex min-h-[385px] items-end justify-start overflow-hidden rounded-lg p-4">
-                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90" />
-                    <div className="relative flex flex-col gap-1 text-white">
+                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-black/80 via-black/30 to-black/10 opacity-90" />
+                    <div className="relative flex flex-col gap-1 text-white p-3 m-3">
                       <p className="text-lg font-semibold">{ formatPriceLabel( activeVariant.marketPrice ) }</p>
                       { overlayLabel && (
                         <p className="text-xs font-medium uppercase tracking-wide">{ overlayLabel }</p>
@@ -1654,7 +1644,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     </label>
                   </div>
                 ) }
-                <div className="flex flex-wrap flex-col gap-2 lg:flex-row">
+                <div className="flex flex-wrap flex-row gap-2 lg:flex-col">
                   <Link
                     href={ {
                       pathname: "/yugioh/sets/[letter]/cards/card-details",

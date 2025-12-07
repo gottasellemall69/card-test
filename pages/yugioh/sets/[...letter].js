@@ -142,9 +142,7 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
         <Link
           className="w-fit hover:font-semibold hover:underline"
           href={ {
-            pathname: `/yugioh/sets/${ encodeURIComponent(
-              effectiveLetter
-            ) }/${ encodeURIComponent( set.set_name ) }`,
+            pathname: `/yugioh/sets/${ encodeURIComponent( effectiveLetter ) }/${ encodeURIComponent( set.set_name ) }`,
             query: {
               letter: effectiveLetter,
               set_name: set.set_name,
