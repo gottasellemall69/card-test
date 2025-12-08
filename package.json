@@ -46,7 +46,7 @@
         "@types/react-window": "^1.8.8",
         "autoprefixer": "^10.4.22",
         "eslint": "^9.39.1",
-        "eslint-config-next": "15.5.4",
+        "eslint-config-next": "16.0.7",
         "eslint-plugin-react": "^7.37.5",
         "globals": "^16.5.0",
         "postcss": "^8.5.6",
