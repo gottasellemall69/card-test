@@ -32,7 +32,32 @@ const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
 } );
 
 const ITEMS_PER_PAGE = 12;
-const DEFAULT_FILTERS = { rarity: [], condition: [], printing: [] };
+const DEFAULT_CONDITION = "Near Mint 1st Edition";
+const buildDefaultFilters = ( cardList = [] ) => {
+  const raritySet = new Set();
+  const printingSet = new Set();
+
+  cardList.forEach( ( card ) => {
+    if ( card?.rarity ) {
+      raritySet.add( card.rarity );
+    }
+    if ( card?.printing ) {
+      printingSet.add( card.printing );
+    }
+  } );
+
+  const sortValues = ( values ) =>
+    values.sort( ( left, right ) =>
+      left.localeCompare( right, undefined, { numeric: true, sensitivity: "base" } ),
+    );
+
+  return {
+    rarity: sortValues( Array.from( raritySet ) ),
+    condition: DEFAULT_CONDITION ? [ DEFAULT_CONDITION ] : [],
+    printing: sortValues( Array.from( printingSet ) ),
+  };
+};
+const DEFAULT_FILTERS = buildDefaultFilters();
 const DEFAULT_SORT = { key: "number", direction: "ascending" };
 
 const MyCollection = ( { initialAuthState = false } ) => {
@@ -45,6 +70,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
   const [ isUpdatingPrices, setIsUpdatingPrices ] = useState( false );
   const [ searchValue, setSearchValue ] = useState( "" );
   const [ filters, setFilters ] = useState( () => ( { ...DEFAULT_FILTERS } ) );
+  const [ hasInitializedFilters, setHasInitializedFilters ] = useState( false );
   const [ sortConfig, setSortConfig ] = useState( () => ( { ...DEFAULT_SORT } ) );
   const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
   const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( true );
@@ -126,7 +152,21 @@ const MyCollection = ( { initialAuthState = false } ) => {
     }
   }, [ fetchCards ] );
 
+  const defaultFilters = useMemo( () => buildDefaultFilters( cards ), [ cards ] );
   const normalizedSearch = useMemo( () => searchValue.trim().toLowerCase(), [ searchValue ] );
+
+  useEffect( () => {
+    if ( hasInitializedFilters ) {
+      return;
+    }
+
+    if ( !Array.isArray( cards ) || cards.length === 0 ) {
+      return;
+    }
+
+    setFilters( defaultFilters );
+    setHasInitializedFilters( true );
+  }, [ cards, defaultFilters, hasInitializedFilters ] );
 
   const filteredCards = useMemo( () => {
     if ( !Array.isArray( cards ) ) {
@@ -283,6 +323,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
   }, [] );
 
   const handleFilterChange = useCallback( async ( filterName, selectedOptions ) => {
+    setHasInitializedFilters( true );
     setFilters( ( prev ) => ( {
       ...prev,
       [ filterName ]: selectedOptions,
@@ -291,9 +332,10 @@ const MyCollection = ( { initialAuthState = false } ) => {
   }, [] );
 
   const handleClearFilters = useCallback( async () => {
-    setFilters( { ...DEFAULT_FILTERS } );
+    setHasInitializedFilters( true );
+    setFilters( { ...defaultFilters } );
     setCurrentPage( 1 );
-  }, [] );
+  }, [ defaultFilters ] );
 
   const toggleDesktopFilters = useCallback( () => {
     setIsDesktopFilterOpen( ( prev ) => !prev );

@@ -55,6 +55,7 @@ const normalizeSetLetter = ( value ) => {
 
 const DEFAULT_AUTO_CONDITION = "";
 const DEFAULT_AUTO_PRINTING = "";
+const DEFAULT_CONDITION_FILTER = "Near Mint 1st Edition";
 
 // Order matters: check "Unlimited" before "Limited" to avoid substring collisions
 const PRINTING_TOKENS = [ "1st Edition", "Unlimited", "Limited" ];
@@ -281,6 +282,35 @@ const formatPriceLabel = ( value ) => {
 };
 
 const normalizeRarity = ( rarity ) => rarity || "Unknown Rarity";
+const buildDefaultFilters = ( entries = [] ) => {
+  const raritySet = new Set();
+  const printingSet = new Set();
+
+  entries.forEach( ( entry ) => {
+    if ( entry?.rarity ) {
+      raritySet.add( normalizeRarity( entry.rarity ) );
+    }
+
+    const printingLabel = canonicalizePrintingLabel( entry?.printing );
+    if ( printingLabel ) {
+      printingSet.add( printingLabel );
+    }
+
+    const conditionDetails = resolveConditionDetails( entry?.condition, entry?.printing );
+    if ( conditionDetails.printing ) {
+      printingSet.add( conditionDetails.printing );
+    }
+  } );
+
+  const sortValues = ( values ) =>
+    values.sort( ( left, right ) => safeCompare( left, right ) );
+
+  return {
+    rarity: sortValues( Array.from( raritySet ) ),
+    condition: DEFAULT_CONDITION_FILTER ? [ DEFAULT_CONDITION_FILTER ] : [],
+    printing: sortValues( Array.from( printingSet ) ),
+  };
+};
 const variantKey = ( variant ) => {
   return [
     variant.productID ?? "",
@@ -443,7 +473,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
   const [ resolvedSetName, setResolvedSetName ] = useState( initialSetName || "" );
   const [ isLoading, setIsLoading ] = useState( false );
   const [ fetchError, setFetchError ] = useState( "" );
-  const [ filters, setFilters ] = useState( { rarity: [], condition: [], printing: [] } );
+  const [ filters, setFilters ] = useState( () => buildDefaultFilters() );
   const [ rarityOverrides, setRarityOverrides ] = useState( {} );
   const [ selectedNumbers, setSelectedNumbers ] = useState( [] );
   const [ numbersOpen, setNumbersOpen ] = useState( false );
@@ -464,6 +494,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
   const [ gridPage, setGridPage ] = useState( 1 );
   const [ isFilterDrawerOpen, setIsFilterDrawerOpen ] = useState( false );
   const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( true );
+  const defaultFilters = useMemo( () => buildDefaultFilters( rawEntries ), [ rawEntries ] );
 
   const selectedConditions = filters.condition;
   const selectedPrintings = filters.printing;
@@ -507,8 +538,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
   }, [] );
 
   const clearFilters = useCallback( () => {
-    setFilters( { rarity: [], condition: [], printing: [] } );
-  }, [] );
+    setFilters( { ...defaultFilters } );
+  }, [ defaultFilters ] );
   const toggleDesktopFilters = useCallback( () => {
     setIsDesktopFilterOpen( ( prev ) => !prev );
   }, [] );
@@ -694,13 +725,15 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           throw new Error( "Unexpected response format" );
         }
 
+        const initialFilters = buildDefaultFilters( results );
+
         if ( isMounted ) {
           setResolvedSetName( officialName || decodedSetName );
           setRawEntries( results );
           setSelectedRowIds( {} );
           setBulkSelections( {} );
           setSelectedNumbers( [] );
-          setFilters( { rarity: [], condition: [], printing: [] } );
+          setFilters( initialFilters );
           setRarityOverrides( {} );
           setGridSelectionMode( false );
           setGridPage( 1 );

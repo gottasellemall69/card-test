@@ -29,7 +29,7 @@
     position: absolute;
     inset: 0;
     backface-visibility: hidden;
-    border-radius: 0.75rem;
+    border-radius: 30%;
     overflow: hidden;
     display: flex;
     flex-direction: column;

@@ -154,9 +154,8 @@ export function middleware( request: NextRequest ) {
 }
 
 export const config = {
-  runtime: "nodejs",
   matcher: [
     "/yugioh/my-collection",
     "/api/Yugioh/:path*",
-  ],
+  ]
 };

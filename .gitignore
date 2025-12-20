@@ -41,7 +41,6 @@ server/changeStreamHandler.js
 
 .vscode
 /rift
-prompt.md
 /.gpteng
 repomix-output.*
 /public/*
