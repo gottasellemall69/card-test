@@ -131,7 +131,7 @@ img:hover
 .navLink:focus-visible
 {
   outline: 2px solid rgba(99, 102, 241, 0.45);
-  outline-offset: 4px;
+  outline-offset: 2px;
 }
 
 .navLink:hover,
@@ -214,7 +214,7 @@ img:hover
   line-height: 1.32;
   color: inherit;
   letter-spacing: 0.04em;
-  filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.12));
+  filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.12));
   overflow-wrap: anywhere;
   transition: color var(--transition-slow), filter 320ms ease;
 }
@@ -279,7 +279,7 @@ img:hover
 .navLink.navLink-active .navLink-labelText
 {
   color: var(--text-secondary);
-  filter: drop-shadow(0 0 14px rgba(99, 102, 241, 0.4));
+  filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.4));
 }
 
 .navLink:hover .navLink-labelText::before,
@@ -287,7 +287,7 @@ img:hover
 .navLink.navLink-active .navLink-labelText::before
 {
   -webkit-text-stroke-color: rgba(148, 163, 184, 0.85);
-  filter: drop-shadow(0 0 22px rgba(99, 102, 241, 0.5));
+  filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.5));
   opacity: 1;
 }
 
@@ -296,7 +296,7 @@ img:hover
 .navLink.navLink-active .navLink-labelText::after
 {
   -webkit-text-stroke-color: rgba(99, 102, 241, 0.48);
-  filter: blur(22px);
+  filter: blur(2px);
   opacity: 0.95;
 }
 

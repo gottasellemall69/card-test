@@ -2,6 +2,41 @@ import jwt from "jsonwebtoken";
 import clientPromise from "@/utils/mongo";
 import { ObjectId } from "mongodb";
 
+const isProduction = process.env.NODE_ENV === "production";
+const baseCookieAttributes = [ "Path=/", "SameSite=Strict" ];
+if ( isProduction ) {
+  baseCookieAttributes.push( "Secure" );
+}
+const expiredCookieAttributes = [ ...baseCookieAttributes, "Max-Age=0" ];
+const EXPIRED_TOKEN_COOKIE = `token=; HttpOnly; ${ expiredCookieAttributes.join( "; " ) }`;
+const EXPIRED_AUTH_STATE_COOKIE = `auth_state=; ${ expiredCookieAttributes.join( "; " ) }`;
+
+function appendSetCookie( res, cookies ) {
+  const existing = res.getHeader( "Set-Cookie" );
+
+  if ( !existing ) {
+    res.setHeader( "Set-Cookie", cookies );
+    return;
+  }
+
+  if ( Array.isArray( existing ) ) {
+    res.setHeader( "Set-Cookie", [ ...existing, ...cookies ] );
+    return;
+  }
+
+  res.setHeader( "Set-Cookie", [ existing, ...cookies ] );
+}
+
+function clearAuthCookies( res ) {
+  appendSetCookie( res, [ EXPIRED_TOKEN_COOKIE, EXPIRED_AUTH_STATE_COOKIE ] );
+}
+
+function respondUnauthorized( res, message ) {
+  clearAuthCookies( res );
+  res.status( 401 ).json( { error: message } );
+  return null;
+}
+
 function extractBearerToken( headerValue ) {
   if ( !headerValue || typeof headerValue !== "string" ) {
     return null;
@@ -64,8 +99,7 @@ export async function requireUser(
   const token = getTokenFromRequest( req );
 
   if ( !token && !middlewareUser ) {
-    res.status( 401 ).json( { error: "Unauthorized: No token provided" } );
-    return null;
+    return respondUnauthorized( res, "Unauthorized: No token provided" );
   }
 
   let decoded = middlewareUser;
@@ -75,19 +109,16 @@ export async function requireUser(
       decoded = jwt.verify( token, process.env.JWT_SECRET );
     } catch ( error ) {
       console.error( "Invalid token:", error );
-      res.status( 401 ).json( { error: "Unauthorized: Invalid token" } );
-      return null;
+      return respondUnauthorized( res, "Unauthorized: Invalid token" );
     }
   }
 
   if ( !decoded ) {
-    res.status( 401 ).json( { error: "Unauthorized: Invalid token payload" } );
-    return null;
+    return respondUnauthorized( res, "Unauthorized: Invalid token payload" );
   }
 
   if ( !decoded?.userId || !decoded?.username ) {
-    res.status( 401 ).json( { error: "Unauthorized: Invalid token payload" } );
-    return null;
+    return respondUnauthorized( res, "Unauthorized: Invalid token payload" );
   }
 
   req.user = decoded;
@@ -104,8 +135,7 @@ export async function requireUser(
       .findOne( { _id: new ObjectId( decoded.userId ) } );
 
     if ( !user ) {
-      res.status( 401 ).json( { error: "Unauthorized: User not found" } );
-      return null;
+      return respondUnauthorized( res, "Unauthorized: User not found" );
     }
 
     return { token, decoded, user };

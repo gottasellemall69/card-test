@@ -1,21 +1,31 @@
 ﻿import fs from "fs/promises";
 import path from "path";
-import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Filter, Grid, List } from "lucide-react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import FilterPanel from "@/components/Yugioh/FilterPanel";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
-import YugiohCardDataTable from "@/components/Yugioh/YugiohCardDataTable";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import Notification from "@/components/Notification";
 import { fetchCardData as fetchAllCardData } from "@/utils/api";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
 import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
+
+const YugiohCardDataTable = dynamic(
+  () => import( "@/components/Yugioh/YugiohCardDataTable" ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="py-10 text-center text-white/70">Loading...</div>
+    ),
+  }
+);
 
 const CARD_SETS_FILE_PATH = path.join(
   process.cwd(),
@@ -1526,7 +1536,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     const activeVariant = cardItem.activeVariant || null;
     const overlayLabel = activeVariant ? buildVariantLabel( activeVariant ) : currentRarityLabel;
     const cardContainerClasses = [
-      "relative min-h-[24rem] w-full max-w-[350px] mx-auto object-cover overflow-hidden rounded-xl border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
+      "relative min-h-[24rem] w-full max-w-[350px] mx-auto object-cover overflow-hidden rounded-sm border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
       isSelected ? "ring-2 ring-indigo-400/70" : "",
     ].filter( Boolean ).join( " " );
     const isFlipped = Boolean( flippedGridCards[ selectionKey ] );
@@ -1613,7 +1623,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 <div className="size-full max-w-fit mx-auto -inset-1">
                   { hasImage ? (
                     <img
-                      className="object-scale-down sm:object-cover object-center w-full mx-auto aspect-square h-full"
+                      className="object-scale-down sm:object-cover object-center w-full mx-auto aspect-1 h-full"
                       src={ imageSrc }
                       alt={ `Card Image - ${ cardItem.productName }` }
                       loading="lazy"
@@ -2065,17 +2075,15 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                   </>
                 ) : (
                   <div className="overflow-hidden rounded-sm border border-white/10 bg-black/40 p-4 shadow-2xl">
-                    <Suspense fallback={ <div className="py-10 text-center text-white/70">Loading...</div> }>
-                      <YugiohCardDataTable
-                        matchedCardData={ matchedCardData }
-                        selectedRowIds={ selectedRowIds }
-                        setSelectedRowIds={ setSelectedRowIds }
-                        collectionMap={ collectionLookup }
-                        onRarityChange={ handleRarityOverrideChange }
-                        autoRarityOptionValue={ AUTO_RARITY_OPTION }
-                        isAuthenticated={ isAuthenticated }
-                      />
-                    </Suspense>
+                    <YugiohCardDataTable
+                      matchedCardData={ matchedCardData }
+                      selectedRowIds={ selectedRowIds }
+                      setSelectedRowIds={ setSelectedRowIds }
+                      collectionMap={ collectionLookup }
+                      onRarityChange={ handleRarityOverrideChange }
+                      autoRarityOptionValue={ AUTO_RARITY_OPTION }
+                      isAuthenticated={ isAuthenticated }
+                    />
                   </div>
                 ) }
                 { isAuthenticated &&
