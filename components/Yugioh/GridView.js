@@ -13,17 +13,22 @@ const formatCurrency = ( value ) => {
   return `$${ numeric.toFixed( 2 ) }`;
 };
 
-const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
+const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, handleSortChange } ) => {
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: "" } );
   const [ flippedCards, setFlippedCards ] = useState( {} );
-  const [ sortField, setSortField ] = useState( "setName" );
-  const [ sortDirection, setSortDirection ] = useState( "asc" );
+  const isExternallySorted = Boolean( sortConfig && typeof handleSortChange === "function" );
+  const [ internalSortField, setInternalSortField ] = useState( "setName" );
+  const [ internalSortDirection, setInternalSortDirection ] = useState( "asc" );
+  const sortField = isExternallySorted ? sortConfig.key : internalSortField;
+  const sortDirection = isExternallySorted
+    ? ( sortConfig.direction === "descending" ? "desc" : "asc" )
+    : internalSortDirection;
   const displayInputClasses =
-    "min-w-[4rem] rounded-lg border border-white/30 bg-black/50 px-3 py-1 text-center font-semibold text-white transition hover:border-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60";
+    "min-w-[4rem] rounded border border-white/30 bg-black/50 px-3 py-1 text-center font-semibold text-white transition hover:border-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60";
   const displayInputClassesRose =
-    "min-w-[4rem] rounded-lg border border-rose-300/60 bg-black/50 px-3 py-1 text-center font-semibold text-rose-200 transition hover:border-rose-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60";
+    "min-w-[4rem] rounded border border-rose-300/60 bg-black/50 px-3 py-1 text-center font-semibold text-rose-200 transition hover:border-rose-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/60";
 
   const handleEdit = useCallback(
     ( cardId, field ) => {
@@ -111,6 +116,10 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
   const memoizedAggregatedData = useMemo( () => {
     if ( !Array.isArray( aggregatedData ) ) return [];
 
+    if ( isExternallySorted ) {
+      return aggregatedData;
+    }
+
     const sortedData = [ ...aggregatedData ];
 
     if ( !sortField ) {
@@ -140,7 +149,29 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
     } );
 
     return sortedData;
-  }, [ aggregatedData, sortField, sortDirection ] );
+  }, [ aggregatedData, isExternallySorted, sortField, sortDirection ] );
+
+  const handleSortFieldChange = useCallback(
+    ( nextField ) => {
+      if ( isExternallySorted ) {
+        handleSortChange( nextField );
+        return;
+      }
+
+      setInternalSortField( nextField );
+    },
+    [ handleSortChange, isExternallySorted ],
+  );
+
+  const toggleSortDirection = useCallback( () => {
+    if ( isExternallySorted ) {
+      const nextDirection = sortConfig.direction === "ascending" ? "descending" : "ascending";
+      handleSortChange( sortConfig.key, nextDirection );
+      return;
+    }
+
+    setInternalSortDirection( ( prev ) => ( prev === "asc" ? "desc" : "asc" ) );
+  }, [ handleSortChange, isExternallySorted, sortConfig ] );
 
   return (
     <>
@@ -149,12 +180,13 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
           <span className="font-medium text-white/70">Sort</span>
           <select
             value={ sortField }
-            onChange={ ( event ) => setSortField( event.target.value ) }
-            className="rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+            onChange={ ( event ) => handleSortFieldChange( event.target.value ) }
+            className="rounded border border-white/15 bg-black/60 px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
           >
             <option value="productName">Card Name</option>
             <option value="setName">Set Name</option>
             <option value="number">Card Number</option>
+            <option value="printing">Printing</option>
             <option value="rarity">Card Rarity</option>
             <option value="quantity">Quantity</option>
             <option value="marketPrice">Market Price</option>
@@ -163,15 +195,15 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
         </div>
         <button
           type="button"
-          onClick={ () => setSortDirection( ( prev ) => ( prev === "asc" ? "desc" : "asc" ) ) }
-          className="inline-flex items-center rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+          onClick={ toggleSortDirection }
+          className="inline-flex items-center rounded border border-white/15 bg-black/60 px-3 py-2 text-sm font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
         >
           { sortDirection === "asc" ? "Asc" : "Desc" }
         </button>
       </div>
 
-      <div className="w-full rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl sm:p-2">
-        <div className="grid grid-cols-1 gap-2 xl:grid-cols-2 2xl:grid-cols-3">
+      <div className="w-full rounded border border-white/10 bg-black/40 p-4 shadow-2xl sm:p-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           { memoizedAggregatedData.map( ( card ) => {
             if ( !card ) return null;
 
@@ -249,12 +281,12 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
             return (
               <div
                 key={ card._id }
-                className="group relative flex mx-auto max-w-full h-[550px] max-h-full w-[325px] flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
+                className="group relative flex flex-wrap mx-auto  sm:w-fit lg:w-full min-h-[32rem] flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
               >
-                <div className={ `relative flex-1 flip-card ${ isFlipped ? "flipped" : "" }` }>
-                  <div className="flip-card-inner">
+                <div className={ `rounded relative flex-1 flip-card ${ isFlipped ? "flipped" : "" }` }>
+                  <div className="flip-card-inner rounded">
                     <div
-                      className="flip-card-front flex h-full w-full flex-col gap-4"
+                      className="flip-card-front flex h-[24rem] w-fit flex-col rounded"
                       role="button"
                       tabIndex={ 0 }
                       aria-pressed={ isFlipped }
@@ -266,20 +298,22 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         }
                       } }
                     >
-                      <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded border p-4 border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
+                      <div className="relative flex h-full w-auto items-center justify-center overflow-hidden rounded border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
                         <img
-                          className="mx-auto h-full w-full object-fill aspect-1"
+                          className="mx-auto h-full w-full object-top object-scale-down aspect-square"
                           src={ imageSrc }
                           alt={ `Card Image - ${ card.productName }` }
                           loading="lazy"
                         />
                         { ( formatCurrency( card.marketPrice ) || card.rarity || card.printing ) && (
-                          <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full items-end justify-start overflow-hidden rounded-lg">
+                          <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full items-end justify-start overflow-hidden rounded">
                             <div
                               aria-hidden="true"
                               className="absolute inset-x-0 bottom-0 min-h-[24rem] bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90"
                             />
-                            <div className="relative flex flex-col gap-1 text-white">
+
+                            <div className="relative flex flex-col gap-1 text-white p-2 text-shadow glass w-full bg-transparent">
+                              <h3 className="text-lg font-semibold text-pretty break-words">{ card.productName }</h3>
                               { formatCurrency( card.marketPrice ) && (
                                 <p className="text-lg	font-semibold">{ formatCurrency( card.marketPrice ) }</p>
                               ) }
@@ -291,7 +325,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         ) }
                       </div>
                     </div>
-                    <div className="flip-card-back flex min-h-[24rem] w-fit flex-col justify-between gap-3 rounded border border-white/10 bg-black/80 p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
+                    <div className="flip-card-back flex min-h-[32rem] w-full flex-col justify-between gap-3 rounded border border-white/10 bg-black p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
                       <div className="space-y-3">
                         <h3 className="text-lg font-semibold text-center text-pretty break-words">{ card.productName }</h3>
                         <div className="space-y-1 text-xs text-white/70 sm:text-sm">
@@ -305,9 +339,9 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                           ) ) }
                         </div>
                       </div>
-                      <div className="mx-auto mt-2 flex w-full flex-col gap-2 text-pretty sm:flex-row sm:gap-3">
+                      <div className="mx-auto mt-2 flex flex-wrap w-full gap-2 text-pretty sm:gap-3">
                         <Link
-                          className="inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-white/10 px-2 py-1 text-sm font-semibold text-white transition hover:border-indigo-400 hover:bg-indigo-500/20"
+                          className="inline-flex w-full items-center justify-center rounded border border-white/20 bg-white/10 px-2 py-1 text-sm font-semibold text-white transition hover:border-indigo-400 hover:bg-indigo-500/20"
                           href={ {
                             pathname: "/yugioh/sets/[letter]/cards/card-details",
                             query: cardDetailsQuery,
@@ -317,7 +351,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         </Link>
                         <button
                           type="button"
-                          className="inline-flex w-full items-center justify-center rounded-md border border-white/20 px-2 py-1 text-sm font-medium text-white transition hover:border-indigo-400 hover:text-indigo-200"
+                          className="inline-flex w-full items-center justify-center rounded border border-white/20 px-2 py-1 text-sm font-medium text-white transition hover:border-indigo-400 hover:text-indigo-200"
                           onClick={ () => toggleFlip( card._id, false ) }
                         >
                           Show Card Front
@@ -337,7 +371,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                         onChange={ ( event ) => handleChange( event, card._id, "quantity" ) }
                         onBlur={ () => handleSave( card._id, "quantity" ) }
                         onKeyDown={ handleQuantityKeyDown }
-                        className="min-w-[4rem] rounded-lg border border-white/30 bg-black/60 px-3 py-1 text-center text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
+                        className="min-w-[4rem] rounded border border-white/30 bg-black/60 px-3 py-1 text-center text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
                         min={ 0 }
                       />
                     ) : (
@@ -355,7 +389,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard } ) => {
                     <span className="text-xs font-semibold uppercase tracking-wide text-rose-300">Remove Amount</span>
                     { edit[ card._id ] === "deleteAmount" ? (
                       <input
-                        className="min-w-[4rem] rounded-lg border border-rose-300/60 bg-black/60 px-3 py-1 text-center text-white focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-400/60"
+                        className="min-w-[4rem] rounded border border-rose-300/60 bg-black/60 px-3 py-1 text-center text-white focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-400/60"
                         type="number"
                         min={ 0 }
                         max={ Math.max( quantity, 0 ) }

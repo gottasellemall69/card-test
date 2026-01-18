@@ -23,9 +23,11 @@ const normalizeValue = ( value, type ) => {
   return ( value ?? '' ).toString().toLowerCase();
 };
 
-const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard } ) => {
+const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfig, handleSortChange } ) => {
   const safeCards = Array.isArray( aggregatedData ) ? aggregatedData : [];
-  const [ sortConfig, setSortConfig ] = useState( { key: DEFAULT_SORT_KEY, direction: 'ascending' } );
+  const isExternallySorted = Boolean( sortConfig && typeof handleSortChange === 'function' );
+  const [ internalSortConfig, setInternalSortConfig ] = useState( { key: DEFAULT_SORT_KEY, direction: 'ascending' } );
+  const activeSortConfig = isExternallySorted ? sortConfig : internalSortConfig;
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
@@ -142,16 +144,24 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard } ) => {
 
   const handleSort = ( key ) => {
     if ( !SORTABLE_COLUMNS[ key ] ) return;
+    if ( isExternallySorted ) {
+      handleSortChange( key );
+      return;
+    }
     let direction = 'ascending';
-    if ( sortConfig.key === key && sortConfig.direction === 'ascending' ) {
+    if ( activeSortConfig.key === key && activeSortConfig.direction === 'ascending' ) {
       direction = 'descending';
     }
 
-    setSortConfig( { key, direction } );
+    setInternalSortConfig( { key, direction } );
   };
 
   const sortedData = useMemo( () => {
-    const { key, direction } = sortConfig;
+    if ( isExternallySorted ) {
+      return safeCards;
+    }
+
+    const { key, direction } = activeSortConfig;
     const column = SORTABLE_COLUMNS[ key ] || SORTABLE_COLUMNS[ DEFAULT_SORT_KEY ];
     const items = [ ...safeCards ];
 
@@ -164,11 +174,11 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard } ) => {
     } );
 
     return items;
-  }, [ safeCards, sortConfig ] );
+  }, [ activeSortConfig, isExternallySorted, safeCards ] );
 
   const getSortArrow = ( key ) => {
-    if ( sortConfig.key !== key ) return '';
-    return sortConfig.direction === 'ascending' ? '^' : 'v';
+    if ( activeSortConfig.key !== key ) return '';
+    return activeSortConfig.direction === 'ascending' ? '^' : 'v';
   };
 
   const displayedRowIds = useMemo(

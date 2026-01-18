@@ -31,7 +31,7 @@ export const YUGIOH_FILTER_SECTIONS = [
   },
   {
     id: "condition",
-    label: "Condition",
+    label: "Condition & Printing",
     options: [
       "Near Mint 1st Edition",
       "Lightly Played 1st Edition",
@@ -49,11 +49,6 @@ export const YUGIOH_FILTER_SECTIONS = [
       "Heavily Played Unlimited",
       "Damaged Unlimited",
     ],
-  },
-  {
-    id: "printing",
-    label: "Printing",
-    options: ["1st Edition", "Unlimited", "Limited"],
   },
 ];
 

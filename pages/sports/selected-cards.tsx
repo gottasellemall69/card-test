@@ -10,7 +10,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 const SelectedCardsPage = () => {
-  const [ cards, setCards ] = useState( [] );
+  const [ cards, setCards ] = useState<SelectedCard[]>( [] );
   const [ searchTerm, setSearchTerm ] = useState( '' );
   const [ sortBy, setSortBy ] = useState( 'dateAdded-desc' );
 

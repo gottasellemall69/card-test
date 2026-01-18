@@ -1,4 +1,4 @@
-export default async function handler( req, res ) {
+﻿export default async function handler( req, res ) {
   const { cardId } = req.query;
   const normalizedCardId = Array.isArray( cardId ) ? cardId[ 0 ] : cardId;
 
@@ -32,7 +32,7 @@ export default async function handler( req, res ) {
         set_rarity: set.set_rarity,
         rarity_code: set.set_rarity_code,
         set_edition: set.set_edition || "Unknown Edition",
-        set_price: set.set_price,
+        set_price: set.set_price || "0.00",
       } ) ) || [],
       card_prices: card?.card_prices?.map( ( price ) => ( {
         tcgplayer_price: price.tcgplayer_price || "0.00",

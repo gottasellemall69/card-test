@@ -31,32 +31,12 @@ const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
   ),
 } );
 
-const ITEMS_PER_PAGE = 12;
-const DEFAULT_CONDITION = "Near Mint 1st Edition";
-const buildDefaultFilters = ( cardList = [] ) => {
-  const raritySet = new Set();
-  const printingSet = new Set();
-
-  cardList.forEach( ( card ) => {
-    if ( card?.rarity ) {
-      raritySet.add( card.rarity );
-    }
-    if ( card?.printing ) {
-      printingSet.add( card.printing );
-    }
-  } );
-
-  const sortValues = ( values ) =>
-    values.sort( ( left, right ) =>
-      left.localeCompare( right, undefined, { numeric: true, sensitivity: "base" } ),
-    );
-
-  return {
-    rarity: sortValues( Array.from( raritySet ) ),
-    condition: DEFAULT_CONDITION ? [ DEFAULT_CONDITION ] : [],
-    printing: sortValues( Array.from( printingSet ) ),
-  };
-};
+const ITEMS_PER_PAGE = 15;
+const buildDefaultFilters = () => ( {
+  rarity: [],
+  condition: [],
+  printing: [],
+} );
 const DEFAULT_FILTERS = buildDefaultFilters();
 const DEFAULT_SORT = { key: "number", direction: "ascending" };
 
@@ -152,7 +132,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
     }
   }, [ fetchCards ] );
 
-  const defaultFilters = useMemo( () => buildDefaultFilters( cards ), [ cards ] );
+  const defaultFilters = useMemo( () => buildDefaultFilters(), [] );
   const normalizedSearch = useMemo( () => searchValue.trim().toLowerCase(), [ searchValue ] );
 
   useEffect( () => {
@@ -209,29 +189,40 @@ const MyCollection = ( { initialAuthState = false } ) => {
       return sortable;
     }
 
-    return sortable.sort( ( a, b ) => {
-      const aValue = a?.[ key ];
-      const bValue = b?.[ key ];
+    const numericKeys = new Set( [ "marketPrice", "lowPrice", "oldPrice", "quantity" ] );
 
-      if ( aValue === bValue ) {
+    return sortable.sort( ( a, b ) => {
+      const rawLeft = a?.[ key ];
+      const rawRight = b?.[ key ];
+
+      if ( rawLeft === rawRight ) {
         return 0;
       }
 
-      if ( aValue === null || aValue === undefined ) {
+      if ( rawLeft === null || rawLeft === undefined || rawLeft === "" ) {
         return direction === "ascending" ? 1 : -1;
       }
 
-      if ( bValue === null || bValue === undefined ) {
+      if ( rawRight === null || rawRight === undefined || rawRight === "" ) {
         return direction === "ascending" ? -1 : 1;
       }
 
-      if ( typeof aValue === "number" && typeof bValue === "number" ) {
-        return direction === "ascending" ? aValue - bValue : bValue - aValue;
+      if ( numericKeys.has( key ) ) {
+        const leftNumber = Number( rawLeft );
+        const rightNumber = Number( rawRight );
+        const leftOk = Number.isFinite( leftNumber );
+        const rightOk = Number.isFinite( rightNumber );
+
+        if ( leftOk && rightOk ) {
+          return direction === "ascending"
+            ? leftNumber - rightNumber
+            : rightNumber - leftNumber;
+        }
       }
 
       return direction === "ascending"
-        ? String( aValue ).localeCompare( String( bValue ) )
-        : String( bValue ).localeCompare( String( aValue ) );
+        ? String( rawLeft ).localeCompare( String( rawRight ), undefined, { numeric: true, sensitivity: "base" } )
+        : String( rawRight ).localeCompare( String( rawLeft ), undefined, { numeric: true, sensitivity: "base" } );
     } );
   }, [ filteredCards, sortConfig ] );
 
@@ -351,6 +342,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
       const nextDirection = isSameKey && prev.direction === "ascending" ? "descending" : "ascending";
       return { key, direction: nextDirection };
     } );
+    setCurrentPage( 1 );
   }, [] );
 
   const handlePageClick = useCallback(
@@ -725,12 +717,15 @@ const MyCollection = ( { initialAuthState = false } ) => {
                           onDeleteCard={ onDeleteCard }
                           onUpdateCard={ onUpdateCard }
                           handleSortChange={ handleSortChange }
+                          sortConfig={ sortConfig }
                         />
                       ) : (
                         <GridView
                           aggregatedData={ gridCards }
                           onDeleteCard={ onDeleteCard }
                           onUpdateCard={ onUpdateCard }
+                          handleSortChange={ handleSortChange }
+                          sortConfig={ sortConfig }
                         />
                       ) }
                     </div>

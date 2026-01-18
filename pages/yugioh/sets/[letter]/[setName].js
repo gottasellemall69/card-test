@@ -86,7 +86,7 @@ const STANDARD_CONDITION_VALUES = [
   "Heavily Played Unlimited",
   "Damaged Unlimited",
 ];
-const GRID_ITEMS_PER_PAGE = 12;
+const GRID_ITEMS_PER_PAGE = 24;
 
 const normalizeFilterToken = ( value = "" ) => {
   if ( value === null || value === undefined ) {
@@ -283,6 +283,51 @@ const safeCompare = ( a, b ) => {
   return left.localeCompare( right, undefined, { numeric: true, sensitivity: "base" } );
 };
 
+const PRINTING_SORT_ORDER = [ "1st Edition", "Limited", "Unlimited" ];
+const BASE_CONDITION_SORT_ORDER = [
+  "Near Mint",
+  "Lightly Played",
+  "Moderately Played",
+  "Heavily Played",
+  "Damaged",
+];
+
+const compareWithOrder = ( left, right, order ) => {
+  const leftValue = ( left ?? "" ).toString().trim();
+  const rightValue = ( right ?? "" ).toString().trim();
+
+  if ( !leftValue && !rightValue ) {
+    return 0;
+  }
+
+  if ( !leftValue ) {
+    return 1;
+  }
+
+  if ( !rightValue ) {
+    return -1;
+  }
+
+  const leftRank = order.findIndex(
+    ( entry ) => normalizeFilterToken( entry ) === normalizeFilterToken( leftValue )
+  );
+  const rightRank = order.findIndex(
+    ( entry ) => normalizeFilterToken( entry ) === normalizeFilterToken( rightValue )
+  );
+
+  const resolvedLeftRank = leftRank === -1 ? order.length : leftRank;
+  const resolvedRightRank = rightRank === -1 ? order.length : rightRank;
+
+  if ( resolvedLeftRank !== resolvedRightRank ) {
+    return resolvedLeftRank - resolvedRightRank;
+  }
+
+  return safeCompare( leftValue, rightValue );
+};
+
+const comparePrinting = ( left, right ) => compareWithOrder( left, right, PRINTING_SORT_ORDER );
+const compareBaseCondition = ( left, right ) => compareWithOrder( left, right, BASE_CONDITION_SORT_ORDER );
+
 const formatPriceLabel = ( value ) => {
   const numeric = Number( value );
   if ( Number.isFinite( numeric ) ) {
@@ -315,10 +360,20 @@ const buildDefaultFilters = ( entries = [] ) => {
   const sortValues = ( values ) =>
     values.sort( ( left, right ) => safeCompare( left, right ) );
 
+  const sortedPrintings = sortValues( Array.from( printingSet ) );
+  const defaultPrintings = sortedPrintings.includes( "1st Edition" )
+    ? [ "1st Edition" ]
+    : sortedPrintings.length > 0
+      ? [ sortedPrintings[ 0 ] ]
+      : [];
+  const defaultCondition = defaultPrintings[ 0 ]
+    ? buildConditionLabel( "Near Mint", defaultPrintings[ 0 ] )
+    : DEFAULT_CONDITION_FILTER;
+
   return {
-    rarity: sortValues( Array.from( raritySet ) ),
-    condition: DEFAULT_CONDITION_FILTER ? [ DEFAULT_CONDITION_FILTER ] : [],
-    printing: sortValues( Array.from( printingSet ) ),
+    rarity: [],
+    condition: defaultCondition ? [ defaultCondition ] : [],
+    printing: defaultPrintings,
   };
 };
 const variantKey = ( variant ) => {
@@ -443,10 +498,10 @@ const aggregateEntries = ( entries = [], cardIndex = {} ) => {
         cardMeta: card.cardMeta,
       } );
       const sortedVariants = [ ...augmentedVariants ].sort( ( a, b ) => {
-        const printingCompare = safeCompare( a.printing, b.printing );
+        const printingCompare = comparePrinting( a.printing, b.printing );
         if ( printingCompare !== 0 ) return printingCompare;
 
-        const conditionCompare = safeCompare( a.baseCondition, b.baseCondition );
+        const conditionCompare = compareBaseCondition( a.baseCondition, b.baseCondition );
         if ( conditionCompare !== 0 ) return conditionCompare;
 
         return safeCompare( a.rarity, b.rarity );
@@ -498,7 +553,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
   const [ gridSelectionMode, setGridSelectionMode ] = useState( false );
   const [ flippedGridCards, setFlippedGridCards ] = useState( {} );
   const [ searchTerm, setSearchTerm ] = useState( "" );
-  const [ sortField, setSortField ] = useState( "productName" );
+  const [ sortField, setSortField ] = useState( "" );
   const [ sortDirection, setSortDirection ] = useState( "asc" );
   const [ viewMode, setViewMode ] = useState( "grid" );
   const [ gridPage, setGridPage ] = useState( 1 );
@@ -1359,8 +1414,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     } );
 
     return {
-      conditions: Array.from( conditions ).sort( ( a, b ) => safeCompare( a, b ) ),
-      printings: Array.from( printings ).sort( ( a, b ) => safeCompare( a, b ) ),
+      conditions: Array.from( conditions ).sort( ( a, b ) => compareBaseCondition( a, b ) ),
+      printings: Array.from( printings ).sort( ( a, b ) => comparePrinting( a, b ) ),
       rarities: Array.from( rarities ).sort( ( a, b ) => safeCompare( a, b ) ),
     };
   }, [ selectedCard ] );
