@@ -21,7 +21,7 @@
         "framer-motion": "^12.23.24",
         "isotope-layout": "^3.0.6",
         "jsonwebtoken": "^9.0.2",
-        "lodash": "^4.17.21",
+        "lodash": "^4.17.23",
         "lucide-react": "^0.513.0",
         "mongodb": "^6.21.0",
         "next": "^15.5.6",
