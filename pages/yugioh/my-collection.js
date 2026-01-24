@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
@@ -11,7 +11,7 @@ import FilterPanel from "@/components/Yugioh/FilterPanel";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import { dispatchAuthStateChange } from "@/utils/authState";
 import jwt from "jsonwebtoken";
-import { getTokenFromRequest } from "@/middleware/authenticate";
+import { getTokenFromRequest } from "@/proxy/authenticate";
 
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
   ssr: false,
@@ -559,7 +559,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
       </Head>
       <div className="min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat text-white">
         <main
-          className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "lg:pr-80" : "" }` }
+          className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "xl:pr-72" : "" }` }
         >
 
           <header className="rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl">
@@ -623,7 +623,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
                         <Trash2 className="h-4 w-4" />
                         <span>Delete all</span>
                       </button>
-                      <div className="lg:hidden">
+                      <div className="xl:hidden">
                         <CardFilter
                           filters={ filters }
                           updateFilters={ handleFilterChange }
@@ -648,7 +648,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
                         />
                       </div>
                     </div>
-                    <div className="hidden pb-4 lg:flex lg:justify-end">
+                    <div className="hidden pb-4 xl:flex xl:justify-end">
                       <button
                         type="button"
                         onClick={ toggleDesktopFilters }
@@ -710,7 +710,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
                         handlePageClick={ handlePageClick }
                       />
                     ) }
-                    <div className="rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl">
+                    <div className="rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl yugioh-stage">
                       { viewMode === "table" ? (
                         <TableView
                           aggregatedData={ paginatedCards }
@@ -757,7 +757,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
         { isDesktopFilterOpen && (
           <aside
             id="desktop-filter-panel"
-            className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:z-40 lg:flex lg:w-72"
+            className="hidden xl:fixed xl:inset-y-0 xl:right-0 xl:z-40 xl:flex xl:w-72"
           >
             <div className="flex h-full w-full flex-col border-l border-white/10 bg-black/40 px-2 py-8 backdrop-blur">
               <FilterPanel
@@ -826,3 +826,4 @@ export async function getServerSideProps( { req } ) {
 }
 
 export default MyCollection;
+

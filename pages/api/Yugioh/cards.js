@@ -1,5 +1,5 @@
 import clientPromise from "@/utils/mongo.js";
-import { requireUser } from "@/middleware/authenticate";
+import { requireUser } from "@/proxy/authenticate";
 import { ensureSafeUserId, coerceNumberField, coerceStringField } from "@/utils/securityValidators.js";
 
 const MAX_CARDS_PER_REQUEST = 200;
@@ -127,3 +127,4 @@ export default async function handler( req, res ) {
     return res.status( 500 ).json( { message: "Server error" } );
   }
 }
+

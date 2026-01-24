@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { requireUser } from "@/middleware/authenticate";
+import { requireUser } from "@/proxy/authenticate";
 
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient( uri );
@@ -56,3 +56,4 @@ export default async function handler( req, res ) {
     return res.status( 500 ).json( { error: "Unable to fetch card data" } );
   }
 }
+

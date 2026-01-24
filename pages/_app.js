@@ -5,7 +5,6 @@ import { CardProvider } from "@/context/CardContext";
 import { MarketPriceProvider } from "@/context/MarketPriceContext";
 
 import "@/styles/globals.css";
-import "@/styles/hovercards.css";
 
 function usePrevious( value ) {
   let ref = useRef();

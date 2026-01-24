@@ -44,13 +44,30 @@
 .yugioh-bg
 {
   width: 100%;
-  min-height: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
   background-image: url("/images/backgrounds/yugioh/background.svg");
   background-size: cover;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: center top;
   background-attachment: fixed;
+  background-color: #050815;
   mix-blend-mode: normal;
+}
+
+.yugioh-stage
+{
+  min-height: clamp(24rem, 55vh, 44rem);
+}
+
+.yugioh-stage-table
+{
+  min-height: clamp(20rem, 45vh, 36rem);
+}
+
+.yugioh-pagination-slot
+{
+  min-height: 3rem;
 }
 
 .sports-bg

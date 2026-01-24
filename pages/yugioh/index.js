@@ -3,6 +3,7 @@
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { readAuthStateFromCookie, subscribeToAuthState } from '@/utils/authState';
 
@@ -27,6 +28,9 @@ const Home = () => {
   const fetchedSetData = useRef( {} );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
   const [ setNameIdMap, setSetNameIdMap ] = useState( {} );
+  const [ fuzzyQuery, setFuzzyQuery ] = useState( '' );
+  const [ fuzzyError, setFuzzyError ] = useState( '' );
+  const router = useRouter();
 
   useEffect( () => {
     const fetchSetNameIdMap = async () => {
@@ -63,6 +67,19 @@ const Home = () => {
 
   const handleLoadExampleData = () => {
     setCardList( exampleCardList.trim() );
+  };
+
+  const handleFuzzySubmit = ( event ) => {
+    event.preventDefault();
+    const trimmedQuery = fuzzyQuery.trim();
+
+    if ( !trimmedQuery ) {
+      setFuzzyError( 'Enter a card name, set, or set code to search.' );
+      return;
+    }
+
+    setFuzzyError( '' );
+    router.push( `/yugioh/search?q=${ encodeURIComponent( trimmedQuery ) }` );
   };
 
   const fetchCardData = useCallback( async ( card, setCache ) => {
@@ -180,7 +197,43 @@ const Home = () => {
 
         <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
 
-        <span className="pb-3 mx-auto text-center">
+        <div className="mx-auto w-full max-w-3xl text-center text-white">
+          <h2 className="text-xl font-black text-shadow">Search for a single card</h2>
+          <p className="mt-2 text-sm text-white/80">
+            Search for any card by card name, set name, or set code. Returns any similar results of the searched term as well if just a name is given. Example: Nine-Tailed Fox
+            Duel Power <i>or</i> DUPO-EN031. A search for "Blue-Eyes" will return any card relating to the Blue-Eyes White Dragon.
+          </p>
+          <form
+            onSubmit={ handleFuzzySubmit }
+            className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+          >
+            <input
+              type="text"
+              value={ fuzzyQuery }
+              onChange={ ( event ) => {
+                setFuzzyQuery( event.target.value );
+                if ( fuzzyError ) {
+                  setFuzzyError( '' );
+                }
+              } }
+              placeholder="Search for a card..."
+              className="w-full max-w-md rounded border border-white/40 bg-transparent px-4 py-2 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/40"
+            />
+            <button
+              type="submit"
+              className="border border-white rounded px-4 py-2 text-sm font-bold text-white hover:text-black hover:bg-white"
+            >
+              Search
+            </button>
+          </form>
+          { fuzzyError ? (
+            <p className="mt-2 text-sm text-red-200">{ fuzzyError }</p>
+          ) : null }
+        </div>
+        <p className="my-5 text-white font-semibold text-shadow">
+          OR
+        </p>
+        <span className="py-3 mx-auto text-center">
           <p>
             Enter a comma-separated (CSV format) list of cards below in the order of:
             <br />
@@ -225,18 +278,24 @@ const Home = () => {
 
 
 
-          <div className="mt-5 w-full mx-auto">
-            <div className="text-center z-50 font-black">
-              { isLoading && <LoadingSpinner /> }
-            </div>
-            <div className="mt-2 w-full max-w-7xl mx-auto">
+        <div className="mt-5 w-full mx-auto">
+          <div className="text-center z-50 font-black">
+            { isLoading && <LoadingSpinner /> }
+          </div>
+          <div className="mt-2 w-full max-w-7xl mx-auto yugioh-stage">
+            { Array.isArray( matchedCardData ) && matchedCardData.length > 0 ? (
               <YugiohCardDataTable
                 matchedCardData={ matchedCardData }
                 isAuthenticated={ isAuthenticated }
               />
-            </div>
+            ) : (
+              <div className="flex min-h-[24rem] items-center justify-center text-sm text-white/60">
+                { isLoading ? "Loading results..." : "Results will appear here after you search." }
+              </div>
+            ) }
           </div>
         </div>
+      </div>
       </div>
       <SpeedInsights />
     </>

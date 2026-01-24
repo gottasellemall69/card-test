@@ -1,5 +1,5 @@
 import updateCardPricesLogic from "@/utils/updateCardPricesLogic";
-import { requireUser } from "@/middleware/authenticate";
+import { requireUser } from "@/proxy/authenticate";
 
 export default async function handler( req, res ) {
   if ( req.method !== "POST" ) {
@@ -24,3 +24,4 @@ export default async function handler( req, res ) {
     return res.status( 500 ).json( { error: error.message ?? "Internal server error" } );
   }
 }
+

@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { requireUser } from "@/middleware/authenticate";
+import { requireUser } from "@/proxy/authenticate";
 import clientPromise from "@/utils/mongo.js";
 import { ensureSafeUserId } from "@/utils/securityValidators.js";
 
@@ -41,3 +41,4 @@ export default async function handler( req, res ) {
     return res.status( 500 ).json( { message: `Internal server error: ${ error.message }` } );
   }
 }
+

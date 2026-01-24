@@ -65,7 +65,7 @@ export function getTokenFromRequest( req ) {
   );
 }
 
-function getUserFromMiddleware( req ) {
+function getUserFromProxy( req ) {
   const headerValue = req.headers?.[ "x-authenticated-user" ];
   const rawValue = Array.isArray( headerValue ) ? headerValue[ 0 ] : headerValue;
 
@@ -95,14 +95,14 @@ export async function requireUser(
   res,
   { ensureDatabaseUser = false } = {}
 ) {
-  const middlewareUser = getUserFromMiddleware( req );
+  const proxyUser = getUserFromProxy( req );
   const token = getTokenFromRequest( req );
 
-  if ( !token && !middlewareUser ) {
+  if ( !token && !proxyUser ) {
     return respondUnauthorized( res, "Unauthorized: No token provided" );
   }
 
-  let decoded = middlewareUser;
+  let decoded = proxyUser;
 
   if ( !decoded ) {
     try {

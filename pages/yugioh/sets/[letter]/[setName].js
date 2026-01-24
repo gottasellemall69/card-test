@@ -1583,15 +1583,17 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     const selectionKey = cardItem.collectionKey;
     const isSelected = Boolean( selectedRowIds[ selectionKey ] );
     const isCollected = Boolean( collectionLookup[ selectionKey ] );
-    const hasImage = Boolean( cardItem.cardImageId || cardItem.remoteImageUrl );
     const localImageSrc = cardItem.cardImageId ? `/images/yugiohImages/${ String( cardItem.cardImageId ) }.jpg` : null;
-    const imageSrc = localImageSrc || cardItem.remoteImageUrl || "/images/yugioh-card.png";
+    const remoteImageSrc = cardItem.remoteImageUrl || null;
+    const fallbackImageSrc = "/images/yugioh-card.png";
+    const primaryImageSrc = remoteImageSrc || localImageSrc || fallbackImageSrc;
+    const secondaryImageSrc = primaryImageSrc === remoteImageSrc ? localImageSrc : remoteImageSrc;
     const raritySelectValue = cardItem.selectedRarityOption || AUTO_RARITY_OPTION;
     const currentRarityLabel = cardItem.selectedRarity || "Unknown Rarity";
     const activeVariant = cardItem.activeVariant || null;
     const overlayLabel = activeVariant ? buildVariantLabel( activeVariant ) : currentRarityLabel;
     const cardContainerClasses = [
-      "relative min-h-[24rem] w-full max-w-[350px] mx-auto object-cover overflow-hidden rounded-sm border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
+      "relative flex h-[24rem] w-full items-center justify-center overflow-hidden rounded border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
       isSelected ? "ring-2 ring-indigo-400/70" : "",
     ].filter( Boolean ).join( " " );
     const isFlipped = Boolean( flippedGridCards[ selectionKey ] );
@@ -1640,15 +1642,35 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       }
     };
 
+    const handleImageError = ( event ) => {
+      const img = event.currentTarget;
+      const nextSrc = img.dataset.nextSrc;
+      const fallbackSrc = img.dataset.fallbackSrc;
+
+      if ( nextSrc ) {
+        img.src = nextSrc;
+        img.dataset.nextSrc = "";
+        return;
+      }
+
+      if ( fallbackSrc ) {
+        img.src = fallbackSrc;
+        img.dataset.fallbackSrc = "";
+        img.onerror = null;
+      }
+    };
+
     return (
       <div
         key={ selectionKey }
-        className="group relative flex flex-col border border-white/10 bg-black/40 p-4 transition hover:border-indigo-400/50 lg:p-6"
+        className="group relative flex w-full max-w-[24rem] mx-auto flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
       >
-        <div className={ `relative w-fit mx-auto flip-card ${ isFlipped ? "flipped" : "" }` }>
-          <div className="flip-card-inner h-full min-h-[24rem]">
+        <div className="rounded relative mx-auto w-full [perspective:1250px]">
+          <div
+            className={ `grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] will-change-transform ${ isFlipped ? "[transform:rotateY(180deg)]" : "" }` }
+          >
             <div
-              className="flip-card-front flex h-full flex-col gap-4 backdrop-blur"
+              className="col-start-1 row-start-1 flex w-full flex-col rounded [backface-visibility:hidden]"
               role="button"
               tabIndex={ 0 }
               aria-pressed={ isFlipped }
@@ -1675,41 +1697,48 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
                   </button>
                 ) }
-                <div className="size-full max-w-fit mx-auto -inset-1">
-                  { hasImage ? (
-                    <img
-                      className="object-scale-down sm:object-cover object-center w-full mx-auto aspect-1 h-full"
-                      src={ imageSrc }
-                      alt={ `Card Image - ${ cardItem.productName }` }
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gray-100 text-sm text-gray-500 dark:bg-gray-800 dark:text-gray-300">
-                      Image unavailable
-                    </div>
-                  ) }
+                <div className="h-full w-full">
+                  <img
+                    className="mx-auto block h-full w-full object-contain object-top"
+                    src={ primaryImageSrc }
+                    data-next-src={ secondaryImageSrc || "" }
+                    data-fallback-src={ fallbackImageSrc }
+                    alt={ `Card Image - ${ cardItem.productName }` }
+                    loading="lazy"
+                    decoding="async"
+                    onError={ handleImageError }
+                  />
                 </div>
-                { activeVariant && (
-                  <div className="pointer-events-none absolute inset-x-0 top-0 flex min-h-[385px] items-end justify-start overflow-hidden rounded-lg p-4">
-                    <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-black/80 via-black/30 to-black/10 opacity-90" />
-                    <div className="relative flex flex-col gap-1 text-white p-3 m-3">
-                      <p className="text-lg font-semibold">{ formatPriceLabel( activeVariant.marketPrice ) }</p>
-                      { overlayLabel && (
-                        <p className="text-xs font-medium uppercase tracking-wide">{ overlayLabel }</p>
-                      ) }
-                    </div>
+                <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full items-end justify-start overflow-hidden rounded">
+                  <div aria-hidden="true" className="absolute inset-x-0 bottom-0 min-h-[24rem] bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90" />
+
+                  <div className="relative flex flex-col gap-1 p-2 text-white text-shadow glass w-full bg-transparent">
+                    <h3 className="text-sm font-semibold leading-tight text-pretty line-clamp-2">{ cardItem.productName }</h3>
+                    { marketPriceLabel && (
+                      <p className="text-base font-semibold">{ marketPriceLabel }</p>
+                    ) }
+                    { ( rarityLabel || overlayLabel ) && (
+                      <p className="text-[0.7rem] font-semibold uppercase tracking-wide text-white/90">
+                        { rarityLabel || overlayLabel }
+                      </p>
+                    ) }
+                    { conditionLabel && (
+                      <p className="text-[0.7rem] font-medium uppercase tracking-wide text-white/70">
+                        { conditionLabel }
+                      </p>
+                    ) }
                   </div>
-                ) }
+                </div>
               </div>
             </div>
-            <div className="flip-card-back w-full max-w-[355px] mx-auto flex h-full flex-col justify-between gap-1 rounded-xl border border-white/10 bg-black/80 p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80">
+            <div className="col-start-1 row-start-1 flex w-full flex-col justify-between gap-3 rounded border border-white/10 bg-black p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)]">
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold">{ cardItem.productName }</h3>
-                <div className="space-y-2 text-sm text-white/80">
+                <h3 className="text-lg font-semibold text-center text-pretty break-words">{ cardItem.productName }</h3>
+                <div className="space-y-1 text-xs text-white/70 sm:text-sm">
                   { detailEntries.map( ( entry ) => (
-                    <div key={ entry.label } className="flex items-start justify-between gap-3">
-                      <span className="font-semibold uppercase tracking-wide text-white/60">{ entry.label }</span>
-                      <span className="text-right text-white">{ entry.value }</span>
+                    <div key={ entry.label } className="flex min-w-0 items-start justify-between gap-3 border-b border-white/5 pb-1 last:border-b-0">
+                      <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-white/60 sm:text-xs">{ entry.label }</span>
+                      <span className="min-w-0 text-right break-words text-white">{ entry.value }</span>
                     </div>
                   ) ) }
                 </div>
@@ -1742,19 +1771,19 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     </label>
                   </div>
                 ) }
-                <div className="flex flex-wrap flex-row gap-2 lg:flex-col">
+                <div className="mx-auto mt-2 flex flex-wrap w-full gap-2 text-pretty sm:gap-3">
                   <Link
                     href={ {
                       pathname: "/yugioh/sets/[letter]/cards/card-details",
                       query: cardDetailsQuery,
                     } }
-                    className="inline-flex w-full items-center justify-center rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-indigo-400 hover:bg-indigo-500/20"
+                    className="inline-flex w-full items-center justify-center rounded border border-white/20 bg-white/10 px-2 py-1 text-sm font-semibold text-white transition hover:border-indigo-400 hover:bg-indigo-500/20"
                   >
                     View Details
                   </Link>
                   <button
                     type="button"
-                    className="inline-flex w-full items-center justify-center rounded-md border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:border-indigo-400 hover:text-indigo-200"
+                    className="inline-flex w-full items-center justify-center rounded border border-white/20 px-2 py-1 text-sm font-medium text-white transition hover:border-indigo-400 hover:text-indigo-200"
                     onClick={ () => toggleGridCardFlip( selectionKey, false ) }
                   >
                     Show Card Front
@@ -1765,7 +1794,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           </div>
         </div>
         { isAuthenticated && (
-          <div className="mt-6 flex flex-col gap-3 lg:flex-row">
+          <div className="mt-6 flex flex-col gap-3">
             <button
               type="button"
               className="relative flex mx-auto w-full max-w-prose items-center justify-center rounded-md border border-transparent bg-gray-900 px-8 py-2 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
@@ -1821,9 +1850,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       <div className="yugioh-bg bg-fixed bg-center bg-no-repeat w-full min-h-screen text-white">
         <Breadcrumb />
         <main
-          className={ `w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "lg:pr-80" : "" }` }
+          className={ `w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "xl:pr-80" : "" }` }
         >
-          <div className="hidden pb-4 lg:flex lg:justify-end">
+          <div className="hidden pb-4 xl:flex xl:justify-end">
             <button
               type="button"
               onClick={ toggleDesktopFilters }
@@ -1980,7 +2009,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                           { sortDirection === "asc" ? "Ascending" : "Descending" }
                         </button>
                       </div>
-                      <div className="lg:hidden">
+                      <div className="xl:hidden">
                         <CardFilter
                           filters={ filters }
                           updateFilters={ handleFilterChange }
@@ -2110,10 +2139,15 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                   </div>
                 ) : viewMode === "grid" ? (
                   <>
-                    <div className="w-full overflow-hidden rounded-sm border border-white/10 bg-black/40 shadow-2xl">
-                      <div className="grid grid-cols-1 border-l border-white/5 gap-3 xl:grid-cols-2 2xl:grid-cols-3">
+                    <div className="w-full rounded border border-white/10 bg-black/40 p-4 shadow-2xl sm:p-2">
+                      <div
+                        className={ `grid grid-cols-1 justify-items-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 ${ isDesktopFilterOpen
+                          ? "gap-x-10 gap-y-10 xl:grid-cols-2 2xl:grid-cols-3"
+                          : "gap-x-8 gap-y-10 xl:grid-cols-3 2xl:grid-cols-4"
+                          }` }
+                      >
                         { paginatedGridCards.map( ( card ) => (
-                          <div key={ card.collectionKey } className="border-t border-white/5 bg-transparent p-2 text-white">
+                          <div key={ card.collectionKey } className="w-full min-w-0">
                             { renderGridCard( card ) }
                           </div>
                         ) ) }
@@ -2127,6 +2161,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                         handlePageClick={ handleGridPageChange }
                       />
                     </div>
+
                   </>
                 ) : (
                   <div className="overflow-hidden rounded-sm border border-white/10 bg-black/40 p-4 shadow-2xl">
@@ -2173,7 +2208,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         { isDesktopFilterOpen && (
           <aside
             id="set-desktop-filter-panel"
-            className="hidden lg:fixed lg:inset-y-0 lg:right-0 lg:z-40 lg:flex lg:w-80"
+            className="hidden xl:fixed xl:inset-y-0 xl:right-0 xl:z-40 xl:flex xl:w-80"
           >
             <div className="flex h-full w-full flex-col border-l border-white/10 bg-black/40 px-4 py-8 backdrop-blur">
               <FilterPanel
