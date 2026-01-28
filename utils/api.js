@@ -2,7 +2,6 @@ const API_ENDPOINT = `https://${ process.env.GET_CARD_SETS_API }/v2/Catalog/SetN
 
 // Cache for set name to ID mapping and card data
 let setNameIdCache = null;
-const cardDataCache = {};
 
 // Fetches set data dynamically and builds setNameIdMap
 async function fetchSetData() {
@@ -43,11 +42,6 @@ export async function getCardData( setName ) {
     const setNameIdMap = await getSetNameIdMap();
     const setNameId = setNameIdMap[ setName ];
 
-    if ( cardDataCache[ setName ] ) {
-      console.log( "Using cached data for set:", setName );
-      return cardDataCache[ setName ];
-    }
-
     if ( !setNameId ) {
       throw new Error( "Set name not found in mapping" );
     }
@@ -63,8 +57,6 @@ export async function getCardData( setName ) {
 
     const data = await response.json();
     console.log( "Received card data:", data );
-
-    cardDataCache[ setName ] = data; // Cache the fetched data
     return data;
   } catch ( error ) {
     console.error( "Error fetching card data:", error );

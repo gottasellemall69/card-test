@@ -48,11 +48,11 @@ export default function LandingPage() {
             : "linear-gradient(90deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.78))";
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-slate-950">
+        <div className="relative min-h-screen backdrop overflow-hidden bg-slate-950 flex md:flex-row">
             <div
                 id="parallax"
                 ref={ parallaxRef }
-                className={ `parallax-layer absolute inset-0 pointer-events-none ${ hoveredPanel ? "opacity-95" : "opacity-80" }` }
+                className={ `parallax absolute inset-0 pointer-events-none ${ hoveredPanel ? "opacity-95" : "opacity-80" }` }
                 style={ { zIndex: -2 } }
                 aria-hidden="true"
             />
@@ -72,7 +72,7 @@ export default function LandingPage() {
                     <div className="absolute inset-0 overflow-hidden">
                         <div
                             className="panel-bg"
-                            style={ { backgroundImage: 'url("/images/backgrounds/yugioh/background.svg")' } }
+                            style={ { backgroundImage: `url("backgrounds/yugioh/background.svg")` } }
                             aria-hidden="true"
                         />
                     </div>
@@ -94,7 +94,7 @@ export default function LandingPage() {
                     <div className="absolute inset-0 overflow-hidden">
                         <div
                             className="panel-bg"
-                            style={ { backgroundImage: 'url("/images/backgrounds/sports/sportsbg.svg")' } }
+                            style={ { backgroundImage: `url("backgrounds/sports/sportsbg.svg")` } }
                             aria-hidden="true"
                         />
                     </div>
@@ -107,52 +107,6 @@ export default function LandingPage() {
                     </div>
                 </div>
             </div>
-            <style jsx>{ `
-                .panel-root {
-                    overflow: hidden;
-                    isolation: isolate;
-                }
-
-                .panel-bg {
-                    position: absolute;
-                    inset: 0;
-                    background-repeat: no-repeat;
-                    background-size: cover;
-                    background-position: 50% 50%;
-                    transition:
-                        transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-                        filter 480ms ease,
-                        opacity 320ms ease;
-                    will-change: transform;
-                    z-index: 0;
-                }
-
-                .panel-root:hover .panel-bg,
-                .panel-root:focus-visible .panel-bg {
-                    transform: scale(1.06) translateZ(0);
-                    filter: saturate(1.1) brightness(1.05);
-                }
-
-                .parallax-layer {
-                    background-image:
-                        url("https://raw.githubusercontent.com/oscicen/oscicen.github.io/master/img/depth-3.png"),
-                        url("https://raw.githubusercontent.com/oscicen/oscicen.github.io/master/img/depth-2.png"),
-                        url("https://raw.githubusercontent.com/oscicen/oscicen.github.io/master/img/depth-1.png");
-                    background-repeat: no-repeat;
-                    background-position: 50% 50%, 50% 50%, 50% 50%;
-                    background-size: cover, cover, cover;
-                    transition: background-position 120ms ease-out, opacity 320ms ease, filter 320ms ease;
-                    filter: saturate(0.95) brightness(1.05);
-                }
-
-                @media (max-width: 768px) {
-                    .parallax-layer {
-                        background-size: 140% auto, 140% auto, 140% auto;
-                        opacity: 0.7;
-                    }
-                }
-            ` }
-            </style>
         </div>
     );
 }

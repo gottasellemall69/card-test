@@ -2,7 +2,7 @@ import clientPromise from "@/utils/mongo.js";
 import { requireUser } from "@/proxy/authenticate";
 import { ensureSafeUserId, coerceNumberField, coerceStringField } from "@/utils/securityValidators.js";
 
-const MAX_CARDS_PER_REQUEST = 200;
+const MAX_CARDS_PER_REQUEST = 5000;
 const MAX_QUANTITY_PER_CARD = 1000;
 
 const buildCardKey = ( card ) => [
