@@ -13,11 +13,11 @@ export default async function handler( req, res ) {
 
     try {
         await recordPriceHistoryEntry( {
-            cardId: cardId,
-            setName: setName,
-            number: number,
-            rarity: rarity,
-            edition: edition,
+            cardId,
+            setName,
+            number,
+            rarity,
+            edition,
             price: numericPrice,
         } );
 

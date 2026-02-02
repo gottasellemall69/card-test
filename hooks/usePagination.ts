@@ -11,7 +11,7 @@ export const usePagination = <T>( data: T[], itemsPerPage: number ) => {
     return data.slice( startIndex, endIndex );
   }, [ data, currentPage, itemsPerPage ] );
 
-  // ✅ Reset currentPage if data shrinks and currentPage is now invalid
+  // Reset currentPage if data shrinks and currentPage is now invalid
   useEffect( () => {
     if ( currentPage > totalPages ) {
       setCurrentPage( 1 );

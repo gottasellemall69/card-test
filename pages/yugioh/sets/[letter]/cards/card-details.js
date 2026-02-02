@@ -16,6 +16,8 @@ const fetcher = async ( url ) => {
 };
 
 const VERSION_SEPARATOR = " - ";
+const LOCAL_IMAGE_BASE_PATH = "/images/yugiohImages";
+const FALLBACK_IMAGE = "/images/yugioh-card.png";
 
 const normalizeEditionLabel = ( value ) => value || "Unknown Edition";
 const serializeVersion = ( set ) =>
@@ -36,6 +38,8 @@ const parseVersion = ( versionString ) => {
     edition,
   };
 };
+
+const buildImagePath = ( cardId ) => `${ LOCAL_IMAGE_BASE_PATH }/${ String( cardId ) }.jpg`;
 
 const buildPriceHistoryKey = ( cardId, versionTokens ) => {
   if ( !cardId || !versionTokens?.setName ) return null;
@@ -288,13 +292,36 @@ const CardDetails = () => {
     return resolvedCardData.card_sets.find( ( set ) => serializeVersion( set ) === selectedVersion );
   }, [ resolvedCardData, selectedVersion ] );
 
+  const localImageSrc = activeCardId ? buildImagePath( activeCardId ) : null;
+  const remoteImageSrc = resolvedCardData?.card_images?.[ 0 ]?.image_url || null;
+  const primaryImageSrc = localImageSrc || remoteImageSrc || FALLBACK_IMAGE;
+  const secondaryImageSrc = primaryImageSrc === localImageSrc ? remoteImageSrc : localImageSrc;
+
+  const handleImageError = ( event ) => {
+    const img = event.currentTarget;
+    const nextSrc = img.dataset.nextSrc;
+    const fallbackSrc = img.dataset.fallbackSrc;
+
+    if ( nextSrc ) {
+      img.src = nextSrc;
+      img.dataset.nextSrc = "";
+      return;
+    }
+
+    if ( fallbackSrc ) {
+      img.src = fallbackSrc;
+      img.dataset.fallbackSrc = "";
+      img.onerror = null;
+    }
+  };
+
   if ( resolvedCardError ) return <div>Error loading card data.</div>;
   if ( !resolvedCardData ) return <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg">Loading card data...</div>;
 
   return (
     <>
 
-      <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg p-3">
+      <div className="mx-auto min-h-screen bg-fixed bg-cover p-2 yugioh-bg">
         {/* 🔹 Breadcrumb shows Sets → SetName → Card Name */ }
         <Breadcrumb
           items={ [
@@ -307,43 +334,59 @@ const CardDetails = () => {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 w-full mx-auto">
-          <div className="glass h-8/12 p-6 text-white rounded-md shadow-md text-shadow">
+          <div className="glass h-8/12 p-6 text-white rounded-md text-shadow">
             <h1 className="text-2xl font-extrabold mb-4">{ resolvedCardData.name }</h1>
-            <p className="mb-1">
-              <span className="font-bold">Card Type:</span> { resolvedCardData.type }
-            </p>
-            <p className="mb-1">
-              <span className="font-bold">Description:</span> { resolvedCardData.desc }
-            </p>
-            <p className="mb-1">
-              <span className="font-bold">Monster Type:</span> { resolvedCardData.race }
-            </p>
-            <p className="mb-1">
-              <span className="font-bold">Archetype:</span> { resolvedCardData.archetype }
-            </p>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+              <div className="flex justify-center lg:justify-start lg:w-5/12">
+                <img
+                  src={ primaryImageSrc }
+                  data-next-src={ secondaryImageSrc || "" }
+                  data-fallback-src={ FALLBACK_IMAGE }
+                  alt={ `${ resolvedCardData.name } card image` }
+                  className="object-scale-down object-center w-full h-96 rounded-md"
+                  loading="lazy"
+                  decoding="async"
+                  onError={ handleImageError }
+                />
+              </div>
+              <div className="flex-1">
+                <p className="mb-1">
+                  <span className="font-bold">Card Type:</span> { resolvedCardData.type }
+                </p>
+                <p className="mb-1">
+                  <span className="font-bold">Description:</span> { resolvedCardData.desc }
+                </p>
+                <p className="mb-1">
+                  <span className="font-bold">Monster Type:</span> { resolvedCardData.race }
+                </p>
+                <p className="mb-1">
+                  <span className="font-bold">Archetype:</span> { resolvedCardData.archetype }
+                </p>
 
-            <div className="mt-6">
-              <label className="block text-sm font-bold mb-2">Select Version:</label>
-              <select
-                className="text-black p-2 rounded-md w-full"
-                value={ selectedVersion }
-                onChange={ handleVersionChange }
-              >
-                { resolvedCardData.card_sets?.map( ( set, idx ) => (
-                  <option
-                    key={ `${ set.set_code }-${ set.set_rarity }-${ idx }` }
-                    value={ serializeVersion( set ) }
+                <div className="mt-6">
+                  <label className="block text-sm font-bold mb-2">Select Version:</label>
+                  <select
+                    className="text-black p-2 rounded-md w-full"
+                    value={ selectedVersion }
+                    onChange={ handleVersionChange }
                   >
-                    { set.set_name } - { set.set_code } - { set.set_rarity } - { normalizeEditionLabel( set.set_edition ) }
-                  </option>
-                ) ) }
-              </select>
-            </div>
+                    { resolvedCardData.card_sets?.map( ( set, idx ) => (
+                      <option
+                        key={ `${ set.set_code }-${ set.set_rarity }-${ idx }` }
+                        value={ serializeVersion( set ) }
+                      >
+                        { set.set_name } - { set.set_code } - { set.set_rarity } - { normalizeEditionLabel( set.set_edition ) }
+                      </option>
+                    ) ) }
+                  </select>
+                </div>
 
-            <p className="mt-4 border-t pt-4">
-              <span className="font-bold">Market Price:</span> $
-              { selectedSetDetails?.set_price || "N/A" }
-            </p>
+                <p className="mt-4 border-t pt-4">
+                  <span className="font-bold">Market Price:</span> $
+                  { selectedSetDetails?.set_price || "N/A" }
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="glass p-6 rounded-md shadow-md">
@@ -364,4 +407,3 @@ const CardDetails = () => {
 };
 
 export default CardDetails;
-

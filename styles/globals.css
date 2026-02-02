@@ -109,12 +109,6 @@ a:hover
   text-shadow: 0 0 18px rgba(99, 102, 241, 0.45);
 }
 
-img:hover
-{
-  transform: translateY(-2px);
-  filter: drop-shadow(0 25px 45px rgba(99, 102, 241, 0.45));
-}
-
 .navButton
 {
   display: flex;
@@ -231,7 +225,6 @@ img:hover
   line-height: 1.32;
   color: inherit;
   letter-spacing: 0.04em;
-  filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.12));
   overflow-wrap: anywhere;
   transition: color var(--transition-slow), filter 320ms ease;
 }

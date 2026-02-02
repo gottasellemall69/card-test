@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
@@ -31,7 +31,18 @@ const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
   ),
 } );
 
-const ITEMS_PER_PAGE = 15;
+const CollectionValueChart = dynamic( () => import( "@/components/Yugioh/CollectionValueChart" ), {
+  ssr: false,
+  loading: () => (
+    <div className="py-10 text-center text-sm font-semibold text-white/70">
+      Loading collection value chart...
+    </div>
+  ),
+} );
+
+const ITEMS_PER_PAGE = 16;
+const SUMMARY_PANEL_HEIGHT = "min-h-[120px]";
+const CHART_PANEL_HEIGHT = "h-[120px]";
 const buildDefaultFilters = () => ( {
   rarity: [],
   condition: [],
@@ -55,6 +66,9 @@ const MyCollection = ( { initialAuthState = false } ) => {
   const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
   const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( true );
   const [ currentPage, setCurrentPage ] = useState( 1 );
+  const [ collectionValueHistory, setCollectionValueHistory ] = useState( [] );
+  const [ isHistoryLoading, setIsHistoryLoading ] = useState( false );
+  const [ historyError, setHistoryError ] = useState( null );
 
   const fetchCards = useCallback( async () => {
     const response = await fetch( "/api/Yugioh/my-collection", {
@@ -287,8 +301,74 @@ const MyCollection = ( { initialAuthState = false } ) => {
     [],
   );
 
+  const overallEstimatedValue = useMemo(
+    () =>
+      cards.reduce( ( sum, card ) => {
+        const price = parseFloat( card?.marketPrice ) || 0;
+        const quantity = Number( card?.quantity ) || 0;
+        return sum + price * quantity;
+      }, 0 ),
+    [ cards ],
+  );
+
   const formattedEstimatedValue = currencyFormatter.format( estimatedValue || 0 );
   const hasCards = totalItems > 0;
+
+  useEffect( () => {
+    let isActive = true;
+
+    if ( !isAuthenticated || !hasCards ) {
+      setCollectionValueHistory( [] );
+      setHistoryError( null );
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const loadHistory = async () => {
+      setIsHistoryLoading( true );
+      setHistoryError( null );
+      try {
+        const response = await fetch( "/api/Yugioh/collection/value-history", {
+          method: "GET",
+          credentials: "include",
+        } );
+
+        if ( !response.ok ) {
+          if ( response.status === 401 ) {
+            setIsAuthenticated( false );
+            dispatchAuthStateChange( false );
+            return;
+          }
+          throw new Error( "Failed to fetch collection value history." );
+        }
+
+        const data = await response.json();
+
+        if ( !isActive ) {
+          return;
+        }
+
+        setCollectionValueHistory( Array.isArray( data?.history ) ? data.history : [] );
+      } catch ( error ) {
+        if ( !isActive ) {
+          return;
+        }
+        console.error( "Error loading collection value history:", error );
+        setHistoryError( "Unable to load collection value history." );
+      } finally {
+        if ( isActive ) {
+          setIsHistoryLoading( false );
+        }
+      }
+    };
+
+    loadHistory();
+
+    return () => {
+      isActive = false;
+    };
+  }, [ cards, hasCards, isAuthenticated ] );
 
   const activeFilterBadges = useMemo( () => {
     const badges = [];
@@ -562,7 +642,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
           className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "xl:pr-72" : "" }` }
         >
 
-          <header className="rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl">
+          <header className={ `rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl ${ SUMMARY_PANEL_HEIGHT }` }>
             <div className="flex flex-wrap flex-col lg:flex-row lg:items-end lg:justify-between">
               <div className="text-center lg:text-left">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Collection</p>
@@ -589,6 +669,23 @@ const MyCollection = ( { initialAuthState = false } ) => {
               ) }
             </div>
           </header>
+
+          { hasCards && (
+            <div className={ `mt-6 w-full rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl ${ CHART_PANEL_HEIGHT }` }>
+              { historyError && (
+                <p className="text-sm text-rose-200">{ historyError }</p>
+              ) }
+              { !historyError && (
+                <CollectionValueChart
+                  valueHistory={ collectionValueHistory }
+                  currentValue={ overallEstimatedValue }
+                />
+              ) }
+              { isHistoryLoading && !historyError && (
+                <p className="mt-2 text-xs text-white/60">Refreshing chart...</p>
+              ) }
+            </div>
+          ) }
 
           <section className="pt-10">
             <div className="space-y-8">
@@ -826,4 +923,3 @@ export async function getServerSideProps( { req } ) {
 }
 
 export default MyCollection;
-
