@@ -178,6 +178,23 @@ const parseSortKey = ( value ) => {
 const parseSortDirection = ( value ) =>
   value === "descending" || value === "desc" ? "descending" : "ascending";
 
+const parseBooleanQuery = ( value ) => {
+  if ( Array.isArray( value ) ) {
+    return parseBooleanQuery( value[ 0 ] );
+  }
+
+  if ( typeof value === "boolean" ) {
+    return value;
+  }
+
+  if ( typeof value !== "string" ) {
+    return false;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized === "1" || normalized === "true" || normalized === "yes";
+};
+
 const sortRows = ( items, sortKey, direction ) => {
   const isPriceSort = sortKey === "marketPrice";
   const multiplier = direction === "ascending" ? 1 : -1;
@@ -369,6 +386,7 @@ export default async function handler( req, res ) {
   try {
     const pageParam = Number.parseInt( req.query.page, 10 );
     const pageSizeParam = Number.parseInt( req.query.pageSize, 10 );
+    const includeAll = parseBooleanQuery( req.query.includeAll );
     const page = Number.isFinite( pageParam ) && pageParam > 0 ? pageParam : 1;
     const pageSize =
       Number.isFinite( pageSizeParam ) && pageSizeParam > 0
@@ -381,17 +399,20 @@ export default async function handler( req, res ) {
 
     const cached = readCacheEntry( cacheKey );
     if ( cached ) {
-      const pagedResults = cached.results.slice( offset, offset + pageSize );
+      const outputResults = includeAll
+        ? cached.results
+        : cached.results.slice( offset, offset + pageSize );
       return res.status( 200 ).json( {
         query: searchQuery,
-        results: pagedResults,
+        results: outputResults,
         totalCount: cached.totalCount,
-        page,
-        pageSize,
+        page: includeAll ? 1 : page,
+        pageSize: includeAll ? cached.totalCount : pageSize,
         sortKey,
         sortDirection,
         searchedSetCount: cached.searchedSetCount,
         usedSetFilter: cached.usedSetFilter,
+        includeAll,
         cacheHit: true,
       } );
     }
@@ -518,17 +539,20 @@ export default async function handler( req, res ) {
     }
 
     const sortedResults = sortRows( results, sortKey, sortDirection );
-    const pagedResults = sortedResults.slice( offset, offset + pageSize );
+    const outputResults = includeAll
+      ? sortedResults
+      : sortedResults.slice( offset, offset + pageSize );
     return res.status( 200 ).json( {
       query: searchQuery,
-      results: pagedResults,
+      results: outputResults,
       totalCount,
-      page,
-      pageSize,
+      page: includeAll ? 1 : page,
+      pageSize: includeAll ? totalCount : pageSize,
       sortKey,
       sortDirection,
       searchedSetCount: setsToSearch.length,
       usedSetFilter: true,
+      includeAll,
       cacheHit: false,
     } );
   } catch ( error ) {

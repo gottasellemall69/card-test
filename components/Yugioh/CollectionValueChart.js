@@ -3,12 +3,6 @@
 import { useMemo, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-const toTimestampKey = ( value ) => {
-  const date = new Date( value );
-  if ( Number.isNaN( date.getTime() ) ) return null;
-  return date.toISOString();
-};
-
 const toDayKey = ( value ) => {
   const date = new Date( value );
   if ( Number.isNaN( date.getTime() ) ) return null;
@@ -16,7 +10,7 @@ const toDayKey = ( value ) => {
 };
 
 const formatDateLabel = ( value ) =>
-  new Date( value ).toLocaleDateString( "en-US", { month: "short", day: "numeric" } );
+  new Date( `${ value }T12:00:00Z` ).toLocaleDateString( "en-US", { month: "short", day: "numeric" } );
 
 const currencyFormatter = new Intl.NumberFormat( "en-US", {
   style: "currency",
@@ -31,24 +25,59 @@ const RANGE_OPTIONS = [
   { id: "1Y", label: "1Y", days: 365 },
   { id: "ALL", label: "All", days: null },
 ];
+const MAX_RENDER_POINTS = 180;
+
+const compressSeries = ( points, maxPoints ) => {
+  if ( !Array.isArray( points ) || points.length <= maxPoints || maxPoints < 3 ) {
+    return points;
+  }
+
+  const sampled = [];
+  const step = ( points.length - 1 ) / ( maxPoints - 1 );
+
+  for ( let i = 0; i < maxPoints; i += 1 ) {
+    const index = Math.round( i * step );
+    const point = points[ index ];
+    if ( point && sampled[ sampled.length - 1 ]?.date !== point.date ) {
+      sampled.push( point );
+    }
+  }
+
+  const last = points[ points.length - 1 ];
+  if ( last && sampled[ sampled.length - 1 ]?.date !== last.date ) {
+    sampled.push( last );
+  }
+
+  return sampled;
+};
 
 const CollectionValueChart = ( { valueHistory = [], currentValue = 0 } ) => {
   const [ rangeId, setRangeId ] = useState( "1M" );
   const formattedData = useMemo( () => {
     if ( !Array.isArray( valueHistory ) ) return [];
 
-    const cleaned = valueHistory
+    const byDay = new Map();
+
+    valueHistory
       .map( ( entry ) => {
-        const date = toTimestampKey( entry?.date );
+        const date = toDayKey( entry?.date );
         const value = Number( entry?.value );
         if ( !date || !Number.isFinite( value ) ) return null;
         return { date, value };
       } )
       .filter( Boolean )
-      .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) );
+      .sort( ( a, b ) => a.date.localeCompare( b.date ) )
+      .forEach( ( entry ) => {
+        byDay.set( entry.date, entry.value );
+      } );
+
+    const cleaned = Array.from( byDay.entries() ).map( ( [ date, value ] ) => ( {
+      date,
+      value,
+    } ) );
 
     if ( cleaned.length === 0 && Number.isFinite( currentValue ) && currentValue > 0 ) {
-      const now = toTimestampKey( new Date() );
+      const now = toDayKey( new Date() );
       if ( now ) {
         return [ { date: now, value: currentValue } ];
       }
@@ -61,7 +90,7 @@ const CollectionValueChart = ( { valueHistory = [], currentValue = 0 } ) => {
       if ( lastDay !== today ) {
         const lastValue = lastEntry.value;
         const nextValue = Number.isFinite( currentValue ) && currentValue > 0 ? currentValue : lastValue;
-        const now = toTimestampKey( new Date() );
+        const now = toDayKey( new Date() );
         if ( now ) {
           cleaned.push( { date: now, value: nextValue } );
         }
@@ -89,6 +118,11 @@ const CollectionValueChart = ( { valueHistory = [], currentValue = 0 } ) => {
 
     return formattedData.filter( ( entry ) => new Date( entry.date ) >= startDate );
   }, [ formattedData, rangeId ] );
+
+  const chartData = useMemo(
+    () => compressSeries( filteredData, MAX_RENDER_POINTS ),
+    [ filteredData ]
+  );
 
   if ( formattedData.length === 0 ) {
     return (
@@ -119,16 +153,17 @@ const CollectionValueChart = ( { valueHistory = [], currentValue = 0 } ) => {
           );
         } ) }
       </div>
-      <div className="min-h-0 flex-1">
-        { filteredData.length === 0 ? (
+      <div className="h-24 min-h-0 flex-1">
+        { chartData.length === 0 ? (
           <p className="text-sm text-white/70">No data in this range yet.</p>
         ) : (
-          <ResponsiveContainer className="text-black h-full w-full max-w-[85%] mx-auto glass text-shadow backdrop rounded-md -p-10" width="100%" height="100%">
-            <LineChart data={ filteredData }>
+          <ResponsiveContainer className="text-black  w-full max-w-[85%] mx-auto glass text-shadow backdrop rounded-md -p-10" width={ `75%` } height={ 112 }>
+            <LineChart data={ chartData }>
               <XAxis
                 dataKey="date"
                 tick={ { fill: "white" } }
                 tickFormatter={ formatDateLabel }
+                minTickGap={ 28 }
               />
               <YAxis
                 tick={ { fill: "white" } }
@@ -138,7 +173,7 @@ const CollectionValueChart = ( { valueHistory = [], currentValue = 0 } ) => {
                 formatter={ ( value ) => currencyFormatter.format( value ) }
                 labelFormatter={ formatDateLabel }
               />
-              <Line type="monotone" dataKey="value" stroke="#34d399" strokeWidth={ 2 } dot={ false } />
+              <Line type="monotone" dataKey="value" stroke="#34d399" strokeWidth={ 2 } dot={ false } isAnimationActive={ false } />
             </LineChart>
           </ResponsiveContainer>
         ) }

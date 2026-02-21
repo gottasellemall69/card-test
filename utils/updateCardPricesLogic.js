@@ -123,11 +123,13 @@ export default async function updateCardPricesLogic( authContext ) {
 
       if ( matchingSet ) {
         const newPrice = matchingSet.set_price ? parseFloat( matchingSet.set_price ) : null;
+        const resolvedCardId = card.cardId ?? cardData?.id?.toString() ?? null;
 
         const updateResult = await cardsCollection.updateOne(
           { _id: card._id, userId },
           {
             $set: {
+              cardId: resolvedCardId,
               marketPrice: newPrice,
               oldPrice: card.marketPrice
             }
@@ -135,7 +137,7 @@ export default async function updateCardPricesLogic( authContext ) {
         );
 
         await recordPriceHistoryEntry( {
-          cardId: card.cardId ?? cardData?.id?.toString() ?? null,
+          cardId: resolvedCardId,
           setName: card.setName,
           number: card.number,
           rarity: card.rarity,

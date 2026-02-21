@@ -18,6 +18,155 @@ Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mi
 Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition
 `;
 
+const PRINTING_OPTIONS = [ '1st Edition', 'Unlimited', 'Limited Edition' ];
+const CONDITION_OPTIONS = [ 'Near Mint', 'Lightly Played', 'Moderately Played', 'Heavily Played', 'Damaged' ];
+const SET_CODE_REGEX = /\b(?=[A-Z0-9-]*\d)[A-Z0-9]{2,}-[A-Z0-9-]+\b/i;
+const CSV_FIELD_REGEX = /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
+
+const normalizeWhitespace = ( value ) => value.replace( /\s+/g, ' ' ).trim();
+const toCanonicalLookup = ( value ) => normalizeWhitespace( value ).toLowerCase();
+
+const findCanonicalOption = ( value, options ) => {
+  const normalized = toCanonicalLookup( value );
+  return options.find( ( option ) => toCanonicalLookup( option ) === normalized ) || value;
+};
+
+const splitCsvLine = ( line ) => {
+  const matches = [];
+  let match;
+  CSV_FIELD_REGEX.lastIndex = 0;
+
+  while ( ( match = CSV_FIELD_REGEX.exec( line ) ) !== null ) {
+    matches.push( ( match[ 1 ] || match[ 2 ] || '' ).trim() );
+  }
+
+  return matches.map( ( value ) => value.replace( /^"|"$/g, '' ).trim() );
+};
+
+const includesLoose = ( left, right ) =>
+  ( left ?? '' ).toString().toLowerCase().includes( ( right ?? '' ).toString().toLowerCase() );
+
+const getBaseCondition = ( value ) => {
+  const normalized = toCanonicalLookup( value || '' );
+  if ( !normalized ) return '';
+  return CONDITION_OPTIONS.find( ( option ) => normalized.startsWith( toCanonicalLookup( option ) ) ) || value;
+};
+
+const withPrintingInCondition = ( condition, printing ) => {
+  const normalizedCondition = normalizeWhitespace( condition || '' );
+  const normalizedPrinting = normalizeWhitespace( printing || '' );
+
+  if ( !normalizedCondition || !normalizedPrinting ) {
+    return normalizedCondition;
+  }
+
+  if ( includesLoose( normalizedCondition, normalizedPrinting ) ) {
+    return normalizedCondition;
+  }
+
+  return `${ normalizedCondition } ${ normalizedPrinting }`;
+};
+
+const parseFreeformLine = ( line, knownSetNames ) => {
+  const normalizedLine = normalizeWhitespace( line );
+  if ( !normalizedLine ) return null;
+
+  const setCodeMatch = normalizedLine.match( SET_CODE_REGEX );
+  if ( !setCodeMatch?.[ 0 ] ) {
+    return null;
+  }
+
+  const number = setCodeMatch[ 0 ];
+  const numberStart = setCodeMatch.index ?? 0;
+  const beforeNumber = normalizeWhitespace( normalizedLine.slice( 0, numberStart ) );
+  let afterNumber = normalizeWhitespace( normalizedLine.slice( numberStart + number.length ) );
+
+  if ( !beforeNumber || !afterNumber ) {
+    return null;
+  }
+
+  const sortedSetNames = [ ...knownSetNames ].sort( ( a, b ) => b.length - a.length );
+  const beforeLower = toCanonicalLookup( beforeNumber );
+  const matchedSetName = sortedSetNames.find( ( setName ) =>
+    beforeLower.endsWith( toCanonicalLookup( setName ) )
+  );
+
+  if ( !matchedSetName ) {
+    return null;
+  }
+
+  const productName = normalizeWhitespace( beforeNumber.slice( 0, beforeNumber.length - matchedSetName.length ) );
+  if ( !productName ) {
+    return null;
+  }
+
+  let printing = '';
+  const matchedPrinting = PRINTING_OPTIONS.find( ( option ) =>
+    toCanonicalLookup( afterNumber ).startsWith( toCanonicalLookup( option ) )
+  );
+  if ( matchedPrinting ) {
+    printing = matchedPrinting;
+    afterNumber = normalizeWhitespace( afterNumber.slice( matchedPrinting.length ) );
+  }
+
+  const conditionRegex = new RegExp(
+    `(${ CONDITION_OPTIONS.map( ( option ) => option.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' ) ).join( '|' ) })` +
+    `(?:\\s+(${ PRINTING_OPTIONS.map( ( option ) => option.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' ) ).join( '|' ) }))?$`,
+    'i'
+  );
+
+  let rarity = '';
+  let condition = '';
+  const conditionMatch = afterNumber.match( conditionRegex );
+  if ( conditionMatch ) {
+    const baseCondition = findCanonicalOption( conditionMatch[ 1 ], CONDITION_OPTIONS );
+    const conditionPrinting = conditionMatch[ 2 ]
+      ? findCanonicalOption( conditionMatch[ 2 ], PRINTING_OPTIONS )
+      : '';
+
+    const conditionStart = conditionMatch.index ?? afterNumber.length;
+    rarity = normalizeWhitespace( afterNumber.slice( 0, conditionStart ) );
+    condition = conditionPrinting ? `${ baseCondition } ${ conditionPrinting }` : baseCondition;
+
+    if ( !printing && conditionPrinting ) {
+      printing = conditionPrinting;
+    }
+  } else {
+    rarity = afterNumber;
+  }
+
+  return {
+    productName,
+    setName: matchedSetName,
+    number,
+    printing,
+    rarity,
+    condition,
+  };
+};
+
+const parseCardLine = ( line, knownSetNames ) => {
+  const normalizedLine = normalizeWhitespace( line );
+  if ( !normalizedLine ) return null;
+
+  if ( normalizedLine.includes( ',' ) ) {
+    const fields = splitCsvLine( normalizedLine );
+    if ( fields.length >= 6 ) {
+      const [ rawProductName, setName, number, printing, rarity, condition ] = fields;
+      return {
+        productName: rawProductName,
+        setName,
+        number,
+        printing,
+        rarity,
+        condition,
+      };
+    }
+  }
+
+  return parseFreeformLine( normalizedLine, knownSetNames );
+};
+
 const Home = () => {
   const [ collection, setCollection ] = useState( [] );
   const [ selectedRows, setSelectedRows ] = useState( [] );
@@ -103,20 +252,39 @@ const Home = () => {
       }
 
       const setCardData = setCache[ setNameId ];
+      const baseCondition = getBaseCondition( condition );
       const matchedCard = setCardData?.result.find( ( setCard ) =>
-        setCard.productName.includes( productName ) &&
-        setCard.set.includes( setName ) &&
-        setCard.number.includes( number ) &&
-        setCard.printing.includes( printing ) &&
-        setCard.rarity.includes( rarity ) &&
-        setCard.condition.includes( condition )
+        includesLoose( setCard.productName, productName ) &&
+        includesLoose( setCard.set, setName ) &&
+        includesLoose( setCard.number, number ) &&
+        includesLoose( setCard.printing, printing ) &&
+        includesLoose( setCard.rarity, rarity ) &&
+        (
+          includesLoose( setCard.condition, condition ) ||
+          includesLoose( setCard.condition, baseCondition )
+        )
       );
 
       if ( !matchedCard || matchedCard.marketPrice === undefined ) {
         return { card, data: { marketPrice: "0.00" }, error: 'Market price not found.' };
       }
 
-      return { card, data: { ...matchedCard, marketPrice: matchedCard.marketPrice }, error: null };
+      const resolvedPrinting = matchedCard?.printing || printing;
+      const resolvedCondition = withPrintingInCondition(
+        matchedCard?.condition || condition,
+        resolvedPrinting
+      );
+
+      return {
+        card: {
+          ...card,
+          printing: resolvedPrinting,
+          condition: resolvedCondition,
+          rarity: matchedCard?.rarity || rarity,
+        },
+        data: { ...matchedCard, marketPrice: matchedCard.marketPrice },
+        error: null,
+      };
     } catch ( error ) {
       console.error( 'Error fetching card data:', error );
       return { card, data: { marketPrice: "0.00" }, error: 'No market price available' };
@@ -153,24 +321,39 @@ const Home = () => {
     const setCache = {};
 
     try {
-      const cards = cardList.trim().split( '\n' ).map( ( line ) => {
-        const regex = /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
-        const matches = [];
-        let match;
-        while ( ( match = regex.exec( line ) ) !== null ) {
-          matches.push( match[ 1 ] || match[ 2 ] );
-        }
-        if ( matches.length !== 6 ) {
-          alert( 'Invalid card format' );
-        }
+      const knownSetNames = Object.keys( setNameIdMap || {} );
+      const rawLines = cardList
+        .split( '\n' )
+        .map( ( line ) => normalizeWhitespace( line ) )
+        .filter( Boolean );
 
-        const [ rawProductName, setName, number, printing, rarity, condition ] = matches.map( ( s ) => s.trim() );
-        const productName = rawProductName.replace( /^"|"$/g, '' );
-        return { productName, setName, number, printing, rarity, condition };
-      } );
+      if ( knownSetNames.length === 0 && rawLines.some( ( line ) => !line.includes( ',' ) ) ) {
+        setError( 'Set data is still loading. Please try again in a moment.' );
+        return;
+      }
+
+      const invalidLines = [];
+      const cards = rawLines
+        .map( ( line, index ) => {
+          const parsed = parseCardLine( line, knownSetNames );
+          if ( !parsed ) {
+            invalidLines.push( index + 1 );
+            return null;
+          }
+          return parsed;
+        } )
+        .filter( Boolean );
+
+      if ( invalidLines.length > 0 ) {
+        setError(
+          `Could not parse line${ invalidLines.length > 1 ? 's' : '' } ${ invalidLines.join( ', ' ) }. ` +
+          'Use the order: name, setName, number, printing, rarity, condition (commas optional).'
+        );
+        return;
+      }
 
       if ( cards.length === 0 ) {
-        alert( 'Card list is empty' );
+        setError( 'Card list is empty.' );
         return;
       }
 
@@ -235,9 +418,12 @@ const Home = () => {
         </p>
         <span className="py-3 mx-auto text-center">
           <p>
-            Enter a comma-separated (CSV format) list of cards below in the order of:
+            Enter cards in this order:
             <br />
-            <span className="font-black underline">[Name],[Set],[Number],[Edition],[Rarity],[Condition]</span>
+            <span className="font-black underline">Name, Set, Number, Edition, Rarity, Condition</span>
+          </p>
+          <p className="py-2 text-sm text-white/80">
+            Commas are optional. Example: <span className="font-semibold">Nine-Tailed Fox Duel Power DUPO-EN031 1st Edition Ultra Rare Near Mint 1st Edition</span>
           </p>
           <p className="py-3">where the possible conditions are:</p>
           <ul className="columns-2 space-y-1 font-semibold text-center text-pretty object-center justify-evenly">

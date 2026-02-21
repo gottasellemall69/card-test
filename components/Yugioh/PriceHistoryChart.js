@@ -6,14 +6,25 @@ const PriceHistoryChart = ( { selectedVersion, priceHistory } ) => {
         return <p className="text-white">No price history available for this version.</p>;
     }
 
-    // ✅ Ensure data is sorted and formatted correctly
     const today = new Date().toISOString().split( "T" )[ 0 ]; // Get today's date
+    const byDay = new Map();
 
-    const formattedData = priceHistory.map( entry => ( {
-        date: new Date( entry.date ).toISOString().split( "T" )[ 0 ], // Standardize date
-        price: entry.price
-    } ) )
-        .sort( ( a, b ) => new Date( a.date ) - new Date( b.date ) );
+    priceHistory
+        .map( ( entry ) => ( {
+            timestamp: new Date( entry?.date ),
+            price: Number( entry?.price ),
+        } ) )
+        .filter( ( entry ) => !Number.isNaN( entry.timestamp.getTime() ) && Number.isFinite( entry.price ) )
+        .sort( ( a, b ) => a.timestamp - b.timestamp )
+        .forEach( ( entry ) => {
+            const day = entry.timestamp.toISOString().split( "T" )[ 0 ];
+            byDay.set( day, entry.price );
+        } );
+
+    const formattedData = Array.from( byDay.entries() ).map( ( [ date, price ] ) => ( {
+        date,
+        price,
+    } ) );
 
     // ✅ Ensure today's price is included
     if ( !formattedData.some( entry => entry.date === today ) ) {
@@ -37,7 +48,7 @@ const PriceHistoryChart = ( { selectedVersion, priceHistory } ) => {
                     />
                     <YAxis tick={ { fill: "white" } } />
                     <Tooltip />
-                    <Line type="monotone" dataKey="price" stroke="#40c528" />
+                    <Line type="monotone" dataKey="price" stroke="#34d399" strokeWidth={ 2 } dot={ false } isAnimationActive={ true } />
                 </LineChart>
             </ResponsiveContainer>
         </div>

@@ -42,7 +42,7 @@ const CollectionValueChart = dynamic( () => import( "@/components/Yugioh/Collect
 
 const ITEMS_PER_PAGE = 16;
 const SUMMARY_PANEL_HEIGHT = "min-h-[120px]";
-const CHART_PANEL_HEIGHT = "h-[120px]";
+const CHART_PANEL_HEIGHT = "h-fit";
 const buildDefaultFilters = () => ( {
   rarity: [],
   condition: [],
@@ -671,7 +671,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
           </header>
 
           { hasCards && (
-            <div className={ `mt-6 w-full rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl ${ CHART_PANEL_HEIGHT }` }>
+            <div className={ `mt-6 w-full max-w-[85%] mx-auto min-h-fit h-auto rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl ${ CHART_PANEL_HEIGHT }` }>
               { historyError && (
                 <p className="text-sm text-rose-200">{ historyError }</p>
               ) }

@@ -25,7 +25,7 @@ const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, error } ) =
             className="mx-auto w-full max-w-[75%] rounded-xs flex flex-wrap text-nowrap resize-none h-48 glass bg-transparent"
             value={ cardList }
             onChange={ ( e ) => setCardList( e.target.value ) }
-            placeholder="Enter your list of cards..." />
+            placeholder="Enter cards in order: Name Set Number Edition Rarity Condition (commas optional)" />
           <button className=" border border-white rounded-lg px-2 py-2 mx-auto m-2 text-white font-bold hover:text-black hover:bg-white" type="submit">
             Submit
           </button>

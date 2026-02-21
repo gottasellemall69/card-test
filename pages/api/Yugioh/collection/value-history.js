@@ -1,12 +1,54 @@
 import { requireUser } from "@/proxy/authenticate";
 import clientPromise from "@/utils/mongo";
 import { ensureSafeUserId } from "@/utils/securityValidators";
-import { buildHistoryFilter, fetchPriceHistory } from "@/utils/priceHistoryStore";
+import { buildHistoryFilter } from "@/utils/priceHistoryStore";
 
 const toTimestampKey = ( value ) => {
   const date = new Date( value );
   if ( Number.isNaN( date.getTime() ) ) return null;
   return date.toISOString();
+};
+
+const toDayKey = ( value ) => {
+  const timestamp = toTimestampKey( value );
+  if ( !timestamp ) return null;
+  return timestamp.split( "T" )[ 0 ];
+};
+
+const buildSignatureKey = ( signature ) =>
+  [
+    signature?.setName ?? "",
+    signature?.number ?? "",
+    signature?.rarity ?? "",
+    signature?.edition ?? "",
+  ].join( "|" );
+
+const mergeHistoryEntries = ( histories = [] ) => {
+  const historyByDay = new Map();
+
+  histories.forEach( ( history ) => {
+    if ( !Array.isArray( history ) ) {
+      return;
+    }
+
+    history.forEach( ( point ) => {
+      const timestamp = toTimestampKey( point?.date );
+      const day = toDayKey( point?.date );
+      const price = Number( point?.price );
+      if ( !timestamp || !day || !Number.isFinite( price ) ) {
+        return;
+      }
+
+      const existing = historyByDay.get( day );
+      if ( !existing || timestamp > existing.timestamp ) {
+        historyByDay.set( day, { timestamp, price } );
+      }
+    } );
+  } );
+
+  return Array.from( historyByDay.entries() )
+    .map( ( [ date, entry ] ) => ( { date, price: entry.price } ) )
+    .sort( ( a, b ) => a.date.localeCompare( b.date ) );
 };
 
 export default async function handler( req, res ) {
@@ -24,6 +66,7 @@ export default async function handler( req, res ) {
     const userId = ensureSafeUserId( auth.decoded.username );
     const client = await clientPromise;
     const collection = client.db( "cardPriceApp" ).collection( "myCollection" );
+    const priceHistoryCollection = client.db( "cardPriceApp" ).collection( "priceHistory" );
     const cards = await collection
       .find( { userId } )
       .project( {
@@ -41,10 +84,10 @@ export default async function handler( req, res ) {
       return res.status( 200 ).json( { history: [] } );
     }
 
-    const nowKey = toTimestampKey( new Date() );
+    const nowDay = toDayKey( new Date() );
 
-    const histories = await Promise.all(
-      cards.map( async ( card ) => {
+    const activeCards = cards
+      .map( ( card ) => {
         const quantity = Number( card?.quantity ) || 0;
         if ( quantity <= 0 ) {
           return null;
@@ -57,16 +100,84 @@ export default async function handler( req, res ) {
           rarity: card?.rarity,
           edition: card?.printing,
         } );
+        const signature = {
+          setName: filter.setName,
+          number: filter.number,
+          rarity: filter.rarity,
+          edition: filter.edition,
+        };
 
-        let history = await fetchPriceHistory( filter );
-
-        if ( ( !history || history.length === 0 ) && Number.isFinite( Number( card?.marketPrice ) ) && nowKey ) {
-          history = [ { date: nowKey, price: Number( card.marketPrice ) } ];
-        }
-
-        return { quantity, history: history || [] };
+        return {
+          quantity,
+          marketPrice: Number( card?.marketPrice ),
+          signature,
+          signatureKey: buildSignatureKey( signature ),
+        };
       } )
-    );
+      .filter( Boolean );
+
+    if ( activeCards.length === 0 ) {
+      return res.status( 200 ).json( { history: [] } );
+    }
+
+    const uniqueSignatureMap = new Map();
+    activeCards.forEach( ( card ) => {
+      if ( !uniqueSignatureMap.has( card.signatureKey ) ) {
+        uniqueSignatureMap.set( card.signatureKey, card.signature );
+      }
+    } );
+
+    const uniqueSignatures = Array.from( uniqueSignatureMap.values() );
+    const matchingHistories = uniqueSignatures.length > 0
+      ? await priceHistoryCollection
+        .find( { $or: uniqueSignatures }, {
+          projection: {
+            setName: 1,
+            number: 1,
+            rarity: 1,
+            edition: 1,
+            history: 1,
+            _id: 0,
+          },
+        } )
+        .toArray()
+      : [];
+
+    const historyBySignature = new Map();
+    matchingHistories.forEach( ( doc ) => {
+      const signature = buildHistoryFilter( {
+        cardId: null,
+        setName: doc?.setName,
+        number: doc?.number,
+        rarity: doc?.rarity,
+        edition: doc?.edition,
+      } );
+      const key = buildSignatureKey( {
+        setName: signature?.setName,
+        number: signature?.number,
+        rarity: signature?.rarity,
+        edition: signature?.edition,
+      } );
+
+      if ( !historyBySignature.has( key ) ) {
+        historyBySignature.set( key, [] );
+      }
+
+      historyBySignature.get( key ).push( doc?.history || [] );
+    } );
+
+    const histories = activeCards.map( ( card ) => {
+      let history = mergeHistoryEntries( historyBySignature.get( card.signatureKey ) || [] );
+
+      if ( ( !history || history.length === 0 ) && Number.isFinite( card.marketPrice ) && nowDay ) {
+        history = [ { date: nowDay, price: card.marketPrice } ];
+      }
+
+      return {
+        quantity: card.quantity,
+        history: history || [],
+      };
+    } );
 
     const dateSet = new Set();
     const normalized = histories
@@ -74,7 +185,7 @@ export default async function handler( req, res ) {
       .map( ( entry ) => {
         const historyByDate = new Map();
         entry.history.forEach( ( point ) => {
-          const dateKey = toTimestampKey( point?.date );
+          const dateKey = toDayKey( point?.date );
           const price = Number( point?.price );
           if ( !dateKey || !Number.isFinite( price ) ) {
             return;
@@ -89,7 +200,7 @@ export default async function handler( req, res ) {
       return res.status( 200 ).json( { history: [] } );
     }
 
-    const sortedDates = Array.from( dateSet ).sort( ( a, b ) => new Date( a ) - new Date( b ) );
+    const sortedDates = Array.from( dateSet ).sort( ( a, b ) => a.localeCompare( b ) );
     const totals = new Map( sortedDates.map( ( date ) => [ date, 0 ] ) );
 
     normalized.forEach( ( entry ) => {

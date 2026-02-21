@@ -18,8 +18,6 @@ const SORTABLE_KEYS = new Set( [
   "condition",
   "marketPrice",
 ] );
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const MAX_CACHE_ENTRIES = 6;
 
 const normalizeText = ( value ) => ( value ?? "" ).toString().toLowerCase();
 const toSearchText = ( value ) =>
@@ -38,13 +36,29 @@ const formatPrice = ( value ) => {
   return `$${ numeric.toFixed( 2 ) }`;
 };
 
-const fetchFuzzyResults = async ( searchTerm, page, sortKey, sortDirection ) => {
+const sortRows = ( items, sortKey, direction ) => {
+  const isPriceSort = sortKey === "marketPrice";
+  const multiplier = direction === "ascending" ? 1 : -1;
+
+  return [ ...( Array.isArray( items ) ? items : [] ) ].sort( ( a, b ) => {
+    const rawA = a?.[ sortKey ];
+    const rawB = b?.[ sortKey ];
+    const aValue = isPriceSort
+      ? Number.parseFloat( rawA ) || 0
+      : ( rawA ?? "" ).toString().toLowerCase();
+    const bValue = isPriceSort
+      ? Number.parseFloat( rawB ) || 0
+      : ( rawB ?? "" ).toString().toLowerCase();
+
+    if ( aValue < bValue ) return -1 * multiplier;
+    if ( aValue > bValue ) return 1 * multiplier;
+    return 0;
+  } );
+};
+
+const fetchFuzzyResults = async ( searchTerm ) => {
   const response = await fetch(
-    `/api/Yugioh/cards/fuzzy-search?q=${ encodeURIComponent(
-      searchTerm
-    ) }&page=${ page }&pageSize=${ PAGE_SIZE }&sortKey=${ encodeURIComponent(
-      sortKey
-    ) }&sortDirection=${ encodeURIComponent( sortDirection ) }`
+    `/api/Yugioh/cards/fuzzy-search?q=${ encodeURIComponent( searchTerm ) }&includeAll=1`
   );
   let data = null;
 
@@ -56,34 +70,19 @@ const fetchFuzzyResults = async ( searchTerm, page, sortKey, sortDirection ) => 
 
   const results = Array.isArray( data?.results ) ? data.results : [];
   const message = data?.message || "Search failed.";
-  const totalCount =
-    typeof data?.totalCount === "number" ? data.totalCount : results.length;
-  const responsePage =
-    Number.isFinite( data?.page ) && data.page > 0 ? data.page : page;
-  const responsePageSize =
-    Number.isFinite( data?.pageSize ) && data.pageSize > 0
-      ? data.pageSize
-      : PAGE_SIZE;
 
   return {
     ok: response.ok,
     message,
     results,
-    totalCount,
-    page: responsePage,
-    pageSize: responsePageSize,
   };
 };
-
-const buildCacheKey = ( query, sortKey, sortDirection ) =>
-  `${ toSearchText( query ) }::${ sortKey }::${ sortDirection }`;
 
 const YugiohFuzzySearchResults = () => {
   const router = useRouter();
   const [ query, setQuery ] = useState( "" );
   const [ effectiveSearch, setEffectiveSearch ] = useState( "" );
   const [ results, setResults ] = useState( [] );
-  const [ totalCount, setTotalCount ] = useState( 0 );
   const [ isRelaxed, setIsRelaxed ] = useState( false );
   const [ isLoading, setIsLoading ] = useState( false );
   const [ error, setError ] = useState( "" );
@@ -93,8 +92,7 @@ const YugiohFuzzySearchResults = () => {
     direction: "ascending",
   } );
   const [ selectedConditionByKey, setSelectedConditionByKey ] = useState( {} );
-  const cacheRef = useRef( new Map() );
-  const activeCacheKeyRef = useRef( "" );
+  const activeSearchRef = useRef( { key: "", payload: null } );
 
   const buildResultKey = useCallback(
     ( result ) =>
@@ -127,122 +125,18 @@ const YugiohFuzzySearchResults = () => {
     } );
   }, [ buildResultKey, results ] );
 
-  const readCacheEntry = useCallback( ( cacheKey ) => {
-    const entry = cacheRef.current.get( cacheKey );
-    if ( !entry ) {
-      return null;
-    }
-
-    if ( Date.now() - entry.createdAt > CACHE_TTL_MS ) {
-      cacheRef.current.delete( cacheKey );
-      return null;
-    }
-
-    cacheRef.current.delete( cacheKey );
-    cacheRef.current.set( cacheKey, entry );
-    return entry;
-  }, [] );
-
-  const writeCacheEntry = useCallback( ( cacheKey, entry ) => {
-    cacheRef.current.set( cacheKey, entry );
-    if ( cacheRef.current.size <= MAX_CACHE_ENTRIES ) {
-      return;
-    }
-
-    const oldestKey = cacheRef.current.keys().next().value;
-    if ( oldestKey ) {
-      cacheRef.current.delete( oldestKey );
-    }
-  }, [] );
-
-  const updateStateFromCache = useCallback( ( entry, page ) => {
-    setResults( entry.pages.get( page ) || [] );
-    setTotalCount( entry.totalCount || 0 );
-    setCurrentPage( page );
-    setEffectiveSearch( entry.effectiveSearch || "" );
-    setIsRelaxed( Boolean( entry.isRelaxed ) );
-    setIsLoading( false );
-    setError( "" );
-  }, [] );
-
-  const prefetchRemainingPages = useCallback(
-    async ( cacheKey, effectiveSearch, totalCount, sortKey, sortDirection ) => {
-      const entry = readCacheEntry( cacheKey );
-      if ( !entry || entry.prefetching ) {
-        return;
-      }
-
-      entry.prefetching = true;
-      writeCacheEntry( cacheKey, entry );
-
-      const totalPages = Math.max( 1, Math.ceil( totalCount / PAGE_SIZE ) );
-      const pagesToFetch = [];
-      for ( let page = 1; page <= totalPages; page += 1 ) {
-        if ( !entry.pages.has( page ) ) {
-          pagesToFetch.push( page );
-        }
-      }
-
-      const concurrency = 3;
-      let cursor = 0;
-
-      const worker = async () => {
-        while ( cursor < pagesToFetch.length ) {
-          if ( activeCacheKeyRef.current !== cacheKey ) {
-            return;
-          }
-
-          const nextPage = pagesToFetch[ cursor ];
-          cursor += 1;
-
-          try {
-            const result = await fetchFuzzyResults(
-              effectiveSearch,
-              nextPage,
-              sortKey,
-              sortDirection
-            );
-            if ( !result.ok ) {
-              continue;
-            }
-
-            const updated = readCacheEntry( cacheKey );
-            if ( !updated ) {
-              return;
-            }
-
-            updated.pages.set( nextPage, result.results );
-            updated.totalCount = result.totalCount;
-            writeCacheEntry( cacheKey, updated );
-          } catch ( error ) {
-            continue;
-          }
-        }
-      };
-
-      await Promise.all( Array.from( { length: concurrency }, worker ) );
-
-      const refreshed = readCacheEntry( cacheKey );
-      if ( refreshed ) {
-        refreshed.prefetching = false;
-        writeCacheEntry( cacheKey, refreshed );
-      }
-    },
-    [ readCacheEntry, writeCacheEntry ]
-  );
-
   const runSearch = useCallback(
-    async ( rawQuery, page, sortKey, sortDirection ) => {
+    async ( rawQuery ) => {
       const trimmed = rawQuery.trim();
       setQuery( trimmed );
       setEffectiveSearch( "" );
       setIsRelaxed( false );
       setError( "" );
-      setCurrentPage( page );
+      setCurrentPage( 1 );
+      setSortConfig( { key: DEFAULT_SORT_KEY, direction: "ascending" } );
 
       if ( !trimmed ) {
         setResults( [] );
-        setTotalCount( 0 );
         return;
       }
 
@@ -251,22 +145,17 @@ const YugiohFuzzySearchResults = () => {
       if ( tokens.length === 0 ) {
         setError( "Add a card name, set, or set code to search." );
         setResults( [] );
-        setTotalCount( 0 );
         return;
       }
 
-      const cacheKey = buildCacheKey( trimmed, sortKey, sortDirection );
-      const cachedEntry = readCacheEntry( cacheKey );
-      const isNewSearchKey = activeCacheKeyRef.current !== cacheKey;
-      activeCacheKeyRef.current = cacheKey;
-
-      if ( isNewSearchKey && !cachedEntry?.pages?.has( page ) ) {
-        setResults( [] );
-        setTotalCount( 0 );
-      }
-
-      if ( cachedEntry?.pages?.has( page ) ) {
-        updateStateFromCache( cachedEntry, page );
+      const searchKey = toSearchText( trimmed );
+      if ( searchKey && activeSearchRef.current.key === searchKey && activeSearchRef.current.payload ) {
+        const cached = activeSearchRef.current.payload;
+        setResults( cached.results || [] );
+        setEffectiveSearch( cached.effectiveSearch || "" );
+        setIsRelaxed( Boolean( cached.isRelaxed ) );
+        setIsLoading( false );
+        setError( "" );
         return;
       }
 
@@ -277,27 +166,9 @@ const YugiohFuzzySearchResults = () => {
       let usedSearch = "";
       let errorMessage = "";
 
-      if ( cachedEntry?.effectiveSearch ) {
-        const result = await fetchFuzzyResults(
-          cachedEntry.effectiveSearch,
-          page,
-          sortKey,
-          sortDirection
-        );
-        if ( result.ok && result.results.length > 0 ) {
-          fetched = result;
-          usedSearch = cachedEntry.effectiveSearch;
-        }
-      }
-
       while ( !fetched && searchTokens.length > 0 ) {
         const term = searchTokens.join( " " );
-        const result = await fetchFuzzyResults(
-          term,
-          page,
-          sortKey,
-          sortDirection
-        );
+        const result = await fetchFuzzyResults( term );
 
         if ( result.ok && result.results.length > 0 ) {
           fetched = result;
@@ -316,51 +187,27 @@ const YugiohFuzzySearchResults = () => {
       if ( !fetched ) {
         setError( errorMessage || "No matches found." );
         setResults( [] );
-        setTotalCount( 0 );
         setIsLoading( false );
         return;
       }
 
       const relaxed = usedSearch && usedSearch !== tokens.join( " " );
+      const fetchedResults = Array.isArray( fetched.results ) ? fetched.results : [];
 
-      setResults( fetched.results );
-      setTotalCount( fetched.totalCount );
+      setResults( fetchedResults );
       setIsRelaxed( relaxed );
-      setCurrentPage( fetched.page );
       setEffectiveSearch( usedSearch || tokens.join( " " ) );
       setIsLoading( false );
-
-      const entry = cachedEntry ?? {
-        createdAt: Date.now(),
-        pages: new Map(),
-        totalCount: fetched.totalCount,
-        effectiveSearch: usedSearch || tokens.join( " " ),
-        isRelaxed: relaxed,
-        prefetching: false,
+      activeSearchRef.current = {
+        key: searchKey,
+        payload: {
+          results: fetchedResults,
+          effectiveSearch: usedSearch || tokens.join( " " ),
+          isRelaxed: relaxed,
+        },
       };
-
-      entry.pages.set( fetched.page, fetched.results );
-      entry.totalCount = fetched.totalCount;
-      entry.effectiveSearch = usedSearch || tokens.join( " " );
-      entry.isRelaxed = relaxed;
-      writeCacheEntry( cacheKey, entry );
-
-      if ( fetched.totalCount > fetched.results.length ) {
-        prefetchRemainingPages(
-          cacheKey,
-          entry.effectiveSearch,
-          fetched.totalCount,
-          sortKey,
-          sortDirection
-        );
-      }
     },
-    [
-      prefetchRemainingPages,
-      readCacheEntry,
-      updateStateFromCache,
-      writeCacheEntry,
-    ]
+    []
   );
 
   useEffect( () => {
@@ -370,41 +217,30 @@ const YugiohFuzzySearchResults = () => {
 
     const rawQuery = router.query.q ?? router.query.query ?? "";
     const normalizedQuery = Array.isArray( rawQuery ) ? rawQuery[ 0 ] : rawQuery;
-    const rawPage = router.query.page;
-    const parsedPage = Array.isArray( rawPage )
-      ? Number.parseInt( rawPage[ 0 ], 10 )
-      : Number.parseInt( rawPage, 10 );
-    const nextPage = Number.isFinite( parsedPage ) && parsedPage > 0 ? parsedPage : 1;
-    const rawSortKey = router.query.sortKey;
-    const rawSortDirection = router.query.sortDirection;
-    const normalizedSortKey = Array.isArray( rawSortKey ) ? rawSortKey[ 0 ] : rawSortKey;
-    const normalizedSortDirection = Array.isArray( rawSortDirection )
-      ? rawSortDirection[ 0 ]
-      : rawSortDirection;
-    const nextSortKey = SORTABLE_KEYS.has( normalizedSortKey )
-      ? normalizedSortKey
-      : DEFAULT_SORT_KEY;
-    const nextSortDirection =
-      normalizedSortDirection === "descending" || normalizedSortDirection === "desc"
-        ? "descending"
-        : "ascending";
-
-    setSortConfig( { key: nextSortKey, direction: nextSortDirection } );
-    runSearch(
-      normalizedQuery ? normalizedQuery.toString() : "",
-      nextPage,
-      nextSortKey,
-      nextSortDirection
-    );
+    runSearch( normalizedQuery ? normalizedQuery.toString() : "" );
   }, [
     router.isReady,
     router.query.q,
     router.query.query,
-    router.query.page,
-    router.query.sortKey,
-    router.query.sortDirection,
     runSearch,
   ] );
+
+  const sortedResults = useMemo(
+    () => sortRows( results, sortConfig.key, sortConfig.direction ),
+    [ results, sortConfig.direction, sortConfig.key ]
+  );
+  const totalCount = sortedResults.length;
+  const paginatedResults = useMemo( () => {
+    const start = ( currentPage - 1 ) * PAGE_SIZE;
+    return sortedResults.slice( start, start + PAGE_SIZE );
+  }, [ currentPage, sortedResults ] );
+
+  useEffect( () => {
+    const totalPages = Math.max( 1, Math.ceil( totalCount / PAGE_SIZE ) );
+    if ( currentPage > totalPages ) {
+      setCurrentPage( totalPages );
+    }
+  }, [ currentPage, totalCount ] );
 
   const hasQuery = Boolean( query && query.trim() );
   const displayCountLabel = useMemo( () => {
@@ -433,21 +269,28 @@ const YugiohFuzzySearchResults = () => {
       return;
     }
 
-    const nextDirection =
-      sortConfig.key === key && sortConfig.direction === "ascending"
-        ? "descending"
-        : "ascending";
+    setSortConfig( ( previous ) => ( {
+      key,
+      direction:
+        previous.key === key && previous.direction === "ascending"
+          ? "descending"
+          : "ascending",
+    } ) );
+    setCurrentPage( 1 );
+  }, [] );
 
-    router.push( {
-      pathname: "/yugioh/search",
-      query: {
-        q: query,
-        page: 1,
-        sortKey: key,
-        sortDirection: nextDirection,
-      },
-    } );
-  }, [ query, router, sortConfig ] );
+  const handlePageClick = useCallback( ( nextPage ) => {
+    const totalPages = Math.max( 1, Math.ceil( totalCount / PAGE_SIZE ) );
+    if ( nextPage < 1 ) {
+      setCurrentPage( 1 );
+      return;
+    }
+    if ( nextPage > totalPages ) {
+      setCurrentPage( totalPages );
+      return;
+    }
+    setCurrentPage( nextPage );
+  }, [ totalCount ] );
 
   return (
     <>
@@ -468,8 +311,8 @@ const YugiohFuzzySearchResults = () => {
         <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-black text-shadow">
-                Fuzzy Search Results
+              <h1 className="text-5xl font-black text-shadow">
+                Search Results
               </h1>
               <p className="mt-2 text-sm text-white/80">
                 { hasQuery
@@ -492,7 +335,7 @@ const YugiohFuzzySearchResults = () => {
               href="/yugioh"
               className="rounded border border-white/60 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white hover:text-black"
             >
-              Back to Price Lookup
+              Back to search
             </Link>
           </div>
 
@@ -502,17 +345,7 @@ const YugiohFuzzySearchResults = () => {
               currentPage={ currentPage }
               itemsPerPage={ PAGE_SIZE }
               totalItems={ totalCount }
-              handlePageClick={ ( nextPage ) => {
-                router.push( {
-                  pathname: "/yugioh/search",
-                  query: {
-                    q: query,
-                    page: nextPage,
-                    sortKey: sortConfig.key,
-                    sortDirection: sortConfig.direction,
-                  },
-                } );
-              } }
+              handlePageClick={ handlePageClick }
             />
           </div>
           <div className="mt-6 yugioh-stage-table overflow-x-auto rounded-lg border border-white/10 bg-black/40 shadow-2xl">
@@ -520,7 +353,7 @@ const YugiohFuzzySearchResults = () => {
               <div className="flex min-h-[20rem] items-center justify-center text-sm text-white/70">
                 Loading results...
               </div>
-            ) : hasQuery && results.length > 0 ? (
+            ) : hasQuery && paginatedResults.length > 0 ? (
               <table className="min-w-full border-collapse text-sm text-white text-nowrap">
                 <thead className="bg-white/10 text-left uppercase text-xs">
                   <tr>
@@ -554,7 +387,7 @@ const YugiohFuzzySearchResults = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  { results.map( ( result ) => {
+                  { paginatedResults.map( ( result ) => {
                     const resultKey = buildResultKey( result );
                     const conditions = Array.isArray( result?.conditions ) && result.conditions.length > 0
                       ? result.conditions
@@ -602,20 +435,20 @@ const YugiohFuzzySearchResults = () => {
                       >
                         <td className="px-4 py-3">
                           <div className="font-semibold">
-                            { result.productName || "Unknown card" }
+                            { result.productName }
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          { result.setName || "Unknown set" }
+                          { result.setName || "-" }
                         </td>
                         <td className="px-4 py-3">
-                          { result.number || "N/A" }
+                          { result.number || "-" }
                         </td>
                         <td className="px-4 py-3">
-                          { result.printing || "N/A" }
+                          { result.printing || "-" }
                         </td>
                         <td className="px-4 py-3">
-                          { result.rarity || "N/A" }
+                          { result.rarity || "-" }
                         </td>
                         <td className="px-4 py-3">
                           <select
@@ -628,7 +461,7 @@ const YugiohFuzzySearchResults = () => {
                               } ) );
                             } }
                             className="w-full rounded border border-white/20 bg-white/10 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-                            disabled={ conditions.length <= 1 }
+                            disabled={ conditions.length < 1 }
                           >
                             { conditions.map( ( entry, index ) => (
                               <option
@@ -673,17 +506,7 @@ const YugiohFuzzySearchResults = () => {
             currentPage={ currentPage }
             itemsPerPage={ PAGE_SIZE }
             totalItems={ totalCount }
-            handlePageClick={ ( nextPage ) => {
-              router.push( {
-                pathname: "/yugioh/search",
-                query: {
-                  q: query,
-                  page: nextPage,
-                  sortKey: sortConfig.key,
-                  sortDirection: sortConfig.direction,
-                },
-              } );
-            } }
+            handlePageClick={ handlePageClick }
           />
         </div>
       </div>
