@@ -56,3 +56,5 @@ repomix-output.*
 !/public/vercel.svg
 repomix.config.json
 prompt.md
+/skills
+/skills
