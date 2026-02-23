@@ -31,6 +31,7 @@ export default async function handler( req, res ) {
               oldPrice: 1,
               marketPrice: 1,
               lowPrice: 1,
+              remoteImageUrl: 1,
               quantity: 1,
             },
           },

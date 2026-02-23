@@ -1,5 +1,3 @@
-import fs from "fs/promises";
-import path from "path";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -7,31 +5,53 @@ import Head from "next/head";
 
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-
-const CARD_SETS_FILE_PATH = path.join(
-  process.cwd(),
-  "public",
-  "card-data",
-  "Yugioh",
-  "card_sets.json",
-);
+import { getSetCatalogue } from "@/utils/api";
 
 let cachedCardSets = null;
+let cachedCardSetsAt = 0;
+const SET_CACHE_TTL_MS = 60 * 60 * 1000;
+
+const normalizeSetEntry = ( entry ) => {
+  if ( !entry || !entry.name ) {
+    return null;
+  }
+
+  return {
+    name: entry.name,
+    setNameId: entry.setNameId ?? entry.set_name_id ?? null,
+    urlName: entry.urlName ?? entry.url_name ?? null,
+    abbreviation: entry.abbreviation ?? entry.abbr ?? null,
+    releaseDate:
+      entry.releaseDate ??
+      entry.releasedDate ??
+      entry.release_date ??
+      entry.release ??
+      null,
+    isSupplemental:
+      typeof entry.isSupplemental === "boolean"
+        ? entry.isSupplemental
+        : typeof entry.is_supplemental === "boolean"
+          ? entry.is_supplemental
+          : null,
+  };
+};
 
 async function loadCardSets() {
-  if ( cachedCardSets ) {
+  if ( cachedCardSets && Date.now() - cachedCardSetsAt < SET_CACHE_TTL_MS ) {
     return cachedCardSets;
   }
 
+  let catalogue = null;
   try {
-    const fileContents = await fs.readFile( CARD_SETS_FILE_PATH, "utf8" );
-    const parsed = JSON.parse( fileContents );
-    cachedCardSets = Array.isArray( parsed ) ? parsed : [];
+    catalogue = await getSetCatalogue();
   } catch ( error ) {
-    console.error( "Failed to load Yu-Gi-Oh! card set catalogue:", error );
-    cachedCardSets = [];
+    console.error( "Failed to load live set catalogue:", error );
   }
 
+  cachedCardSets = Array.isArray( catalogue )
+    ? catalogue.map( normalizeSetEntry ).filter( Boolean )
+    : [];
+  cachedCardSetsAt = Date.now();
   return cachedCardSets;
 }
 

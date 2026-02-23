@@ -66,7 +66,7 @@ export default async function handler( req, res ) {
       { $set: { [ field ]: sanitizedValue } }
     );
 
-    if ( result.modifiedCount > 0 ) {
+    if ( result.modifiedCount >= 0 ) {
       return res.status( 200 ).json( { message: "Card updated successfully" } );
     }
 

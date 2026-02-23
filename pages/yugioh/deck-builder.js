@@ -212,7 +212,7 @@ export default function DeckBuilder() {
               <div className="grid grid-cols-8 gap-2 mt-2">
                 { extraDeck.map( ( card, index ) => (
                   <div
-                    key={ card.id ?? `${ card.name }-${ index }` }
+                    key={ `${ card.id ?? card.name }-${ index }` }
                     className="relative w-20 h-28 bg-gray-200 flex flex-col items-center justify-center border border-gray-400 rounded"
                   >
                     <Image
@@ -303,7 +303,7 @@ export default function DeckBuilder() {
               { filteredArchetypeSuggestions && filteredArchetypeSuggestions.length > 0 ? (
                 <div className="inline-grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 overflow-y-auto max-h-[400px]">
                   { filteredArchetypeSuggestions.map( ( card, index ) => (
-                    <div key={ card.id ?? `${ card.name }-${ index }` } className="w-full rounded bg-white p-3 shadow">
+                    <div key={ `${ card.id ?? card.name }-${ index }` } className="w-full rounded bg-white p-3 shadow">
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <Image
                           src={ card.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }

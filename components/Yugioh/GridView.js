@@ -209,7 +209,8 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 
             const cardImage = getCardImage( card.productName );
             const cardInfo = cardData.find( ( item ) => item.name === card.productName );
-            const imageSrc = cardImage || card.remoteImageUrl || FALLBACK_IMAGE;
+            const cardIdImage = card.cardId ? getFullImagePath( card.cardId ) : null;
+            const imageSrc = cardImage || cardIdImage || card.remoteImageUrl || FALLBACK_IMAGE;
             const isFlipped = Boolean( flippedCards[ card._id ] );
             const quantity = Number( card.quantity ) || 0;
             const removeAmount = editValues[ card._id ]?.deleteAmount || 1;
@@ -330,16 +331,16 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                     <div className="col-start-1 row-start-1 flex w-full flex-col justify-between gap-3 rounded border border-white/10 bg-black p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)]">
                       <div className="space-y-3">
                         <h3 className="text-lg font-semibold text-center text-pretty break-words">{ card.productName }</h3>
-                          <div className="space-y-1 text-xs text-white/70 sm:text-sm">
-                            { detailEntries.map( ( entry ) => (
+                        <div className="space-y-1 text-xs text-white/70 sm:text-sm">
+                          { detailEntries.map( ( entry ) => (
                             <div key={ entry.label } className="flex min-w-0 items-start justify-between gap-3 border-b border-white/5 pb-1 last:border-b-0">
                               <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-white/60 sm:text-xs">
                                 { entry.label }
                               </span>
                               <span className="min-w-0 text-right break-words text-white">{ entry.value }</span>
                             </div>
-                            ) ) }
-                          </div>
+                          ) ) }
+                        </div>
                       </div>
                       <div className="mx-auto mt-2 flex flex-wrap w-full gap-2 text-pretty sm:gap-3">
                         <Link

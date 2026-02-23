@@ -2,10 +2,11 @@ const API_ENDPOINT = `https://${ process.env.GET_CARD_SETS_API }/v2/Catalog/SetN
 
 // Cache for set name to ID mapping and card data
 let setNameIdCache = null;
+let setCatalogueCache = null;
 
-// Fetches set data dynamically and builds setNameIdMap
+// Fetches set data dynamically and builds setNameIdMap + catalogue cache
 async function fetchSetData() {
-  if ( setNameIdCache ) {
+  if ( setNameIdCache && setCatalogueCache ) {
     return setNameIdCache;
   }
   try {
@@ -17,8 +18,11 @@ async function fetchSetData() {
       return null;
     }
 
+    const results = Array.isArray( data.results ) ? data.results : [];
+    setCatalogueCache = results;
+
     // Build the setNameIdMap from fetched data
-    setNameIdCache = data.results.reduce( ( map, set ) => {
+    setNameIdCache = results.reduce( ( map, set ) => {
       map[ set.name ] = set.setNameId;
       return map;
     }, {} );
@@ -26,6 +30,7 @@ async function fetchSetData() {
     return setNameIdCache;
   } catch ( error ) {
     console.error( "Error fetching set data:", error );
+    setCatalogueCache = setCatalogueCache || [];
     return null;
   }
 };
@@ -33,6 +38,11 @@ async function fetchSetData() {
 // Export the mapping for external use
 export async function getSetNameIdMap() {
   return await fetchSetData();
+};
+
+export async function getSetCatalogue() {
+  await fetchSetData();
+  return setCatalogueCache || [];
 };
 
 // Fetches card data for a specific set name

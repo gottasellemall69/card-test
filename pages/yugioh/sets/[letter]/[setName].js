@@ -1,5 +1,3 @@
-﻿import fs from "fs/promises";
-import path from "path";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
@@ -12,7 +10,7 @@ import FilterPanel from "@/components/Yugioh/FilterPanel";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import Notification from "@/components/Notification";
-import { fetchCardData as fetchAllCardData } from "@/utils/api";
+import { fetchCardData as fetchAllCardData, getSetCatalogue, getSetNameIdMap } from "@/utils/api";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
 import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
@@ -27,30 +25,51 @@ const YugiohCardDataTable = dynamic(
   }
 );
 
-const CARD_SETS_FILE_PATH = path.join(
-  process.cwd(),
-  "public",
-  "card-data",
-  "Yugioh",
-  "card_sets.json",
-);
-
 let cachedCardSets = null;
+let cachedCardSetsAt = 0;
+const SET_CACHE_TTL_MS = 60 * 60 * 1000;
+
+const normalizeSetEntry = ( entry ) => {
+  if ( !entry || !entry.name ) {
+    return null;
+  }
+
+  return {
+    name: entry.name,
+    setNameId: entry.setNameId ?? entry.set_name_id ?? null,
+    urlName: entry.urlName ?? entry.url_name ?? null,
+    abbreviation: entry.abbreviation ?? entry.abbr ?? null,
+    releaseDate:
+      entry.releaseDate ??
+      entry.releasedDate ??
+      entry.release_date ??
+      entry.release ??
+      null,
+    isSupplemental:
+      typeof entry.isSupplemental === "boolean"
+        ? entry.isSupplemental
+        : typeof entry.is_supplemental === "boolean"
+          ? entry.is_supplemental
+          : null,
+  };
+};
 
 async function loadCardSets() {
-  if ( cachedCardSets ) {
+  if ( cachedCardSets && Date.now() - cachedCardSetsAt < SET_CACHE_TTL_MS ) {
     return cachedCardSets;
   }
 
+  let catalogue = null;
   try {
-    const fileContents = await fs.readFile( CARD_SETS_FILE_PATH, "utf8" );
-    const parsed = JSON.parse( fileContents );
-    cachedCardSets = Array.isArray( parsed ) ? parsed : [];
+    catalogue = await getSetCatalogue();
   } catch ( error ) {
-    console.error( "Failed to load Yu-Gi-Oh! card set catalogue:", error );
-    cachedCardSets = [];
+    console.error( "Failed to load live set catalogue:", error );
   }
 
+  cachedCardSets = Array.isArray( catalogue )
+    ? catalogue.map( normalizeSetEntry ).filter( Boolean )
+    : [];
+  cachedCardSetsAt = Date.now();
   return cachedCardSets;
 }
 
@@ -723,21 +742,6 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         let officialName = initialSetName || decodedSetName;
 
         if ( !effectiveSetId ) {
-          const fetchFallbackCatalogue = async () => {
-            const response = await fetch( "/card-data/Yugioh/card_sets.json", { cache: "force-cache" } );
-            if ( !response.ok ) {
-              throw new Error( `Failed to load fallback set catalogue (${ response.status })` );
-            }
-
-            const catalogue = await response.json();
-            const derived = deriveSetFromCatalogue( catalogue, decodedSetName );
-            if ( !derived ) {
-              throw new Error( "Set not found in catalogue" );
-            }
-
-            return derived;
-          };
-
           let resolvedSet = null;
 
           try {
@@ -764,8 +768,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
               throw new Error( "Unexpected set catalogue format" );
             }
           } catch ( catalogueError ) {
-            console.warn( "Falling back to static set catalogue:", catalogueError );
-            resolvedSet = await fetchFallbackCatalogue();
+            console.error( "Failed to resolve set from live catalogue:", catalogueError );
           }
 
           if ( resolvedSet ) {
@@ -1471,6 +1474,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 buildConditionLabel( modalVariant.baseCondition, modalVariant.printing ) ||
                 "Unknown Condition",
               marketPrice: modalVariant.marketPrice || 0,
+              remoteImageUrl: selectedCard.remoteImageUrl || null,
               quantity: 1,
             },
           ],
@@ -1547,6 +1551,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
               .filter( Boolean )
               .join( " " ) || "Unknown Condition",
           marketPrice: variant.marketPrice || 0,
+          remoteImageUrl: row.card.remoteImageUrl || null,
           quantity: 1,
         };
       } )
@@ -2390,9 +2395,28 @@ export async function getServerSideProps( { params } ) {
 
   const sets = await loadCardSets();
 
-  const matchedSet = sets.find(
+  let matchedSet = sets.find(
     ( set ) => set?.name?.toLowerCase() === rawSetName.toLowerCase()
   );
+
+  if ( !matchedSet ) {
+    try {
+      const setNameIdMap = await getSetNameIdMap();
+      if ( setNameIdMap && typeof setNameIdMap === "object" ) {
+        const match = Object.entries( setNameIdMap ).find(
+          ( [ name ] ) => name.toLowerCase() === rawSetName.toLowerCase()
+        );
+        if ( match ) {
+          matchedSet = {
+            name: match[ 0 ],
+            setNameId: match[ 1 ],
+          };
+        }
+      }
+    } catch ( error ) {
+      console.error( "Failed to resolve set from live map:", error );
+    }
+  }
 
   if ( !matchedSet ) {
     return { notFound: true };
@@ -2410,6 +2434,7 @@ export async function getServerSideProps( { params } ) {
 }
 
 export default CardsInSetPage;
+
 
 
 

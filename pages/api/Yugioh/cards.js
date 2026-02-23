@@ -64,7 +64,12 @@ export default async function handler( req, res ) {
             card.cardId === null || card.cardId === undefined
               ? null
               : coerceStringField( card.cardId, { maxLength: 128 } ),
+          remoteImageUrl: coerceStringField( card.remoteImageUrl ?? "", { maxLength: 1024, allowEmpty: true } ),
         };
+
+        if ( !sanitizedCard.remoteImageUrl ) {
+          sanitizedCard.remoteImageUrl = null;
+        }
 
         const key = buildCardKey( sanitizedCard );
         const existing = dedupedCards.get( key );
@@ -74,6 +79,7 @@ export default async function handler( req, res ) {
           existing.marketPrice = sanitizedCard.marketPrice || existing.marketPrice;
           existing.lowPrice = sanitizedCard.lowPrice || existing.lowPrice;
           existing.cardId = sanitizedCard.cardId ?? existing.cardId;
+          existing.remoteImageUrl = sanitizedCard.remoteImageUrl || existing.remoteImageUrl || null;
         } else {
           dedupedCards.set( key, sanitizedCard );
         }
@@ -90,6 +96,16 @@ export default async function handler( req, res ) {
 
     const bulkOps = sanitizedCards.map( ( card ) => {
       const now = new Date();
+      const setFields = {
+        oldPrice: null,
+        cardId: card.cardId || null,
+        updatedAt: now,
+      };
+
+      if ( card.remoteImageUrl ) {
+        setFields.remoteImageUrl = card.remoteImageUrl;
+      }
+
       return {
         updateOne: {
           filter: {
@@ -104,9 +120,7 @@ export default async function handler( req, res ) {
           update: {
             $inc: { quantity: card.quantity },
             $set: {
-              oldPrice: null,
-              cardId: card.cardId || null,
-              updatedAt: now
+              ...setFields
             },
             $setOnInsert: {
               marketPrice: card.marketPrice || 0,
@@ -127,4 +141,3 @@ export default async function handler( req, res ) {
     return res.status( 500 ).json( { message: "Server error" } );
   }
 }
-
