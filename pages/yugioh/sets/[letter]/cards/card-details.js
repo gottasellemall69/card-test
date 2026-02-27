@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useRouter } from "next/router";
 import useSWR, { mutate } from "swr";
 import PriceHistoryChart from "@/components/Yugioh/PriceHistoryChart";
+import Notification from "@/components/Notification";
+import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
 
 const fetcher = async ( url ) => {
   const response = await fetch( url );
@@ -18,8 +20,16 @@ const fetcher = async ( url ) => {
 const VERSION_SEPARATOR = " - ";
 const LOCAL_IMAGE_BASE_PATH = "/images/yugiohImages";
 const FALLBACK_IMAGE = "/images/yugioh-card.png";
+const DEFAULT_CONDITION = "Near Mint";
 
 const normalizeEditionLabel = ( value ) => value || "Unknown Edition";
+const buildConditionLabel = ( printingLabel ) => {
+  const trimmedPrinting = ( printingLabel ?? "" ).toString().trim();
+  if ( !trimmedPrinting ) {
+    return DEFAULT_CONDITION;
+  }
+  return `${ DEFAULT_CONDITION } ${ trimmedPrinting }`;
+};
 const serializeVersion = ( set ) =>
   [
     set.set_name,
@@ -77,11 +87,38 @@ const CardDetails = () => {
 
   const cardId = Array.isArray( card ) ? card[ 0 ]?.toString() : card?.toString();
   const [ selectedVersion, setSelectedVersion ] = useState( undefined );
+  const [ isAuthenticated, setIsAuthenticated ] = useState( false );
+  const [ isAddingToCollection, setIsAddingToCollection ] = useState( false );
+  const [ notification, setNotification ] = useState( { show: false, message: "" } );
 
   const { data: cardData, error: cardError } = useSWR(
     cardId ? `/api/Yugioh/card/${ encodeURIComponent( cardId ) }` : null,
     fetcher
   );
+
+  const triggerNotification = useCallback( ( message ) => {
+    if ( !message ) return;
+    setNotification( { show: true, message } );
+  }, [] );
+
+  const updateNotificationVisibility = useCallback( ( showValue ) => {
+    setNotification( ( prev ) => ( { ...prev, show: showValue } ) );
+  }, [] );
+
+  useEffect( () => {
+    const syncAuthState = () => {
+      setIsAuthenticated( readAuthStateFromCookie() );
+    };
+
+    syncAuthState();
+    const unsubscribe = subscribeToAuthState( ( state ) => setIsAuthenticated( Boolean( state ) ) );
+    window.addEventListener( "focus", syncAuthState );
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener( "focus", syncAuthState );
+    };
+  }, [] );
 
   const shouldLookupByName = ( !cardId || cardError ) && cardName;
   const { data: cardLookupData, error: cardLookupError } = useSWR(
@@ -89,8 +126,23 @@ const CardDetails = () => {
     fetcher
   );
 
-  const resolvedCardData = cardData || cardLookupData;
-  const resolvedCardError = resolvedCardData ? null : ( cardLookupError || cardError );
+  const shouldLookupBySet = ( !cardId || cardError || cardLookupError ) && set_name && set_code;
+  const setLookupParams = shouldLookupBySet
+    ? new URLSearchParams( {
+      set_name,
+      set_code,
+      ...( cardName ? { card_name: cardName } : {} ),
+    } )
+    : null;
+  const { data: cardSetLookupData, error: cardSetLookupError } = useSWR(
+    setLookupParams ? `/api/Yugioh/card/lookup-by-set?${ setLookupParams.toString() }` : null,
+    fetcher
+  );
+
+  const resolvedCardData = cardData || cardLookupData || cardSetLookupData;
+  const resolvedCardError = resolvedCardData
+    ? null
+    : ( cardSetLookupError || cardLookupError || cardError );
   const effectiveCardId = ( cardId || resolvedCardData?.id )
     ? ( cardId || resolvedCardData?.id ).toString()
     : undefined;
@@ -315,6 +367,80 @@ const CardDetails = () => {
     }
   };
 
+  const handleAddToCollection = useCallback( async () => {
+    if ( !resolvedCardData || !selectedSetDetails ) {
+      triggerNotification( "Select a card version before adding to your collection." );
+      return;
+    }
+
+    if ( !isAuthenticated ) {
+      triggerNotification( "Log in to add cards to your collection." );
+      return;
+    }
+
+    if ( isAddingToCollection ) {
+      return;
+    }
+
+    const printingLabel = normalizeEditionLabel( selectedSetDetails.set_edition );
+    const conditionLabel = buildConditionLabel( printingLabel );
+    const cardPayload = {
+      productName: resolvedCardData.name,
+      setName: selectedSetDetails.set_name || set_name || "",
+      number: selectedSetDetails.set_code || set_code || "",
+      printing: printingLabel,
+      rarity: selectedSetDetails.set_rarity || resolvedRarityParam || "",
+      condition: conditionLabel,
+      marketPrice: parseFloat( selectedSetDetails.set_price ) || 0,
+      lowPrice: 0,
+      quantity: 1,
+      cardId: activeCardId || null,
+      remoteImageUrl: remoteImageSrc || null,
+    };
+
+    setIsAddingToCollection( true );
+
+    try {
+      const response = await fetch( "/api/Yugioh/cards", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify( { cards: [ cardPayload ] } ),
+      } );
+
+      if ( response.status === 401 ) {
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+        triggerNotification( "Log in to add cards to your collection." );
+        return;
+      }
+
+      if ( !response.ok ) {
+        throw new Error( "Failed to add card" );
+      }
+
+      triggerNotification( "Card added to the collection!" );
+    } catch ( error ) {
+      console.error( "Error adding card to collection:", error );
+      triggerNotification( "Failed to add card to the collection." );
+    } finally {
+      setIsAddingToCollection( false );
+    }
+  }, [
+    activeCardId,
+    isAddingToCollection,
+    isAuthenticated,
+    remoteImageSrc,
+    resolvedCardData,
+    resolvedRarityParam,
+    selectedSetDetails,
+    set_code,
+    set_name,
+    triggerNotification,
+  ] );
+
   if ( resolvedCardError ) return <div>Error loading card data.</div>;
   if ( !resolvedCardData ) return <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg">Loading card data...</div>;
 
@@ -338,16 +464,26 @@ const CardDetails = () => {
             <h1 className="text-2xl font-extrabold mb-4">{ resolvedCardData.name }</h1>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
               <div className="flex justify-center lg:justify-start lg:w-5/12">
-                <img
-                  src={ primaryImageSrc }
-                  data-next-src={ secondaryImageSrc || "" }
-                  data-fallback-src={ FALLBACK_IMAGE }
-                  alt={ `${ resolvedCardData.name } card image` }
-                  className="object-scale-down object-center w-full h-96 rounded-md"
-                  loading="lazy"
-                  decoding="async"
-                  onError={ handleImageError }
-                />
+                <div className="flex w-full flex-col items-center gap-3">
+                  <img
+                    src={ primaryImageSrc }
+                    data-next-src={ secondaryImageSrc || "" }
+                    data-fallback-src={ FALLBACK_IMAGE }
+                    alt={ `${ resolvedCardData.name } card image` }
+                    className="object-scale-down object-center w-full h-96 rounded-md"
+                    loading="lazy"
+                    decoding="async"
+                    onError={ handleImageError }
+                  />
+                  <button
+                    type="button"
+                    onClick={ handleAddToCollection }
+                    disabled={ isAddingToCollection || !selectedSetDetails }
+                    className="w-full rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    { isAddingToCollection ? "Adding..." : "Add to Collection" }
+                  </button>
+                </div>
               </div>
               <div className="flex-1">
                 <p className="mb-1">
@@ -401,6 +537,11 @@ const CardDetails = () => {
           </div>
         </div>
       </div>
+      <Notification
+        show={ notification.show }
+        setShow={ updateNotificationVisibility }
+        message={ notification.message }
+      />
       <SpeedInsights />
     </>
   );

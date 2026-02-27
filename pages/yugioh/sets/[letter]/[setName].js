@@ -1626,19 +1626,22 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       typeof routeLetter === "string" && routeLetter.trim() ? routeLetter.trim().charAt( 0 ).toUpperCase() : resolvedSetLabel ? resolvedSetLabel.charAt( 0 ).toUpperCase() : undefined;
     const rarityForDetails = rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
 
-    const cardDetailsQuery = Object.fromEntries(
-      Object.entries( {
-        card: cardItem.cardDetailId || cardItem.cardImageId || undefined,
-        letter: detailLetter,
-        set_name: resolvedSetLabel,
-        card_name: cardItem.productName,
-        set_code: cardItem.cardNumber,
-        rarity: rarityForDetails,
-        set_rarity: rarityForDetails,
-        edition: printingLabel,
-        source: "set",
-      } ).filter( ( [ , value ] ) => value !== undefined && value !== null && value !== "" )
-    );
+      const detailCardId = cardItem.cardMeta?.id || null;
+      const cardNameForDetails = cardItem.cardMeta?.name || cardItem.productName;
+
+      const cardDetailsQuery = Object.fromEntries(
+        Object.entries( {
+          card: detailCardId || undefined,
+          letter: detailLetter,
+          set_name: resolvedSetLabel,
+          card_name: cardNameForDetails,
+          set_code: cardItem.cardNumber,
+          rarity: rarityForDetails,
+          set_rarity: rarityForDetails,
+          edition: printingLabel,
+          source: "set",
+        } ).filter( ( [ , value ] ) => value !== undefined && value !== null && value !== "" )
+      );
 
     const handleFrontKeyDown = ( event ) => {
       if ( event.key === "Enter" || event.key === " " ) {

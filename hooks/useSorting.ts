@@ -12,11 +12,33 @@ export const useSorting = <T extends Record<string, any>>( data: T[] ) => {
   } );
 
   const handleSort = ( key: string ) => {
-    let direction = 'ascending';
-    if ( sortConfig.key === key && sortConfig.direction === 'ascending' ) {
-      direction = 'descending';
+    const isSameKey = sortConfig.key === key;
+    const nextDirection =
+      isSameKey && sortConfig.direction === 'ascending' ? 'descending' : 'ascending';
+    setSortConfig( { key, direction: nextDirection } );
+  };
+
+  const parseNumericValue = ( value: unknown ) => {
+    if ( typeof value === 'number' && Number.isFinite( value ) ) {
+      return value;
     }
-    setSortConfig( { key, direction: "descending" } );
+
+    if ( value === null || value === undefined ) {
+      return null;
+    }
+
+    const text = String( value ).trim();
+    if ( !text ) {
+      return null;
+    }
+
+    const normalized = text.replace( /[^0-9.-]+/g, '' );
+    if ( !normalized || normalized === '-' || normalized === '.' ) {
+      return null;
+    }
+
+    const parsed = Number( normalized );
+    return Number.isFinite( parsed ) ? parsed : null;
   };
 
   const sortedData = useMemo( () => {
@@ -25,29 +47,28 @@ export const useSorting = <T extends Record<string, any>>( data: T[] ) => {
     return [ ...data ].sort( ( a, b ) => {
       const valueA = a[ sortConfig.key! ];
       const valueB = b[ sortConfig.key! ];
-
-      const isNumericA = !isNaN( parseFloat( valueA ) );
-      const isNumericB = !isNaN( parseFloat( valueB ) );
+      const numericA = parseNumericValue( valueA );
+      const numericB = parseNumericValue( valueB );
+      const isNumericA = numericA !== null;
+      const isNumericB = numericB !== null;
 
       if ( isNumericA && isNumericB ) {
-        const numericA = parseFloat( valueA );
-        const numericB = parseFloat( valueB );
         return sortConfig.direction === 'ascending'
           ? numericA - numericB
           : numericB - numericA;
       }
 
-      if ( isNumericA ) return sortConfig.direction === 'ascending' ? -1 : 1;
-      if ( isNumericB ) return sortConfig.direction === 'descending' ? 1 : -1;
+      if ( isNumericA && !isNumericB ) return -1;
+      if ( !isNumericA && isNumericB ) return 1;
 
-      const result = String( valueA || '' ).localeCompare( String( valueB || '' ) );
+      const result = String( valueA ?? '' ).localeCompare( String( valueB ?? '' ) );
       return sortConfig.direction === 'ascending' ? result : -result;
     } );
   }, [ data, sortConfig ] );
 
   const getSortIcon = ( key: string ) => {
     if ( sortConfig.key !== key ) return null;
-    return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    return sortConfig.direction === 'ascending' ? '^' : 'v';
   };
 
   return {

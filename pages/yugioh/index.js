@@ -176,6 +176,7 @@ const Home = () => {
   const [ error, setError ] = useState( null );
   const fetchedSetData = useRef( {} );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
+  const [ username, setUsername ] = useState( "" );
   const [ setNameIdMap, setSetNameIdMap ] = useState( {} );
   const [ fuzzyQuery, setFuzzyQuery ] = useState( '' );
   const [ fuzzyError, setFuzzyError ] = useState( '' );
@@ -213,6 +214,49 @@ const Home = () => {
       window.removeEventListener( 'focus', syncAuthState );
     };
   }, [] );
+
+  useEffect( () => {
+    let isActive = true;
+
+    const loadUsername = async () => {
+      if ( !isAuthenticated ) {
+        if ( isActive ) {
+          setUsername( "" );
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch( "/api/auth/validate", {
+          method: "GET",
+          credentials: "include",
+        } );
+
+        if ( !response.ok ) {
+          if ( isActive ) {
+            setUsername( "" );
+          }
+          return;
+        }
+
+        const data = await response.json();
+        if ( isActive ) {
+          setUsername( data?.username || "" );
+        }
+      } catch ( error ) {
+        console.error( "Failed to load username:", error );
+        if ( isActive ) {
+          setUsername( "" );
+        }
+      }
+    };
+
+    loadUsername();
+
+    return () => {
+      isActive = false;
+    };
+  }, [ isAuthenticated ] );
 
   const handleLoadExampleData = () => {
     setCardList( exampleCardList.trim() );
@@ -368,6 +412,8 @@ const Home = () => {
     }
   };
 
+  const welcomeSuffix = username ? `, ${ username }` : "";
+
   return (
     <>
       <Head>
@@ -378,7 +424,7 @@ const Home = () => {
       </Head>
       <div className="yugioh-bg min-h-screen w-full mx-auto text-center p-2">
 
-        <h1 className="text-4xl font-bold mb-8">Welcome to the thing!</h1>
+        <h1 className="text-4xl font-bold mb-8">Welcome to the thing{ welcomeSuffix }!</h1>
 
         <div className="mx-auto w-full max-w-3xl text-center text-white">
           <h2 className="text-xl font-black text-shadow">Search for a single card</h2>
