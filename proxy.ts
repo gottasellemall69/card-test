@@ -76,7 +76,7 @@ const parseAuthenticatedUser = ( decoded: unknown ): AuthenticatedUser | null =>
     return null;
   }
 
-  const { userId, username } = decoded as { userId?: unknown; username?: unknown };
+  const { userId, username } = decoded as { userId?: unknown; username?: unknown; };
   if ( !userId || !username ) {
     return null;
   }

@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { chromium } from 'playwright';
 import clientPromise from '@/utils/mongo';
 import { getSportsUrls } from '@/utils/sportsUrls';
 
@@ -9,132 +8,144 @@ const DEFAULT_HEADERS = {
   accept: 'application/json, text/plain, */*',
   'accept-language': 'en-US,en;q=0.9',
   referer: 'https://www.sportscardspro.com/',
+  'user-agent': USER_AGENT,
 };
 const REQUEST_TIMEOUT_MS = 45000;
 
-const parseJsonSafe = (payload: string) => {
+const normalizeCardSet = ( value: unknown ) => {
+  if ( typeof value !== 'string' ) {
+    return '';
+  }
+  return value.trim();
+};
+
+const parseJsonSafe = ( payload: string ) => {
   try {
-    return JSON.parse(payload);
-  } catch (error) {
+    return JSON.parse( payload );
+  } catch ( error ) {
     return null;
   }
 };
 
-const fetchWithBrowser = async (urls: string[]) => {
-  const browser = await chromium.launch({
-    headless: true,
-    args: [ '--disable-blink-features=AutomationControlled' ],
-  });
+const fetchWithTimeout = async ( url: string ) => {
+  const controller = new AbortController();
+  const timer = setTimeout( () => controller.abort(), REQUEST_TIMEOUT_MS );
 
-  const context = await browser.newContext({
-    userAgent: USER_AGENT,
-    locale: 'en-US',
-    extraHTTPHeaders: DEFAULT_HEADERS,
-  });
+  try {
+    return await fetch( url, {
+      headers: DEFAULT_HEADERS,
+      signal: controller.signal,
+    } );
+  } finally {
+    clearTimeout( timer );
+  }
+};
 
-  await context.addInitScript(() => {
-    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-  });
-
-  const page = await context.newPage();
+const fetchFromServer = async ( urls: string[] ) => {
   const results: unknown[] = [];
 
-  for (const url of urls) {
+  for ( const url of urls ) {
     try {
-      const response = await page.goto(url, {
-        waitUntil: 'domcontentloaded',
-        timeout: REQUEST_TIMEOUT_MS,
-      });
+      const response = await fetchWithTimeout( url );
 
-      if (!response) {
-        throw new Error('No response received');
+      if ( !response.ok ) {
+        throw new Error( `Status ${ response.status }` );
       }
 
-      if (!response.ok()) {
-        throw new Error(`Status ${response.status()}`);
-      }
-
-      const contentType = response.headers()['content-type'] || '';
+      const contentType = response.headers.get( 'content-type' ) || '';
       let data: unknown = null;
 
-      if (contentType.includes('application/json')) {
+      if ( contentType.includes( 'application/json' ) ) {
         data = await response.json();
       } else {
         const bodyText = await response.text();
-        data = parseJsonSafe(bodyText);
+        data = parseJsonSafe( bodyText );
       }
 
-      if (!data) {
-        throw new Error('Invalid JSON payload');
+      if ( !data ) {
+        throw new Error( 'Invalid JSON payload' );
       }
 
-      results.push(data);
-    } catch (error) {
-      console.error(`Error fetching sports data from ${url}:`, error);
+      results.push( data );
+    } catch ( error ) {
+      console.error( `Error fetching sports data from ${ url }:`, error );
     }
   }
-
-  await page.close();
-  await context.close();
-  await browser.close();
 
   return results;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', [ 'GET' ]);
-    return res.status(405).json({ error: 'Method Not Allowed' });
+export default async function handler( req: NextApiRequest, res: NextApiResponse ) {
+  res.setHeader( 'Cache-Control', 'no-store' );
+
+  const method = req.method ?? 'GET';
+
+  if ( method !== 'GET' && method !== 'POST' ) {
+    res.setHeader( 'Allow', [ 'GET', 'POST' ] );
+    return res.status( 405 ).json( { error: 'Method Not Allowed' } );
   }
 
-  res.setHeader('Cache-Control', 'no-store');
-
   try {
-    const { cardSet } = req.query;
+    const cardSet = normalizeCardSet( method === 'POST'
+      ? req.body?.cardSet ?? req.query.cardSet
+      : req.query.cardSet );
 
-    if (!cardSet || typeof cardSet !== 'string') {
-      return res.status(400).json({ error: 'Card set is required' });
+    if ( !cardSet ) {
+      return res.status( 400 ).json( { error: 'Card set is required' } );
     }
 
-    const urls = getSportsUrls(cardSet);
-
-    if (!urls || urls.length === 0) {
-      return res.status(404).json({ error: `No data found for card set: ${cardSet}` });
+    const urls = getSportsUrls( cardSet );
+    if ( !urls || urls.length === 0 ) {
+      return res.status( 404 ).json( { error: `No data found for card set: ${ cardSet }` } );
     }
-
-    const results = await fetchWithBrowser(urls);
-    const validData = results.filter((result) => result !== null);
 
     const client = await clientPromise;
-    const collection = client.db('cardPriceApp').collection('sportsDataCache');
+    const collection = client.db( 'cardPriceApp' ).collection( 'sportsDataCache' );
+
+    if ( method === 'GET' ) {
+      const cached = await collection.findOne( { cardSet } );
+      if ( cached?.data?.length ) {
+        return res.status( 200 ).json( cached.data );
+      }
+
+      return res.status( 404 ).json( { error: 'No cached data found' } );
+    }
+
+    const payload = Array.isArray( req.body?.data ) ? req.body.data.filter( Boolean ) : [];
+    let dataToStore = payload;
+
+    if ( dataToStore.length === 0 ) {
+      const serverData = await fetchFromServer( urls );
+      dataToStore = serverData.filter( Boolean );
+    }
+
+    if ( dataToStore.length === 0 ) {
+      const cached = await collection.findOne( { cardSet } );
+      if ( cached?.data?.length ) {
+        return res.status( 200 ).json( cached.data );
+      }
+
+      return res.status( 502 ).json( { error: 'No valid data found' } );
+    }
+
     const fetchedAt = new Date();
-
-    if (validData.length > 0) {
-      await collection.updateOne(
-        { cardSet },
-        {
-          $set: {
-            cardSet,
-            data: validData,
-            fetchedAt,
-            sourceUrls: urls,
-            pageCount: validData.length,
-          },
+    await collection.updateOne(
+      { cardSet },
+      {
+        $set: {
+          cardSet,
+          data: dataToStore,
+          fetchedAt,
+          sourceUrls: urls,
+          pageCount: dataToStore.length,
         },
-        { upsert: true }
-      );
+      },
+      { upsert: true }
+    );
 
-      return res.status(200).json(validData);
-    }
-
-    const cached = await collection.findOne({ cardSet });
-    if (cached?.data?.length) {
-      return res.status(200).json(cached.data);
-    }
-
-    return res.status(502).json({ error: 'No valid data found' });
-  } catch (error) {
-    console.error('Error fetching sports data:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status( 200 ).json( dataToStore );
+  } catch ( error ) {
+    console.error( 'Error handling sports data:', error );
+    return res.status( 500 ).json( { error: 'Internal Server Error' } );
   }
 }

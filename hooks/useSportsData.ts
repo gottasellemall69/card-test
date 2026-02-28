@@ -1,4 +1,5 @@
 import useSWR from 'swr';
+import { useEffect } from 'react';
 import type { SportsData } from '@/types/Card';
 
 const buildApiBasePath = () => {
@@ -43,6 +44,38 @@ export const useSportsData = (cardSet: string | null) => {
       revalidateOnFocus: false,
     }
   );
+
+  useEffect( () => {
+    let isActive = true;
+
+    const refreshFromServer = async () => {
+      if ( !cardSet ) {
+        return;
+      }
+
+      try {
+        const response = await fetch( `${API_BASE_PATH}/Sports/sportsData`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify( { cardSet } ),
+        } );
+
+        if ( response.ok && isActive ) {
+          mutate();
+        }
+      } catch ( updateError ) {
+        console.error( 'Failed to refresh sports data cache:', updateError );
+      }
+    };
+
+    refreshFromServer();
+
+    return () => {
+      isActive = false;
+    };
+  }, [ cardSet, mutate ] );
 
   const normalizedData = data ?? [];
   const normalizedError = error instanceof Error ? error.message : null;
