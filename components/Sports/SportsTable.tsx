@@ -18,7 +18,7 @@ interface SportsTableProps {
 
 const formatPrice = ( value: string | number | null | undefined ) => {
   if ( value === null || value === undefined ) {
-    return 'N/A';
+    return '0.00';
   }
 
   if ( typeof value === 'number' ) {
@@ -79,14 +79,14 @@ const SportsTable: React.FC<SportsTableProps> = ( {
 
   if ( !isLoading && flatData.length === 0 ) {
     return (
-      <div className="w-full py-8 text-center">
+      <div className="min-h-screen mx-auto w-full py-8 text-center">
         <p className="text-white">No cards available for this set.</p>
       </div>
     );
   }
 
   return (
-    <div className="h-full mx-auto w-full max-w-7xl space-y-6 px-2 sm:px-4">
+    <div className="min-h-screen mx-auto w-full max-w-7xl space-y-6 px-2 sm:px-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SportsCSVButton sportsData={sportsData} />
         {showPagination && <div className="w-fit mx-auto">{renderPagination()}</div>}
@@ -147,7 +147,7 @@ const SportsTable: React.FC<SportsTableProps> = ( {
       </div>
 
       <div className="hidden md:block">
-        <div className="table-container overflow-hidden">
+        <div className="table-container h-[40%] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="glass text-shadow font-black min-w-full divide-y divide-white/10 text-left text-sm text-white">
               <thead className="bg-transparent backdrop text-xs uppercase tracking-wide text-white/60">
@@ -158,7 +158,7 @@ const SportsTable: React.FC<SportsTableProps> = ( {
                     sortKey="consoleUri"
                     onSort={handleSort}
                     getSortIcon={getSortIcon}
-                    className="hidden lg:table-cell"
+                    className="lg:table-cell"
                   />
                   <TableHeader title="Ungraded" sortKey="price1" onSort={handleSort} getSortIcon={getSortIcon} />
                   <TableHeader title="PSA 9" sortKey="price3" onSort={handleSort} getSortIcon={getSortIcon} />
