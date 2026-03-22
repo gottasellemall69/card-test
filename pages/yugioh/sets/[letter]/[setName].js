@@ -11,6 +11,7 @@ import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import Notification from "@/components/Notification";
 import { fetchCardData as fetchAllCardData, getSetCatalogue, getSetNameIdMap } from "@/utils/api";
+import { buildCardNameCandidates, buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
 import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
@@ -264,38 +265,25 @@ const ensureAllConditionVariants = ( variants = [], { productId = null, productN
   return normalizedVariants;
 };
 
-const normalizeNameKey = ( value = "" ) => value.toLowerCase().trim();
-const stripExtraWhitespace = ( value = "" ) => value.replace( /\s+/g, " " ).trim();
-const generateNameVariants = ( name = "" ) => {
-  const normalized = normalizeNameKey( name );
-  if ( !normalized ) return [];
-  const variants = new Set( [ normalized ] );
-  const withoutParens = stripExtraWhitespace( normalized.replace( /\s*\([^)]*\)\s*/g, " " ) );
-  if ( withoutParens ) variants.add( withoutParens );
-  const withoutBrackets = stripExtraWhitespace( normalized.replace( /\s*\[[^\]]*\]\s*/g, " " ) );
-  if ( withoutBrackets ) variants.add( withoutBrackets );
-  const withoutEditionWords = stripExtraWhitespace(
-    normalized.replace( /\b(\d+(st|nd|rd|th)\s+edition|limited|unlimited|1st edition)\b/gi, " " )
-  );
-  if ( withoutEditionWords ) variants.add( withoutEditionWords );
-  const withoutDashes = stripExtraWhitespace( normalized.replace( /-/g, " " ) );
-  if ( withoutDashes ) variants.add( withoutDashes );
-  const withoutQuotes = stripExtraWhitespace( normalized.replace( /['"]/g, "" ) );
-  if ( withoutQuotes ) variants.add( withoutQuotes );
-  const compact = normalized.replace( /[^a-z0-9]/g, "" );
-  if ( compact ) variants.add( compact );
-  return Array.from( variants );
-};
-
 const lookupCardMeta = ( productName = "", cardIndex = {} ) => {
-  const variants = generateNameVariants( productName );
-  for ( const key of variants ) {
+  const keys = buildCardNameKeys( productName );
+  for ( const key of keys ) {
     if ( key && cardIndex[ key ] ) {
       return cardIndex[ key ];
     }
   }
   return undefined;
 };
+
+const resolveDetailLookupName = ( cardMetaName = "", productName = "" ) => {
+  if ( cardMetaName ) {
+    return cardMetaName;
+  }
+
+  const candidates = buildCardNameCandidates( productName );
+  return candidates[ candidates.length - 1 ] || productName || "";
+};
+
 const safeCompare = ( a, b ) => {
   const left = ( a ?? "" ).toString();
   const right = ( b ?? "" ).toString();
@@ -535,7 +523,7 @@ const aggregateEntries = ( entries = [], cardIndex = {} ) => {
     .sort( ( a, b ) => safeCompare( a.productName, b.productName ) );
 };
 
-const AUTO_RARITY_OPTION = null;
+const AUTO_RARITY_OPTION = "";
 
 const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } ) => {
   const router = useRouter();
@@ -652,8 +640,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           const index = {};
           catalogue.forEach( ( card ) => {
             if ( !card?.name ) return;
-            const variants = generateNameVariants( card.name );
-            variants.forEach( ( key ) => {
+            const keys = buildCardNameKeys( card.name );
+            keys.forEach( ( key ) => {
               if ( key && !index[ key ] ) {
                 index[ key ] = card;
               }
@@ -1341,9 +1329,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         cardDetailId: card.cardDetailId,
         setLabel: card.setLabel,
         detailParams: {
-          cardId: card.cardDetailId,
-          cardName: card.productName,
-          setName: card.setLabel || activeSetDisplayName,
+          cardId: card.cardMeta?.id || null,
+          cardName: resolveDetailLookupName( card.cardMeta?.name, card.productName ),
+          setName: activeSetDisplayName || card.setLabel || "",
           setCode: variant?.number || "",
           rarity: variant?.rarity || "Unknown Rarity",
           setRarity: variant?.rarity || "Unknown Rarity",
@@ -1603,6 +1591,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     ].filter( Boolean ).join( " " );
     const isFlipped = Boolean( flippedGridCards[ selectionKey ] );
     const resolvedSetLabel = cardItem.setLabel || activeSetDisplayName;
+    const detailSetName = activeSetDisplayName || resolvedSetLabel;
     const rarityLabel = activeVariant?.rarity || cardItem.selectedRarity || "";
     const printingLabel = activeVariant?.printing || "";
     const conditionLabel =
@@ -1623,25 +1612,29 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     ].filter( ( entry ) => entry && entry.value );
 
     const detailLetter =
-      typeof routeLetter === "string" && routeLetter.trim() ? routeLetter.trim().charAt( 0 ).toUpperCase() : resolvedSetLabel ? resolvedSetLabel.charAt( 0 ).toUpperCase() : undefined;
+      typeof routeLetter === "string" && routeLetter.trim()
+        ? routeLetter.trim().charAt( 0 ).toUpperCase()
+        : detailSetName
+          ? detailSetName.charAt( 0 ).toUpperCase()
+          : undefined;
     const rarityForDetails = rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
 
-      const detailCardId = cardItem.cardMeta?.id || null;
-      const cardNameForDetails = cardItem.cardMeta?.name || cardItem.productName;
+    const detailCardId = cardItem.cardMeta?.id || null;
+    const cardNameForDetails = resolveDetailLookupName( cardItem.cardMeta?.name, cardItem.productName );
 
-      const cardDetailsQuery = Object.fromEntries(
-        Object.entries( {
-          card: detailCardId || undefined,
-          letter: detailLetter,
-          set_name: resolvedSetLabel,
-          card_name: cardNameForDetails,
-          set_code: cardItem.cardNumber,
-          rarity: rarityForDetails,
-          set_rarity: rarityForDetails,
-          edition: printingLabel,
-          source: "set",
-        } ).filter( ( [ , value ] ) => value !== undefined && value !== null && value !== "" )
-      );
+    const cardDetailsQuery = Object.fromEntries(
+      Object.entries( {
+        card: detailCardId || undefined,
+        letter: detailLetter,
+        set_name: detailSetName,
+        card_name: cardNameForDetails,
+        set_code: cardItem.cardNumber,
+        rarity: rarityForDetails,
+        set_rarity: rarityForDetails,
+        edition: printingLabel,
+        source: "set",
+      } ).filter( ( [ , value ] ) => value !== undefined && value !== null && value !== "" )
+    );
 
     const handleFrontKeyDown = ( event ) => {
       if ( event.key === "Enter" || event.key === " " ) {
@@ -1856,44 +1849,57 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       />
 
       <div className="yugioh-bg bg-fixed bg-center bg-no-repeat w-full min-h-screen text-white">
-        <Breadcrumb />
+        <div className="justify-start place-content-start place-items-baseline w-[75%]">
+          <Breadcrumb />
+        </div>
+
         <main
           className={ `w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "xl:pr-80" : "" }` }
         >
-          <div className="hidden pb-4 xl:flex xl:justify-end">
-            <button
-              type="button"
-              onClick={ toggleDesktopFilters }
-              aria-expanded={ isDesktopFilterOpen }
-              aria-controls="set-desktop-filter-panel"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
-            >
-              <Filter size={ 16 } />
-              { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
-              { hasActiveFilters && (
-                <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
-                  { activeFilterCount }
-                </span>
-              ) }
-            </button>
-          </div>
-          <div className="border-b border-white/10 pb-12 text-center lg:text-left">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
-              Yu-Gi-Oh! Sets
-              { letterLabel ? ` - ${ letterLabel.toString().toUpperCase() }` : "" }
-            </p>
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-white lg:text-5xl">
-              Cards in { activeSetDisplayName }
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 lg:mx-0">
-              Explore { processedCards.length || 0 } card listings with live pricing and quick filters.
-            </p>
-          </div>
+          <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-3xl text-center lg:text-left">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
+                  Yu-Gi-Oh! Sets
+                  { letterLabel ? ` - ${ letterLabel.toString().toUpperCase() }` : "" }
+                </p>
+                <h1 className="mt-6 text-4xl font-bold tracking-tight text-white lg:text-5xl">
+                  Cards in { activeSetDisplayName }
+                </h1>
+                <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 lg:mx-0">
+                  Explore { processedCards.length || 0 } card listings with live pricing and quick filters.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-end">
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left">
+                  <p className="text-xs uppercase tracking-wide text-white/55">Visible Cards</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">{ processedCards.length || 0 }</p>
+                </div>
+                <div className="hidden xl:flex">
+                  <button
+                    type="button"
+                    onClick={ toggleDesktopFilters }
+                    aria-expanded={ isDesktopFilterOpen }
+                    aria-controls="set-desktop-filter-panel"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                  >
+                    <Filter size={ 16 } />
+                    { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
+                    { hasActiveFilters && (
+                      <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
+                        { activeFilterCount }
+                      </span>
+                    ) }
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
           <section aria-labelledby="cards-layout" className=" pt-10 w-full mx-auto">
             <h2 id="cards-layout" className="sr-only">Card explorer</h2>
             <div className="space-y-8">
               <div className="space-y-8">
-                <div className="rounded-sm border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+                <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
                       <span className="font-medium uppercase tracking-wide text-white/50">View</span>
@@ -2147,7 +2153,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                   </div>
                 ) : viewMode === "grid" ? (
                   <>
-                    <div className="w-full rounded border border-white/10 bg-black/40 p-4 shadow-2xl sm:p-2">
+                    <div className="w-full rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl sm:p-2">
                       <div
                         className={ `grid grid-cols-1 justify-items-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 ${ isDesktopFilterOpen
                           ? "gap-x-10 gap-y-10 xl:grid-cols-2 2xl:grid-cols-3"
@@ -2172,7 +2178,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
 
                   </>
                 ) : (
-                  <div className="overflow-hidden rounded-sm border border-white/10 bg-black/40 p-4 shadow-2xl">
+                  <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl">
                     <YugiohCardDataTable
                       matchedCardData={ matchedCardData }
                       selectedRowIds={ selectedRowIds }
@@ -2196,22 +2202,6 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
               </div>
             </div>
           </section>
-
-
-
-
-
-          { isAuthenticated &&
-            Object.values( selectedRowIds ).some( Boolean ) &&
-            ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
-              <div className="mx-auto mt-8 px-4">
-                <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-6 text-center shadow-lg">
-                  <button onClick={ openBulkModal } className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-indigo-400">
-                    Add Selected to Collection
-                  </button>
-                </div>
-              </div>
-            ) }
         </main>
         { isDesktopFilterOpen && (
           <aside
@@ -2229,8 +2219,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           </aside>
         ) }
         { isAuthenticated && modalVisible && selectedCard && (
-          <div className="sticky inset-0 z-50 flex items-start justify-center bg-black/70 p-4 lg:p-6">
-            <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
+            <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
               <h2 className="mb-4 text-xl font-bold">{ selectedCard.productName }</h2>
               <form
                 onSubmit={ ( event ) => {
@@ -2244,7 +2234,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     Condition
                   </span>
                   <select
-                    className="w-full rounded border p-2 text-black"
+                    className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
                     value={ modalVariant?.baseCondition || "" }
                     onChange={ ( event ) => updateModalVariant( { condition: event.target.value } ) }
                     required
@@ -2262,7 +2252,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     Printing
                   </span>
                   <select
-                    className="w-full rounded border p-2 text-black"
+                    className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
                     value={ modalVariant?.printing || "" }
                     onChange={ ( event ) => updateModalVariant( { printing: event.target.value } ) }
                     required
@@ -2280,7 +2270,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     Rarity
                   </span>
                   <select
-                    className="w-full rounded border p-2 text-black"
+                    className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
                     value={ modalVariant?.rarity || "" }
                     onChange={ ( event ) => updateModalVariant( { rarity: event.target.value } ) }
                     required
@@ -2303,13 +2293,13 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                   <button
                     type="button"
                     onClick={ closeModal }
-                    className="rounded bg-red-500 px-4 py-2 text-white"
+                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="rounded bg-green-500 px-4 py-2 text-white"
+                    className="rounded-full bg-indigo-500 px-5 py-2 text-white transition hover:bg-indigo-400"
                   >
                     Add
                   </button>
@@ -2320,8 +2310,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         ) }
 
         { isAuthenticated && bulkModalVisible && (
-          <div className="sticky inset-0 z-50 flex items-start justify-start bg-black/70 p-4 lg:p-6">
-            <div className="glass w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
+            <div className="glass w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
               <h2 className="mb-4 text-xl font-bold">Add Selected Cards</h2>
               <form onSubmit={ handleBulkSubmit } className="space-y-6">
                 { getSelectedCards().map( ( row ) => {
@@ -2341,7 +2331,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                             Choose variant
                           </span>
                           <select
-                            className="w-full rounded border p-2 text-black"
+                            className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
                             value={ selectedValue }
                             onChange={ ( event ) => {
                               const nextVariant = variants.find( ( variant ) => variantKey( variant ) === event.target.value ) || variants[ 0 ];
@@ -2367,13 +2357,13 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                   <button
                     type="button"
                     onClick={ closeBulkModal }
-                    className="rounded bg-red-500 px-4 py-2 text-white"
+                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="rounded bg-green-500 px-4 py-2 text-white"
+                    className="rounded-full bg-indigo-500 px-5 py-2 text-white transition hover:bg-indigo-400"
                   >
                     Add All
                   </button>

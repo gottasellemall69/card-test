@@ -1,34 +1,8 @@
+import { buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
+import { formatYugiohCardData } from "@/utils/formatYugiohCardData";
+
 const normalizeToken = ( value ) =>
   ( value ?? "" ).toString().toLowerCase().replace( /[^a-z0-9]+/g, "" ).trim();
-
-const formatCard = ( card ) => ( {
-  id: card?.id,
-  name: card?.name,
-  type: card?.type,
-  desc: card?.desc,
-  frameType: card?.frameType,
-  race: card?.race,
-  archetype: card?.archetype,
-  ygoprodeck_url: card?.ygoprodeck_url,
-  card_images: card?.card_images?.map( ( img ) => ( {
-    id: img?.id,
-    image_url: img?.image_url,
-    image_url_small: img?.image_url_small,
-  } ) ) || [],
-  card_sets: card?.card_sets?.map( ( set ) => ( {
-    set_name: set.set_name,
-    set_code: set.set_code,
-    set_rarity: set.set_rarity,
-    rarity_code: set.set_rarity_code,
-    set_edition: set.set_edition || "Unknown Edition",
-    set_price: set.set_price || "0.00",
-  } ) ) || [],
-  card_prices: card?.card_prices?.map( ( price ) => ( {
-    tcgplayer_price: price.tcgplayer_price || "0.00",
-    ebay_price: price.ebay_price || "0.00",
-    amazon_price: price.amazon_price || "0.00",
-  } ) ) || [],
-} );
 
 const matchesSetCode = ( setCode, targetCode ) => {
   if ( !setCode || !targetCode ) return false;
@@ -42,7 +16,7 @@ const pickBestMatch = ( cards, setCode, cardName ) => {
     return null;
   }
 
-  const normalizedName = normalizeToken( cardName );
+  const requestedKeys = new Set( buildCardNameKeys( cardName ) );
 
   const codeMatches = cards.filter( ( card ) =>
     Array.isArray( card?.card_sets ) &&
@@ -53,9 +27,9 @@ const pickBestMatch = ( cards, setCode, cardName ) => {
     return null;
   }
 
-  if ( normalizedName ) {
-    const exactName = codeMatches.find(
-      ( card ) => normalizeToken( card?.name ) === normalizedName
+  if ( requestedKeys.size > 0 ) {
+    const exactName = codeMatches.find( ( card ) =>
+      buildCardNameKeys( card?.name ).some( ( key ) => requestedKeys.has( key ) )
     );
     if ( exactName ) {
       return exactName;
@@ -105,7 +79,7 @@ export default async function handler( req, res ) {
       return res.status( 404 ).json( { error: "Card not found" } );
     }
 
-    return res.status( 200 ).json( formatCard( match ) );
+    return res.status( 200 ).json( formatYugiohCardData( match ) );
   } catch ( error ) {
     console.error( "Set lookup failed:", error );
     return res.status( 500 ).json( { error: "Internal Server Error" } );

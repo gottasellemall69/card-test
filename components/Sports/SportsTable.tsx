@@ -71,28 +71,30 @@ const SportsTable: React.FC<SportsTableProps> = ( {
 
   if ( isLoading ) {
     return (
-      <div className="mx-auto w-fit py-8 text-center min-h-screen">
-        <p className="text-white backdrop glass text-shadow text-2xl px-2 py-4">Loading sports card data...</p>
+      <div className="rounded-3xl border border-white/10 bg-black/40 px-6 py-16 text-center text-white shadow-2xl backdrop-blur">
+        <p className="text-xl font-semibold text-white">Loading sports card data...</p>
+        <p className="mt-2 text-sm text-white/65">This can take a moment when switching sets.</p>
       </div>
     );
   }
 
   if ( !isLoading && flatData.length === 0 ) {
     return (
-      <div className="min-h-screen mx-auto w-full py-8 text-center">
-        <p className="text-white">No cards available for this set.</p>
+      <div className="rounded-3xl border border-dashed border-white/20 bg-black/30 px-6 py-16 text-center text-white/80">
+        <p className="text-lg font-semibold text-white">No cards available for this set.</p>
+        <p className="mt-2 text-sm text-white/65">Try a different card set or refresh the sports cache.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen mx-auto w-full max-w-7xl space-y-6 px-2 sm:px-4">
+    <div className="mx-auto w-full space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SportsCSVButton sportsData={sportsData} />
-        {showPagination && <div className="w-fit mx-auto">{renderPagination()}</div>}
+        {showPagination && <div className="w-full sm:w-auto">{renderPagination()}</div>}
       </div>
 
-      <div className="grid gap-4 md:hidden w-[85%] mx-auto">
+      <div className="grid gap-4 md:hidden">
         {paginatedData.map( ( product, index ) => {
           const isSelected = isCardSelected( product.id );
 
@@ -108,9 +110,9 @@ const SportsTable: React.FC<SportsTableProps> = ( {
                   toggleCardSelection( product );
                 }
               }}
-              className={`backdrop rounded-2xl border p-4 shadow-lg transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-0 ${ isSelected
+              className={`rounded-2xl border bg-black/45 p-4 shadow-lg backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-0 ${ isSelected
                 ? 'border-indigo-500/60'
-                : 'border-white/10'
+                : 'border-white/10 hover:border-white/25'
                 }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -147,10 +149,10 @@ const SportsTable: React.FC<SportsTableProps> = ( {
       </div>
 
       <div className="hidden md:block">
-        <div className="table-container h-[40%] overflow-hidden">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 shadow-2xl backdrop-blur">
           <div className="overflow-x-auto">
-            <table className="glass text-shadow font-black min-w-full divide-y divide-white/10 text-left text-sm text-white">
-              <thead className="bg-transparent backdrop text-xs uppercase tracking-wide text-white/60">
+            <table className="min-w-full divide-y divide-white/10 text-left text-sm text-white">
+              <thead className="bg-transparent text-xs uppercase tracking-wide text-white/60">
                 <tr>
                   <TableHeader title="Name" sortKey="productName" onSort={handleSort} getSortIcon={getSortIcon} />
                   <TableHeader
@@ -158,14 +160,14 @@ const SportsTable: React.FC<SportsTableProps> = ( {
                     sortKey="consoleUri"
                     onSort={handleSort}
                     getSortIcon={getSortIcon}
-                    className="lg:table-cell"
+                    className="table-cell"
                   />
                   <TableHeader title="Ungraded" sortKey="price1" onSort={handleSort} getSortIcon={getSortIcon} />
                   <TableHeader title="PSA 9" sortKey="price3" onSort={handleSort} getSortIcon={getSortIcon} />
                   <TableHeader title="PSA 10" sortKey="price2" onSort={handleSort} getSortIcon={getSortIcon} />
                 </tr>
               </thead>
-              <tbody className="bg-slate-900/40 text-shadow glass divide-y divide-white/10">
+              <tbody className="divide-y divide-white/10 bg-slate-950/55">
                 {paginatedData.map( ( product, index ) => (
                   <TableRow
                     key={`${ product.id }-${ index }`}

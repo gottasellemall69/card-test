@@ -148,43 +148,54 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
   const memoizedSets = useMemo( () => {
     if ( filteredAndSortedSets.length === 0 ) {
       return (
-        <p className="p-5 text-white">
-          No sets match your filters for { effectiveLetter || "this index" }.
-        </p>
+        <div className="rounded-3xl border border-dashed border-white/20 bg-black/30 px-6 py-16 text-center text-white/75 md:col-span-2 xl:col-span-3">
+          <p className="text-lg font-semibold text-white">No sets match your current filters.</p>
+          <p className="mt-2 text-sm text-white/60">
+            Try another search term or switch the set type for { effectiveLetter || "this index" }.
+          </p>
+        </div>
       );
     }
 
     return filteredAndSortedSets.map( ( set ) => (
-      <div
+      <Link
         key={ set.urlName || set.set_name }
-        className="w-7xl rounded-lg p-5 font-medium leading-5 text-white transition hover:bg-white/5"
+        href={ {
+          pathname: `/yugioh/sets/${ encodeURIComponent( effectiveLetter ) }/${ encodeURIComponent( set.set_name ) }`,
+          query: {
+            letter: effectiveLetter,
+            set_name: set.set_name,
+          },
+        } }
+        className="group flex h-full flex-col rounded-3xl border border-white/10 bg-black/40 p-5 text-white shadow-xl transition hover:border-indigo-400/45 hover:bg-black/55"
       >
-        <Link
-          className="w-fit hover:font-semibold hover:underline"
-          href={ {
-            pathname: `/yugioh/sets/${ encodeURIComponent( effectiveLetter ) }/${ encodeURIComponent( set.set_name ) }`,
-            query: {
-              letter: effectiveLetter,
-              set_name: set.set_name,
-            },
-          } }
-        >
-          { set.set_name }
-        </Link>
-        <div className="mt-2 text-sm text-gray-200">
-          { set.abbreviation ? <span className="mr-3">Abbr: { set.abbreviation }</span> : null }
-          { set.releaseDate ? (
-            <span>
-              Release: { new Date( set.releaseDate ).toLocaleDateString() }
-            </span>
-          ) : null }
+        <div className="flex items-start justify-between gap-4">
+          <h2 className="text-lg font-semibold leading-snug text-white transition group-hover:text-indigo-200">
+            { set.set_name }
+          </h2>
           { typeof set.isSupplemental === "boolean" ? (
-            <span className="ml-3">
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-wide text-white/70">
               { set.isSupplemental ? "Supplemental" : "Mainline" }
             </span>
           ) : null }
         </div>
-      </div>
+        <div className="mt-4 space-y-2 text-sm text-white/70">
+          { set.abbreviation ? (
+            <p>
+              <span className="font-semibold text-white/55">Abbreviation:</span> { set.abbreviation }
+            </p>
+          ) : null }
+          { set.releaseDate ? (
+            <p>
+              <span className="font-semibold text-white/55">Release:</span>{ " " }
+              { new Date( set.releaseDate ).toLocaleDateString() }
+            </p>
+          ) : null }
+        </div>
+        <span className="mt-6 inline-flex items-center text-sm font-semibold text-indigo-200">
+          Open set
+        </span>
+      </Link>
     ) );
   }, [ filteredAndSortedSets, effectiveLetter ] );
 
@@ -193,58 +204,86 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
   return (
     <>
       <Head>
-        <title>Yu-Gi-Oh! Cards in Set</title>
+        <title>{ `Yu-Gi-Oh! Sets Starting With ${ pageLetter }` }</title>
         <meta name="description" content={ `Sets Starting with ${ pageLetter }` } />
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <div className="yugioh-bg mx-auto min-h-screen w-full">
-        <Breadcrumb />
-        <div>
-          <h1 className="my-10 text-xl font-black text-shadow">
-            Sets Starting with { pageLetter }
-          </h1>
-          <div className="mx-5 mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <label className="flex flex-col text-sm font-semibold text-gray-200">
-              Search by name or abbreviation
-              <input
-                type="search"
-                value={ searchTerm }
-                onChange={ ( event ) => setSearchTerm( event.target.value ) }
-                placeholder="e.g. Starter Deck"
-                className="mt-2 rounded-md border border-gray-400 bg-gray-900/60 p-2 text-white placeholder:text-gray-400 focus:border-teal-400 focus:outline-none"
-              />
-            </label>
-            <label className="flex flex-col text-sm font-semibold text-gray-200">
-              Sort sets
-              <select
-                value={ sortOption }
-                onChange={ ( event ) => setSortOption( event.target.value ) }
-                className="mt-2 rounded-md border border-gray-400 bg-gray-900/60 p-2 text-white focus:border-teal-400 focus:outline-none"
-              >
-                <option value="name-asc">Name (A → Z)</option>
-                <option value="name-desc">Name (Z → A)</option>
-                <option value="release-new">Release (Newest)</option>
-                <option value="release-old">Release (Oldest)</option>
-              </select>
-            </label>
-            <label className="flex flex-col text-sm font-semibold text-gray-200">
-              Filter by set type
-              <select
-                value={ supplementalFilter }
-                onChange={ ( event ) => setSupplementalFilter( event.target.value ) }
-                className="mt-2 rounded-md border border-gray-400 bg-gray-900/60 p-2 text-white focus:border-teal-400 focus:outline-none"
-              >
-                <option value="all">All sets</option>
-                <option value="mainline">Mainline</option>
-                <option value="supplemental">Supplemental</option>
-              </select>
-            </label>
-          </div>
-          <div className="mx-5 pb-10 p-3 grid grid-flow-row grid-cols-1 flex-wrap md:grid-cols-2 lg:grid-cols-3">
-            { memoizedSets }
-          </div>
+      <div className="yugioh-bg mx-auto min-h-screen w-full text-white">
+        <div className="justify-start place-content-start place-items-baseline w-[75%]">
+          <Breadcrumb />
         </div>
+        <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:px-8">
+          <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Yu-Gi-Oh! Sets</p>
+                <h1 className="mt-4 text-4xl font-bold tracking-tight text-white lg:text-5xl">
+                  Sets Starting With { pageLetter }
+                </h1>
+                <p className="mt-4 text-base text-white/70">
+                  Browse the catalogue, filter supplemental releases, and jump into any set with a consistent layout.
+                </p>
+              </div>
+              <div className="grid gap-3 text-left sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="text-xs uppercase tracking-wide text-white/55">Matches</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">{ filteredAndSortedSets.length }</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="text-xs uppercase tracking-wide text-white/55">Letter</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">{ pageLetter }</p>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <section className="mt-8 rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <label className="flex flex-col text-sm font-semibold text-white/80">
+                <span className="uppercase tracking-wide text-white/55">Search</span>
+                <input
+                  type="search"
+                  value={ searchTerm }
+                  onChange={ ( event ) => setSearchTerm( event.target.value ) }
+                  placeholder="e.g. Starter Deck"
+                  className="mt-2 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white placeholder:text-white/45 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                />
+              </label>
+              <label className="flex flex-col text-sm font-semibold text-white/80">
+                <span className="uppercase tracking-wide text-white/55">Sort</span>
+                <select
+                  value={ sortOption }
+                  onChange={ ( event ) => setSortOption( event.target.value ) }
+                  className="mt-2 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                >
+                  <option value="name-asc">Name (A to Z)</option>
+                  <option value="name-desc">Name (Z to A)</option>
+                  <option value="release-new">Release (Newest)</option>
+                  <option value="release-old">Release (Oldest)</option>
+                </select>
+              </label>
+              <label className="flex flex-col text-sm font-semibold text-white/80">
+                <span className="uppercase tracking-wide text-white/55">Set Type</span>
+                <select
+                  value={ supplementalFilter }
+                  onChange={ ( event ) => setSupplementalFilter( event.target.value ) }
+                  className="mt-2 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                >
+                  <option value="all">All sets</option>
+                  <option value="mainline">Mainline</option>
+                  <option value="supplemental">Supplemental</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section className="mt-8">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              { memoizedSets }
+            </div>
+          </section>
+        </main>
       </div>
       <SpeedInsights />
     </>

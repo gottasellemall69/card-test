@@ -1,4 +1,6 @@
-﻿export default async function handler( req, res ) {
+import { formatYugiohCardData } from "@/utils/formatYugiohCardData";
+
+export default async function handler( req, res ) {
   const { cardId } = req.query;
   const normalizedCardId = Array.isArray( cardId ) ? cardId[ 0 ] : cardId;
 
@@ -16,37 +18,7 @@
     }
 
     const card = data.data?.[ 0 ];
-
-    const formattedCard = {
-      id: card?.id,
-      name: card?.name,
-      type: card?.type,
-      desc: card?.desc,
-      frameType: card?.frameType,
-      race: card?.race,
-      archetype: card?.archetype,
-      ygoprodeck_url: card?.ygoprodeck_url,
-      card_images: card?.card_images?.map( ( img ) => ( {
-        id: img?.id,
-        image_url: img?.image_url,
-        image_url_small: img?.image_url_small,
-      } ) ) || [],
-      card_sets: card?.card_sets?.map( ( set ) => ( {
-        set_name: set.set_name,
-        set_code: set.set_code,
-        set_rarity: set.set_rarity,
-        rarity_code: set.set_rarity_code,
-        set_edition: set.set_edition || "Unknown Edition",
-        set_price: set.set_price || "0.00",
-      } ) ) || [],
-      card_prices: card?.card_prices?.map( ( price ) => ( {
-        tcgplayer_price: price.tcgplayer_price || "0.00",
-        ebay_price: price.ebay_price || "0.00",
-        amazon_price: price.amazon_price || "0.00",
-      } ) ) || [],
-    };
-
-    res.status( 200 ).json( formattedCard );
+    res.status( 200 ).json( formatYugiohCardData( card ) );
   } catch ( error ) {
     console.error( "Fetching card data failed:", error );
     res.status( 500 ).json( { error: "Internal Server Error" } );

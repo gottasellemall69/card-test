@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Head from "next/head";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useRouter } from "next/router";
@@ -23,6 +24,7 @@ const FALLBACK_IMAGE = "/images/yugioh-card.png";
 const DEFAULT_CONDITION = "Near Mint";
 
 const normalizeEditionLabel = ( value ) => value || "Unknown Edition";
+
 const buildConditionLabel = ( printingLabel ) => {
   const trimmedPrinting = ( printingLabel ?? "" ).toString().trim();
   if ( !trimmedPrinting ) {
@@ -30,6 +32,7 @@ const buildConditionLabel = ( printingLabel ) => {
   }
   return `${ DEFAULT_CONDITION } ${ trimmedPrinting }`;
 };
+
 const serializeVersion = ( set ) =>
   [
     set.set_name,
@@ -61,6 +64,147 @@ const buildPriceHistoryKey = ( cardId, versionTokens ) => {
   } );
   return `/api/Yugioh/card/${ encodeURIComponent( cardId ) }/price-history?${ searchParams.toString() }`;
 };
+
+const hasDisplayValue = ( value ) => value !== null && value !== undefined && value !== "";
+
+const formatCurrency = ( value, { allowZero = true } = {} ) => {
+  const numeric = Number( value );
+  if ( !Number.isFinite( numeric ) ) {
+    return "N/A";
+  }
+
+  if ( !allowZero && numeric <= 0 ) {
+    return "N/A";
+  }
+
+  return `$${ numeric.toFixed( 2 ) }`;
+};
+
+const formatSignedCurrency = ( value ) => {
+  const numeric = Number( value );
+  if ( !Number.isFinite( numeric ) ) {
+    return "N/A";
+  }
+
+  const prefix = numeric > 0 ? "+" : "";
+  return `${ prefix }$${ numeric.toFixed( 2 ) }`;
+};
+
+const formatStatValue = ( value ) => {
+  if ( value === 0 ) {
+    return "0";
+  }
+
+  if ( !hasDisplayValue( value ) ) {
+    return "N/A";
+  }
+
+  return value.toString();
+};
+
+const formatTitleToken = ( value = "" ) =>
+  value
+    .toString()
+    .replace( /([a-z])([A-Z])/g, "$1 $2" )
+    .replace( /[_-]+/g, " " )
+    .replace( /\s+/g, " " )
+    .trim()
+    .replace( /\b\w/g, ( char ) => char.toUpperCase() );
+
+const resolveCardTheme = ( frameType = "", cardType = "" ) => {
+  const token = `${ frameType } ${ cardType }`.toLowerCase();
+
+  if ( token.includes( "spell" ) ) {
+    return {
+      badgeClass: "border-emerald-300/30 bg-emerald-400/10 text-emerald-100",
+      accentValueClass: "text-emerald-300",
+      heroGlowClass: "from-emerald-400/25 via-emerald-300/12 to-transparent",
+      buttonClass: "border-emerald-300/25 bg-emerald-500/80 hover:bg-emerald-400",
+    };
+  }
+
+  if ( token.includes( "trap" ) ) {
+    return {
+      badgeClass: "border-rose-300/30 bg-rose-400/10 text-rose-100",
+      accentValueClass: "text-rose-300",
+      heroGlowClass: "from-rose-400/25 via-rose-300/12 to-transparent",
+      buttonClass: "border-rose-300/25 bg-rose-500/80 hover:bg-rose-400",
+    };
+  }
+
+  if ( token.includes( "xyz" ) ) {
+    return {
+      badgeClass: "border-violet-300/30 bg-violet-400/10 text-violet-100",
+      accentValueClass: "text-violet-300",
+      heroGlowClass: "from-violet-400/25 via-violet-300/12 to-transparent",
+      buttonClass: "border-violet-300/25 bg-violet-500/80 hover:bg-violet-400",
+    };
+  }
+
+  if ( token.includes( "synchro" ) ) {
+    return {
+      badgeClass: "border-sky-300/30 bg-sky-400/10 text-sky-100",
+      accentValueClass: "text-sky-300",
+      heroGlowClass: "from-sky-300/28 via-white/10 to-transparent",
+      buttonClass: "border-sky-300/25 bg-sky-500/80 hover:bg-sky-400",
+    };
+  }
+
+  if ( token.includes( "fusion" ) ) {
+    return {
+      badgeClass: "border-fuchsia-300/30 bg-fuchsia-400/10 text-fuchsia-100",
+      accentValueClass: "text-fuchsia-300",
+      heroGlowClass: "from-fuchsia-400/25 via-indigo-400/12 to-transparent",
+      buttonClass: "border-fuchsia-300/25 bg-fuchsia-500/80 hover:bg-fuchsia-400",
+    };
+  }
+
+  return {
+    badgeClass: "border-amber-300/30 bg-amber-400/10 text-amber-100",
+    accentValueClass: "text-amber-300",
+    heroGlowClass: "from-amber-300/28 via-indigo-400/12 to-transparent",
+    buttonClass: "border-indigo-300/30 bg-indigo-500/80 hover:bg-indigo-400",
+  };
+};
+
+const getCardProgressionLabel = ( cardData ) => {
+  const token = `${ cardData?.frameType ?? "" } ${ cardData?.type ?? "" }`.toLowerCase();
+
+  if ( token.includes( "link" ) ) {
+    return "Link";
+  }
+
+  if ( token.includes( "xyz" ) ) {
+    return "Rank";
+  }
+
+  return "Level";
+};
+
+const DetailBadge = ( { children, className = "" } ) => (
+  <span
+    className={ `inline-flex items-center rounded-full border px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.24em] ${ className }` }
+  >
+    { children }
+  </span>
+);
+
+const DetailStatCard = ( {
+  label,
+  value,
+  helper = "",
+  valueClassName = "text-white",
+} ) => (
+  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-white/45">{ label }</p>
+    <p className={ `mt-3 text-lg font-semibold leading-tight ${ valueClassName }` }>{ value }</p>
+    { helper ? <p className="mt-2 text-xs leading-5 text-white/50">{ helper }</p> : null }
+  </div>
+);
+
+const SectionEyebrow = ( { children } ) => (
+  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-white/45">{ children }</p>
+);
 
 const CardDetails = () => {
   const router = useRouter();
@@ -134,15 +278,26 @@ const CardDetails = () => {
       ...( cardName ? { card_name: cardName } : {} ),
     } )
     : null;
+
   const { data: cardSetLookupData, error: cardSetLookupError } = useSWR(
     setLookupParams ? `/api/Yugioh/card/lookup-by-set?${ setLookupParams.toString() }` : null,
     fetcher
   );
 
+  const isCardRequestPending = Boolean( cardId ) && !cardData && !cardError;
+  const isNameLookupPending = Boolean( shouldLookupByName ) && !cardLookupData && !cardLookupError;
+  const isSetLookupPending = Boolean( setLookupParams ) && !cardSetLookupData && !cardSetLookupError;
+  const isResolvingCardData =
+    !cardData &&
+    !cardLookupData &&
+    !cardSetLookupData &&
+    ( isCardRequestPending || isNameLookupPending || isSetLookupPending );
+
   const resolvedCardData = cardData || cardLookupData || cardSetLookupData;
-  const resolvedCardError = resolvedCardData
+  const resolvedCardError = resolvedCardData || isResolvingCardData
     ? null
     : ( cardSetLookupError || cardLookupError || cardError );
+
   const effectiveCardId = ( cardId || resolvedCardData?.id )
     ? ( cardId || resolvedCardData?.id ).toString()
     : undefined;
@@ -194,16 +349,16 @@ const CardDetails = () => {
 
     const cardSets = resolvedCardData.card_sets;
 
-    const evaluateCandidate = ( set ) => {
+    const evaluateCandidate = ( setEntry ) => {
       const tokens = {
-        setName: canonicalize( set.set_name ),
-        setNameLoose: canonicalizeLoose( set.set_name ),
-        setCode: canonicalize( set.set_code ),
-        setCodeLoose: canonicalizeLoose( set.set_code ),
-        rarity: canonicalize( set.set_rarity ),
-        rarityLoose: canonicalizeLoose( set.set_rarity ),
-        edition: canonicalize( set.set_edition, { allowUnknown: true } ),
-        editionLoose: canonicalizeLoose( set.set_edition, { allowUnknown: true } ),
+        setName: canonicalize( setEntry.set_name ),
+        setNameLoose: canonicalizeLoose( setEntry.set_name ),
+        setCode: canonicalize( setEntry.set_code ),
+        setCodeLoose: canonicalizeLoose( setEntry.set_code ),
+        rarity: canonicalize( setEntry.set_rarity ),
+        rarityLoose: canonicalizeLoose( setEntry.set_rarity ),
+        edition: canonicalize( setEntry.set_edition, { allowUnknown: true } ),
+        editionLoose: canonicalizeLoose( setEntry.set_edition, { allowUnknown: true } ),
       };
 
       const matchesSetName =
@@ -212,7 +367,7 @@ const CardDetails = () => {
         ( queryTokens.setNameLoose && tokens.setNameLoose === queryTokens.setNameLoose );
 
       if ( !matchesSetName ) {
-        return { score: Number.NEGATIVE_INFINITY, set };
+        return { score: Number.NEGATIVE_INFINITY, set: setEntry };
       }
 
       let score = 0;
@@ -252,14 +407,14 @@ const CardDetails = () => {
         }
       }
 
-      return { score, set };
+      return { score, set: setEntry };
     };
 
     if ( hasQueryPreferences ) {
       let bestCandidate = { score: Number.NEGATIVE_INFINITY, set: null };
 
-      for ( const set of cardSets ) {
-        const evaluated = evaluateCandidate( set );
+      for ( const setEntry of cardSets ) {
+        const evaluated = evaluateCandidate( setEntry );
         if ( evaluated.score > bestCandidate.score ) {
           bestCandidate = evaluated;
         }
@@ -274,7 +429,7 @@ const CardDetails = () => {
     if ( storageKey ) {
       const savedVersion = localStorage.getItem( storageKey );
       if ( savedVersion ) {
-        const savedMatch = cardSets.find( ( set ) => serializeVersion( set ) === savedVersion );
+        const savedMatch = cardSets.find( ( setEntry ) => serializeVersion( setEntry ) === savedVersion );
         if ( savedMatch ) {
           commitSelection( savedVersion );
           return;
@@ -283,11 +438,12 @@ const CardDetails = () => {
     }
 
     if ( queryTokens.setName ) {
-      const matchBySetName = cardSets.find( ( set ) => {
-        const canonical = canonicalize( set.set_name );
-        const loose = canonicalizeLoose( set.set_name );
+      const matchBySetName = cardSets.find( ( setEntry ) => {
+        const canonical = canonicalize( setEntry.set_name );
+        const loose = canonicalizeLoose( setEntry.set_name );
         return (
-          canonical === queryTokens.setName || ( queryTokens.setNameLoose && loose === queryTokens.setNameLoose )
+          canonical === queryTokens.setName ||
+          ( queryTokens.setNameLoose && loose === queryTokens.setNameLoose )
         );
       } );
       if ( matchBySetName ) {
@@ -299,12 +455,13 @@ const CardDetails = () => {
     commitSelection( serializeVersion( cardSets[ 0 ] ) );
   }, [ resolvedCardData, effectiveCardId, set_name, set_code, resolvedRarityParam, edition ] );
 
-  const handleVersionChange = ( e ) => {
-    const newVersion = e.target.value;
+  const handleVersionChange = ( event ) => {
+    const newVersion = event.target.value;
     setSelectedVersion( newVersion );
 
     const versionTokens = parseVersion( newVersion );
     if ( !versionTokens ) return;
+
     const { setName: newSetName, setCode: newSetCode, rarity: newRarity, edition: newEdition } = versionTokens;
     const newLetter = newSetName.charAt( 0 ).toUpperCase();
 
@@ -341,7 +498,7 @@ const CardDetails = () => {
 
   const selectedSetDetails = useMemo( () => {
     if ( !selectedVersion || !resolvedCardData?.card_sets?.length ) return null;
-    return resolvedCardData.card_sets.find( ( set ) => serializeVersion( set ) === selectedVersion );
+    return resolvedCardData.card_sets.find( ( setEntry ) => serializeVersion( setEntry ) === selectedVersion );
   }, [ resolvedCardData, selectedVersion ] );
 
   const localImageSrc = activeCardId ? buildImagePath( activeCardId ) : null;
@@ -349,21 +506,305 @@ const CardDetails = () => {
   const primaryImageSrc = localImageSrc || remoteImageSrc || FALLBACK_IMAGE;
   const secondaryImageSrc = primaryImageSrc === localImageSrc ? remoteImageSrc : localImageSrc;
 
+  const cardTheme = useMemo(
+    () => resolveCardTheme( resolvedCardData?.frameType, resolvedCardData?.type ),
+    [ resolvedCardData?.frameType, resolvedCardData?.type ]
+  );
+
+  const frameLabel = useMemo(
+    () => formatTitleToken( resolvedCardData?.frameType || resolvedCardData?.type || "Card" ),
+    [ resolvedCardData?.frameType, resolvedCardData?.type ]
+  );
+
+  const selectedEditionLabel = selectedSetDetails
+    ? normalizeEditionLabel( selectedSetDetails.set_edition )
+    : normalizeEditionLabel( edition );
+  const selectedRarityLabel = selectedSetDetails?.set_rarity || resolvedRarityParam || "Unknown Rarity";
+  const selectedMarketPriceLabel = formatCurrency( selectedSetDetails?.set_price, { allowZero: false } );
+  const versionCount = resolvedCardData?.card_sets?.length || 0;
+  const cardPriceSnapshot = resolvedCardData?.card_prices?.[ 0 ] || null;
+  const typeDetailLabel = resolvedCardData?.type?.toLowerCase().includes( "monster" )
+    ? "Monster Type"
+    : "Card Trait";
+
+  const traitBadges = useMemo( () => {
+    const values = new Set();
+
+    if ( Array.isArray( resolvedCardData?.typeline ) ) {
+      resolvedCardData.typeline.forEach( ( entry ) => {
+        if ( entry ) values.add( entry );
+      } );
+    }
+
+    if ( resolvedCardData?.attribute ) {
+      values.add( resolvedCardData.attribute );
+    }
+
+    if ( resolvedCardData?.race ) {
+      values.add( resolvedCardData.race );
+    }
+
+    return Array.from( values ).slice( 0, 6 );
+  }, [ resolvedCardData?.typeline, resolvedCardData?.attribute, resolvedCardData?.race ] );
+
+  const heroCards = useMemo( () => {
+    return [
+      {
+        label: "Selected Print",
+        value: selectedRarityLabel,
+        helper: selectedEditionLabel,
+      },
+      {
+        label: "Set Number",
+        value: selectedSetDetails?.set_code || set_code || "N/A",
+        helper: selectedSetDetails?.set_name || set_name || "Unknown Set",
+      },
+      {
+        label: "Versions Tracked",
+        value: versionCount ? String( versionCount ) : "0",
+        helper: versionCount === 1 ? "Single version available" : "Switch versions below",
+      },
+      {
+        label: "Market Price",
+        value: selectedMarketPriceLabel,
+        helper: selectedMarketPriceLabel === "N/A" ? "No live market price on this print" : "Selected version market price",
+        valueClassName: "text-emerald-300",
+      },
+    ];
+  }, [
+    selectedEditionLabel,
+    selectedMarketPriceLabel,
+    selectedRarityLabel,
+    selectedSetDetails,
+    set_code,
+    set_name,
+    versionCount,
+  ] );
+
+  const profileCards = useMemo( () => {
+    const cards = [
+      {
+        label: "Card Type",
+        value: resolvedCardData?.type || "N/A",
+      },
+      {
+        label: typeDetailLabel,
+        value: resolvedCardData?.race || "N/A",
+      },
+      {
+        label: "Archetype",
+        value: resolvedCardData?.archetype || "Unassigned",
+      },
+      {
+        label: "Frame",
+        value: frameLabel,
+      },
+    ];
+
+    if ( hasDisplayValue( resolvedCardData?.attribute ) ) {
+      cards.push( {
+        label: "Attribute",
+        value: resolvedCardData.attribute,
+      } );
+    }
+
+    if ( hasDisplayValue( resolvedCardData?.linkval ) || hasDisplayValue( resolvedCardData?.level ) ) {
+      cards.push( {
+        label: getCardProgressionLabel( resolvedCardData ),
+        value: formatStatValue( resolvedCardData?.linkval ?? resolvedCardData?.level ),
+      } );
+    }
+
+    if ( hasDisplayValue( resolvedCardData?.scale ) ) {
+      cards.push( {
+        label: "Scale",
+        value: formatStatValue( resolvedCardData.scale ),
+      } );
+    }
+
+    if ( hasDisplayValue( resolvedCardData?.atk ) ) {
+      cards.push( {
+        label: "ATK",
+        value: formatStatValue( resolvedCardData.atk ),
+        valueClassName: cardTheme.accentValueClass,
+      } );
+    }
+
+    if ( hasDisplayValue( resolvedCardData?.def ) ) {
+      cards.push( {
+        label: "DEF",
+        value: formatStatValue( resolvedCardData.def ),
+        valueClassName: cardTheme.accentValueClass,
+      } );
+    }
+
+    if ( Array.isArray( resolvedCardData?.linkmarkers ) && resolvedCardData.linkmarkers.length > 0 ) {
+      cards.push( {
+        label: "Link Markers",
+        value: resolvedCardData.linkmarkers.join( ", " ),
+        helper: `${ resolvedCardData.linkmarkers.length } markers`,
+      } );
+    }
+
+    return cards;
+  }, [
+    cardTheme.accentValueClass,
+    frameLabel,
+    resolvedCardData,
+    typeDetailLabel,
+  ] );
+
+  const versionCards = useMemo( () => {
+    return [
+      {
+        label: "Set",
+        value: selectedSetDetails?.set_name || set_name || "Unknown Set",
+      },
+      {
+        label: "Card Number",
+        value: selectedSetDetails?.set_code || set_code || "N/A",
+      },
+      {
+        label: "Rarity",
+        value: selectedRarityLabel,
+        helper: selectedSetDetails?.rarity_code ? `Code ${ selectedSetDetails.rarity_code }` : "",
+      },
+      {
+        label: "Edition",
+        value: selectedEditionLabel,
+      },
+      {
+        label: "Selected Price",
+        value: selectedMarketPriceLabel,
+        helper: selectedMarketPriceLabel === "N/A" ? "Pricing unavailable for this print" : "Current market price",
+        valueClassName: "text-emerald-300",
+      },
+    ];
+  }, [
+    selectedEditionLabel,
+    selectedMarketPriceLabel,
+    selectedRarityLabel,
+    selectedSetDetails,
+    set_code,
+    set_name,
+  ] );
+
+  const marketplaceCards = useMemo( () => {
+    const entries = [
+      {
+        label: "TCGPlayer",
+        value: formatCurrency( cardPriceSnapshot?.tcgplayer_price, { allowZero: false } ),
+      },
+      {
+        label: "eBay",
+        value: formatCurrency( cardPriceSnapshot?.ebay_price, { allowZero: false } ),
+      },
+      {
+        label: "Amazon",
+        value: formatCurrency( cardPriceSnapshot?.amazon_price, { allowZero: false } ),
+      },
+    ].filter( ( entry ) => entry.value !== "N/A" );
+
+    if ( entries.length > 0 ) {
+      return entries;
+    }
+
+    return [
+      {
+        label: "Marketplace Snapshot",
+        value: "No live pricing",
+        helper: "Marketplace quotes will appear when available from the source feed.",
+      },
+    ];
+  }, [ cardPriceSnapshot ] );
+
+  const priceHistorySummary = useMemo( () => {
+    const parsedHistory = Array.isArray( priceHistoryData?.priceHistory )
+      ? priceHistoryData.priceHistory
+        .map( ( entry ) => ( {
+          date: new Date( entry?.date ),
+          price: Number( entry?.price ),
+        } ) )
+        .filter( ( entry ) => !Number.isNaN( entry.date.getTime() ) && Number.isFinite( entry.price ) )
+        .sort( ( left, right ) => left.date - right.date )
+      : [];
+
+    if ( parsedHistory.length === 0 ) {
+      return null;
+    }
+
+    const prices = parsedHistory.map( ( entry ) => entry.price );
+    const firstPrice = parsedHistory[ 0 ].price;
+    const latestPrice = parsedHistory[ parsedHistory.length - 1 ].price;
+    const uniqueDayCount = new Set(
+      parsedHistory.map( ( entry ) => entry.date.toISOString().split( "T" )[ 0 ] )
+    ).size;
+
+    return {
+      latestPrice,
+      lowPrice: Math.min( ...prices ),
+      highPrice: Math.max( ...prices ),
+      changeAmount: latestPrice - firstPrice,
+      trackedDays: uniqueDayCount,
+    };
+  }, [ priceHistoryData ] );
+
+  const historyCards = useMemo( () => {
+    if ( !priceHistorySummary ) {
+      return [
+        {
+          label: "History Status",
+          value: "No tracking yet",
+          helper: "Snapshots appear after this print has recorded pricing history.",
+        },
+      ];
+    }
+
+    return [
+      {
+        label: "Current",
+        value: formatCurrency( priceHistorySummary.latestPrice ),
+        valueClassName: "text-emerald-300",
+      },
+      {
+        label: "Range",
+        value: `${ formatCurrency( priceHistorySummary.lowPrice ) } - ${ formatCurrency( priceHistorySummary.highPrice ) }`,
+      },
+      {
+        label: "Change",
+        value: formatSignedCurrency( priceHistorySummary.changeAmount ),
+        helper: `${ priceHistorySummary.trackedDays } tracked days`,
+        valueClassName:
+          priceHistorySummary.changeAmount > 0
+            ? "text-emerald-300"
+            : priceHistorySummary.changeAmount < 0
+              ? "text-rose-300"
+              : "text-white",
+      },
+    ];
+  }, [ priceHistorySummary ] );
+
+  const heroDescription = useMemo( () => {
+    const selectedSetName = selectedSetDetails?.set_name || set_name || "this set";
+    const versionLabel = versionCount === 1 ? "version" : "versions";
+    return `Inspect ${ selectedRarityLabel } printing details, compare market movement, and switch across ${ versionCount } tracked ${ versionLabel } from ${ selectedSetName }.`;
+  }, [ selectedRarityLabel, selectedSetDetails?.set_name, set_name, versionCount ] );
+
   const handleImageError = ( event ) => {
-    const img = event.currentTarget;
-    const nextSrc = img.dataset.nextSrc;
-    const fallbackSrc = img.dataset.fallbackSrc;
+    const image = event.currentTarget;
+    const nextSrc = image.dataset.nextSrc;
+    const fallbackSrc = image.dataset.fallbackSrc;
 
     if ( nextSrc ) {
-      img.src = nextSrc;
-      img.dataset.nextSrc = "";
+      image.src = nextSrc;
+      image.dataset.nextSrc = "";
       return;
     }
 
     if ( fallbackSrc ) {
-      img.src = fallbackSrc;
-      img.dataset.fallbackSrc = "";
-      img.onerror = null;
+      image.src = fallbackSrc;
+      image.dataset.fallbackSrc = "";
+      image.onerror = null;
     }
   };
 
@@ -441,102 +882,297 @@ const CardDetails = () => {
     triggerNotification,
   ] );
 
-  if ( resolvedCardError ) return <div>Error loading card data.</div>;
-  if ( !resolvedCardData ) return <div className="mx-auto min-h-screen bg-fixed bg-cover yugioh-bg">Loading card data...</div>;
+  if ( resolvedCardError ) {
+    return (
+      <div className="yugioh-bg flex min-h-screen items-center justify-center px-4 text-white">
+        <div className="w-full max-w-2xl rounded-3xl border border-red-500/35 bg-black/45 p-8 text-center shadow-2xl backdrop-blur">
+          <h1 className="text-2xl font-bold">Unable to load card details</h1>
+          <p className="mt-3 text-sm text-white/70">
+            The card data request failed. Try again from the set page or refresh this card.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if ( !resolvedCardData ) {
+    return (
+      <div className="yugioh-bg flex min-h-screen items-center justify-center px-4 text-white">
+        <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-black/45 p-8 text-center shadow-2xl backdrop-blur">
+          <h1 className="text-2xl font-bold">Loading card details...</h1>
+          <p className="mt-3 text-sm text-white/70">
+            Fetching card information, artwork, and pricing history.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-
-      <div className="mx-auto min-h-screen bg-fixed bg-cover p-2 yugioh-bg">
-        {/* 🔹 Breadcrumb shows Sets → SetName → Card Name */ }
-        <Breadcrumb
-          items={ [
-            { label: "Sets", href: "/yugioh/sets/set-index" },
-            set_name
-              ? { label: set_name, href: `/yugioh/sets/${ letter }/${ set_name }` }
-              : null,
-            { label: resolvedCardData?.name || "Card Details", href: router.asPath },
-          ].filter( Boolean ) }
+      <Head>
+        <title>{ `${ resolvedCardData.name } | Yu-Gi-Oh! Card Details` }</title>
+        <meta
+          name="description"
+          content={ `Review artwork, print variants, market pricing, and history for ${ resolvedCardData.name }.` }
         />
+      </Head>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 w-full mx-auto">
-          <div className="glass h-8/12 p-6 text-white rounded-md text-shadow">
-            <h1 className="text-2xl font-extrabold mb-4">{ resolvedCardData.name }</h1>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-              <div className="flex justify-center lg:justify-start lg:w-5/12">
-                <div className="flex w-full flex-col items-center gap-3">
-                  <img
-                    src={ primaryImageSrc }
-                    data-next-src={ secondaryImageSrc || "" }
-                    data-fallback-src={ FALLBACK_IMAGE }
-                    alt={ `${ resolvedCardData.name } card image` }
-                    className="object-scale-down object-center w-full h-96 rounded-md"
-                    loading="lazy"
-                    decoding="async"
-                    onError={ handleImageError }
-                  />
+      <div className="relative mx-auto min-h-screen overflow-hidden bg-fixed bg-cover yugioh-bg text-white">
+        <div className="pointer-events-none absolute inset-0 bg-slate-950/75" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.2),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.14),transparent_30%),radial-gradient(circle_at_center,rgba(245,158,11,0.12),transparent_42%)]" />
+
+        <div className="relative">
+          <Breadcrumb
+            className="mx-auto flex w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8"
+            items={ [
+              { label: "Home", href: "/yugioh" },
+              source === "collection"
+                ? { label: "My Collection", href: "/yugioh/my-collection" }
+                : { label: "Set Index", href: "/yugioh/sets/set-index" },
+              source !== "collection" && set_name
+                ? {
+                  label: set_name,
+                  href: `/yugioh/sets/${ encodeURIComponent( letter || "" ) }/${ encodeURIComponent( set_name ) }`,
+                }
+                : null,
+              { label: resolvedCardData?.name || "Card Details", href: null },
+            ].filter( Boolean ) }
+          />
+
+          <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+            <header className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur xl:p-8">
+              <div className={ `pointer-events-none absolute inset-0 bg-gradient-to-br ${ cardTheme.heroGlowClass }` } />
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_38%,rgba(255,255,255,0.02))]" />
+
+              <div className="relative flex flex-col gap-8 xl:grid xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+                <div>
+                  <div className="flex flex-wrap gap-2">
+                    <DetailBadge className={ cardTheme.badgeClass }>{ frameLabel }</DetailBadge>
+                    <DetailBadge className="border-white/15 bg-white/5 text-white/80">{ selectedRarityLabel }</DetailBadge>
+                    <DetailBadge className="border-white/15 bg-white/5 text-white/80">{ selectedEditionLabel }</DetailBadge>
+                  </div>
+
+                  <h1 className="mt-5 max-w-4xl text-4xl font-bold tracking-tight text-white lg:text-5xl">
+                    { resolvedCardData.name }
+                  </h1>
+
+                  <p className="mt-4 max-w-2xl text-base leading-7 text-white/72">
+                    { heroDescription }
+                  </p>
+
+                  { traitBadges.length > 0 && (
+                    <div className="mt-6 flex flex-wrap gap-2">
+                      { traitBadges.map( ( badge ) => (
+                        <span
+                          key={ badge }
+                          className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm font-medium text-white/80"
+                        >
+                          { badge }
+                        </span>
+                      ) ) }
+                    </div>
+                  ) }
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  { heroCards.map( ( cardEntry ) => (
+                    <DetailStatCard
+                      key={ cardEntry.label }
+                      label={ cardEntry.label }
+                      value={ cardEntry.value }
+                      helper={ cardEntry.helper }
+                      valueClassName={ cardEntry.valueClassName }
+                    />
+                  ) ) }
+                </div>
+              </div>
+            </header>
+
+            <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(320px,0.86fr)_minmax(0,1.14fr)]">
+              <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+                <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 p-5 shadow-2xl backdrop-blur">
+                  <div className={ `pointer-events-none absolute inset-x-8 top-6 h-28 rounded-full bg-gradient-to-r ${ cardTheme.heroGlowClass } blur-3xl opacity-80` } />
+
+                  <div className="relative rounded-[1.75rem] border border-white/10 bg-gradient-to-b from-white/10 via-black/55 to-black/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                    <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.12),transparent_20%,rgba(15,23,42,0.35))]" />
+                    <img
+                      src={ primaryImageSrc }
+                      data-next-src={ secondaryImageSrc || "" }
+                      data-fallback-src={ FALLBACK_IMAGE }
+                      alt={ `${ resolvedCardData.name } card image` }
+                      className="relative h-[30rem] w-full object-contain object-center"
+                      loading="lazy"
+                      decoding="async"
+                      onError={ handleImageError }
+                    />
+                  </div>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                    <DetailStatCard
+                      label="Card ID"
+                      value={ activeCardId || "Unavailable" }
+                      helper={ activeCardId ? "Current Yu-Gi-Oh! card identifier" : "Identifier unavailable on this card." }
+                    />
+                    <DetailStatCard
+                      label="Collection Status"
+                      value={ isAuthenticated ? "Ready to add" : "Login required" }
+                      helper={
+                        isAuthenticated
+                          ? "The selected version can be added directly."
+                          : "Sign in to add this card to your collection."
+                      }
+                      valueClassName={ isAuthenticated ? cardTheme.accentValueClass : "text-white" }
+                    />
+                  </div>
+
                   <button
                     type="button"
                     onClick={ handleAddToCollection }
                     disabled={ isAddingToCollection || !selectedSetDetails }
-                    className="w-full rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    className={ `mt-5 w-full rounded-full border px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${ cardTheme.buttonClass }` }
                   >
                     { isAddingToCollection ? "Adding..." : "Add to Collection" }
                   </button>
-                </div>
-              </div>
-              <div className="flex-1">
-                <p className="mb-1">
-                  <span className="font-bold">Card Type:</span> { resolvedCardData.type }
-                </p>
-                <p className="mb-1">
-                  <span className="font-bold">Description:</span> { resolvedCardData.desc }
-                </p>
-                <p className="mb-1">
-                  <span className="font-bold">Monster Type:</span> { resolvedCardData.race }
-                </p>
-                <p className="mb-1">
-                  <span className="font-bold">Archetype:</span> { resolvedCardData.archetype }
-                </p>
+                </section>
 
-                <div className="mt-6">
-                  <label className="block text-sm font-bold mb-2">Select Version:</label>
-                  <select
-                    className="text-black p-2 rounded-md w-full"
-                    value={ selectedVersion }
-                    onChange={ handleVersionChange }
-                  >
-                    { resolvedCardData.card_sets?.map( ( set, idx ) => (
-                      <option
-                        key={ `${ set.set_code }-${ set.set_rarity }-${ idx }` }
-                        value={ serializeVersion( set ) }
-                      >
-                        { set.set_name } - { set.set_code } - { set.set_rarity } - { normalizeEditionLabel( set.set_edition ) }
-                      </option>
+                <section className="rounded-[2rem] border border-white/10 bg-black/40 p-5 shadow-2xl backdrop-blur">
+                  <SectionEyebrow>Marketplace Snapshot</SectionEyebrow>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">Live Price Cards</h2>
+                  <p className="mt-3 text-sm leading-6 text-white/65">
+                    Raw marketplace quotes for the current card listing.
+                  </p>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                    { marketplaceCards.map( ( cardEntry ) => (
+                      <DetailStatCard
+                        key={ cardEntry.label }
+                        label={ cardEntry.label }
+                        value={ cardEntry.value }
+                        helper={ cardEntry.helper }
+                        valueClassName={ cardEntry.valueClassName || "text-white" }
+                      />
                     ) ) }
-                  </select>
-                </div>
+                  </div>
+                </section>
+              </aside>
 
-                <p className="mt-4 border-t pt-4">
-                  <span className="font-bold">Market Price:</span> $
-                  { selectedSetDetails?.set_price || "N/A" }
-                </p>
+              <div className="space-y-6">
+                <section className="rounded-[2rem] border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+                  <SectionEyebrow>Card Lore</SectionEyebrow>
+                  <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                    <h2 className="text-2xl font-semibold text-white">Overview</h2>
+                    <span className="text-sm text-white/55">{ frameLabel } profile</span>
+                  </div>
+
+                  <p className="mt-6 text-sm leading-8 text-white/82">
+                    { resolvedCardData.desc || "No description available." }
+                  </p>
+                </section>
+
+                <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.95fr)]">
+                  <section className="rounded-[2rem] border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+                    <SectionEyebrow>Card Profile</SectionEyebrow>
+                    <h2 className="mt-2 text-2xl font-semibold text-white">Facts & Stats</h2>
+                    <p className="mt-3 text-sm leading-6 text-white/65">
+                      Core card data, battle stats, and frame details from the active card entry.
+                    </p>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      { profileCards.map( ( cardEntry ) => (
+                        <DetailStatCard
+                          key={ cardEntry.label }
+                          label={ cardEntry.label }
+                          value={ cardEntry.value }
+                          helper={ cardEntry.helper }
+                          valueClassName={ cardEntry.valueClassName }
+                        />
+                      ) ) }
+                    </div>
+                  </section>
+
+                  <section className="rounded-[2rem] border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+                    <SectionEyebrow>Print Explorer</SectionEyebrow>
+                    <h2 className="mt-2 text-2xl font-semibold text-white">Switch Version</h2>
+                    <p className="mt-3 text-sm leading-6 text-white/65">
+                      Change set code, rarity, and edition without leaving the page.
+                    </p>
+
+                    <div className="mt-5">
+                      <label
+                        htmlFor="card-version-select"
+                        className="mb-2 block text-xs font-semibold uppercase tracking-[0.24em] text-white/50"
+                      >
+                        Selected Version
+                      </label>
+                      <select
+                        id="card-version-select"
+                        className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-sm text-white transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                        value={ selectedVersion ?? "" }
+                        onChange={ handleVersionChange }
+                      >
+                        { resolvedCardData.card_sets?.map( ( setEntry, index ) => (
+                          <option
+                            key={ `${ setEntry.set_code }-${ setEntry.set_rarity }-${ index }` }
+                            value={ serializeVersion( setEntry ) }
+                          >
+                            { setEntry.set_name } - { setEntry.set_code } - { setEntry.set_rarity } - { normalizeEditionLabel( setEntry.set_edition ) }
+                          </option>
+                        ) ) }
+                      </select>
+                    </div>
+
+                    <div className="mt-5 grid gap-3">
+                      { versionCards.map( ( cardEntry ) => (
+                        <DetailStatCard
+                          key={ cardEntry.label }
+                          label={ cardEntry.label }
+                          value={ cardEntry.value }
+                          helper={ cardEntry.helper }
+                          valueClassName={ cardEntry.valueClassName }
+                        />
+                      ) ) }
+                    </div>
+                  </section>
+                </section>
+
+                <section className="rounded-[2rem] border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+                  <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                    <div>
+                      <SectionEyebrow>Pricing Intelligence</SectionEyebrow>
+                      <h2 className="mt-2 text-2xl font-semibold text-white">Price History</h2>
+                      <p className="mt-3 text-sm leading-6 text-white/65">
+                        Trend the currently selected print over time and compare its tracked range.
+                      </p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[28rem]">
+                      { historyCards.map( ( cardEntry ) => (
+                        <DetailStatCard
+                          key={ cardEntry.label }
+                          label={ cardEntry.label }
+                          value={ cardEntry.value }
+                          helper={ cardEntry.helper }
+                          valueClassName={ cardEntry.valueClassName }
+                        />
+                      ) ) }
+                    </div>
+                  </div>
+
+                  <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-black/35 p-4 sm:p-5">
+                    <PriceHistoryChart
+                      priceHistory={ priceHistoryData?.priceHistory || [] }
+                      selectedVersion={ selectedVersion }
+                      source={ "set" }
+                    />
+                  </div>
+                </section>
               </div>
-            </div>
-          </div>
-
-          <div className="glass p-6 rounded-md shadow-md">
-            <h2 className="text-2xl font-bold mb-1 text-white text-shadow">
-              Price History
-            </h2>
-            <PriceHistoryChart
-              priceHistory={ priceHistoryData?.priceHistory || [] }
-              selectedVersion={ selectedVersion }
-              source={ "set" }
-            />
-          </div>
+            </section>
+          </main>
         </div>
       </div>
+
       <Notification
         show={ notification.show }
         setShow={ updateNotificationVisibility }

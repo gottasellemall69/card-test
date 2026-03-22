@@ -604,7 +604,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
 
   if ( isLoading ) {
     return (
-      <div className="flex-col min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-center gap-3 text-white/80">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 yugioh-bg bg-fixed bg-center bg-no-repeat text-white/80">
         <Loader2 className="h-12 w-12 animate-spin" />
         <p className="text-lg font-semibold">Loading your collection...</p>
       </div>
@@ -613,18 +613,20 @@ const MyCollection = ( { initialAuthState = false } ) => {
 
   if ( !isAuthenticated ) {
     return (
-      <div className="flex-col min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat items-center justify-items-center glass mx-auto w-full rounded-3xl p-10 text-center text-white">
-        <h2 className="text-3xl font-bold text-shadow">Please log in</h2>
-        <p className="mt-3 text-white/70">
-          You need to be logged in to view your Yu-Gi-Oh! collection.
-        </p>
-        <button
-          type="button"
-          onClick={ () => router.push( "/login" ) }
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 font-semibold transition hover:from-purple-500 hover:to-blue-500"
-        >
-          Go to login
-        </button>
+      <div className="flex min-h-screen flex-col items-center justify-center yugioh-bg bg-fixed bg-center bg-no-repeat px-4 text-center text-white">
+        <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/10 bg-black/45 p-10 shadow-2xl backdrop-blur">
+          <h2 className="text-3xl font-bold text-shadow">Please log in</h2>
+          <p className="mt-3 text-white/70">
+            You need to be logged in to view your Yu-Gi-Oh! collection.
+          </p>
+          <button
+            type="button"
+            onClick={ () => router.push( "/login" ) }
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 font-semibold transition hover:from-purple-500 hover:to-blue-500"
+          >
+            Go to login
+          </button>
+        </div>
       </div>
     );
   }
@@ -642,7 +644,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
           className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "xl:pr-72" : "" }` }
         >
 
-          <header className={ `rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl ${ SUMMARY_PANEL_HEIGHT }` }>
+          <header className={ `rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur ${ SUMMARY_PANEL_HEIGHT }` }>
             <div className="flex flex-wrap flex-col lg:flex-row lg:items-end lg:justify-between">
               <div className="text-center lg:text-left">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Collection</p>
@@ -653,15 +655,15 @@ const MyCollection = ( { initialAuthState = false } ) => {
               </div>
               { hasCards && (
                 <div className="grid gap-2 text-left sm:grid-cols-3 mt-3">
-                  <div className="bg-white/5">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <p className="text-wrap text-xs uppercase tracking-wide text-white/60">Total cards</p>
                     <p className="mt-2 text-3xl font-semibold text-white">{ totalOwnedCards }</p>
                   </div>
-                  <div className="bg-white/5">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <p className="text-wrap text-xs uppercase tracking-wide text-white/60">Distinct sets</p>
                     <p className="mt-2 text-3xl font-semibold text-white">{ distinctSets }</p>
                   </div>
-                  <div className="bg-white/5">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <p className="text-wrap text-xs uppercase tracking-wide text-white/60">Estimated value</p>
                     <p className="mt-2 text-3xl font-semibold text-emerald-400">{ formattedEstimatedValue }</p>
                   </div>
@@ -671,7 +673,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
           </header>
 
           { hasCards && (
-            <div className={ `mt-6 w-full max-w-[85%] mx-auto min-h-fit h-auto rounded-xl border border-white/10 bg-black/40 p-4 shadow-2xl ${ CHART_PANEL_HEIGHT }` }>
+            <div className={ `mt-6 min-h-fit h-auto w-full rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur ${ CHART_PANEL_HEIGHT }` }>
               { historyError && (
                 <p className="text-sm text-rose-200">{ historyError }</p>
               ) }
@@ -690,7 +692,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
           <section className="pt-10">
             <div className="space-y-8">
               <div className="space-y-8">
-                <div className="rounded-sm border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+                <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
                       <span className="font-medium uppercase tracking-wide text-white/50">View</span>
@@ -836,7 +838,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
                     ) }
                   </>
                 ) : (
-                  <div className="min-h-screen rounded-3xl border border-dashed border-white/20 bg-black/30 p-12 text-center text-white/70">
+                  <div className="min-h-[28rem] rounded-3xl border border-dashed border-white/20 bg-black/30 p-12 text-center text-white/70">
                     <p className="text-lg font-semibold">Your collection is empty.</p>
                     <p className="mt-2">Add cards to start tracking your inventory and market prices.</p>
                   </div>

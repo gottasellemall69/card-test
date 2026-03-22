@@ -307,7 +307,9 @@ const YugiohFuzzySearchResults = () => {
         <meta charSet="UTF-8" />
       </Head>
       <div className="yugioh-bg min-h-screen w-full text-white">
-        <Breadcrumb />
+        <div className="justify-start place-content-start place-items-baseline w-[75%]">
+          <Breadcrumb />
+        </div>
         <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>

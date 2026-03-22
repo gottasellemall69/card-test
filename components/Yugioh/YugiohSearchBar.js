@@ -15,18 +15,19 @@ const YugiohSearchBar = ( { onSearch } ) => {
   };
 
   return (
-    <div className="max-w-fit flex items-center justify-center my-8 mx-auto glass">
-      <div className="relative ">
+    <div className="w-full">
+      <label htmlFor="YugiohSearchBar" className="sr-only">Search cards</label>
+      <div className="relative">
         <input
           id="YugiohSearchBar"
           type="text"
-          className="w-72 bg-transparent px-6 py-4 italic text-lg placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-          placeholder="Search for a card..."
+          className="w-full rounded-2xl border border-white/10 bg-black/60 py-3 pl-12 pr-4 text-base text-white placeholder-white/50 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+          placeholder="Search by card name, set, rarity, or number..."
           value={ searchTerm }
           onChange={ handleInputChange }
         />
-        <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-          <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+          <svg className="h-5 w-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={ 2 } d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>

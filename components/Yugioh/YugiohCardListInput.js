@@ -18,20 +18,32 @@ const YugiohCardListInput = ( { cardList, setCardList, handleSubmit, error } ) =
         name="YugiohCardListInput"
         onSubmit={ handleSubmit }
       >
-        <div className="text-white mx-auto">
-
+        <div className="mx-auto w-full text-white">
+          <label htmlFor="cardListInput" className="mb-3 block text-sm font-semibold uppercase tracking-wide text-white/70">
+            Paste a list of cards
+          </label>
           <textarea
+            id="cardListInput"
             name="cardListInput"
-            className="mx-auto w-full max-w-[75%] rounded-xs flex flex-wrap text-nowrap resize-none h-48 glass bg-transparent"
+            className="min-h-[16rem] text-nowrap w-full max-w-[95%] mx-auto resize-none overflow-y-auto rounded-2xl border border-white/10 bg-black/55 px-4 py-4 text-sm text-white shadow-inner placeholder:text-white/45 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
             value={ cardList }
             onChange={ ( e ) => setCardList( e.target.value ) }
-            placeholder="Enter cards in order: Name Set Number Edition Rarity Condition (commas optional)" />
-          <button className=" border border-white rounded-lg px-2 py-2 mx-auto m-2 text-white font-bold hover:text-black hover:bg-white" type="submit">
-            Submit
-          </button>
+            placeholder="Enter cards in order: Name, Set, Number, Edition, Rarity, Condition"
+          />
+          <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <p className="text-sm text-white/60">
+              One card per line. Commas are optional if the values are in the expected order.
+            </p>
+            <button
+              className="text-nowrap inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15"
+              type="submit"
+            >
+              Match Cards
+            </button>
+          </div>
         </div>
       </form>
-      { error && <p>{ error }</p> }
+      { error && <p className="mt-3 rounded-2xl border border-red-500/35 bg-red-500/10 px-4 py-3 text-sm text-red-100">{ error }</p> }
 
     </>
   );

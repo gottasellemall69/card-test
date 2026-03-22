@@ -1,25 +1,5 @@
-const normalizeNameKey = ( value ) =>
-  ( value ?? "" ).toString().toLowerCase().replace( /[^a-z0-9]+/g, "" ).trim();
-
-const buildNameCandidates = ( name ) => {
-  const trimmed = ( name ?? "" ).toString().trim();
-  if ( !trimmed ) return [];
-
-  const candidates = new Set( [ trimmed ] );
-  const withoutParens = trimmed.replace( /\s*\([^)]*\)\s*$/, "" ).trim();
-  const withoutBrackets = trimmed.replace( /\s*\[[^\]]*\]\s*$/, "" ).trim();
-  const withoutDashSuffix = trimmed.replace( /\s*[-–]\s*[^-–]+$/, "" ).trim();
-  const withoutRarityToken = trimmed.replace(
-    /\s*\b(UTR|UR|SR|CR|GR|QCR|PCR|PGR|SP|SE|PR|HR|R|C|SCR|SNR|GCR|GUR|GSR)\b\s*$/i,
-    ""
-  ).trim();
-
-  [ withoutParens, withoutBrackets, withoutDashSuffix, withoutRarityToken ]
-    .filter( Boolean )
-    .forEach( ( candidate ) => candidates.add( candidate ) );
-
-  return Array.from( candidates );
-};
+import { buildCardNameCandidates, buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
+import { formatYugiohCardData } from "@/utils/formatYugiohCardData";
 
 const fetchExactName = async ( name ) => {
   const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${ encodeURIComponent( name ) }&tcgplayer_data=true`;
@@ -38,48 +18,21 @@ const fetchFuzzyName = async ( name ) => {
   return Array.isArray( data?.data ) ? data.data : [];
 };
 
-const pickBestMatch = ( matches, candidates ) => {
+const pickBestMatch = ( matches, requestedName ) => {
   if ( !Array.isArray( matches ) || matches.length === 0 ) {
     return null;
   }
 
-  const candidateKeys = new Set( candidates.map( normalizeNameKey ).filter( Boolean ) );
+  const candidateKeys = new Set( buildCardNameKeys( requestedName ) );
   if ( candidateKeys.size === 0 ) {
     return matches[ 0 ];
   }
 
-  const exact = matches.find( ( card ) => candidateKeys.has( normalizeNameKey( card?.name ) ) );
+  const exact = matches.find( ( card ) =>
+    buildCardNameKeys( card?.name ).some( ( key ) => candidateKeys.has( key ) )
+  );
   return exact || matches[ 0 ];
 };
-
-const formatCard = ( card ) => ( {
-  id: card?.id,
-  name: card?.name,
-  type: card?.type,
-  desc: card?.desc,
-  frameType: card?.frameType,
-  race: card?.race,
-  archetype: card?.archetype,
-  ygoprodeck_url: card?.ygoprodeck_url,
-  card_images: card?.card_images?.map( ( img ) => ( {
-    id: img?.id,
-    image_url: img?.image_url,
-    image_url_small: img?.image_url_small,
-  } ) ) || [],
-  card_sets: card?.card_sets?.map( ( set ) => ( {
-    set_name: set.set_name,
-    set_code: set.set_code,
-    set_rarity: set.set_rarity,
-    rarity_code: set.set_rarity_code,
-    set_edition: set.set_edition || "Unknown Edition",
-    set_price: set.set_price || "0.00",
-  } ) ) || [],
-  card_prices: card?.card_prices?.map( ( price ) => ( {
-    tcgplayer_price: price.tcgplayer_price || "0.00",
-    ebay_price: price.ebay_price || "0.00",
-    amazon_price: price.amazon_price || "0.00",
-  } ) ) || [],
-} );
 
 export default async function handler( req, res ) {
   const { name } = req.query;
@@ -89,7 +42,7 @@ export default async function handler( req, res ) {
     return res.status( 400 ).json( { error: "Missing card name" } );
   }
 
-  const candidates = buildNameCandidates( normalizedName );
+  const candidates = buildCardNameCandidates( normalizedName );
   if ( candidates.length === 0 ) {
     return res.status( 400 ).json( { error: "Missing card name" } );
   }
@@ -105,16 +58,16 @@ export default async function handler( req, res ) {
     }
 
     if ( !card ) {
-      const fallbackName = candidates[ candidates.length - 1 ];
+      const fallbackName = candidates[ candidates.length - 1 ] || normalizedName;
       const fuzzyMatches = await fetchFuzzyName( fallbackName );
-      card = pickBestMatch( fuzzyMatches, candidates );
+      card = pickBestMatch( fuzzyMatches, normalizedName );
     }
 
     if ( !card ) {
       return res.status( 404 ).json( { error: "Card not found" } );
     }
 
-    res.status( 200 ).json( formatCard( card ) );
+    res.status( 200 ).json( formatYugiohCardData( card ) );
   } catch ( error ) {
     console.error( "Card lookup failed:", error );
     res.status( 500 ).json( { error: "Internal Server Error" } );

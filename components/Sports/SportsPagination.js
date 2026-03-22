@@ -46,14 +46,14 @@ const SportsPagination = ( { totalPages, currentPage, onPageChange } ) => {
   };
 
   return (
-    <nav className="pagination-container mt-4 my-10 w-full glass backdrop">
-      <ul className="pagination flex justify-center items-center">
+    <nav className="mt-4 w-full" aria-label="Sports card pagination">
+      <ul className="mx-auto flex w-fit flex-wrap items-center justify-center gap-2 rounded-full border border-white/10 bg-black/40 px-2 py-2 text-white shadow-2xl backdrop-blur">
         {/* Previous button */ }
         <li className={ `page-item ${ currentPage === 1 ? 'disabled' : '' }` }>
           <button
             onClick={ () => onPageChange( currentPage - 1 ) }
             disabled={ currentPage === 1 }
-            className="border border-white page-link px-3 py-2 mx-1 text-black font-bold bg-white rounded hover:bg-black hover:text-white"
+            className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
           </button>
@@ -67,13 +67,13 @@ const SportsPagination = ( { totalPages, currentPage, onPageChange } ) => {
             onChange={ handleInputChange }
             onBlur={ handleInputBlur }
             onKeyUp={ handleInputKeyPress }
-            className="page-input text-black px-3 py-2 mx-1 text-center border rounded w-16"
+            className="w-16 rounded-full border border-white/20 bg-black/60 px-3 py-2 text-center text-sm font-semibold text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
             aria-label="Page number input"
           />
         </li>
 
         <li className="page-item">
-          <span className="page-total px-3 py-2 mx-1 font-black text-shadow">
+          <span className="px-2 py-2 text-sm font-semibold text-white/70">
             / { totalPages }
           </span>
         </li>
@@ -83,7 +83,7 @@ const SportsPagination = ( { totalPages, currentPage, onPageChange } ) => {
           <button
             onClick={ () => onPageChange( currentPage + 1 ) }
             disabled={ currentPage === totalPages }
-            className="border border-white page-link px-3 py-2 mx-1 text-black font-bold bg-white rounded hover:bg-black hover:text-white"
+            className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>

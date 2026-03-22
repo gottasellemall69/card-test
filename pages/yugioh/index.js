@@ -4,6 +4,7 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { readAuthStateFromCookie, subscribeToAuthState } from '@/utils/authState';
 
@@ -422,112 +423,151 @@ const Home = () => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <div className="yugioh-bg min-h-screen w-full mx-auto text-center p-2">
-
-        <h1 className="text-4xl font-bold mb-8">Welcome to the thing{ welcomeSuffix }!</h1>
-
-        <div className="mx-auto w-full max-w-3xl text-center text-white">
-          <h2 className="text-xl font-black text-shadow">Search for a single card</h2>
-          <p className="mt-2 text-sm text-white/80">
-            Search for any card by card name, set name, or set code. Returns any similar results of the searched term as well if just a name is given. Example: Nine-Tailed Fox
-            Duel Power <i>or</i> DUPO-EN031. A search for "Blue-Eyes" will return any card relating to the Blue-Eyes White Dragon.
-          </p>
-          <form
-            onSubmit={ handleFuzzySubmit }
-            className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
-          >
-            <input
-              type="text"
-              value={ fuzzyQuery }
-              onChange={ ( event ) => {
-                setFuzzyQuery( event.target.value );
-                if ( fuzzyError ) {
-                  setFuzzyError( '' );
-                }
-              } }
-              placeholder="Search for a card..."
-              className="w-full max-w-md rounded border border-white/40 bg-transparent px-4 py-2 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/40"
-            />
-            <button
-              type="submit"
-              className="border border-white rounded px-4 py-2 text-sm font-bold text-white hover:text-black hover:bg-white"
-            >
-              Search
-            </button>
-          </form>
-          { fuzzyError ? (
-            <p className="mt-2 text-sm text-red-200">{ fuzzyError }</p>
-          ) : null }
-        </div>
-        <p className="my-5 text-white font-semibold text-shadow">
-          OR
-        </p>
-        <span className="py-3 mx-auto text-center">
-          <p>
-            Enter cards in this order:
-            <br />
-            <span className="font-black underline">Name, Set, Number, Edition, Rarity, Condition</span>
-          </p>
-          <p className="py-2 text-sm text-white/80">
-            Commas are optional. Example: <span className="font-semibold">Nine-Tailed Fox Duel Power DUPO-EN031 1st Edition Ultra Rare Near Mint 1st Edition</span>
-          </p>
-          <p className="py-3">where the possible conditions are:</p>
-          <ul className="columns-2 space-y-1 font-semibold text-center text-pretty object-center justify-evenly">
-            <li>Near Mint+[Edition]</li>
-            <li>Lightly Played+[Edition]</li>
-            <li>Moderately Played+[Edition]</li>
-            <li>Heavily Played+[Edition]</li>
-            <li>Damaged+[Edition]</li>
-          </ul>
-        </span>
-
-        <div className="mx-auto text-center my-4">
-          <p>Try it out:</p>
-          <button
-            className="mx-auto sm:mx-0 text-sm border border-white rounded px-4 py-2 mt-3 text-white font-bold hover:text-black hover:bg-white"
-            onClick={ handleLoadExampleData }
-          >
-            Load Example Data
-          </button>
-        </div>
-        <div className="p-2 min-h-fit w-auto">
-
-          <div className="w-full mx-auto">
-            <YugiohCardListInput
-              collection={ collection }
-              selectedRows={ selectedRows }
-              setSelectedRows={ setSelectedRows }
-              setCollection={ setCollection }
-              cardList={ cardList }
-              setCardList={ setCardList }
-              handleSubmit={ handleSubmit }
-              isLoading={ isLoading }
-              error={ error }
-              matchedCardData={ matchedCardData }
-              setMatchedCardData={ setMatchedCardData }
-            />
-          </div>
-
-
-
-        <div className="mt-5 w-full mx-auto">
-          <div className="text-center z-50 font-black">
-            { isLoading && <LoadingSpinner /> }
-          </div>
-          <div className="mt-2 w-full max-w-7xl mx-auto yugioh-stage">
-            { Array.isArray( matchedCardData ) && matchedCardData.length > 0 ? (
-              <YugiohCardDataTable
-                matchedCardData={ matchedCardData }
-                isAuthenticated={ isAuthenticated }
-              />
-            ) : (
-              <div className="flex min-h-[24rem] items-center justify-center text-sm text-white/60">
-                { isLoading ? "Loading results..." : "Results will appear here after you search." }
+      <div className="yugioh-bg min-h-screen w-full text-white">
+        <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:px-8">
+          <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-3xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Yu-Gi-Oh!</p>
+                <h1 className="mt-4 text-4xl font-bold tracking-tight text-white lg:text-5xl">
+                  Welcome{ welcomeSuffix }!
+                </h1>
+                <p className="mt-4 text-base text-white/70">
+                  Search a single card, paste a bulk list, and review pricing results in one workflow.
+                </p>
               </div>
-            ) }
-          </div>
-        </div>
-      </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/yugioh/sets/set-index"
+                  className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15"
+                >
+                  Browse Sets
+                </Link>
+                <Link
+                  href={ isAuthenticated ? "/yugioh/my-collection" : "/login" }
+                  className="inline-flex items-center justify-center rounded-full border border-indigo-400/30 bg-indigo-500/20 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-indigo-300/60 hover:bg-indigo-500/30"
+                >
+                  { isAuthenticated ? "My Collection" : "Log In" }
+                </Link>
+              </div>
+            </div>
+          </header>
+
+          <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Quick Search</p>
+              <h2 className="mt-3 text-2xl font-bold text-white">Find a single card fast</h2>
+              <p className="mt-3 text-sm text-white/70">
+                Search by card name, set name, or set code. Partial terms such as <span className="font-semibold text-white">Blue-Eyes</span> also return close matches.
+              </p>
+              <form
+                onSubmit={ handleFuzzySubmit }
+                className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"
+              >
+                <input
+                  type="text"
+                  value={ fuzzyQuery }
+                  onChange={ ( event ) => {
+                    setFuzzyQuery( event.target.value );
+                    if ( fuzzyError ) {
+                      setFuzzyError( '' );
+                    }
+                  } }
+                  placeholder="Search by card name, set, or set code"
+                  className="w-full rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-base text-white placeholder:text-white/50 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                />
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15"
+                >
+                  Search
+                </button>
+              </form>
+              { fuzzyError ? (
+                <p className="mt-3 rounded-2xl border border-red-500/35 bg-red-500/10 px-4 py-3 text-sm text-red-100">{ fuzzyError }</p>
+              ) : null }
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Bulk Lookup</p>
+                  <h2 className="mt-3 text-2xl font-bold text-white">Paste a list and match pricing</h2>
+                </div>
+                <button
+                  className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15"
+                  onClick={ handleLoadExampleData }
+                  type="button"
+                >
+                  Load Example
+                </button>
+              </div>
+
+              <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                <div>
+                  <p className="text-sm text-white/70">Use this order for each line:</p>
+                  <p className="mt-2 text-sm font-semibold text-white">
+                    Name, Set, Number, Edition, Rarity, Condition
+                  </p>
+                  <p className="mt-3 text-sm text-white/60">
+                    Commas are optional when the values stay in the same sequence.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/75">
+                  <p className="font-semibold text-white">Accepted conditions</p>
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <li>Near Mint + Edition</li>
+                    <li>Lightly Played + Edition</li>
+                    <li>Moderately Played + Edition</li>
+                    <li>Heavily Played + Edition</li>
+                    <li>Damaged + Edition</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <YugiohCardListInput
+                  collection={ collection }
+                  selectedRows={ selectedRows }
+                  setSelectedRows={ setSelectedRows }
+                  setCollection={ setCollection }
+                  cardList={ cardList }
+                  setCardList={ setCardList }
+                  handleSubmit={ handleSubmit }
+                  isLoading={ isLoading }
+                  error={ error }
+                  matchedCardData={ matchedCardData }
+                  setMatchedCardData={ setMatchedCardData }
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-8 rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Results</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">Matched cards</h2>
+              </div>
+              <div className="text-center text-sm font-semibold text-white/70 sm:text-right">
+                { isLoading ? <LoadingSpinner /> : `${ matchedCardData.length || 0 } matches loaded` }
+              </div>
+            </div>
+
+            <div className="mt-6 w-full yugioh-stage">
+              { Array.isArray( matchedCardData ) && matchedCardData.length > 0 ? (
+                <YugiohCardDataTable
+                  matchedCardData={ matchedCardData }
+                  isAuthenticated={ isAuthenticated }
+                />
+              ) : (
+                <div className="flex min-h-[24rem] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/30 px-6 text-center text-sm text-white/60">
+                  { isLoading ? "Loading results..." : "Results will appear here after you search or submit a card list." }
+                </div>
+              ) }
+            </div>
+          </section>
+        </main>
       </div>
       <SpeedInsights />
     </>

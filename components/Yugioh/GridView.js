@@ -223,7 +223,6 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
               { label: "Condition", value: card.condition },
               { label: "Old Price", value: formatCurrency( card.oldPrice ) },
               { label: "Market Price", value: formatCurrency( card.marketPrice ) },
-              { label: "Low Price", value: formatCurrency( card.lowPrice ) },
             ].filter( ( entry ) => entry.value );
 
             const letterCandidate = ( card.setName || card.productName || "" ).trim();
