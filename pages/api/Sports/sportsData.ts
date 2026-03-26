@@ -30,9 +30,9 @@ const DEFAULT_HEADERS: HeaderMap = {
   'upgrade-insecure-requests': '1',
   'user-agent': DEFAULT_USER_AGENT,
 };
-const REQUEST_TIMEOUT_MS = 45000;
-const REQUEST_DELAY_MS = 1000;
-const RETRY_BASE_DELAY_MS = 1000;
+const REQUEST_TIMEOUT_MS = 450;
+const REQUEST_DELAY_MS = 100;
+const RETRY_BASE_DELAY_MS = 100;
 const MAX_RETRIES = 2;
 const RETRY_STATUS_CODES = new Set( [ 429, 503 ] );
 const ALLOWED_HEADER_KEYS = new Set( [
@@ -348,7 +348,7 @@ const normalizeHeaderValue = ( value: unknown ) => {
 
 const pickForwardedHeaders = (
   value: unknown,
-  options: { allowCookie?: boolean } = {}
+  options: { allowCookie?: boolean; } = {}
 ): HeaderMap => {
   const allowCookie = options.allowCookie ?? true;
 
