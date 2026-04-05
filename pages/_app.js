@@ -18,16 +18,12 @@ function usePrevious( value ) {
 
 export default function App( { Component, pageProps, router } ) {
   let previousPathname = usePrevious( router.pathname );
-  const getLayout = Component.getLayout ?? ( ( page ) => page );
+  const getLayout = Component.getLayout ?? ( ( page ) => <Layout>{ page }</Layout> );
 
   return getLayout(
     <CardProvider>
       <MarketPriceProvider>
-        <Layout>
-
-          <Component previousPathname={ previousPathname } { ...pageProps } />
-
-        </Layout>
+        <Component previousPathname={ previousPathname } { ...pageProps } />
       </MarketPriceProvider>
     </CardProvider>
   );

@@ -132,57 +132,74 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mt-10 p-5 text-black min-h-screen flex flex-col items-center justify-items-start login">
-      <h1 className="text-3xl text-white font-bold mb-6">Login</h1>
-      <form
-        id="login-form"
-        onSubmit={ handleSubmit }
-        className="border text-black shadow-lg rounded-lg p-6 w-full max-w-md glass backdrop text-shadow"
-      >
-        { error && <p className="text-red-500 text-sm mb-4">{ error }</p> }
-        <div className="mb-4 text-black">
-          <label className="block text-white text-sm font-bold mb-2">
-            Username
-          </label>
-          <input
-            id="username"
-            type="text"
-            value={ username }
-            onChange={ ( e ) => setUsername( e.target.value ) }
-            className="w-full px-3 py-2 border border-white rounded-sm text-white text-shadow bg-transparent"
-            required={ true }
-          />
+    <main className="login relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12 sm:px-6">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.3),rgba(2,6,23,0.82)),radial-gradient(circle_at_top,rgba(96,165,250,0.2),transparent_34%)]"
+        aria-hidden="true"
+      />
+      <div className="relative z-10 w-full max-w-md rounded-[2rem] border border-white/15 bg-slate-950/72 p-6 text-white shadow-[0_30px_80px_-45px_rgba(2,6,23,0.95)] backdrop-blur-xl sm:p-8">
+        <div className="mb-8 space-y-3 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/55">Account Access</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Log In</h1>
+          <p className="text-sm leading-6 text-slate-300">
+            Sign in to manage saved cards, compare prices, and keep your collection in sync.
+          </p>
         </div>
-        <div className="mb-6">
-          <label className="block text-white text-sm font-bold mb-2">
-            Password
-          </label>
-          <input
-            id="pass"
-            type="password"
-            value={ password }
-            onChange={ ( e ) => setPassword( e.target.value ) }
-            className="w-full px-3 py-2 border border-white rounded-sm text-white text-shadow bg-transparent"
-            required={ true }
-          />
-        </div>
-        <button
-          id="login"
-          type="submit"
-          disabled={ isSubmitting }
-          className={ `w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 ${ isSubmitting ? "opacity-60 cursor-not-allowed" : "" }` }
+
+        <form
+          id="login-form"
+          onSubmit={ handleSubmit }
+          className="space-y-5"
         >
-          { isSubmitting ? "Logging In..." : "Log In" }
-        </button>
-      </form>
-      <p className="mt-4 text-white">
-        Don't have an account?{ " " }
-        <Link
-          href="/register" passHref
-          className="text-orange-300 underline">
-          Register here
-        </Link>
-      </p>
-    </div>
+          { error && <p className="rounded-2xl border border-red-400/35 bg-red-500/10 px-4 py-3 text-sm text-red-100">{ error }</p> }
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-white/85">
+              Username
+            </label>
+            <input
+              id="username"
+              type="text"
+              value={ username }
+              onChange={ ( e ) => setUsername( e.target.value ) }
+              className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-black outline-none transition placeholder:text-white/35 focus:border-blue-400/70 focus:ring-2 focus:ring-blue-400/35"
+              required={ true }
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-white/85">
+              Password
+            </label>
+            <input
+              id="pass"
+              type="password"
+              value={ password }
+              onChange={ ( e ) => setPassword( e.target.value ) }
+              className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-black outline-none transition placeholder:text-white/35 focus:border-blue-400/70 focus:ring-2 focus:ring-blue-400/35"
+              required={ true }
+            />
+          </div>
+          <button
+            id="login"
+            type="submit"
+            disabled={ isSubmitting }
+            className={ `inline-flex w-full items-center justify-center rounded-full bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300/60 focus:ring-offset-2 focus:ring-offset-slate-950 ${ isSubmitting ? "cursor-not-allowed opacity-60" : "" }` }
+          >
+            { isSubmitting ? "Logging In..." : "Log In" }
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-slate-200">
+          Don&apos;t have an account?{ " " }
+          <Link
+            href="/register"
+            className="font-semibold text-amber-300 underline decoration-amber-300/50 underline-offset-4 hover:text-amber-200"
+          >
+            Register here
+          </Link>
+        </p>
+      </div>
+    </main>
   );
 }
+
+LoginPage.getLayout = ( page ) => page;

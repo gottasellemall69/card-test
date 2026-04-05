@@ -38,14 +38,17 @@ next-env.d.ts
 /utils/cardDataApi.js
 .aider*
 server/changeStreamHandler.js
+.codex
 
-.vscode
+/.vscode/
 /rift
 /.gpteng
 repomix-output.*
 /public/*
 !/public/images/
 !/public/images/**
+!/public/yugioh-parallax/
+!/public/yugioh-parallax/**
 !/public/card-data/
 !/public/card-data/**
 !/public/favicon.ico

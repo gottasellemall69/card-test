@@ -21,7 +21,7 @@ const DEFAULT_HEADERS: HeaderMap = {
   'cache-control': 'no-cache',
   pragma: 'no-cache',
   priority: 'u=0, i',
-  referer: 'https://www.sportscardspro.com/',
+  referer: 'https://www.sportscardspro.com/console/',
   'sec-fetch-dest': 'document',
   'sec-fetch-mode': 'navigate',
   'sec-fetch-site': 'none',
@@ -33,7 +33,7 @@ const DEFAULT_HEADERS: HeaderMap = {
 const REQUEST_TIMEOUT_MS = 450;
 const REQUEST_DELAY_MS = 100;
 const RETRY_BASE_DELAY_MS = 100;
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 1;
 const RETRY_STATUS_CODES = new Set( [ 429, 503 ] );
 const ALLOWED_HEADER_KEYS = new Set( [
   'accept',
