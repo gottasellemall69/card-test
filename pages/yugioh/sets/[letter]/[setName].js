@@ -1848,65 +1848,69 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         message={ notification.message }
       />
 
-      <div className="yugioh-bg bg-fixed bg-center bg-no-repeat w-full min-h-screen text-white">
-        <div className="justify-start place-content-start place-items-baseline w-[75%]">
-          <Breadcrumb />
-        </div>
-
-        <main
-          className={ `w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "xl:pr-80" : "" }` }
-        >
-          <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl text-center lg:text-left">
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
-                  Yu-Gi-Oh! Sets
-                  { letterLabel ? ` - ${ letterLabel.toString().toUpperCase() }` : "" }
-                </p>
-                <h1 className="mt-6 text-4xl font-bold tracking-tight text-white lg:text-5xl">
-                  Cards in { activeSetDisplayName }
-                </h1>
-                <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 lg:mx-0">
-                  Explore { processedCards.length || 0 } card listings with live pricing and quick filters.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-end">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left">
-                  <p className="text-xs uppercase tracking-wide text-white/55">Visible Cards</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{ processedCards.length || 0 }</p>
-                </div>
-                <div className="hidden xl:flex">
-                  <button
-                    type="button"
-                    onClick={ toggleDesktopFilters }
-                    aria-expanded={ isDesktopFilterOpen }
-                    aria-controls="set-desktop-filter-panel"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
-                  >
-                    <Filter size={ 16 } />
-                    { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
-                    { hasActiveFilters && (
-                      <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
-                        { activeFilterCount }
-                      </span>
-                    ) }
-                  </button>
-                </div>
-              </div>
+      <div className="yugioh-bg relative w-full min-h-screen overflow-hidden text-white">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/50" />
+        <div className="relative z-10">
+          <div className="mx-auto w-full px-4 pt-6 sm:px-6 lg:px-8">
+            <div className="rounded-2xl border border-white/10 bg-black/55 px-4 py-3 shadow-xl shadow-black/35 backdrop-blur-sm">
+              <Breadcrumb />
             </div>
-          </header>
-          <section aria-labelledby="cards-layout" className=" pt-10 w-full mx-auto">
-            <h2 id="cards-layout" className="sr-only">Card explorer</h2>
-            <div className="space-y-8">
+          </div>
+
+          <main
+            className={ `w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "xl:pr-80" : "" }` }
+          >
+            <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-3xl text-center lg:text-left">
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
+                    Yu-Gi-Oh! Sets
+                    { letterLabel ? ` - ${ letterLabel.toString().toUpperCase() }` : "" }
+                  </p>
+                  <h1 className="mt-6 text-4xl font-bold tracking-tight text-white lg:text-5xl">
+                    Cards in { activeSetDisplayName }
+                  </h1>
+                  <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 lg:mx-0">
+                    Explore { processedCards.length || 0 } card listings with live pricing and quick filters.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-end">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left">
+                    <p className="text-xs uppercase tracking-wide text-white/55">Visible Cards</p>
+                    <p className="mt-2 text-2xl font-semibold text-white">{ processedCards.length || 0 }</p>
+                  </div>
+                  <div className="hidden xl:flex">
+                    <button
+                      type="button"
+                      onClick={ toggleDesktopFilters }
+                      aria-expanded={ isDesktopFilterOpen }
+                      aria-controls="set-desktop-filter-panel"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                    >
+                      <Filter size={ 16 } />
+                      { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
+                      { hasActiveFilters && (
+                        <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
+                          { activeFilterCount }
+                        </span>
+                      ) }
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </header>
+            <section aria-labelledby="cards-layout" className=" pt-10 w-full mx-auto">
+              <h2 id="cards-layout" className="sr-only">Card explorer</h2>
               <div className="space-y-8">
-                <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
-                      <span className="font-medium uppercase tracking-wide text-white/50">View</span>
-                      <div
-                        role="group"
-                        className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur"
-                      >
+                <div className="space-y-8">
+                  <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
+                        <span className="font-medium uppercase tracking-wide text-white/50">View</span>
+                        <div
+                          role="group"
+                          className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur"
+                        >
                         <button
                           type="button"
                           onClick={ () => setViewMode( "grid" ) }
@@ -2202,7 +2206,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
               </div>
             </div>
           </section>
-        </main>
+          </main>
         { isDesktopFilterOpen && (
           <aside
             id="set-desktop-filter-panel"
@@ -2372,6 +2376,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
             </div>
           </div>
         ) }
+        </div>
       </div>
       <SpeedInsights />
     </>

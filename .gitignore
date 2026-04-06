@@ -35,28 +35,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/utils/cardDataApi.js
+
 .aider*
 server/changeStreamHandler.js
 .codex
+.vscode
 
-/.vscode/
 /rift
 /.gpteng
 repomix-output.*
-/public/*
-!/public/images/
-!/public/images/**
-!/public/yugioh-parallax/
-!/public/yugioh-parallax/**
-!/public/card-data/
-!/public/card-data/**
-!/public/favicon.ico
-!/public/logo-with-name-side.jpg
-!/public/next.svg
-!/public/robots.txt
-!/public/uRl6tFT0uQxyhWgCKm4TQjbIjMl4TcQYxVGVvGmt.jpg
-!/public/vercel.svg
 repomix.config.json
 prompt.md
 /skills

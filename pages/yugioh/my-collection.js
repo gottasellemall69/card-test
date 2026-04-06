@@ -604,7 +604,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
 
   if ( isLoading ) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 yugioh-bg bg-fixed bg-center bg-no-repeat text-white/80">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 yugioh-bg text-white/80">
         <Loader2 className="h-12 w-12 animate-spin" />
         <p className="text-lg font-semibold">Loading your collection...</p>
       </div>
@@ -613,7 +613,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
 
   if ( !isAuthenticated ) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center yugioh-bg bg-fixed bg-center bg-no-repeat px-4 text-center text-white">
+      <div className="flex min-h-screen flex-col items-center justify-center yugioh-bg px-4 text-center text-white">
         <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/10 bg-black/45 p-10 shadow-2xl backdrop-blur">
           <h2 className="text-3xl font-bold text-shadow">Please log in</h2>
           <p className="mt-3 text-white/70">
@@ -639,7 +639,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <div className="min-h-screen yugioh-bg bg-fixed bg-center bg-no-repeat text-white">
+      <div className="min-h-screen yugioh-bg text-white">
         <main
           className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "xl:pr-72" : "" }` }
         >

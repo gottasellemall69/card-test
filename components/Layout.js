@@ -17,7 +17,7 @@ export default function Layout( { children } ) {
   };
 
   return (
-    <div className="relative mx-auto min-h-screen w-full glass dark:bg-gray-900">
+    <div className={ `relative mx-auto min-h-screen w-full glass backdrop ${ showYugiohBackground ? "overflow-x-hidden" : "" }` }>
       { showYugiohBackground ? <YugiohSiteBackground /> : null }
       <div className="relative z-10">
         <Dialog open={ isSidebarOpen } onClose={ setIsSidebarOpen } className="relative z-50 lg:hidden">
