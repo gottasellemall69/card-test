@@ -61,7 +61,7 @@ const YugiohPagination = ( { currentPage = 1, itemsPerPage = 20, totalItems = 0,
           Previous
         </button>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 text-white">
           <input
             type="text"
             inputMode="numeric"
@@ -70,7 +70,7 @@ const YugiohPagination = ( { currentPage = 1, itemsPerPage = 20, totalItems = 0,
             onChange={ handleInputChange }
             onBlur={ handleInputSubmit }
             onKeyDown={ ( event ) => event.key === 'Enter' && handleInputSubmit() }
-            className="w-16 px-3 py-2 text-center text-black text-shadow"
+            className="w-16 px-3 py-2 text-center text-white text-shadow"
             aria-label="Page number input"
           />
           <span className="text-white/80" aria-live="polite">

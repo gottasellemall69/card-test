@@ -10,8 +10,33 @@ const PROTECTED_MATCHERS = [
 const AUTH_STATE_COOKIE = "auth_state";
 const TOKEN_COOKIE = "token";
 const AUTH_USER_HEADER = "x-authenticated-user";
+const NONCE_HEADER = "x-nonce";
+const CSP_HEADER = "Content-Security-Policy";
 const isProduction = process.env.NODE_ENV === "production";
 const jwtSecret = process.env.JWT_SECRET;
+
+const createNonce = (): string => btoa( crypto.randomUUID() );
+
+const buildContentSecurityPolicy = ( nonce: string ): string => {
+  const isDev = process.env.NODE_ENV === "development";
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'nonce-${ nonce }' 'strict-dynamic'${ isDev ? " 'unsafe-eval'" : "" } https://va.vercel-scripts.com;
+    style-src 'self' 'nonce-${ nonce }'${ isDev ? " 'unsafe-inline'" : "" };
+    style-src-elem 'self' 'nonce-${ nonce }';
+    style-src-attr 'unsafe-inline';
+    img-src 'self' blob: data: https://images.ygoprodeck.com https://images.unsplash.com https://tailwindcss.com https://raw.githubusercontent.com;
+    font-src 'self' data:;
+    connect-src 'self'${ isDev ? " ws: wss:" : "" } https://mpapi.tcgplayer.com https://infinite-api.tcgplayer.com https://db.ygoprodeck.com https://www.sportscardspro.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
+  `;
+
+  return cspHeader.replace( /\s{2,}/g, " " ).trim();
+};
 
 const clearAuthCookies = ( response: NextResponse ) => {
   response.cookies.set( {
@@ -104,6 +129,8 @@ const getAuthenticatedUser = ( request: NextRequest ): AuthenticatedUser | null 
 const buildRequestHeaders = (
   request: NextRequest,
   authenticatedUser: AuthenticatedUser | null,
+  nonce?: string,
+  contentSecurityPolicy?: string,
 ): Headers => {
   const requestHeaders = new Headers( request.headers );
   requestHeaders.delete( AUTH_USER_HEADER );
@@ -112,7 +139,23 @@ const buildRequestHeaders = (
     requestHeaders.set( AUTH_USER_HEADER, JSON.stringify( authenticatedUser ) );
   }
 
+  if ( nonce && contentSecurityPolicy ) {
+    requestHeaders.set( NONCE_HEADER, nonce );
+    requestHeaders.set( CSP_HEADER, contentSecurityPolicy );
+  }
+
   return requestHeaders;
+};
+
+const withContentSecurityPolicy = (
+  response: NextResponse,
+  contentSecurityPolicy?: string,
+): NextResponse => {
+  if ( contentSecurityPolicy ) {
+    response.headers.set( CSP_HEADER, contentSecurityPolicy );
+  }
+
+  return response;
 };
 
 const handleUnauthorized = ( request: NextRequest ) => {
@@ -139,26 +182,41 @@ const handleUnauthorized = ( request: NextRequest ) => {
 
 export function proxy( request: NextRequest ) {
   const { pathname } = request.nextUrl;
-  const isApiPath = pathname.startsWith( "/api/Yugioh/" );
+  const isApiPath = pathname.startsWith( "/api/" );
+  const isYugiohApiPath = pathname.startsWith( "/api/Yugioh/" );
+  const shouldApplyContentSecurityPolicy = !isApiPath;
+  const nonce = shouldApplyContentSecurityPolicy ? createNonce() : undefined;
+  const contentSecurityPolicy = nonce
+    ? buildContentSecurityPolicy( nonce )
+    : undefined;
 
-  if ( !isProtectedPath( pathname ) && !isApiPath ) {
-    return NextResponse.next();
-  }
-
-  const authenticatedUser = getAuthenticatedUser( request );
-  const requestHeaders = buildRequestHeaders( request, authenticatedUser );
+  const needsAuthenticatedUser = isProtectedPath( pathname ) || isYugiohApiPath;
+  const authenticatedUser = needsAuthenticatedUser ? getAuthenticatedUser( request ) : null;
+  const requestHeaders = buildRequestHeaders(
+    request,
+    authenticatedUser,
+    nonce,
+    contentSecurityPolicy,
+  );
   const allowRequest = () =>
-    NextResponse.next( {
-      request: {
-        headers: requestHeaders,
-      },
-    } );
+    withContentSecurityPolicy(
+      NextResponse.next( {
+        request: {
+          headers: requestHeaders,
+        },
+      } ),
+      contentSecurityPolicy,
+    );
+
+  if ( !isProtectedPath( pathname ) && !isYugiohApiPath ) {
+    return allowRequest();
+  }
 
   if ( request.method === "OPTIONS" ) {
     return allowRequest();
   }
 
-  if ( isApiPath ) {
+  if ( isYugiohApiPath ) {
     return allowRequest();
   }
 
@@ -166,13 +224,21 @@ export function proxy( request: NextRequest ) {
     return allowRequest();
   }
 
-  return handleUnauthorized( request );
+  return withContentSecurityPolicy(
+    handleUnauthorized( request ),
+    contentSecurityPolicy,
+  );
 }
 
 export const config = {
   matcher: [
-    "/yugioh/my-collection",
-    "/yugioh/test-page",
+    {
+      source: "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|next.svg|vercel.svg|images/|backgrounds/|icons/|yugioh-parallax/|yugioh-dragon-bg/|card-data/).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
     "/api/Yugioh/:path*",
   ]
 };

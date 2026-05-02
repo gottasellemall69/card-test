@@ -424,7 +424,7 @@ const Home = () => {
         <meta charSet="UTF-8" />
       </Head>
       <div className="yugioh-bg min-h-screen w-full text-white">
-        <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:px-8">
+        <main className="min-h-screen mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:px-8">
           <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
             <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-3xl">

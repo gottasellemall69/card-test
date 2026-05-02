@@ -16,7 +16,7 @@ import { getTokenFromRequest } from "@/proxy/authenticate";
 const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
   ssr: false,
   loading: () => (
-    <div className="h-screen mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
+    <div className="min-h-screen mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
       Loading table...
     </div>
   ),
@@ -25,7 +25,7 @@ const TableView = dynamic( () => import( "@/components/Yugioh/TableView" ), {
 const GridView = dynamic( () => import( "@/components/Yugioh/GridView" ), {
   ssr: false,
   loading: () => (
-    <div className="h-screen mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
+    <div className="min-h-screen mx-auto justify-center items-center py-12 text-center text-lg font-semibold text-white/80">
       Loading cards...
     </div>
   ),
@@ -641,7 +641,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
       </Head>
       <div className="min-h-screen yugioh-bg text-white">
         <main
-          className={ `mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "xl:pr-72" : "" }` }
+          className={ `min-h-screen mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "xl:pr-72" : "" }` }
         >
 
           <header className={ `rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur ${ SUMMARY_PANEL_HEIGHT }` }>

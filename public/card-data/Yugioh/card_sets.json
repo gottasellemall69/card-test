@@ -1336,7 +1336,7 @@
     "name": "Power of the Duelist",
     "cleanSetName": "Power of the Duelist",
     "urlName": "power-of-the-duelist",
-    "abbreviation": "",
+    "abbreviation": "POTD",
     "releaseDate": "2006-11-16T00:00:00",
     "isSupplemental": false,
     "active": true
@@ -1798,7 +1798,7 @@
     "name": "Structure Deck: Invincible Fortress",
     "cleanSetName": "Structure Deck Invincible Fortress",
     "urlName": "structure-deck-invincible-fortress",
-    "abbreviation": "",
+    "abbreviation": "SD7",
     "releaseDate": "2006-05-15T00:00:00",
     "isSupplemental": false,
     "active": true
@@ -1809,7 +1809,7 @@
     "name": "Structure Deck: Lord of the Storm",
     "cleanSetName": "Structure Deck Lord of the Storm",
     "urlName": "structure-deck-lord-of-the-storm",
-    "abbreviation": "",
+    "abbreviation": "SD8",
     "releaseDate": "2006-07-12T00:00:00",
     "isSupplemental": false,
     "active": true
@@ -2928,9 +2928,9 @@
   {
     "setNameId": 1291,
     "categoryId": 2,
-    "name": "Retro Pack 1",
-    "cleanSetName": "Retro Pack 1",
-    "urlName": "retro-pack-1",
+    "name": "Retro Pack",
+    "cleanSetName": "Retro Pack",
+    "urlName": "retro-pack",
     "abbreviation": "RP01",
     "releaseDate": "2008-07-08T00:00:00",
     "isSupplemental": false,
@@ -4202,17 +4202,6 @@
     "active": true
   },
   {
-    "setNameId": 1921,
-    "categoryId": 2,
-    "name": "Yu-Gi-Oh! Video Game Promotional Cards",
-    "cleanSetName": "Yu Gi Oh Video Game Promotional Cards",
-    "urlName": "yu-gi-oh-video-game-promotional-cards",
-    "abbreviation": "VDP",
-    "releaseDate": "2002-03-19T00:00:00",
-    "isSupplemental": true,
-    "active": true
-  },
-  {
     "setNameId": 1922,
     "categoryId": 2,
     "name": "Maximum Crisis",
@@ -4477,28 +4466,6 @@
     "active": true
   },
   {
-    "setNameId": 2196,
-    "categoryId": 2,
-    "name": "The Lost Art Promotion",
-    "cleanSetName": "The Lost Art Promotion",
-    "urlName": "the-lost-art-promotion",
-    "abbreviation": "LART",
-    "releaseDate": "2018-02-02T00:00:00",
-    "isSupplemental": true,
-    "active": true
-  },
-  {
-    "setNameId": 2197,
-    "categoryId": 2,
-    "name": "Mattel Action Figure Promos: Series 3",
-    "cleanSetName": "Mattel Action Figure Promos Series 3",
-    "urlName": "mattel-action-figure-promos-series-3",
-    "abbreviation": "MF03",
-    "releaseDate": "2006-01-06T00:00:00",
-    "isSupplemental": true,
-    "active": true
-  },
-  {
     "setNameId": 2211,
     "categoryId": 2,
     "name": "Structure Deck: Lair of Darkness",
@@ -4518,17 +4485,6 @@
     "abbreviation": "FLOD",
     "releaseDate": "2018-05-04T00:00:00",
     "isSupplemental": false,
-    "active": true
-  },
-  {
-    "setNameId": 2215,
-    "categoryId": 2,
-    "name": "Pharaoh Tour Promos",
-    "cleanSetName": "Pharaoh Tour Promos",
-    "urlName": "pharaoh-tour-promos",
-    "abbreviation": "PTP-EU",
-    "releaseDate": "2005-01-01T00:00:00",
-    "isSupplemental": true,
     "active": true
   },
   {
@@ -4703,7 +4659,7 @@
     "cleanSetName": "Advent Calendar 2018",
     "urlName": "advent-calendar-2018",
     "abbreviation": "AC18",
-    "releaseDate": "2018-11-08T00:00:00",
+    "releaseDate": "2018-11-02T00:00:00",
     "isSupplemental": true,
     "active": true
   },
@@ -4727,17 +4683,6 @@
     "abbreviation": "HISU",
     "releaseDate": "2018-11-16T00:00:00",
     "isSupplemental": false,
-    "active": true
-  },
-  {
-    "setNameId": 2353,
-    "categoryId": 2,
-    "name": "World Championship JPP Cards",
-    "cleanSetName": "World Championship JPP Cards",
-    "urlName": "world-championship-jpp-cards",
-    "abbreviation": "WCJPP",
-    "releaseDate": "2018-08-04T00:00:00",
-    "isSupplemental": true,
     "active": true
   },
   {
@@ -6503,9 +6448,9 @@
   {
     "setNameId": 23469,
     "categoryId": 2,
-    "name": "Legendary Decks II (2024 Reprint)",
-    "cleanSetName": "Legendary Decks II 2024 Reprint",
-    "urlName": "legendary-decks-ii-2024-reprint",
+    "name": "Legendary Decks II (2020 Reprint)",
+    "cleanSetName": "Legendary Decks II 2020 Reprint",
+    "urlName": "legendary-decks-ii-2020-reprint",
     "abbreviation": "LDK2",
     "releaseDate": "2024-03-15T00:00:00",
     "isSupplemental": false,
@@ -6517,7 +6462,7 @@
     "name": "25th Anniversary Tin: Dueling Mirrors",
     "cleanSetName": "25th Anniversary Tin Dueling Mirrors",
     "urlName": "25th-anniversary-tin-dueling-mirrors",
-    "abbreviation": "",
+    "abbreviation": "MP24",
     "releaseDate": "2024-09-20T00:00:00",
     "isSupplemental": false,
     "active": true
@@ -6616,7 +6561,7 @@
     "name": "Quarter Century Bonanza",
     "cleanSetName": "Quarter Century Bonanza",
     "urlName": "quarter-century-bonanza",
-    "abbreviation": "",
+    "abbreviation": "RA03",
     "releaseDate": "2024-11-08T00:00:00",
     "isSupplemental": false,
     "active": true
@@ -6682,7 +6627,7 @@
     "name": "Quarter Century Stampede",
     "cleanSetName": "Quarter Century Stampede",
     "urlName": "quarter-century-stampede",
-    "abbreviation": "",
+    "abbreviation": "RA04",
     "releaseDate": "2025-04-11T00:00:00",
     "isSupplemental": false,
     "active": true
@@ -6732,6 +6677,61 @@
     "active": true
   },
   {
+    "setNameId": 24263,
+    "categoryId": 2,
+    "name": "Battles of Legend: Monster Mayhem",
+    "cleanSetName": "Battles of Legend Monster Mayhem",
+    "urlName": "battles-of-legend-monster-mayhem",
+    "abbreviation": "BLMM",
+    "releaseDate": "2025-06-13T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24264,
+    "categoryId": 2,
+    "name": "OTS Tournament Pack 28",
+    "cleanSetName": "OTS Tournament Pack 28",
+    "urlName": "ots-tournament-pack-28",
+    "abbreviation": "OP28",
+    "releaseDate": "2025-06-18T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24265,
+    "categoryId": 2,
+    "name": "Duelist's Advance",
+    "cleanSetName": "Duelists Advance",
+    "urlName": "duelists-advance",
+    "abbreviation": "DUAD",
+    "releaseDate": "2025-07-04T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24308,
+    "categoryId": 2,
+    "name": "2025 Mega-Pack",
+    "cleanSetName": "2025 Mega Pack",
+    "urlName": "2025-mega-pack",
+    "abbreviation": "MP25",
+    "releaseDate": "2025-09-05T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24320,
+    "categoryId": 2,
+    "name": "Justice Hunters",
+    "cleanSetName": "Justice Hunters",
+    "urlName": "justice-hunters",
+    "abbreviation": "JUSH",
+    "releaseDate": "2025-08-01T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
     "setNameId": 24351,
     "categoryId": 2,
     "name": "Yu-Gi-Oh! Championship Series 2025 Prize Cards",
@@ -6739,6 +6739,171 @@
     "urlName": "yu-gi-oh-championship-series-2025-prize-cards",
     "abbreviation": "25YC",
     "releaseDate": "2025-06-08T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24352,
+    "categoryId": 2,
+    "name": "Retro Pack 2 (2020 Date Reprint)",
+    "cleanSetName": "Retro Pack 2 2020 Date Reprint",
+    "urlName": "retro-pack-2-2020-date-reprint",
+    "abbreviation": "RP02",
+    "releaseDate": "2025-08-22T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24353,
+    "categoryId": 2,
+    "name": "Limited Pack World Championship 2025",
+    "cleanSetName": "Limited Pack World Championship 2025",
+    "urlName": "limited-pack-world-championship-2025",
+    "abbreviation": "25LP",
+    "releaseDate": "2025-08-30T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24357,
+    "categoryId": 2,
+    "name": "Doom of Dimensions",
+    "cleanSetName": "Doom of Dimensions",
+    "urlName": "doom-of-dimensions",
+    "abbreviation": "DOOD",
+    "releaseDate": "2025-09-26T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24358,
+    "categoryId": 2,
+    "name": "OTS Tournament Pack 29",
+    "cleanSetName": "OTS Tournament Pack 29",
+    "urlName": "ots-tournament-pack-29",
+    "abbreviation": "OP29",
+    "releaseDate": "2025-10-15T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24392,
+    "categoryId": 2,
+    "name": "THE CHRONICLES DECK: The Fallen & The Virtuous (All-Foil Edition)",
+    "cleanSetName": "THE CHRONICLES DECK The Fallen and The Virtuous All Foil Edition",
+    "urlName": "the-chronicles-deck-the-fallen-and-the-virtuous-all-foil-edition",
+    "abbreviation": "CH01",
+    "releaseDate": "2025-10-24T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24396,
+    "categoryId": 2,
+    "name": "Legendary 5D's Decks",
+    "cleanSetName": "Legendary 5Ds Decks",
+    "urlName": "legendary-5ds-decks",
+    "abbreviation": "L5DD",
+    "releaseDate": "2025-11-21T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24460,
+    "categoryId": 2,
+    "name": "eFootball Collaboration Promos",
+    "cleanSetName": "eFootball Collaboration Promos",
+    "urlName": "efootball-collaboration-promos",
+    "abbreviation": "EFC1",
+    "releaseDate": "2025-09-27T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24475,
+    "categoryId": 2,
+    "name": "Phantom Revenge",
+    "cleanSetName": "Phantom Revenge",
+    "urlName": "phantom-revenge",
+    "abbreviation": "PHRE",
+    "releaseDate": "2025-12-19T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24486,
+    "categoryId": 2,
+    "name": "THE CHRONICLES DECK: Spirit Charmers (All-Foil Edition)",
+    "cleanSetName": "THE CHRONICLES DECK Spirit Charmers All Foil Edition",
+    "urlName": "the-chronicles-deck-spirit-charmers-all-foil-edition",
+    "abbreviation": "CH02",
+    "releaseDate": "2026-01-23T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24506,
+    "categoryId": 2,
+    "name": "Legendary Collection Kaiba (2020 Date Reprint)",
+    "cleanSetName": "Legendary Collection Kaiba 2020 Date Reprint",
+    "urlName": "legendary-collection-kaiba-2020-date-reprint",
+    "abbreviation": "LCKC",
+    "releaseDate": "2025-10-09T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24542,
+    "categoryId": 2,
+    "name": "OTS Tournament Pack 30",
+    "cleanSetName": "OTS Tournament Pack 30",
+    "urlName": "ots-tournament-pack-30",
+    "abbreviation": "OP30",
+    "releaseDate": "2026-02-11T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24549,
+    "categoryId": 2,
+    "name": "Legendary Modern Decks 2026",
+    "cleanSetName": "Legendary Modern Decks 2026",
+    "urlName": "legendary-modern-decks-2026",
+    "abbreviation": "L26D",
+    "releaseDate": "2026-03-13T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24555,
+    "categoryId": 2,
+    "name": "Rarity Collection 5",
+    "cleanSetName": "Rarity Collection 5",
+    "urlName": "rarity-collection-5",
+    "abbreviation": "RA05",
+    "releaseDate": "2026-04-17T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24558,
+    "categoryId": 2,
+    "name": "Burst Protocol",
+    "cleanSetName": "Burst Protocol",
+    "urlName": "burst-protocol",
+    "abbreviation": "BPRO",
+    "releaseDate": "2026-02-06T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24559,
+    "categoryId": 2,
+    "name": "Maze of Muertos",
+    "cleanSetName": "Maze of Muertos",
+    "urlName": "maze-of-muertos",
+    "abbreviation": "",
+    "releaseDate": "2026-02-20T00:00:00",
     "isSupplemental": false,
     "active": true
   }

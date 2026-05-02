@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import NextApp from "next/app";
 
 import Layout from "@/components/Layout";
 import { CardProvider } from "@/context/CardContext";
@@ -27,4 +28,22 @@ export default function App( { Component, pageProps, router } ) {
       </MarketPriceProvider>
     </CardProvider>
   );
+};
+
+const getNonceFromHeaders = ( headers ) => {
+  const nonceHeader = headers?.[ "x-nonce" ];
+  return Array.isArray( nonceHeader ) ? nonceHeader[ 0 ] : nonceHeader;
+};
+
+App.getInitialProps = async ( appContext ) => {
+  const appProps = await NextApp.getInitialProps( appContext );
+  const nonce = getNonceFromHeaders( appContext.ctx.req?.headers );
+
+  return {
+    ...appProps,
+    pageProps: {
+      ...appProps.pageProps,
+      ...( nonce ? { nonce } : {} ),
+    },
+  };
 };

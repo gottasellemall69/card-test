@@ -295,28 +295,7 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
   );
 };
 
-export async function getStaticPaths() {
-  const sets = await loadCardSets();
-  const uniqueLetters = new Set();
-
-  sets.forEach( ( set ) => {
-    const letter = normalizeLetter( set?.name );
-    if ( letter ) {
-      uniqueLetters.add( letter );
-    }
-  } );
-
-  const paths = Array.from( uniqueLetters ).map( ( letter ) => ( {
-    params: { letter: [ letter ] },
-  } ) );
-
-  return {
-    paths,
-    fallback: "blocking",
-  };
-}
-
-export async function getStaticProps( { params } ) {
+export async function getServerSideProps( { params } ) {
   const letterParam = Array.isArray( params?.letter )
     ? params.letter[ 0 ]
     : params?.letter;
@@ -345,7 +324,6 @@ export async function getStaticProps( { params } ) {
       letter: normalizedLetter,
       sets: setsForLetter,
     },
-    revalidate: 60 * 60,
   };
 }
 
