@@ -380,7 +380,7 @@ const buildDefaultFilters = ( entries = [] ) => {
   return {
     rarity: [],
     condition: defaultCondition ? [ defaultCondition ] : [],
-    printing: defaultPrintings,
+    printing: [],
   };
 };
 const variantKey = ( variant ) => {
@@ -2432,7 +2432,6 @@ export async function getServerSideProps( { params } ) {
 }
 
 export default CardsInSetPage;
-
 
 
 

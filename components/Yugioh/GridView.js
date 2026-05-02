@@ -1,6 +1,7 @@
 ﻿import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import Notification from "@/components/Notification";
+import PriceTrendIndicator from "@/components/Yugioh/PriceTrendIndicator";
 import cardData from "@/public/card-data/Yugioh/card_data.json";
 
 const FALLBACK_IMAGE = "/images/yugioh-card.png";
@@ -317,7 +318,14 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                             <div className="relative flex flex-col gap-1 p-2 text-white text-shadow glass w-full bg-transparent">
                               <h3 className="text-lg font-semibold text-pretty break-words">{ card.productName }</h3>
                               { formatCurrency( card.marketPrice ) && (
-                                <p className="text-lg	font-semibold">{ formatCurrency( card.marketPrice ) }</p>
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <p className="text-lg font-semibold">{ formatCurrency( card.marketPrice ) }</p>
+                                  <PriceTrendIndicator
+                                    previousPrice={ card.oldPrice }
+                                    currentPrice={ card.marketPrice }
+                                    compact={ true }
+                                  />
+                                </div>
                               ) }
                               <p className="text-xs font-medium uppercase tracking-wide">
                                 { [ card.rarity, card.printing ].filter( Boolean ).join( " • " ) }

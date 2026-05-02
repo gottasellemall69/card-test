@@ -155,7 +155,7 @@ export function getSportsUrls( cardSet: string ): string[] {
       return [
         `https://www.sportscardspro.com/console/football-cards-1991-proline-portraits?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor }&format=json`,
         `https://www.sportscardspro.com/console/football-cards-1991-proline-portraits?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 50 }&format=json`,
-        `https://www.sportscardspro.com/console/football-cards-1991-proline-portraits?sort=model-number&exclude-variants=false&rookies-only=false&$cursor${ cursor + 100 }&format=json`,
+        `https://www.sportscardspro.com/console/football-cards-1991-proline-portraits?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 100 }&format=json`,
         `https://www.sportscardspro.com/console/football-cards-1991-proline-portraits?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 150 }&format=json`,
         `https://www.sportscardspro.com/console/football-cards-1991-proline-portraits?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 200 }&format=json`,
         `https://www.sportscardspro.com/console/football-cards-1991-proline-portraits?sort=model-number&exclude-variants=false&rookies-only=false&cursor=${ cursor + 250 }&format=json`,

@@ -149,7 +149,7 @@ export default function SideNav() {
             </li>
           );
         } ) }
-        <div className="block mt-5 py-1 text-sm/6 text-gray-900 focus:bg-gray-50 focus:outline-hidden">
+        <div className="block mt-5 py-1 text-sm/6 focus:bg-gray-50 focus:outline-hidden">
           { isAuthenticated ? (
             <button
               onClick={ handleLogout }

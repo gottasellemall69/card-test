@@ -23,7 +23,7 @@ const buildContentSecurityPolicy = ( nonce: string ): string => {
     default-src 'self';
     script-src 'self' 'nonce-${ nonce }' 'strict-dynamic'${ isDev ? " 'unsafe-eval'" : "" } https://va.vercel-scripts.com;
     style-src 'self' 'nonce-${ nonce }'${ isDev ? " 'unsafe-inline'" : "" };
-    style-src-elem 'self' 'nonce-${ nonce }';
+    style-src-elem 'self'${ isDev ? " 'unsafe-inline'" : ` 'nonce-${ nonce }'` };
     style-src-attr 'unsafe-inline';
     img-src 'self' blob: data: https://images.ygoprodeck.com https://images.unsplash.com https://tailwindcss.com https://raw.githubusercontent.com;
     font-src 'self' data:;

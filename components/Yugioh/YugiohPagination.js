@@ -70,7 +70,7 @@ const YugiohPagination = ( { currentPage = 1, itemsPerPage = 20, totalItems = 0,
             onChange={ handleInputChange }
             onBlur={ handleInputSubmit }
             onKeyDown={ ( event ) => event.key === 'Enter' && handleInputSubmit() }
-            className="w-16 px-3 py-2 text-center text-white text-shadow"
+            className="w-10 border border-dotted border-white/30 bg-transparent px-2 py-1 text-center text-white text-shadow"
             aria-label="Page number input"
           />
           <span className="text-white/80" aria-live="polite">

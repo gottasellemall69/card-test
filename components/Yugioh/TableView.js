@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Notification from '@/components/Notification';
+import PriceTrendIndicator from '@/components/Yugioh/PriceTrendIndicator';
 
 const SORTABLE_COLUMNS = {
   quantity: { key: 'quantity', type: 'number' },
@@ -67,14 +68,6 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
       return map;
     }, new Map() );
   }, [ safeCards ] );
-
-  const calculatePriceTrend = ( previousPrice, currentPrice ) => {
-    const prev = Number( previousPrice ) || 0;
-    const next = Number( currentPrice ) || 0;
-    if ( next > prev ) return '+';
-    if ( next < prev ) return '-';
-    return '';
-  };
 
   const handleEdit = useCallback( ( cardId, field ) => {
     const card = cardLookup.get( cardId );
@@ -346,7 +339,9 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
               Price { getSortArrow( 'marketPrice' ) }
             </th>
             <th className="border border-white/10 px-3 py-2" />
-            <th className="border border-white/10 px-3 py-2" />
+            <th className="border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
+              Trend
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -460,8 +455,11 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
                     Delete
                   </button>
                 </td>
-                <td className="px-3 py-2 text-center text-xs text-white/60">
-                  { calculatePriceTrend( card?.oldPrice ?? 0, card?.marketPrice ?? 0 ) }
+                <td className="px-3 py-2 text-center">
+                  <PriceTrendIndicator
+                    previousPrice={ card?.oldPrice }
+                    currentPrice={ card?.marketPrice }
+                  />
                 </td>
               </tr>
             );

@@ -109,7 +109,7 @@ const Breadcrumb = ( { items = null } ) => {
 
   return (
     <nav
-      className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8"
+      className="object-start self-start items-start mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8"
       aria-label="Breadcrumb"
     >
       <ol className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white/80 shadow-2xl backdrop-blur">

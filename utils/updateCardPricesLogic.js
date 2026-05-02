@@ -6,7 +6,7 @@ import { recordPriceHistoryEntry } from "@/utils/priceHistoryStore";
 
 const RARITY_NORMALIZATION_MAP = {
   "Common": "Common",
-  "Common / Short Print": "Common / Short Print",
+  "Common / Short Print": "Common",
   "Rare": "Rare",
   "Super Rare": "Super Rare",
   "Ultra Rare": "Ultra Rare",
