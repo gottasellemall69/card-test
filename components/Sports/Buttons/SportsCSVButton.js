@@ -1,8 +1,10 @@
+import { flattenSportsProducts } from '@/utils/sportsData';
+
 const SportsCSVButton = ({ sportsData }) => {
   const downloadCSV = () => {
     const csvHeader = "Name,Set,Ungraded,PSA 9,PSA 10";
-    const csvData = sportsData.flatMap((item) =>
-      item.products.map((product) => {
+    const csvData = flattenSportsProducts(sportsData)
+      .map((product) => {
         const productName = product["productName"] || '';
         const consoleUri = product["consoleUri"] || '';
         const price1 = product["price1"] || '';
@@ -11,7 +13,7 @@ const SportsCSVButton = ({ sportsData }) => {
 
         return `"${ productName }",${ consoleUri },"${ price1 }","${ price3 }","${ price2 }"`;
       })
-    ).join("\n");
+      .join("\n");
 
     const csvContent = `${ csvHeader }\n${ csvData }`;
     const element = document.createElement('a');

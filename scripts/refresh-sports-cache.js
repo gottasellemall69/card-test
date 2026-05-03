@@ -277,6 +277,55 @@ const fetchJsonFromBrowser = async ( page, url ) => {
   }
 };
 
+const normalizeProductKeyPart = ( value ) => String( value ?? '' ).trim().toLowerCase();
+
+const buildProductKey = ( product ) => {
+  const id = normalizeProductKeyPart( product?.id );
+  if ( id ) {
+    return `id:${ id }`;
+  }
+
+  const consoleUri = normalizeProductKeyPart( product?.consoleUri );
+  if ( consoleUri ) {
+    return `uri:${ consoleUri }`;
+  }
+
+  const productName = normalizeProductKeyPart( product?.productName );
+  return productName ? `name:${ productName }` : '';
+};
+
+const countProducts = ( data ) =>
+  data.reduce(
+    ( count, page ) => count + ( Array.isArray( page?.products ) ? page.products.length : 0 ),
+    0
+  );
+
+const dedupeSportsData = ( data ) => {
+  const seen = new Set();
+
+  return data.map( ( page ) => {
+    if ( !page || !Array.isArray( page.products ) ) {
+      return page;
+    }
+
+    const products = page.products.filter( ( product ) => {
+      const key = buildProductKey( product );
+      if ( !key ) {
+        return true;
+      }
+
+      if ( seen.has( key ) ) {
+        return false;
+      }
+
+      seen.add( key );
+      return true;
+    } );
+
+    return { ...page, products };
+  } );
+};
+
 const refreshCardSet = async ( page, collection, cardSet, urls ) => {
   const data = [];
   const pageUrl = buildPageUrl( urls[ 0 ] );
@@ -302,16 +351,22 @@ const refreshCardSet = async ( page, collection, cardSet, urls ) => {
     throw new Error( 'No valid JSON payloads returned.' );
   }
 
+  const dedupedData = dedupeSportsData( data );
+  const duplicateCount = countProducts( data ) - countProducts( dedupedData );
+  if ( duplicateCount > 0 ) {
+    console.log( `  removed ${ duplicateCount } duplicate product row(s).` );
+  }
+
   const fetchedAt = new Date();
   await collection.updateOne(
     { cardSet },
     {
       $set: {
         cardSet,
-        data,
+        data: dedupedData,
         fetchedAt,
         sourceUrls: urls,
-        pageCount: data.length,
+        pageCount: dedupedData.length,
         fetchMode: 'browser-console',
       },
     },

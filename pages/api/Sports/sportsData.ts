@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '@/utils/mongo';
+import { dedupeSportsData } from '@/utils/sportsData';
 import { getSportsUrls } from '@/utils/sportsUrls';
 
 type HeaderMap = Record<string, string>;
@@ -520,6 +521,17 @@ const fetchFromServer = async ( urls: string[], headers: HeaderMap = DEFAULT_HEA
   return results;
 };
 
+type CachedSportsProduct = {
+  id?: string | number | null;
+  consoleUri?: string | null;
+  productName?: string | null;
+};
+
+type CachedSportsPage = {
+  products?: CachedSportsProduct[];
+  [ key: string ]: unknown;
+};
+
 export default async function handler( req: NextApiRequest, res: NextApiResponse ) {
   res.setHeader( 'Cache-Control', 'no-store' );
 
@@ -548,7 +560,9 @@ export default async function handler( req: NextApiRequest, res: NextApiResponse
     const collection = client.db( 'cardPriceApp' ).collection( 'sportsDataCache' );
 
     const cached = await collection.findOne( { cardSet } );
-    const cachedData = cached?.data?.length ? cached.data : null;
+    const cachedData = Array.isArray( cached?.data ) && cached.data.length
+      ? dedupeSportsData( cached.data as CachedSportsPage[] )
+      : null;
 
     if ( method === 'GET' && cachedData ) {
       return res.status( 200 ).json( cachedData );
@@ -574,7 +588,9 @@ export default async function handler( req: NextApiRequest, res: NextApiResponse
     }
 
     const serverData = await fetchFromServer( urls, requestHeaders );
-    const dataToStore = serverData.filter( Boolean );
+    const dataToStore = dedupeSportsData(
+      serverData.filter( Boolean ) as CachedSportsPage[]
+    );
 
     if ( dataToStore.length === 0 ) {
       if ( cachedData ) {

@@ -7,6 +7,7 @@ import { useSelectedCards } from '@/hooks/useSelectedCards';
 import SportsCSVButton from '@/components/Sports/Buttons/SportsCSVButton';
 import SportsPagination from '@/components/Sports/SportsPagination';
 import { Card, SportsData } from '@/types/Card';
+import { flattenSportsProducts } from '@/utils/sportsData';
 
 interface SportsTableProps {
   sportsData: SportsData;
@@ -51,13 +52,10 @@ const SportsTable: React.FC<SportsTableProps> = ( {
   isLoading,
 } ) => {
   const flatData = React.useMemo<Card[]>( () => {
-    if ( !Array.isArray( sportsData ) ) return [];
-
-    return sportsData.flatMap( ( item ) =>
-      Array.isArray( item.products )
-        ? item.products.map( ( product ) => ( { ...product, id: String( product?.id ?? `${ product?.productName }-${ product?.consoleUri }` ) } ) )
-        : [],
-    );
+    return flattenSportsProducts( sportsData ).map( ( product ) => ( {
+      ...product,
+      id: String( product?.id ?? `${ product?.productName }-${ product?.consoleUri }` ),
+    } ) );
   }, [ sportsData ] );
 
   const { sortedData, handleSort, getSortIcon } = useSorting<Card>( flatData );
