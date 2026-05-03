@@ -1183,4 +1183,11 @@ const CardDetails = () => {
   );
 };
 
+export const getServerSideProps = async () => {
+  // Keep production client transitions on this page's own _next/data route.
+  return {
+    props: {},
+  };
+};
+
 export default CardDetails;
