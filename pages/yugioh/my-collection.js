@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Filter, Grid, List, Loader2, TrendingUp, Trash2, Search } from "lucide-react";
 import Notification from '@/components/Notification';
+import { useAppShellSlots } from "@/components/Layout";
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import FilterPanel from "@/components/Yugioh/FilterPanel";
@@ -601,6 +602,42 @@ const MyCollection = ( { initialAuthState = false } ) => {
     </div>
   );
 
+  const shellRightSidebar = useMemo( () => {
+    if ( isLoading || !isAuthenticated || !isDesktopFilterOpen ) {
+      return null;
+    }
+
+    return (
+      <div id="desktop-filter-panel" className="flex h-full w-full flex-col px-2 py-4">
+        <FilterPanel
+          className="h-full rounded-2xl border-white/10 bg-black/60 text-white shadow-none"
+          filters={ filters }
+          updateFilters={ handleFilterChange }
+          clearFilters={ handleClearFilters }
+        />
+      </div>
+    );
+  }, [
+    filters,
+    handleClearFilters,
+    handleFilterChange,
+    isAuthenticated,
+    isDesktopFilterOpen,
+    isLoading,
+  ] );
+
+  const shellFooter = useMemo( () => (
+    <Notification
+      show={ notification.show }
+      setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
+      message={ notification.message }
+    />
+  ), [ notification.message, notification.show ] );
+
+  useAppShellSlots( {
+    rightSidebar: shellRightSidebar,
+    footer: shellFooter,
+  } );
 
   if ( isLoading ) {
     return (
@@ -640,9 +677,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
         <meta charSet="UTF-8" />
       </Head>
       <div className="min-h-screen yugioh-bg text-white">
-        <main
-          className={ `min-h-screen mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4 ${ isDesktopFilterOpen ? "xl:pr-72" : "" }` }
-        >
+        <main className="min-h-screen mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4">
 
           <header className={ `rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur ${ SUMMARY_PANEL_HEIGHT }` }>
             <div className="flex flex-wrap flex-col lg:flex-row lg:items-end lg:justify-between">
@@ -726,6 +761,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
                         <CardFilter
                           filters={ filters }
                           updateFilters={ handleFilterChange }
+                          clearFilters={ handleClearFilters }
                           open={ isFilterMenuOpen }
                           setOpen={ setIsFilterMenuOpen }
                           title="Filter collection"
@@ -800,7 +836,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
                 </div>
 
                 { hasCards ? (
-                  <>
+                  <div id="collection-results-art-band">
                     { totalItems > ITEMS_PER_PAGE && (
                       <YugiohPagination
                         currentPage={ currentPage }
@@ -836,7 +872,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
                         handlePageClick={ handlePageClick }
                       />
                     ) }
-                  </>
+                  </div>
                 ) : (
                   <div className="min-h-[28rem] rounded-3xl border border-dashed border-white/20 bg-black/30 p-12 text-center text-white/70">
                     <p className="text-lg font-semibold">Your collection is empty.</p>
@@ -847,27 +883,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
             </div>
           </section>
 
-          <Notification
-            show={ notification.show }
-            setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
-            message={ notification.message }
-          />
         </main>
-        { isDesktopFilterOpen && (
-          <aside
-            id="desktop-filter-panel"
-            className="hidden xl:fixed xl:inset-y-0 xl:right-0 xl:z-40 xl:flex xl:w-72"
-          >
-            <div className="flex h-full w-full flex-col border-l border-white/10 bg-black/40 px-2 py-8 backdrop-blur">
-              <FilterPanel
-                className="h-full overflow-y-auto rounded-2xl border-white/10 bg-black/60 text-white shadow-none"
-                filters={ filters }
-                updateFilters={ handleFilterChange }
-                clearFilters={ handleClearFilters }
-              />
-            </div>
-          </aside>
-        ) }
       </div>
 
       <SpeedInsights />

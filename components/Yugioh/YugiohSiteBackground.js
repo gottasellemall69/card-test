@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 
 const MOBILE_BACKGROUND = "/images/backgrounds/yugioh/background.svg";
 const DESKTOP_CHARACTER = "/yugioh-parallax/character.png";
 const DESKTOP_GLOW = "/yugioh-parallax/glow.png";
 const DESKTOP_QUERY = "(min-width: 901px)";
-const SIDEBAR_BREAKPOINT = 1024;
-const SIDEBAR_WIDTH = 324;
+const ORIGINAL_SIDEBAR_BREAKPOINT = 1024;
+const ORIGINAL_SIDEBAR_WIDTH = 324;
 const ANIMATION_EASING = 0.08;
 const SETTLE_EPSILON = 0.002;
+
+const clampNumber = ( value, min, max ) => Math.min( Math.max( value, min ), max );
 
 const bindMediaQuery = ( mediaQuery, handler ) => {
     if ( typeof mediaQuery.addEventListener === "function" ) {
@@ -22,12 +25,22 @@ const bindMediaQuery = ( mediaQuery, handler ) => {
 };
 
 export default function YugiohSiteBackground() {
+    const router = useRouter();
     const sceneRef = useRef( null );
     const stageRef = useRef( null );
     const cameraRef = useRef( null );
     const glowRef = useRef( null );
     const characterRef = useRef( null );
     const sparksRef = useRef( null );
+    const usesOriginalBackgroundPosition = [
+        "/yugioh",
+        "/yugioh/sets/set-index",
+        "/yugioh/sets/[...letter]",
+        "/yugioh/deck-builder",
+    ].includes( router.pathname );
+    const isCollectionPage = router.pathname.startsWith( "/yugioh/my-collection" );
+    const isSetDetailPage = router.pathname === "/yugioh/sets/[letter]/[setName]";
+    const usesMeasuredArtBand = isCollectionPage || isSetDetailPage;
 
     useEffect( () => {
         if ( typeof window === "undefined" ) {
@@ -53,7 +66,7 @@ export default function YugiohSiteBackground() {
         let currentY = 0;
         let rafId = 0;
         let desktopMetrics = {
-            sidebarWidth: 0,
+            contentLeft: 0,
             usableWidth: window.innerWidth,
             contentCenterPercent: 50,
             sceneOffsetPx: 0,
@@ -62,15 +75,32 @@ export default function YugiohSiteBackground() {
         let scenePageLeft = 0;
 
         const getDesktopMetrics = () => {
-            const sidebarWidth = window.innerWidth >= SIDEBAR_BREAKPOINT ? SIDEBAR_WIDTH : 0;
-            const usableWidth = Math.max( 1, window.innerWidth - sidebarWidth );
-            const contentCenter = sidebarWidth + ( usableWidth / 2 );
+            if ( usesOriginalBackgroundPosition ) {
+                const sidebarWidth = window.innerWidth >= ORIGINAL_SIDEBAR_BREAKPOINT
+                    ? ORIGINAL_SIDEBAR_WIDTH
+                    : 0;
+                const usableWidth = Math.max( 1, window.innerWidth - sidebarWidth );
+                const contentCenter = sidebarWidth + ( usableWidth / 2 );
+
+                return {
+                    contentLeft: sidebarWidth,
+                    usableWidth,
+                    contentCenterPercent: ( contentCenter / window.innerWidth ) * 100,
+                    sceneOffsetPx: sidebarWidth / 2,
+                };
+            }
+
+            const mainRegion = document.querySelector( ".app-shell-main" );
+            const mainRect = mainRegion?.getBoundingClientRect();
+            const contentLeft = mainRect ? Math.max( 0, mainRect.left ) : 0;
+            const usableWidth = Math.max( 1, window.innerWidth - contentLeft );
+            const contentCenter = contentLeft + ( usableWidth / 2 );
 
             return {
-                sidebarWidth,
+                contentLeft,
                 usableWidth,
                 contentCenterPercent: ( contentCenter / window.innerWidth ) * 100,
-                sceneOffsetPx: sidebarWidth / 2,
+                sceneOffsetPx: contentCenter - ( window.innerWidth / 2 ),
             };
         };
 
@@ -81,6 +111,38 @@ export default function YugiohSiteBackground() {
             scenePageTop = rect.top + window.scrollY;
             scenePageLeft = rect.left + window.scrollX;
             scene.style.setProperty( "--scene-offset-x", `${ desktopMetrics.sceneOffsetPx }px` );
+        };
+
+        const syncMeasuredArtBounds = () => {
+            if ( !usesMeasuredArtBand ) {
+                return;
+            }
+
+            const resultsBand = document.getElementById( "collection-results-art-band" )
+                || document.getElementById( "set-results-art-band" );
+
+            if ( !resultsBand ) {
+                scene.style.removeProperty( "--scene-art-y" );
+                scene.style.removeProperty( "--scene-character-height" );
+                scene.style.removeProperty( "--scene-glow-height" );
+                return;
+            }
+
+            const sceneRect = scene.getBoundingClientRect();
+            const bandRect = resultsBand.getBoundingClientRect();
+            const top = Math.max( 0, bandRect.top - sceneRect.top );
+            const rootFontSize = Number.parseFloat( window.getComputedStyle( document.documentElement ).fontSize ) || 16;
+            const characterHeight = clampNumber( window.innerHeight * 1.16, rootFontSize * 50, rootFontSize * 80 );
+            const glowHeight = clampNumber( window.innerHeight, rootFontSize * 42, rootFontSize * 72 );
+
+            scene.style.setProperty( "--scene-art-y", `${ top }px` );
+            scene.style.setProperty( "--scene-character-height", `${ characterHeight }px` );
+            scene.style.setProperty( "--scene-glow-height", `${ glowHeight }px` );
+        };
+
+        const syncScene = () => {
+            syncMeasurements();
+            syncMeasuredArtBounds();
         };
 
         const applyTransforms = ( x, y ) => {
@@ -151,10 +213,10 @@ export default function YugiohSiteBackground() {
                 return;
             }
 
-            const { sidebarWidth, usableWidth } = desktopMetrics;
+            const { contentLeft, usableWidth } = desktopMetrics;
             const localX = x + window.scrollX - scenePageLeft;
             const localY = y + window.scrollY - scenePageTop;
-            const normalizedX = ( ( x - sidebarWidth ) / usableWidth - 0.5 ) * 2;
+            const normalizedX = ( ( x - contentLeft ) / usableWidth - 0.5 ) * 2;
             const normalizedY = ( y / window.innerHeight - 0.5 ) * 2;
 
             targetX = Math.max( -1, Math.min( 1, normalizedX ) );
@@ -196,7 +258,7 @@ export default function YugiohSiteBackground() {
 
         const syncViewportMode = () => {
             isDesktop = desktopQuery.matches;
-            syncMeasurements();
+            syncScene();
 
             if ( !isDesktop ) {
                 stopAnimation();
@@ -211,13 +273,17 @@ export default function YugiohSiteBackground() {
         };
 
         const onResize = () => {
-            syncMeasurements();
+            syncScene();
             applyTransforms( currentX, currentY );
         };
 
         resetPointer( false );
-        syncMeasurements();
+        syncScene();
         applyTransforms( 0, 0 );
+        const postLayoutSyncId = window.requestAnimationFrame( () => {
+            syncScene();
+            applyTransforms( currentX, currentY );
+        } );
 
         window.addEventListener( "pointermove", onPointerMove, { passive: true } );
         window.addEventListener( "mouseleave", onMouseLeave );
@@ -226,17 +292,37 @@ export default function YugiohSiteBackground() {
         document.addEventListener( "visibilitychange", onVisibilityChange );
 
         const removeMediaListener = bindMediaQuery( desktopQuery, syncViewportMode );
+        const mainRegion = document.querySelector( ".app-shell-main" );
+        const measuredResultsBand = usesMeasuredArtBand
+            ? document.getElementById( "collection-results-art-band" )
+                || document.getElementById( "set-results-art-band" )
+            : null;
+        const resizeObserver = typeof ResizeObserver === "function" && mainRegion
+            ? new ResizeObserver( () => {
+                syncScene();
+                applyTransforms( currentX, currentY );
+            } )
+            : null;
+
+        if ( resizeObserver && mainRegion ) {
+            resizeObserver.observe( mainRegion );
+            if ( measuredResultsBand ) {
+                resizeObserver.observe( measuredResultsBand );
+            }
+        }
 
         return () => {
+            window.cancelAnimationFrame( postLayoutSyncId );
             window.removeEventListener( "pointermove", onPointerMove );
             window.removeEventListener( "mouseleave", onMouseLeave );
             window.removeEventListener( "blur", onWindowBlur );
             window.removeEventListener( "resize", onResize );
             document.removeEventListener( "visibilitychange", onVisibilityChange );
             removeMediaListener();
+            resizeObserver?.disconnect();
             stopAnimation();
         };
-    }, [] );
+    }, [ usesMeasuredArtBand, usesOriginalBackgroundPosition ] );
 
     return (
         <>
@@ -245,6 +331,7 @@ export default function YugiohSiteBackground() {
                     --px: 50%;
                     --py: 50%;
                     --scene-offset-x: 0px;
+                    --scene-art-y: clamp(34rem, 62svh, 46rem);
                     --shine: radial-gradient(
                         circle at var(--px) var(--py),
                         rgba(255, 198, 124, 0.18),
@@ -256,7 +343,7 @@ export default function YugiohSiteBackground() {
                     inset: 0;
                     width: 100%;
                     height: 100%;
-                    min-height: 100%;
+                    min-height: 100svh;
                     z-index: 0;
                     overflow: hidden;
                     isolation: isolate;
@@ -267,6 +354,27 @@ export default function YugiohSiteBackground() {
                         radial-gradient(circle at 25% 60%, rgba(255, 102, 0, 0.14), transparent 30%),
                         radial-gradient(circle at 78% 28%, rgba(135, 60, 255, 0.16), transparent 32%),
                         #09090d;
+                }
+
+                .ygo-bg.measured-art-band-page {
+                    --scene-art-y: clamp(76rem, 132svh, 102rem);
+                    --scene-character-height: clamp(50rem, 116vh, 80rem);
+                    --scene-glow-height: clamp(42rem, 100vh, 72rem);
+                }
+
+                .ygo-bg.original-position-page .stage {
+                    position: fixed;
+                    contain: layout paint style;
+                }
+
+                .ygo-bg.original-position-page .glow {
+                    inset: -12% -10%;
+                    background-position: calc(50% + var(--scene-offset-x)) 51%;
+                }
+
+                .ygo-bg.original-position-page .character {
+                    inset: -22% -12%;
+                    background-position: calc(50% + var(--scene-offset-x)) 50%;
                 }
 
                 .mobile-art {
@@ -281,7 +389,7 @@ export default function YugiohSiteBackground() {
                 }
 
                 .stage {
-                    position: fixed;
+                    position: absolute;
                     inset: 0;
                     z-index: 1;
                     overflow: hidden;
@@ -289,12 +397,15 @@ export default function YugiohSiteBackground() {
                     perspective-origin: 50% 50%;
                     transform-style: preserve-3d;
                     pointer-events: none;
-                    contain: layout paint style;
+                    contain: paint style;
                 }
 
                 .camera {
                     position: absolute;
                     inset: 0;
+                    width: 100%;
+                    height: 100%;
+                    min-height: 100%;
                     transform-style: preserve-3d;
                     will-change: transform;
                     pointer-events: none;
@@ -313,10 +424,10 @@ export default function YugiohSiteBackground() {
 
                 .glow {
                     z-index: 4;
-                    inset: -12% -10%;
+                    inset: 0 -10%;
                     background-image: url("${ DESKTOP_GLOW }");
                     background-size: auto clamp(42rem, 100vh, 72rem);
-                    background-position: calc(50% + var(--scene-offset-x)) 51%;
+                    background-position: calc(50% + var(--scene-offset-x)) var(--scene-art-y);
                     background-repeat: no-repeat;
                     mix-blend-mode: screen;
                     will-change: transform;
@@ -326,17 +437,25 @@ export default function YugiohSiteBackground() {
                 }
 
                 .character {
-                    inset: -22% -12%;
+                    inset: 0 -12%;
                     z-index: 5;
                     background-image: url("${ DESKTOP_CHARACTER }");
                     background-size: auto clamp(50rem, 116vh, 80rem);
-                    background-position: calc(50% + var(--scene-offset-x)) 50%;
+                    background-position: calc(50% + var(--scene-offset-x)) var(--scene-art-y);
                     background-repeat: no-repeat;
                     will-change: transform;
                     filter:
                         drop-shadow(0 14px 18px rgba(0, 0, 0, 0.28))
                         drop-shadow(0 24px 32px rgba(0, 0, 0, 0.2));
                     transform: translate3d(0px, 0px, 90px) scale(1.18);
+                }
+
+                .ygo-bg.measured-art-band-page .glow {
+                    background-size: auto var(--scene-glow-height);
+                }
+
+                .ygo-bg.measured-art-band-page .character {
+                    background-size: auto var(--scene-character-height);
                 }
 
                 .sparks {
@@ -427,7 +546,11 @@ export default function YugiohSiteBackground() {
                 }
             ` }</style>
 
-            <div ref={ sceneRef } className="ygo-bg" aria-hidden="true">
+            <div
+                ref={ sceneRef }
+                className={ `ygo-bg${ usesOriginalBackgroundPosition ? " original-position-page" : "" }${ usesMeasuredArtBand ? " measured-art-band-page" : "" }` }
+                aria-hidden="true"
+            >
                 <div className="mobile-art" />
                 <div ref={ stageRef } className="stage">
                     <div ref={ cameraRef } className="camera">

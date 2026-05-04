@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
+import { useAppShellSlots } from "@/components/Layout";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useRouter } from "next/router";
 import useSWR, { mutate } from "swr";
@@ -882,6 +883,38 @@ const CardDetails = () => {
     triggerNotification,
   ] );
 
+  const shellHeader = useMemo( () => (
+    <Breadcrumb
+      className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+      items={ [
+        { label: "Home", href: "/yugioh" },
+        source === "collection"
+          ? { label: "My Collection", href: "/yugioh/my-collection" }
+          : { label: "Set Index", href: "/yugioh/sets/set-index" },
+        source !== "collection" && set_name
+          ? {
+            label: set_name,
+            href: `/yugioh/sets/${ encodeURIComponent( letter || "" ) }/${ encodeURIComponent( set_name ) }`,
+          }
+          : null,
+        { label: resolvedCardData?.name || "Card Details", href: null },
+      ].filter( Boolean ) }
+    />
+  ), [ letter, resolvedCardData?.name, set_name, source ] );
+
+  const shellFooter = useMemo( () => (
+    <Notification
+      show={ notification.show }
+      setShow={ updateNotificationVisibility }
+      message={ notification.message }
+    />
+  ), [ notification.message, notification.show, updateNotificationVisibility ] );
+
+  useAppShellSlots( {
+    header: shellHeader,
+    footer: shellFooter,
+  } );
+
   if ( resolvedCardError ) {
     return (
       <div className="yugioh-bg flex min-h-screen items-center justify-center px-4 text-white">
@@ -923,23 +956,6 @@ const CardDetails = () => {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[36rem] bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.2),transparent_34%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.14),transparent_30%),radial-gradient(circle_at_center,rgba(245,158,11,0.12),transparent_42%)]" />
 
         <div className="relative">
-          <Breadcrumb
-            className="mx-auto flex w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8"
-            items={ [
-              { label: "Home", href: "/yugioh" },
-              source === "collection"
-                ? { label: "My Collection", href: "/yugioh/my-collection" }
-                : { label: "Set Index", href: "/yugioh/sets/set-index" },
-              source !== "collection" && set_name
-                ? {
-                  label: set_name,
-                  href: `/yugioh/sets/${ encodeURIComponent( letter || "" ) }/${ encodeURIComponent( set_name ) }`,
-                }
-                : null,
-              { label: resolvedCardData?.name || "Card Details", href: null },
-            ].filter( Boolean ) }
-          />
-
           <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
             <header className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur xl:p-8">
               <div className={ `pointer-events-none absolute inset-0 bg-gradient-to-br ${ cardTheme.heroGlowClass }` } />
@@ -1173,11 +1189,6 @@ const CardDetails = () => {
         </div>
       </div>
 
-      <Notification
-        show={ notification.show }
-        setShow={ updateNotificationVisibility }
-        message={ notification.message }
-      />
       <SpeedInsights />
     </>
   );

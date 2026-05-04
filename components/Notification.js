@@ -63,7 +63,7 @@ const Notification = ( { show = false, setShow = () => { }, message = "" } ) => 
     </div>
   );
 
-  return createPortal( toast, document.body );
+  return createPortal( toast, document.getElementById( "app-shell-footer" ) || document.body );
 };
 
 export default Notification;

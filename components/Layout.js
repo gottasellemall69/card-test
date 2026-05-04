@@ -1,4 +1,11 @@
-﻿import { useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react';
@@ -6,20 +13,75 @@ import { Bars3Icon as MenuIcon, XMarkIcon as X } from '@heroicons/react/24/outli
 import SideNav from '@/components/Navigation/SideNav';
 import YugiohSiteBackground from '@/components/Yugioh/YugiohSiteBackground';
 
+const ShellSlotsContext = createContext( null );
+
+const EMPTY_SLOTS = {
+  header: null,
+  rightSidebar: null,
+  footer: null,
+};
+
+export function useAppShellSlots( slots ) {
+  const context = useContext( ShellSlotsContext );
+
+  useEffect( () => {
+    if ( !context ) {
+      return undefined;
+    }
+
+    context.setSlots( {
+      ...EMPTY_SLOTS,
+      ...slots,
+    } );
+
+    return () => {
+      context.clearSlots();
+    };
+  }, [
+    context,
+    slots?.header,
+    slots?.rightSidebar,
+    slots?.footer,
+  ] );
+}
 
 export default function Layout( { children } ) {
   const [ isSidebarOpen, setIsSidebarOpen ] = useState( false );
+  const [ slots, setSlots ] = useState( EMPTY_SLOTS );
   const router = useRouter();
   const showYugiohBackground = router.pathname.startsWith( '/yugioh' );
+  const hasHeaderSlot = Boolean( slots.header );
+  const hasRightSidebar = Boolean( slots.rightSidebar );
+  const hasFooterSlot = Boolean( slots.footer );
+
+  const clearSlots = useCallback( () => {
+    setSlots( EMPTY_SLOTS );
+  }, [] );
+
+  const contextValue = useMemo(
+    () => ( {
+      setSlots,
+      clearSlots,
+    } ),
+    [ clearSlots ]
+  );
 
   const toggleSidebar = () => {
-    setIsSidebarOpen( !isSidebarOpen );
+    setIsSidebarOpen( ( open ) => !open );
   };
 
+  useEffect( () => {
+    clearSlots();
+    setIsSidebarOpen( false );
+  }, [ clearSlots, router.asPath ] );
+
   return (
-    <div className={ `relative mx-auto min-h-screen w-full glass backdrop ${ showYugiohBackground ? "overflow-x-hidden" : "" }` }>
-      { showYugiohBackground ? <YugiohSiteBackground /> : null }
-      <div className="relative z-10">
+    <ShellSlotsContext.Provider value={ contextValue }>
+      <div
+        className={ `app-shell parent relative mx-auto min-h-screen w-full glass backdrop ${ showYugiohBackground ? "overflow-x-hidden" : "" } ${ hasHeaderSlot ? "app-shell--has-header" : "" } ${ hasRightSidebar ? "app-shell--has-right" : "" } ${ hasFooterSlot ? "app-shell--has-footer" : "" }` }
+      >
+        { showYugiohBackground ? <YugiohSiteBackground /> : null }
+
         <Dialog open={ isSidebarOpen } onClose={ setIsSidebarOpen } className="relative z-50 lg:hidden">
           <DialogBackdrop
             transition
@@ -46,23 +108,17 @@ export default function Layout( { children } ) {
             </DialogPanel>
           </div>
         </Dialog>
-        <div className="glass hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col dark:bg-gray-900">
-          <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 px-6 dark:border-white/10 dark:bg-black/10">
-            <nav className="flex flex-1 flex-col mt-10">
-              <SideNav />
-            </nav>
-          </div>
-        </div>
-        <div className="lg:pl-72 w-full">
-          <div className="sticky top-0 z-40 flex items-center gap-x-6 glass backdrop px-4 py-4 shadow-xs sm:px-6 lg:hidden dark:bg-gray-900 dark:shadow-none dark:after:pointer-events-none dark:after:absolute dark:after:inset-0 dark:after:border-b dark:after:border-white/10 dark:after:bg-black/10">
+
+        <header className="app-shell-header section">
+          <div className="app-shell-mobile-header">
             <button
               type="button"
               onClick={ toggleSidebar }
-              className=" text-gray-700 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:text-white justify-self-end place-items-end"
+              className="text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
               title="Open sidebar"
             >
               <span className="sr-only">Open sidebar</span>
-              <MenuIcon color={ "white" } aria-hidden="true" className="size-6" />
+              <MenuIcon color="white" aria-hidden="true" className="size-6" />
             </button>
             <Link href="/" className="flex-1 text-sm font-semibold leading-6 text-shadow text-white">
               CARD PRICE APP
@@ -71,13 +127,45 @@ export default function Layout( { children } ) {
               <span className="rounded-full border border-dashed border-white py-1 px-1 font-black text-shadow text-sm">PIC</span>
             </div>
           </div>
-          <main className="min-h-screen mx-auto">
-            <div className="max-w-full w-auto">
-              { children }
+
+          <div className="app-shell-desktop-header">
+            <Link href="/" className="text-sm font-semibold leading-6 text-shadow text-white">
+              CARD PRICE APP
+            </Link>
+            <div className="flex items-center">
+              <span className="rounded-full border border-dashed border-white py-1 px-1 font-black text-shadow text-sm">PIC</span>
             </div>
-          </main>
-        </div>
+          </div>
+
+          { hasHeaderSlot && (
+            <div className="app-shell-header-slot">
+              { slots.header }
+            </div>
+          ) }
+        </header>
+
+        <aside className="app-shell-left left-side section">
+          <div className="app-shell-left-inner">
+            <nav className="flex flex-1 flex-col">
+              <SideNav />
+            </nav>
+          </div>
+        </aside>
+
+        <main className="app-shell-main section">
+          { children }
+        </main>
+
+        { hasRightSidebar && (
+          <aside className="app-shell-right right-side section">
+            { slots.rightSidebar }
+          </aside>
+        ) }
+
+        <footer id="app-shell-footer" className="app-shell-footer section">
+          { slots.footer }
+        </footer>
       </div>
-    </div>
+    </ShellSlotsContext.Provider>
   );
 };

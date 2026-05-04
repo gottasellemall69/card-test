@@ -282,7 +282,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             return (
               <div
                 key={ card._id }
-                className="group relative flex flex-wrap mx-auto  sm:w-fit lg:w-full min-h-[32rem] flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
+                className="group relative flex flex-wrap mx-auto sm:w-fit lg:w-full min-h-96 h-full flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
               >
                 <div className="rounded relative mx-auto w-full max-w-[24rem] [perspective:1250px]">
                   <div
@@ -301,9 +301,9 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                         }
                       } }
                     >
-                      <div className="relative flex h-[24rem] w-full items-center justify-center overflow-hidden rounded border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
+                      <div className="relative flex max-h-[31rem] h-full w-full items-center justify-center overflow-hidden rounded border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
                         <img
-                          className="mx-auto h-full w-full object-top object-contain"
+                          className="mx-auto h-full w-full object-top object-cover"
                           src={ imageSrc }
                           alt={ `Card Image - ${ card.productName }` }
                           loading="lazy"
@@ -443,8 +443,6 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 };
 
 export default GridView;
-
-
 
 
 

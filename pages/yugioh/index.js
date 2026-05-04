@@ -2,10 +2,11 @@
 
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { useAppShellSlots } from '@/components/Layout';
 import { readAuthStateFromCookie, subscribeToAuthState } from '@/utils/authState';
 
 const LoadingSpinner = dynamic( () => import( '@/components/LoadingSpinner' ), { ssr: false } );
@@ -181,6 +182,7 @@ const Home = () => {
   const [ setNameIdMap, setSetNameIdMap ] = useState( {} );
   const [ fuzzyQuery, setFuzzyQuery ] = useState( '' );
   const [ fuzzyError, setFuzzyError ] = useState( '' );
+  const resultsRegionRef = useRef( null );
   const router = useRouter();
 
   useEffect( () => {
@@ -258,6 +260,37 @@ const Home = () => {
       isActive = false;
     };
   }, [ isAuthenticated ] );
+
+  useEffect( () => {
+    if ( isLoading || matchedCardData.length === 0 ) {
+      return undefined;
+    }
+
+    const scrollToResults = () => {
+      const target = resultsRegionRef.current || document.getElementById( "yugioh-matched-results" );
+
+      if ( !target ) {
+        return;
+      }
+
+      const prefersReducedMotion = window.matchMedia?.( "(prefers-reduced-motion: reduce)" )?.matches;
+      target.scrollIntoView( {
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "start",
+      } );
+      target.focus( { preventScroll: true } );
+    };
+
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame( () => {
+      secondFrame = window.requestAnimationFrame( scrollToResults );
+    } );
+
+    return () => {
+      window.cancelAnimationFrame( firstFrame );
+      window.cancelAnimationFrame( secondFrame );
+    };
+  }, [ isLoading, matchedCardData ] );
 
   const handleLoadExampleData = () => {
     setCardList( exampleCardList.trim() );
@@ -414,6 +447,50 @@ const Home = () => {
   };
 
   const welcomeSuffix = username ? `, ${ username }` : "";
+  const shellFooter = useMemo( () => {
+    if ( !isLoading && matchedCardData.length === 0 ) {
+      return null;
+    }
+
+    return (
+      <section
+        ref={ resultsRegionRef }
+        id="yugioh-matched-results"
+        tabIndex={ -1 }
+        aria-labelledby="yugioh-matched-results-title"
+        className="mx-auto w-full max-w-7xl scroll-mt-32 px-4 pb-20 pt-8 focus:outline-none sm:px-6 lg:px-8"
+      >
+        <div className="rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Results</p>
+              <h2 id="yugioh-matched-results-title" className="mt-2 text-2xl font-bold text-white">Matched cards</h2>
+            </div>
+            <div className="text-center text-sm font-semibold text-white/70 sm:text-right">
+              { isLoading ? <LoadingSpinner /> : `${ matchedCardData.length || 0 } matches loaded` }
+            </div>
+          </div>
+
+          <div className="mt-6 w-full yugioh-stage">
+            { Array.isArray( matchedCardData ) && matchedCardData.length > 0 ? (
+              <YugiohCardDataTable
+                matchedCardData={ matchedCardData }
+                isAuthenticated={ isAuthenticated }
+              />
+            ) : (
+              <div className="flex min-h-[24rem] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/30 px-6 text-center text-sm text-white/60">
+                Loading results...
+              </div>
+            ) }
+          </div>
+        </div>
+      </section>
+    );
+  }, [ isAuthenticated, isLoading, matchedCardData ] );
+
+  useAppShellSlots( {
+    footer: shellFooter,
+  } );
 
   return (
     <>
@@ -543,30 +620,6 @@ const Home = () => {
             </div>
           </section>
 
-          <section className="mt-8 rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur sm:p-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Results</p>
-                <h2 className="mt-2 text-2xl font-bold text-white">Matched cards</h2>
-              </div>
-              <div className="text-center text-sm font-semibold text-white/70 sm:text-right">
-                { isLoading ? <LoadingSpinner /> : `${ matchedCardData.length || 0 } matches loaded` }
-              </div>
-            </div>
-
-            <div className="mt-6 w-full yugioh-stage">
-              { Array.isArray( matchedCardData ) && matchedCardData.length > 0 ? (
-                <YugiohCardDataTable
-                  matchedCardData={ matchedCardData }
-                  isAuthenticated={ isAuthenticated }
-                />
-              ) : (
-                <div className="flex min-h-[24rem] items-center justify-center rounded-3xl border border-dashed border-white/15 bg-black/30 px-6 text-center text-sm text-white/60">
-                  { isLoading ? "Loading results..." : "Results will appear here after you search or submit a card list." }
-                </div>
-              ) }
-            </div>
-          </section>
         </main>
       </div>
       <SpeedInsights />

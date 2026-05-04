@@ -35,11 +35,11 @@ const Card = ( { cardData } ) => {
       <Image
         as="image"
         unoptimized="true"
-        className="object-cover lg:object-scale-down object-top w-full mx-auto h-96 aspect-square"
+        className="object-cover lg:object-scale-down object-top w-full mx-auto h-64 aspect-square"
         src={ imageSrc }
         alt={ `Card Image - ${ productName }` }
         width={ 1600 }
-        height={ 450 }
+        height={ 500 }
         priority={ true }
         draggable={ false }
       />

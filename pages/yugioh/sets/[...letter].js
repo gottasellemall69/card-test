@@ -4,6 +4,7 @@ import Link from "next/link";
 import Head from "next/head";
 
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
+import { useAppShellSlots } from "@/components/Layout";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getSetCatalogue } from "@/utils/api";
 
@@ -200,6 +201,13 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
   }, [ filteredAndSortedSets, effectiveLetter ] );
 
   const pageLetter = effectiveLetter || "—";
+  const shellHeader = useMemo( () => (
+    <Breadcrumb className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8" />
+  ), [] );
+
+  useAppShellSlots( {
+    header: shellHeader,
+  } );
 
   return (
     <>
@@ -212,11 +220,6 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
       <div className="yugioh-bg relative mx-auto min-h-screen w-full overflow-hidden text-white">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/50" />
         <div className="relative z-10">
-          <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
-            <div className="rounded-2xl border border-white/10 bg-black/55 px-4 py-3 shadow-xl shadow-black/35 backdrop-blur-sm">
-              <Breadcrumb />
-            </div>
-          </div>
           <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:px-8">
             <header className="rounded-3xl border border-white/15 bg-black/65 p-6 shadow-2xl shadow-black/45 backdrop-blur-md">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">

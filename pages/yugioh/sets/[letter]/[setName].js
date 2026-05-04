@@ -10,6 +10,7 @@ import FilterPanel from "@/components/Yugioh/FilterPanel";
 import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import Notification from "@/components/Notification";
+import { useAppShellSlots } from "@/components/Layout";
 import { fetchCardData as fetchAllCardData, getSetCatalogue, getSetNameIdMap } from "@/utils/api";
 import { buildCardNameCandidates, buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -106,7 +107,7 @@ const STANDARD_CONDITION_VALUES = [
   "Heavily Played Unlimited",
   "Damaged Unlimited",
 ];
-const GRID_ITEMS_PER_PAGE = 24;
+const GRID_ITEMS_PER_PAGE = 16;
 
 const normalizeFilterToken = ( value = "" ) => {
   if ( value === null || value === undefined ) {
@@ -1664,7 +1665,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     return (
       <div
         key={ selectionKey }
-        className="group relative flex w-full max-w-[24rem] mx-auto flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
+        className="group relative h-full -mb-4 flex w-full max-w-[24rem] mx-auto flex-col glass bg-transparent transition hover:border-indigo-400/50"
       >
         <div className="rounded relative mx-auto w-full [perspective:1250px]">
           <div
@@ -1698,9 +1699,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
                   </button>
                 ) }
-                <div className="h-full w-full">
+                <div className="h-full w-full glass">
                   <img
-                    className="mx-auto block h-full w-full object-contain object-top"
+                    className="mx-auto block h-72 w-full object-contain object-top"
                     src={ primaryImageSrc }
                     data-next-src={ secondaryImageSrc || "" }
                     data-fallback-src={ fallbackImageSrc }
@@ -1834,6 +1835,42 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     routeLetter,
     routeRarity,
   ] );
+
+  const shellHeader = useMemo( () => (
+    <Breadcrumb className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8" />
+  ), [] );
+
+  const shellRightSidebar = useMemo( () => {
+    if ( !isDesktopFilterOpen ) {
+      return null;
+    }
+
+    return (
+      <div id="set-desktop-filter-panel" className="flex h-full w-full flex-col px-4 py-4">
+        <FilterPanel
+          className="h-full rounded-2xl border-white/10 bg-black/60 text-white shadow-none"
+          filters={ filters }
+          updateFilters={ handleFilterChange }
+          clearFilters={ clearFilters }
+        />
+      </div>
+    );
+  }, [ clearFilters, filters, handleFilterChange, isDesktopFilterOpen ] );
+
+  const shellFooter = useMemo( () => (
+    <Notification
+      show={ notification.show }
+      setShow={ updateNotificationVisibility }
+      message={ notification.message }
+    />
+  ), [ notification.message, notification.show, updateNotificationVisibility ] );
+
+  useAppShellSlots( {
+    header: shellHeader,
+    rightSidebar: shellRightSidebar,
+    footer: shellFooter,
+  } );
+
   return (
     <>
       <Head>
@@ -1842,23 +1879,11 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <Notification
-        show={ notification.show }
-        setShow={ updateNotificationVisibility }
-        message={ notification.message }
-      />
-
       <div className="yugioh-bg relative w-full min-h-screen overflow-hidden text-white">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/50" />
         <div className="relative z-10">
-          <div className="mx-auto w-full px-4 pt-6 sm:px-6 lg:px-8">
-            <div className="rounded-2xl border border-white/10 bg-black/55 px-4 py-3 shadow-xl shadow-black/35 backdrop-blur-sm">
-              <Breadcrumb />
-            </div>
-          </div>
-
           <main
-            className={ `w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8 ${ isDesktopFilterOpen ? "xl:pr-80" : "" }` }
+            className="w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8"
           >
             <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -1911,471 +1936,467 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                           role="group"
                           className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur"
                         >
-                        <button
-                          type="button"
-                          onClick={ () => setViewMode( "grid" ) }
-                          title="Grid view"
-                          className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "grid"
-                            ? "bg-indigo-500/80 text-white shadow"
-                            : "text-white/70 hover:text-white"
-                            }` }
-                        >
-                          <Grid size={ 20 } />
-                          Grid
-                        </button>
-                        <button
-                          type="button"
-                          onClick={ () => setViewMode( "table" ) }
-                          title="Table view"
-                          className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "table"
-                            ? "bg-indigo-500/80 text-white shadow"
-                            : "text-white/70 hover:text-white"
-                            }` }
-                        >
-                          <List size={ 20 } />
-                          Table
-                        </button>
-                      </div>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 shadow-sm transition hover:border-white/40 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
-                          onClick={ () => setNumbersOpen( ( open ) => !open ) }
-                          aria-expanded={ numbersOpen }
-                          aria-haspopup="true"
-                        >
-                          Card Numbers
-                        </button>
-                        { numbersOpen && (
-                          <div className="absolute right-0 z-50 mt-3 w-64 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-black/90 p-4 text-sm text-white/80 shadow-2xl backdrop-blur">
-                            <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-white/50">
-                              <button
-                                type="button"
-                                onClick={ () => setSelectedNumbers( [] ) }
-                                className="font-medium text-red-300 transition hover:text-red-200"
-                              >
-                                Clear All
-                              </button>
-                              <button
-                                type="button"
-                                onClick={ () => setNumbersOpen( false ) }
-                                className="font-medium text-indigo-300 transition hover:text-indigo-200"
-                              >
-                                Done
-                              </button>
-                            </div>
-                            <div className="space-y-2">
-                              { availableNumbers.map( ( num ) => (
-                                <label
-                                  key={ num }
-                                  className="flex items-center gap-3 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 hover:border-white/30"
+                          <button
+                            type="button"
+                            onClick={ () => setViewMode( "grid" ) }
+                            title="Grid view"
+                            className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "grid"
+                              ? "bg-indigo-500/80 text-white shadow"
+                              : "text-white/70 hover:text-white"
+                              }` }
+                          >
+                            <Grid size={ 20 } />
+                            Grid
+                          </button>
+                          <button
+                            type="button"
+                            onClick={ () => setViewMode( "table" ) }
+                            title="Table view"
+                            className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "table"
+                              ? "bg-indigo-500/80 text-white shadow"
+                              : "text-white/70 hover:text-white"
+                              }` }
+                          >
+                            <List size={ 20 } />
+                            Table
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 shadow-sm transition hover:border-white/40 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
+                            onClick={ () => setNumbersOpen( ( open ) => !open ) }
+                            aria-expanded={ numbersOpen }
+                            aria-haspopup="true"
+                          >
+                            Card Numbers
+                          </button>
+                          { numbersOpen && (
+                            <div className="absolute right-0 z-50 mt-3 w-64 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-black/90 p-4 text-sm text-white/80 shadow-2xl backdrop-blur">
+                              <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-white/50">
+                                <button
+                                  type="button"
+                                  onClick={ () => setSelectedNumbers( [] ) }
+                                  className="font-medium text-red-300 transition hover:text-red-200"
                                 >
-                                  <input
-                                    type="checkbox"
-                                    checked={ selectedNumbers.includes( num ) }
-                                    onChange={ ( event ) =>
-                                      setSelectedNumbers( ( prev ) =>
-                                        event.target.checked
-                                          ? [ ...prev, num ]
-                                          : prev.filter( ( value ) => value !== num )
-                                      )
-                                    }
-                                  />
-                                  { num }
-                                </label>
-                              ) ) }
+                                  Clear All
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={ () => setNumbersOpen( false ) }
+                                  className="font-medium text-indigo-300 transition hover:text-indigo-200"
+                                >
+                                  Done
+                                </button>
+                              </div>
+                              <div className="space-y-2">
+                                { availableNumbers.map( ( num ) => (
+                                  <label
+                                    key={ num }
+                                    className="flex items-center gap-3 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 hover:border-white/30"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={ selectedNumbers.includes( num ) }
+                                      onChange={ ( event ) =>
+                                        setSelectedNumbers( ( prev ) =>
+                                          event.target.checked
+                                            ? [ ...prev, num ]
+                                            : prev.filter( ( value ) => value !== num )
+                                        )
+                                      }
+                                    />
+                                    { num }
+                                  </label>
+                                ) ) }
+                              </div>
                             </div>
-                          </div>
+                          ) }
+                        </div>
+                        { viewMode === "grid" && isAuthenticated && (
+                          <button
+                            type="button"
+                            onClick={ () => setGridSelectionMode( ( prev ) => !prev ) }
+                            className={ `inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition ${ gridSelectionMode
+                              ? "bg-indigo-500/80 text-white shadow hover:bg-indigo-500"
+                              : "border border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:text-white"
+                              }` }
+                          >
+                            { gridSelectionMode ? "Done Selecting" : "Enable Multi-Select" }
+                          </button>
                         ) }
                       </div>
-                      { viewMode === "grid" && isAuthenticated && (
-                        <button
-                          type="button"
-                          onClick={ () => setGridSelectionMode( ( prev ) => !prev ) }
-                          className={ `inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition ${ gridSelectionMode
-                            ? "bg-indigo-500/80 text-white shadow hover:bg-indigo-500"
-                            : "border border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:text-white"
-                            }` }
-                        >
-                          { gridSelectionMode ? "Done Selecting" : "Enable Multi-Select" }
-                        </button>
-                      ) }
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-white/70">Sort</span>
-                        <select
-                          value={ sortField }
-                          onChange={ ( event ) => setSortField( event.target.value ) }
-                          className="rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                        >
-                          <option value="productName">Card Name</option>
-                          <option value="setName">Set Name</option>
-                          <option value="number">Card Number</option>
-                          <option value="rarity">Rarity</option>
-                          <option value="condition">Condition</option>
-                          <option value="printing">Printing</option>
-                          <option value="marketPrice">Market Price</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={ () =>
-                            setSortDirection( ( prev ) => ( prev === "asc" ? "desc" : "asc" ) )
-                          }
-                          className="rounded-full border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white"
-                        >
-                          { sortDirection === "asc" ? "Ascending" : "Descending" }
-                        </button>
-                      </div>
-                      <div className="xl:hidden">
-                        <CardFilter
-                          filters={ filters }
-                          updateFilters={ handleFilterChange }
-                          open={ isFilterDrawerOpen }
-                          setOpen={ setIsFilterDrawerOpen }
-                          title="Filter cards"
-                          renderTrigger={ ( { openFilters } ) => (
-                            <button
-                              type="button"
-                              onClick={ openFilters }
-                              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
-                            >
-                              <Filter size={ 16 } />
-                              Filters
-                              { hasActiveFilters && (
-                                <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
-                                  { activeFilterCount }
-                                </span>
-                              ) }
-                            </button>
-                          ) }
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-6 rounded-2xl border border-white/10 bg-black/60 p-2 shadow-inner">
-                    <YugiohSearchBar onSearch={ setSearchTerm } />
-                  </div>
-                  { hasActiveFilters && (
-                    <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/80">
-                      <button
-                        type="button"
-                        onClick={ () => {
-                          clearFilters();
-                          setIsFilterDrawerOpen( false );
-                        } }
-                        className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white"
-                      >
-                        Clear Filters
-                      </button>
-                      <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-indigo-100/90">
-                        { activeFilterCount } active
-                      </span>
-                    </div>
-                  ) }
-                  { hasActiveFilters && (
-                    <div className="mt-4 flex flex-wrap gap-2 text-sm text-white/80">
-                      { selectedConditions.map( ( value ) => (
-                        <span
-                          key={ `condition-${ value }` }
-                          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
-                        >
-                          <span className="text-white/60">Condition:</span> { value }
-                          <button
-                            type="button"
-                            onClick={ () => removeFilterValue( "condition", value ) }
-                            className="text-xs text-red-300 transition hover:text-red-200"
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-white/70">Sort</span>
+                          <select
+                            value={ sortField }
+                            onChange={ ( event ) => setSortField( event.target.value ) }
+                            className="rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
                           >
-                            x
-                          </button>
-                        </span>
-                      ) ) }
-                      { selectedPrintings.map( ( value ) => (
-                        <span
-                          key={ `printing-${ value }` }
-                          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
-                        >
-                          <span className="text-white/60">Printing:</span> { value }
-                          <button
-                            type="button"
-                            onClick={ () => removeFilterValue( "printing", value ) }
-                            className="text-xs text-red-300 transition hover:text-red-200"
-                          >
-                            x
-                          </button>
-                        </span>
-                      ) ) }
-                      { selectedRarities.map( ( value ) => (
-                        <span
-                          key={ `rarity-${ value }` }
-                          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
-                        >
-                          <span className="text-white/60">Rarity:</span> { value }
-                          <button
-                            type="button"
-                            onClick={ () => removeFilterValue( "rarity", value ) }
-                            className="text-xs text-red-300 transition hover:text-red-200"
-                          >
-                            x
-                          </button>
-                        </span>
-                      ) ) }
-                    </div>
-                  ) }
-                  { selectedNumbers.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                      { selectedNumbers.map( ( num ) => (
-                        <span
-                          key={ num }
-                          className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
-                        >
-                          { num }
+                            <option value="productName">Card Name</option>
+                            <option value="setName">Set Name</option>
+                            <option value="number">Card Number</option>
+                            <option value="rarity">Rarity</option>
+                            <option value="condition">Condition</option>
+                            <option value="printing">Printing</option>
+                            <option value="marketPrice">Market Price</option>
+                          </select>
                           <button
                             type="button"
                             onClick={ () =>
-                              setSelectedNumbers( ( prev ) => prev.filter( ( value ) => value !== num ) )
+                              setSortDirection( ( prev ) => ( prev === "asc" ? "desc" : "asc" ) )
                             }
-                            className="text-xs text-red-300 transition hover:text-red-200"
+                            className="rounded-full border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white"
                           >
-                            x
+                            { sortDirection === "asc" ? "Ascending" : "Descending" }
                           </button>
-                        </span>
-                      ) ) }
-                    </div>
-                  ) }
-                </div>
-                { fetchError && (
-                  <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100 shadow-lg">
-                    { fetchError }
-                  </div>
-                ) }
-                { isLoading ? (
-                  <div className="min-h-[28rem] py-16 text-center text-white/70">Loading latest prices...</div>
-                ) : processedCards.length === 0 ? (
-                  <div className="min-h-[28rem] py-16 text-center text-white/70">
-                    No cards found for this set with the selected filters.
-                  </div>
-                ) : viewMode === "grid" ? (
-                  <>
-                    <div className="w-full rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl sm:p-2">
-                      <div
-                        className={ `grid grid-cols-1 justify-items-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 ${ isDesktopFilterOpen
-                          ? "gap-x-10 gap-y-10 xl:grid-cols-2 2xl:grid-cols-3"
-                          : "gap-x-8 gap-y-10 xl:grid-cols-3 2xl:grid-cols-4"
-                          }` }
-                      >
-                        { paginatedGridCards.map( ( card ) => (
-                          <div key={ card.collectionKey } className="w-full min-w-0">
-                            { renderGridCard( card ) }
-                          </div>
-                        ) ) }
+                        </div>
+                        <div className="xl:hidden">
+                          <CardFilter
+                            filters={ filters }
+                            updateFilters={ handleFilterChange }
+                            clearFilters={ clearFilters }
+                            open={ isFilterDrawerOpen }
+                            setOpen={ setIsFilterDrawerOpen }
+                            title="Filter cards"
+                            renderTrigger={ ( { openFilters } ) => (
+                              <button
+                                type="button"
+                                onClick={ openFilters }
+                                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                              >
+                                <Filter size={ 16 } />
+                                Filters
+                                { hasActiveFilters && (
+                                  <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
+                                    { activeFilterCount }
+                                  </span>
+                                ) }
+                              </button>
+                            ) }
+                          />
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-8 flex justify-center">
-                      <YugiohPagination
-                        currentPage={ safeGridPage }
-                        itemsPerPage={ GRID_ITEMS_PER_PAGE }
-                        totalItems={ processedCards.length }
-                        handlePageClick={ handleGridPageChange }
-                      />
+                    <div className="mt-6 rounded-2xl border border-white/10 bg-black/60 p-2 shadow-inner">
+                      <YugiohSearchBar onSearch={ setSearchTerm } />
                     </div>
-
-                  </>
-                ) : (
-                  <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl">
-                    <YugiohCardDataTable
-                      matchedCardData={ matchedCardData }
-                      selectedRowIds={ selectedRowIds }
-                      setSelectedRowIds={ setSelectedRowIds }
-                      collectionMap={ collectionLookup }
-                      onRarityChange={ handleRarityOverrideChange }
-                      autoRarityOptionValue={ AUTO_RARITY_OPTION }
-                      isAuthenticated={ isAuthenticated }
-                    />
+                    { hasActiveFilters && (
+                      <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/80">
+                        <button
+                          type="button"
+                          onClick={ () => {
+                            clearFilters();
+                            setIsFilterDrawerOpen( false );
+                          } }
+                          className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white"
+                        >
+                          Clear Filters
+                        </button>
+                        <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-indigo-100/90">
+                          { activeFilterCount } active
+                        </span>
+                      </div>
+                    ) }
+                    { hasActiveFilters && (
+                      <div className="mt-4 flex flex-wrap gap-2 text-sm text-white/80">
+                        { selectedConditions.map( ( value ) => (
+                          <span
+                            key={ `condition-${ value }` }
+                            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
+                          >
+                            <span className="text-white/60">Condition:</span> { value }
+                            <button
+                              type="button"
+                              onClick={ () => removeFilterValue( "condition", value ) }
+                              className="text-xs text-red-300 transition hover:text-red-200"
+                            >
+                              x
+                            </button>
+                          </span>
+                        ) ) }
+                        { selectedPrintings.map( ( value ) => (
+                          <span
+                            key={ `printing-${ value }` }
+                            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
+                          >
+                            <span className="text-white/60">Printing:</span> { value }
+                            <button
+                              type="button"
+                              onClick={ () => removeFilterValue( "printing", value ) }
+                              className="text-xs text-red-300 transition hover:text-red-200"
+                            >
+                              x
+                            </button>
+                          </span>
+                        ) ) }
+                        { selectedRarities.map( ( value ) => (
+                          <span
+                            key={ `rarity-${ value }` }
+                            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
+                          >
+                            <span className="text-white/60">Rarity:</span> { value }
+                            <button
+                              type="button"
+                              onClick={ () => removeFilterValue( "rarity", value ) }
+                              className="text-xs text-red-300 transition hover:text-red-200"
+                            >
+                              x
+                            </button>
+                          </span>
+                        ) ) }
+                      </div>
+                    ) }
+                    { selectedNumbers.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                        { selectedNumbers.map( ( num ) => (
+                          <span
+                            key={ num }
+                            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
+                          >
+                            { num }
+                            <button
+                              type="button"
+                              onClick={ () =>
+                                setSelectedNumbers( ( prev ) => prev.filter( ( value ) => value !== num ) )
+                              }
+                              className="text-xs text-red-300 transition hover:text-red-200"
+                            >
+                              x
+                            </button>
+                          </span>
+                        ) ) }
+                      </div>
+                    ) }
                   </div>
-                ) }
-                { isAuthenticated &&
-                  Object.values( selectedRowIds ).some( Boolean ) &&
-                  ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
-                    <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-6 text-center shadow-lg">
-                      <button onClick={ openBulkModal } className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-indigo-400">
-                        Add Selected to Collection
-                      </button>
+                  { fetchError && (
+                    <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100 shadow-lg">
+                      { fetchError }
                     </div>
                   ) }
+                  { isLoading ? (
+                    <div className="min-h-[28rem] py-16 text-center text-white/70">Loading latest prices...</div>
+                  ) : processedCards.length === 0 ? (
+                    <div className="min-h-[28rem] py-16 text-center text-white/70">
+                      No cards found for this set with the selected filters.
+                    </div>
+                  ) : viewMode === "grid" ? (
+                    <div id="set-results-art-band">
+                      <div className="mt-8 flex justify-center">
+                        <YugiohPagination
+                          currentPage={ safeGridPage }
+                          itemsPerPage={ GRID_ITEMS_PER_PAGE }
+                          totalItems={ processedCards.length }
+                          handlePageClick={ handleGridPageChange }
+                        />
+                      </div>
+                      <div className="w-full bg-transparent text-shadow p-4 shadow-2xl sm:p-2">
+                        <div
+                          className={ `grid grid-cols-1 justify-items-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 ${ isDesktopFilterOpen
+                            ? "gap-x-10 gap-y-10 xl:grid-cols-2 2xl:grid-cols-3"
+                            : "gap-x-8 gap-y-10 xl:grid-cols-3 2xl:grid-cols-4"
+                            }` }
+                        >
+                          { paginatedGridCards.map( ( card ) => (
+                            <div key={ card.collectionKey } className="w-full min-w-0">
+                              { renderGridCard( card ) }
+                            </div>
+                          ) ) }
+                        </div>
+                      </div>
+                      <div className="mt-8 flex justify-center">
+                        <YugiohPagination
+                          currentPage={ safeGridPage }
+                          itemsPerPage={ GRID_ITEMS_PER_PAGE }
+                          totalItems={ processedCards.length }
+                          handlePageClick={ handleGridPageChange }
+                        />
+                      </div>
+
+                    </div>
+                  ) : (
+                    <div id="set-results-art-band">
+                      <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl">
+                        <YugiohCardDataTable
+                          matchedCardData={ matchedCardData }
+                          selectedRowIds={ selectedRowIds }
+                          setSelectedRowIds={ setSelectedRowIds }
+                          collectionMap={ collectionLookup }
+                          onRarityChange={ handleRarityOverrideChange }
+                          autoRarityOptionValue={ AUTO_RARITY_OPTION }
+                          isAuthenticated={ isAuthenticated }
+                        />
+                      </div>
+                    </div>
+                  ) }
+                  { isAuthenticated &&
+                    Object.values( selectedRowIds ).some( Boolean ) &&
+                    ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
+                      <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-6 text-center shadow-lg">
+                        <button onClick={ openBulkModal } className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-indigo-400">
+                          Add Selected to Collection
+                        </button>
+                      </div>
+                    ) }
+                </div>
+              </div>
+            </section>
+          </main>
+          { isAuthenticated && modalVisible && selectedCard && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
+              <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
+                <h2 className="mb-4 text-xl font-bold">{ selectedCard.productName }</h2>
+                <form
+                  onSubmit={ ( event ) => {
+                    event.preventDefault();
+                    handleAddToCollection();
+                  } }
+                  className="space-y-4"
+                >
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-semibold text-white/80">
+                      Condition
+                    </span>
+                    <select
+                      className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                      value={ modalVariant?.baseCondition || "" }
+                      onChange={ ( event ) => updateModalVariant( { condition: event.target.value } ) }
+                      required
+                    >
+                      { modalOptions.conditions.map( ( option ) => (
+                        <option key={ option } value={ option }>
+                          { option }
+                        </option>
+                      ) ) }
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-semibold text-white/80">
+                      Printing
+                    </span>
+                    <select
+                      className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                      value={ modalVariant?.printing || "" }
+                      onChange={ ( event ) => updateModalVariant( { printing: event.target.value } ) }
+                      required
+                    >
+                      { modalOptions.printings.map( ( option ) => (
+                        <option key={ option } value={ option }>
+                          { option }
+                        </option>
+                      ) ) }
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1 block text-sm font-semibold text-white/80">
+                      Rarity
+                    </span>
+                    <select
+                      className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                      value={ modalVariant?.rarity || "" }
+                      onChange={ ( event ) => updateModalVariant( { rarity: event.target.value } ) }
+                      required
+                    >
+                      { modalOptions.rarities.map( ( option ) => (
+                        <option key={ option } value={ option }>
+                          { option }
+                        </option>
+                      ) ) }
+                    </select>
+                  </label>
+
+                  { modalVariant && (
+                    <p className="text-sm text-white/80">
+                      Current market price: { formatPriceLabel( modalVariant.marketPrice ) }
+                    </p>
+                  ) }
+
+                  <div className="flex justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={ closeModal }
+                      className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="rounded-full bg-indigo-500 px-5 py-2 text-white transition hover:bg-indigo-400"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
-          </section>
-          </main>
-        { isDesktopFilterOpen && (
-          <aside
-            id="set-desktop-filter-panel"
-            className="hidden xl:fixed xl:inset-y-0 xl:right-0 xl:z-40 xl:flex xl:w-80"
-          >
-            <div className="flex h-full w-full flex-col border-l border-white/10 bg-black/40 px-4 py-8 backdrop-blur">
-              <FilterPanel
-                className="h-full overflow-y-auto rounded-2xl border-white/10 bg-black/60 text-white shadow-none"
-                filters={ filters }
-                updateFilters={ handleFilterChange }
-                clearFilters={ clearFilters }
-              />
+          ) }
+
+          { isAuthenticated && bulkModalVisible && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
+              <div className="glass w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
+                <h2 className="mb-4 text-xl font-bold">Add Selected Cards</h2>
+                <form onSubmit={ handleBulkSubmit } className="space-y-6">
+                  { getSelectedCards().map( ( row ) => {
+                    const cardEntry = cards.find( ( card ) => card.productName === row.card.productName );
+                    const variants = cardEntry?.variants || [];
+                    const selectedVariant = bulkSelections[ row.card.productName ] || row.variant || variants[ 0 ];
+                    const selectedValue = selectedVariant ? variantKey( selectedVariant ) : "";
+
+                    return (
+                      <div key={ row.card.productName } className="border-b pb-4">
+                        <h3 className="mb-2 font-semibold">{ row.card.productName }</h3>
+                        { variants.length === 0 ? (
+                          <p className="text-sm text-white/70">No pricing data available.</p>
+                        ) : (
+                          <label className="block">
+                            <span className="mb-1 block text-sm font-semibold text-white/80">
+                              Choose variant
+                            </span>
+                            <select
+                              className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                              value={ selectedValue }
+                              onChange={ ( event ) => {
+                                const nextVariant = variants.find( ( variant ) => variantKey( variant ) === event.target.value ) || variants[ 0 ];
+                                setBulkSelections( ( prev ) => ( {
+                                  ...prev,
+                                  [ row.card.productName ]: nextVariant,
+                                } ) );
+                              } }
+                            >
+                              { variants.map( ( variant ) => (
+                                <option key={ variantKey( variant ) } value={ variantKey( variant ) }>
+                                  { `${ buildVariantLabel( variant ) } - ${ formatPriceLabel( variant.marketPrice ) }` }
+                                </option>
+                              ) ) }
+                            </select>
+                          </label>
+                        ) }
+                      </div>
+                    );
+                  } ) }
+
+                  <div className="mt-6 flex justify-between">
+                    <button
+                      type="button"
+                      onClick={ closeBulkModal }
+                      className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="rounded-full bg-indigo-500 px-5 py-2 text-white transition hover:bg-indigo-400"
+                    >
+                      Add All
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </aside>
-        ) }
-        { isAuthenticated && modalVisible && selectedCard && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
-            <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
-              <h2 className="mb-4 text-xl font-bold">{ selectedCard.productName }</h2>
-              <form
-                onSubmit={ ( event ) => {
-                  event.preventDefault();
-                  handleAddToCollection();
-                } }
-                className="space-y-4"
-              >
-                <label className="block">
-                  <span className="mb-1 block text-sm font-semibold text-white/80">
-                    Condition
-                  </span>
-                  <select
-                    className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                    value={ modalVariant?.baseCondition || "" }
-                    onChange={ ( event ) => updateModalVariant( { condition: event.target.value } ) }
-                    required
-                  >
-                    { modalOptions.conditions.map( ( option ) => (
-                      <option key={ option } value={ option }>
-                        { option }
-                      </option>
-                    ) ) }
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="mb-1 block text-sm font-semibold text-white/80">
-                    Printing
-                  </span>
-                  <select
-                    className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                    value={ modalVariant?.printing || "" }
-                    onChange={ ( event ) => updateModalVariant( { printing: event.target.value } ) }
-                    required
-                  >
-                    { modalOptions.printings.map( ( option ) => (
-                      <option key={ option } value={ option }>
-                        { option }
-                      </option>
-                    ) ) }
-                  </select>
-                </label>
-
-                <label className="block">
-                  <span className="mb-1 block text-sm font-semibold text-white/80">
-                    Rarity
-                  </span>
-                  <select
-                    className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                    value={ modalVariant?.rarity || "" }
-                    onChange={ ( event ) => updateModalVariant( { rarity: event.target.value } ) }
-                    required
-                  >
-                    { modalOptions.rarities.map( ( option ) => (
-                      <option key={ option } value={ option }>
-                        { option }
-                      </option>
-                    ) ) }
-                  </select>
-                </label>
-
-                { modalVariant && (
-                  <p className="text-sm text-white/80">
-                    Current market price: { formatPriceLabel( modalVariant.marketPrice ) }
-                  </p>
-                ) }
-
-                <div className="flex justify-between pt-2">
-                  <button
-                    type="button"
-                    onClick={ closeModal }
-                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-full bg-indigo-500 px-5 py-2 text-white transition hover:bg-indigo-400"
-                  >
-                    Add
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        ) }
-
-        { isAuthenticated && bulkModalVisible && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
-            <div className="glass w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
-              <h2 className="mb-4 text-xl font-bold">Add Selected Cards</h2>
-              <form onSubmit={ handleBulkSubmit } className="space-y-6">
-                { getSelectedCards().map( ( row ) => {
-                  const cardEntry = cards.find( ( card ) => card.productName === row.card.productName );
-                  const variants = cardEntry?.variants || [];
-                  const selectedVariant = bulkSelections[ row.card.productName ] || row.variant || variants[ 0 ];
-                  const selectedValue = selectedVariant ? variantKey( selectedVariant ) : "";
-
-                  return (
-                    <div key={ row.card.productName } className="border-b pb-4">
-                      <h3 className="mb-2 font-semibold">{ row.card.productName }</h3>
-                      { variants.length === 0 ? (
-                        <p className="text-sm text-white/70">No pricing data available.</p>
-                      ) : (
-                        <label className="block">
-                          <span className="mb-1 block text-sm font-semibold text-white/80">
-                            Choose variant
-                          </span>
-                          <select
-                            className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                            value={ selectedValue }
-                            onChange={ ( event ) => {
-                              const nextVariant = variants.find( ( variant ) => variantKey( variant ) === event.target.value ) || variants[ 0 ];
-                              setBulkSelections( ( prev ) => ( {
-                                ...prev,
-                                [ row.card.productName ]: nextVariant,
-                              } ) );
-                            } }
-                          >
-                            { variants.map( ( variant ) => (
-                              <option key={ variantKey( variant ) } value={ variantKey( variant ) }>
-                                { `${ buildVariantLabel( variant ) } - ${ formatPriceLabel( variant.marketPrice ) }` }
-                              </option>
-                            ) ) }
-                          </select>
-                        </label>
-                      ) }
-                    </div>
-                  );
-                } ) }
-
-                <div className="mt-6 flex justify-between">
-                  <button
-                    type="button"
-                    onClick={ closeBulkModal }
-                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="rounded-full bg-indigo-500 px-5 py-2 text-white transition hover:bg-indigo-400"
-                  >
-                    Add All
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        ) }
+          ) }
         </div>
       </div>
       <SpeedInsights />
@@ -2432,9 +2453,6 @@ export async function getServerSideProps( { params } ) {
 }
 
 export default CardsInSetPage;
-
-
-
 
 
 
