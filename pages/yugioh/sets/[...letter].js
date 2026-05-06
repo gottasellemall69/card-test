@@ -5,7 +5,6 @@ import Head from "next/head";
 
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { useAppShellSlots } from "@/components/Layout";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getSetCatalogue } from "@/utils/api";
 
 let cachedCardSets = null;
@@ -293,7 +292,6 @@ const SetsByLetterPage = ( { letter = "", sets = [] } ) => {
           </main>
         </div>
       </div>
-      <SpeedInsights />
     </>
   );
 };

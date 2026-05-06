@@ -20,8 +20,23 @@ const SORTABLE_KEYS = new Set( [
     'printing',
     'rarity',
     'condition',
+    'quantity',
     'marketPrice',
+    'totalPrice',
 ] );
+
+const getQuantity = ( value ) => {
+    const quantity = Number.parseInt( value, 10 );
+    return Number.isFinite( quantity ) && quantity > 0 ? quantity : 1;
+};
+
+const getUnitPrice = ( value ) => {
+    const price = Number.parseFloat( value );
+    return Number.isFinite( price ) ? price : 0;
+};
+
+const getTotalPrice = ( item ) =>
+    getUnitPrice( item?.data?.marketPrice ) * getQuantity( item?.card?.quantity );
 
 const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } ) => {
     const router = useRouter();
@@ -64,14 +79,27 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
         if ( !safeMatchedData.length ) return [];
 
         const sortKey = SORTABLE_KEYS.has( sortConfig.key ) ? sortConfig.key : DEFAULT_SORT_KEY;
-        const isMarketPriceSort = sortKey === 'marketPrice';
+        const isMarketPriceSort = sortKey === 'marketPrice' || sortKey === 'totalPrice';
+        const isQuantitySort = sortKey === 'quantity';
 
         const sorted = safeMatchedData.map( ( item, index ) => ( { item, originalIndex: index } ) );
         sorted.sort( ( a, b ) => {
             const rawA = isMarketPriceSort ? a.item.data?.marketPrice : a.item.card?.[ sortKey ];
             const rawB = isMarketPriceSort ? b.item.data?.marketPrice : b.item.card?.[ sortKey ];
-            const aValue = isMarketPriceSort ? parseFloat( rawA ) || 0 : ( rawA ?? '' ).toString().toLowerCase();
-            const bValue = isMarketPriceSort ? parseFloat( rawB ) || 0 : ( rawB ?? '' ).toString().toLowerCase();
+            const aValue = sortKey === 'totalPrice'
+                ? getTotalPrice( a.item )
+                : isQuantitySort
+                    ? getQuantity( rawA )
+                    : isMarketPriceSort
+                        ? getUnitPrice( rawA )
+                        : ( rawA ?? '' ).toString().toLowerCase();
+            const bValue = sortKey === 'totalPrice'
+                ? getTotalPrice( b.item )
+                : isQuantitySort
+                    ? getQuantity( rawB )
+                    : isMarketPriceSort
+                        ? getUnitPrice( rawB )
+                        : ( rawB ?? '' ).toString().toLowerCase();
 
             if ( aValue < bValue ) return sortConfig.direction === 'ascending' ? -1 : 1;
             if ( aValue > bValue ) return sortConfig.direction === 'ascending' ? 1 : -1;
@@ -187,7 +215,7 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
             rarity: card?.rarity,
             condition: card?.condition,
             marketPrice: data?.marketPrice,
-            quantity: 1,
+            quantity: getQuantity( card?.quantity ),
         } ) );
 
         try {
@@ -214,7 +242,7 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
             return;
         }
 
-        const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Market Price" ];
+        const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Quantity", "Unit Market Price", "Total Market Price" ];
         const rows = safeMatchedData
             .filter( ( _, index ) => selectedKeys.has( itemUniqueIds[ index ] ) )
             .map( ( { card, data } ) => [
@@ -224,7 +252,9 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
                 card?.printing ?? '',
                 card?.rarity ?? '',
                 card?.condition ?? '',
+                getQuantity( card?.quantity ),
                 data?.marketPrice ?? '',
+                getTotalPrice( { card, data } ).toFixed( 2 ),
             ] );
 
         const csvBody = [
@@ -345,8 +375,9 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
                                             { key: 'printing', label: 'Printing' },
                                             { key: 'rarity', label: 'Rarity' },
                                             { key: 'condition', label: 'Condition' },
-
-                                            { key: 'marketPrice', label: 'Market Price' },
+                                            { key: 'quantity', label: 'Qty' },
+                                            { key: 'marketPrice', label: 'Unit Price' },
+                                            { key: 'totalPrice', label: 'Total Price' },
                                         ].map( ( { key, label } ) => (
                                             <th
                                                 key={ key }
@@ -373,6 +404,8 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
                                         const uniqueId = itemUniqueIds[ originalIndex ];
                                         const isSelected = selectedKeys.has( uniqueId );
                                         const { card, data } = item;
+                                        const quantity = getQuantity( card?.quantity );
+                                        const totalPrice = getTotalPrice( item );
 
                                         return (
                                             <tr key={ uniqueId } className="hover:bg-gray-600">
@@ -442,7 +475,13 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
                                                     { card?.condition || card?.condition + " " + card?.printing }
                                                 </td>
                                                 <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
+                                                    { quantity }
+                                                </td>
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
                                                     { formatPrice( data?.marketPrice ) }
+                                                </td>
+                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
+                                                    { formatPrice( totalPrice ) }
                                                 </td>
                                             </tr>
                                         );

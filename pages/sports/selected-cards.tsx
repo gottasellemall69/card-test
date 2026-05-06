@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { cardStorage } from '@/services/cardStorage';
 import { SelectedCard } from '@/types/Card';
 import CardGrid from '@/components/Sports/SelectedCards/CardGrid';
@@ -76,7 +75,6 @@ const SelectedCardsPage = () => {
           </div>
         </div>
       </div>
-      <SpeedInsights></SpeedInsights>
     </>
   );
 };

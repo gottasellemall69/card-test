@@ -13,7 +13,6 @@ import Notification from "@/components/Notification";
 import { useAppShellSlots } from "@/components/Layout";
 import { fetchCardData as fetchAllCardData, getSetCatalogue, getSetNameIdMap } from "@/utils/api";
 import { buildCardNameCandidates, buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
 import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
 
@@ -561,12 +560,12 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
   const [ gridSelectionMode, setGridSelectionMode ] = useState( false );
   const [ flippedGridCards, setFlippedGridCards ] = useState( {} );
   const [ searchTerm, setSearchTerm ] = useState( "" );
-  const [ sortField, setSortField ] = useState( "" );
+  const [ sortField, setSortField ] = useState( "number" );
   const [ sortDirection, setSortDirection ] = useState( "asc" );
   const [ viewMode, setViewMode ] = useState( "grid" );
   const [ gridPage, setGridPage ] = useState( 1 );
   const [ isFilterDrawerOpen, setIsFilterDrawerOpen ] = useState( false );
-  const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( true );
+  const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( false );
   const defaultFilters = useMemo( () => buildDefaultFilters( rawEntries ), [ rawEntries ] );
 
   const selectedConditions = filters.condition;
@@ -1763,48 +1762,48 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                         : "No pricing data for the selected filters. Showing closest match." }
                     </p>
                   ) }
-                { cardItem.hasMultipleRarities && (
-                  <div className="space-y-2">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-100">
-                      Multiple rarities available
-                    </span>
-                    <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-white/70">
-                      Select Rarity
-                      <select
-                        className="rounded-md border border-white/20 bg-white/10 px-2 py-1 text-sm text-white transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        value={ raritySelectValue }
-                        onChange={ ( event ) => handleRarityOverrideChange( cardItem.productName, event.target.value ) }
-                      >
-                        <option value={ AUTO_RARITY_OPTION }>{ `Auto (${ currentRarityLabel })` }</option>
-                        { cardItem.rarityOptions.map( ( option ) => (
-                          <option key={ option } value={ option }>{ option }</option>
-                        ) ) }
-                      </select>
-                    </label>
+                  { cardItem.hasMultipleRarities && (
+                    <div className="space-y-2">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-100">
+                        Multiple rarities available
+                      </span>
+                      <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-white/70">
+                        Select Rarity
+                        <select
+                          className="rounded-md border border-white/20 bg-white/10 px-2 py-1 text-sm text-white transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={ raritySelectValue }
+                          onChange={ ( event ) => handleRarityOverrideChange( cardItem.productName, event.target.value ) }
+                        >
+                          <option value={ AUTO_RARITY_OPTION }>{ `Auto (${ currentRarityLabel })` }</option>
+                          { cardItem.rarityOptions.map( ( option ) => (
+                            <option key={ option } value={ option }>{ option }</option>
+                          ) ) }
+                        </select>
+                      </label>
+                    </div>
+                  ) }
+                  <div className="mx-auto mt-1 flex w-full flex-wrap gap-1.5 text-pretty">
+                    <Link
+                      href={ {
+                        pathname: "/yugioh/sets/[letter]/cards/card-details",
+                        query: cardDetailsQuery,
+                      } }
+                      className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-white/10 px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-100"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      type="button"
+                      className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-transparent px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:text-indigo-200"
+                      onClick={ () => toggleGridCardFlip( selectionKey, false ) }
+                    >
+                      Show Card Front
+                    </button>
                   </div>
-                ) }
-                <div className="mx-auto mt-1 flex w-full flex-wrap gap-1.5 text-pretty">
-                  <Link
-                    href={ {
-                      pathname: "/yugioh/sets/[letter]/cards/card-details",
-                      query: cardDetailsQuery,
-                    } }
-                    className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-white/10 px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-100"
-                  >
-                    View Details
-                  </Link>
-                  <button
-                    type="button"
-                    className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-transparent px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:text-indigo-200"
-                    onClick={ () => toggleGridCardFlip( selectionKey, false ) }
-                  >
-                    Show Card Front
-                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
         </div>
         { isAuthenticated && (
           <div className="mt-6 flex flex-col gap-3">
@@ -2410,7 +2409,6 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           ) }
         </div>
       </div>
-      <SpeedInsights />
     </>
   );
 };

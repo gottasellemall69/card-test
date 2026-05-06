@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const ALPHABET = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -53,7 +52,6 @@ const AlphabeticalIndex = () => {
           } ) }
         </nav>
       </div>
-      <SpeedInsights />
     </>
   );
 };

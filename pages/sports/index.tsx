@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from 'react';
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useSportsData } from '@/hooks/useSportsData';
 import SportsTable from '@/components/Sports/SportsTable';
 import CardSetSelector from '@/components/Sports/CardSetSelector';
@@ -78,7 +77,6 @@ export default function Home() {
           </section>
         </main>
       </div>
-      <SpeedInsights></SpeedInsights>
     </>
   );
 }

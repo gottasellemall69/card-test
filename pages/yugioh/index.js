@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import { useAppShellSlots } from '@/components/Layout';
 import { readAuthStateFromCookie, subscribeToAuthState } from '@/utils/authState';
 
@@ -14,16 +13,17 @@ const YugiohCardListInput = dynamic( () => import( '@/components/Yugioh/YugiohCa
 const YugiohCardDataTable = dynamic( () => import( '@/components/Yugioh/YugiohCardDataTable' ), { ssr: false } );
 
 const exampleCardList = `
-Nine-Tailed Fox,Duel Power,DUPO-EN031,1st Edition,Ultra Rare,Near Mint 1st Edition
-Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition
+Nine-Tailed Fox Duel Power DUPO-EN031 1st Edition Ultra Rare Near Mint 1st Edition
+3 Eidos the Underworld Squire,Brothers of Legend,BROL-EN077,1st Edition,Ultra Rare,Near Mint 1st Edition
 Inzektor Exa-Beetle,Brothers of Legend,BROL-EN084,1st Edition,Ultra Rare,Near Mint 1st Edition
-Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition
+2,Fossil Dig,Brothers of Legend,BROL-EN089,1st Edition,Ultra Rare,Near Mint 1st Edition
 `;
 
 const PRINTING_OPTIONS = [ '1st Edition', 'Unlimited', 'Limited Edition' ];
 const CONDITION_OPTIONS = [ 'Near Mint', 'Lightly Played', 'Moderately Played', 'Heavily Played', 'Damaged' ];
 const SET_CODE_REGEX = /\b(?=[A-Z0-9-]*\d)[A-Z0-9]{2,}-[A-Z0-9-]+\b/i;
 const CSV_FIELD_REGEX = /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
+const LEADING_QUANTITY_REGEX = /^\s*(\d+)\s+(.+)$/;
 
 const normalizeWhitespace = ( value ) => value.replace( /\s+/g, ' ' ).trim();
 const toCanonicalLookup = ( value ) => normalizeWhitespace( value ).toLowerCase();
@@ -69,8 +69,37 @@ const withPrintingInCondition = ( condition, printing ) => {
   return `${ normalizedCondition } ${ normalizedPrinting }`;
 };
 
+const extractLeadingQuantity = ( value ) => {
+  const normalized = normalizeWhitespace( value || '' );
+  const match = normalized.match( LEADING_QUANTITY_REGEX );
+
+  if ( !match ) {
+    return { quantity: 1, value: normalized };
+  }
+
+  const quantity = Number.parseInt( match[ 1 ], 10 );
+  const remainingValue = normalizeWhitespace( match[ 2 ] || '' );
+
+  if ( !Number.isFinite( quantity ) || quantity < 1 || !remainingValue ) {
+    return { quantity: 1, value: normalized };
+  }
+
+  return { quantity, value: remainingValue };
+};
+
+const parseQuantityField = ( value ) => {
+  const normalized = normalizeWhitespace( value || '' );
+  if ( !/^\d+$/.test( normalized ) ) {
+    return null;
+  }
+
+  const quantity = Number.parseInt( normalized, 10 );
+  return Number.isFinite( quantity ) && quantity > 0 ? quantity : null;
+};
+
 const parseFreeformLine = ( line, knownSetNames ) => {
-  const normalizedLine = normalizeWhitespace( line );
+  const { quantity, value } = extractLeadingQuantity( line );
+  const normalizedLine = normalizeWhitespace( value );
   if ( !normalizedLine ) return null;
 
   const setCodeMatch = normalizedLine.match( SET_CODE_REGEX );
@@ -144,6 +173,7 @@ const parseFreeformLine = ( line, knownSetNames ) => {
     printing,
     rarity,
     condition,
+    quantity,
   };
 };
 
@@ -153,8 +183,10 @@ const parseCardLine = ( line, knownSetNames ) => {
 
   if ( normalizedLine.includes( ',' ) ) {
     const fields = splitCsvLine( normalizedLine );
-    if ( fields.length >= 6 ) {
-      const [ rawProductName, setName, number, printing, rarity, condition ] = fields;
+    const firstFieldQuantity = parseQuantityField( fields[ 0 ] );
+
+    if ( firstFieldQuantity && fields.length >= 7 ) {
+      const [ , rawProductName, setName, number, printing, rarity, condition ] = fields;
       return {
         productName: rawProductName,
         setName,
@@ -162,6 +194,21 @@ const parseCardLine = ( line, knownSetNames ) => {
         printing,
         rarity,
         condition,
+        quantity: firstFieldQuantity,
+      };
+    }
+
+    if ( fields.length >= 6 ) {
+      const [ rawProductName, setName, number, printing, rarity, condition ] = fields;
+      const { quantity, value: productName } = extractLeadingQuantity( rawProductName );
+      return {
+        productName,
+        setName,
+        number,
+        printing,
+        rarity,
+        condition,
+        quantity,
       };
     }
   }
@@ -316,6 +363,7 @@ const Home = () => {
 
       if ( !setNameId ) {
         console.error( `Numerical setNameId not found for set name: ${ setName }` );
+        return { card, data: { marketPrice: "0.00" }, error: `Set not found: ${ setName }` };
       }
 
       if ( !setCache[ setNameId ] ) {
@@ -425,7 +473,7 @@ const Home = () => {
       if ( invalidLines.length > 0 ) {
         setError(
           `Could not parse line${ invalidLines.length > 1 ? 's' : '' } ${ invalidLines.join( ', ' ) }. ` +
-          'Use the order: name, setName, number, printing, rarity, condition (commas optional).'
+          'Use the order: optional quantity, name, setName, number, printing, rarity, condition (commas optional).'
         );
         return;
       }
@@ -569,10 +617,10 @@ const Home = () => {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wide text-white/50">Bulk Lookup</p>
-                  <h2 className="mt-3 text-2xl font-bold text-white">Paste a list and match pricing</h2>
+                  <h2 className="mt-3 text-2xl font-bold text-white">Paste a list of cards and get current prices for those cards!</h2>
                 </div>
                 <button
-                  className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15"
+                  className="text-nowrap inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/15"
                   onClick={ handleLoadExampleData }
                   type="button"
                 >
@@ -584,10 +632,10 @@ const Home = () => {
                 <div>
                   <p className="text-sm text-white/70">Use this order for each line:</p>
                   <p className="mt-2 text-sm font-semibold text-white">
-                    Name, Set, Number, Edition, Rarity, Condition
+                    Quantity, Name, Set, Number, Edition, Rarity, Condition
                   </p>
                   <p className="mt-3 text-sm text-white/60">
-                    Commas are optional when the values stay in the same sequence.
+                    Quantity is optional. Place the quantity number at the start of the list, like "2,Card Name..." or "3 Card Name".
                   </p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/75">
@@ -622,7 +670,6 @@ const Home = () => {
 
         </main>
       </div>
-      <SpeedInsights />
     </>
   );
 };

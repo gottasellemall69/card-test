@@ -191,6 +191,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             <option value="rarity">Card Rarity</option>
             <option value="quantity">Quantity</option>
             <option value="marketPrice">Market Price</option>
+            <option value="totalPrice">Total Market Price</option>
             <option value="condition">Card Condition</option>
           </select>
         </div>
@@ -214,6 +215,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             const imageSrc = cardImage || cardIdImage || card.remoteImageUrl || FALLBACK_IMAGE;
             const isFlipped = Boolean( flippedCards[ card._id ] );
             const quantity = Number( card.quantity ) || 0;
+            const totalMarketPrice = ( Number( card.marketPrice ) || 0 ) * quantity;
             const removeAmount = editValues[ card._id ]?.deleteAmount || 1;
 
             const detailEntries = [
@@ -224,6 +226,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
               { label: "Condition", value: card.condition },
               { label: "Old Price", value: formatCurrency( card.oldPrice ) },
               { label: "Market Price", value: formatCurrency( card.marketPrice ) },
+              { label: "Total Market Price", value: quantity > 1 ? formatCurrency( totalMarketPrice ) : null },
             ].filter( ( entry ) => entry.value );
 
             const letterCandidate = ( card.setName || card.productName || "" ).trim();

@@ -2,7 +2,6 @@
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Filter, Grid, List, Loader2, TrendingUp, Trash2, Search } from "lucide-react";
 import Notification from '@/components/Notification';
 import { useAppShellSlots } from "@/components/Layout";
@@ -65,7 +64,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
   const [ hasInitializedFilters, setHasInitializedFilters ] = useState( false );
   const [ sortConfig, setSortConfig ] = useState( () => ( { ...DEFAULT_SORT } ) );
   const [ isFilterMenuOpen, setIsFilterMenuOpen ] = useState( false );
-  const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( true );
+  const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( false );
   const [ currentPage, setCurrentPage ] = useState( 1 );
   const [ collectionValueHistory, setCollectionValueHistory ] = useState( [] );
   const [ isHistoryLoading, setIsHistoryLoading ] = useState( false );
@@ -204,11 +203,15 @@ const MyCollection = ( { initialAuthState = false } ) => {
       return sortable;
     }
 
-    const numericKeys = new Set( [ "marketPrice", "lowPrice", "oldPrice", "quantity" ] );
+    const numericKeys = new Set( [ "marketPrice", "lowPrice", "oldPrice", "quantity", "totalPrice" ] );
 
     return sortable.sort( ( a, b ) => {
-      const rawLeft = a?.[ key ];
-      const rawRight = b?.[ key ];
+      const rawLeft = key === "totalPrice"
+        ? ( Number( a?.marketPrice ) || 0 ) * ( Number( a?.quantity ) || 0 )
+        : a?.[ key ];
+      const rawRight = key === "totalPrice"
+        ? ( Number( b?.marketPrice ) || 0 ) * ( Number( b?.quantity ) || 0 )
+        : b?.[ key ];
 
       if ( rawLeft === rawRight ) {
         return 0;
@@ -470,12 +473,54 @@ const MyCollection = ( { initialAuthState = false } ) => {
       }
 
       if ( !response.ok ) {
-        setNotification( { show: true, message: 'Card deleted successfully!' } );
         throw new Error( "Failed to update card prices." );
       }
 
+      const payload = await response.json().catch( () => null );
+      const result = payload?.result;
+      const updatedCount = Number.isFinite( Number( result?.updatedCount ) )
+        ? Number( result.updatedCount )
+        : Array.isArray( result )
+          ? result.length
+          : 0;
+      const unmatchedCount = Number.isFinite( Number( result?.unmatchedCount ) )
+        ? Number( result.unmatchedCount )
+        : 0;
+      const processedSetCount = Number.isFinite( Number( result?.processedSetCount ) )
+        ? Number( result.processedSetCount )
+        : 0;
+      const completedSetCount = Number.isFinite( Number( result?.completedSetCount ) )
+        ? Number( result.completedSetCount )
+        : processedSetCount;
+      const remainingSetCount = Number.isFinite( Number( result?.remainingSetCount ) )
+        ? Number( result.remainingSetCount )
+        : 0;
+      const totalSetCount = Number.isFinite( Number( result?.totalSetCount ) )
+        ? Number( result.totalSetCount )
+        : completedSetCount + remainingSetCount;
+      const isComplete = result?.complete !== false;
+      const rateLimited = Boolean( result?.rateLimited );
+
+      const updateMessage = isComplete
+        ? unmatchedCount > 0
+          ? `Current price update complete: ${ updatedCount } card${ updatedCount === 1 ? "" : "s" } updated; ${ unmatchedCount } need manual review.`
+          : `Current price update complete: ${ updatedCount } card${ updatedCount === 1 ? "" : "s" } updated.`
+        : [
+          `Current prices updated for ${ updatedCount } card${ updatedCount === 1 ? "" : "s" } across ${ processedSetCount } set${ processedSetCount === 1 ? "" : "s" }.`,
+          `${ completedSetCount }/${ totalSetCount } collection set${ totalSetCount === 1 ? "" : "s" } complete; ${ remainingSetCount } remain.`,
+          rateLimited
+            ? "The price API rate limit was reached. Wait a bit, then click Refresh prices again to resume from the remaining sets."
+            : "Click Refresh prices again to resume from the remaining sets.",
+          unmatchedCount > 0
+            ? `${ unmatchedCount } card${ unmatchedCount === 1 ? "" : "s" } in processed sets need manual review.`
+            : "",
+        ].filter( Boolean ).join( " " );
+
       await refreshCollection();
-      window.alert( "Prices updated successfully." );
+      setNotification( {
+        show: true,
+        message: updateMessage,
+      } );
     } catch ( error ) {
       console.error( "Error updating card prices:", error );
       setNotification( { show: true, message: 'Failed to update card prices! Please try again!' } );
@@ -886,7 +931,6 @@ const MyCollection = ( { initialAuthState = false } ) => {
         </main>
       </div>
 
-      <SpeedInsights />
     </>
   );
 

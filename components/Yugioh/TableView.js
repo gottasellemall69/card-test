@@ -12,6 +12,7 @@ const SORTABLE_COLUMNS = {
   rarity: { key: 'rarity', type: 'string' },
   condition: { key: 'condition', type: 'string' },
   marketPrice: { key: 'marketPrice', type: 'number' },
+  totalPrice: { key: 'totalPrice', type: 'number' },
 };
 
 const DEFAULT_SORT_KEY = 'setName';
@@ -22,6 +23,12 @@ const normalizeValue = ( value, type ) => {
     return Number.isFinite( numeric ) ? numeric : 0;
   }
   return ( value ?? '' ).toString().toLowerCase();
+};
+
+const getCardTotalPrice = ( card ) => {
+  const unitPrice = Number( card?.marketPrice );
+  const quantity = Number( card?.quantity );
+  return ( Number.isFinite( unitPrice ) ? unitPrice : 0 ) * ( Number.isFinite( quantity ) ? quantity : 0 );
 };
 
 const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfig, handleSortChange } ) => {
@@ -159,8 +166,12 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
     const items = [ ...safeCards ];
 
     items.sort( ( a, b ) => {
-      const aValue = normalizeValue( a?.[ column.key ], column.type );
-      const bValue = normalizeValue( b?.[ column.key ], column.type );
+      const aValue = column.key === 'totalPrice'
+        ? getCardTotalPrice( a )
+        : normalizeValue( a?.[ column.key ], column.type );
+      const bValue = column.key === 'totalPrice'
+        ? getCardTotalPrice( b )
+        : normalizeValue( b?.[ column.key ], column.type );
       if ( aValue < bValue ) return direction === 'ascending' ? -1 : 1;
       if ( aValue > bValue ) return direction === 'ascending' ? 1 : -1;
       return 0;
@@ -302,7 +313,7 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
         </button>
       </div>
 
-      <table className="w-full table-auto text-xs sm:text-sm">
+      <table className="glass w-full table-auto text-xs sm:text-sm">
         <thead className="bg-black/60 text-white">
           <tr>
             <th className="border border-white/10 px-3 py-2 text-center">
@@ -336,7 +347,10 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
               Condition { getSortArrow( 'condition' ) }
             </th>
             <th onClick={ () => handleSort( 'marketPrice' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Price { getSortArrow( 'marketPrice' ) }
+              Unit Price { getSortArrow( 'marketPrice' ) }
+            </th>
+            <th onClick={ () => handleSort( 'totalPrice' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
+              Total Price { getSortArrow( 'totalPrice' ) }
             </th>
             <th className="border border-white/10 px-3 py-2" />
             <th className="border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
@@ -430,6 +444,7 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.rarity }</td>
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.condition }</td>
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ Number.isFinite( Number( card?.marketPrice ) ) ? Number( card.marketPrice ).toFixed( 2 ) : card?.marketPrice ?? '0.00' }</td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left font-semibold">{ getCardTotalPrice( card ).toFixed( 2 ) }</td>
                 <td className="flex items-center gap-2 px-3 py-2">
                   <input
                     type="number"

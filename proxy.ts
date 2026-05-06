@@ -19,11 +19,21 @@ const createNonce = (): string => btoa( crypto.randomUUID() );
 
 const buildContentSecurityPolicy = ( nonce: string ): string => {
   const isDev = process.env.NODE_ENV === "development";
+  const scriptSrc = isDev
+    ? "'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com"
+    : `'self' 'nonce-${ nonce }' https://va.vercel-scripts.com`;
+  const scriptSrcElem = isDev
+    ? "'self' 'unsafe-inline' https://va.vercel-scripts.com"
+    : `'self' 'nonce-${ nonce }' https://va.vercel-scripts.com`;
+  const styleSrc = isDev
+    ? "'self' 'unsafe-inline'"
+    : `'self' 'nonce-${ nonce }'`;
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${ nonce }' 'strict-dynamic'${ isDev ? " 'unsafe-eval'" : "" } https://va.vercel-scripts.com;
-    style-src 'self' 'nonce-${ nonce }'${ isDev ? " 'unsafe-inline'" : "" };
-    style-src-elem 'self'${ isDev ? " 'unsafe-inline'" : ` 'nonce-${ nonce }'` };
+    script-src ${ scriptSrc };
+    script-src-elem ${ scriptSrcElem };
+    style-src ${ styleSrc };
+    style-src-elem ${ styleSrc };
     style-src-attr 'unsafe-inline';
     img-src 'self' blob: data: https://images.ygoprodeck.com https://images.unsplash.com https://tailwindcss.com https://raw.githubusercontent.com;
     font-src 'self' data:;

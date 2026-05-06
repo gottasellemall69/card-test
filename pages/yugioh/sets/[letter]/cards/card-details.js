@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { useAppShellSlots } from "@/components/Layout";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { useRouter } from "next/router";
 import useSWR, { mutate } from "swr";
 import PriceHistoryChart from "@/components/Yugioh/PriceHistoryChart";
@@ -1189,7 +1188,6 @@ const CardDetails = () => {
         </div>
       </div>
 
-      <SpeedInsights />
     </>
   );
 };

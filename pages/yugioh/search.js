@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import YugiohPagination from "@/components/Yugioh/YugiohPagination";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 
 const PAGE_SIZE = 25;
@@ -306,7 +305,7 @@ const YugiohFuzzySearchResults = () => {
         />
         <meta charSet="UTF-8" />
       </Head>
-      <div className="yugioh-bg min-h-screen w-full text-white">
+      <div className="yugioh-bg relative z-10 min-h-screen w-full text-white">
         <div className="justify-start place-content-start place-items-baseline w-[75%]">
           <Breadcrumb />
         </div>
@@ -356,7 +355,7 @@ const YugiohFuzzySearchResults = () => {
                 Loading results...
               </div>
             ) : hasQuery && paginatedResults.length > 0 ? (
-              <table className="min-w-full border-collapse text-sm text-white text-nowrap">
+              <table className="glass min-w-full border-collapse text-sm text-white text-nowrap">
                 <thead className="bg-white/10 text-left uppercase text-xs">
                   <tr>
                     { [
@@ -512,7 +511,6 @@ const YugiohFuzzySearchResults = () => {
           />
         </div>
       </div>
-      <SpeedInsights />
     </>
   );
 };

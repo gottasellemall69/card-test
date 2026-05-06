@@ -78,7 +78,7 @@ export default function Layout( { children } ) {
   return (
     <ShellSlotsContext.Provider value={ contextValue }>
       <div
-        className={ `app-shell parent relative mx-auto min-h-screen w-full glass backdrop ${ showYugiohBackground ? "overflow-x-hidden" : "" } ${ hasHeaderSlot ? "app-shell--has-header" : "" } ${ hasRightSidebar ? "app-shell--has-right" : "" } ${ hasFooterSlot ? "app-shell--has-footer" : "" }` }
+        className={ `app-shell parent relative mx-auto min-h-screen w-full bg-transparent ${ showYugiohBackground ? "overflow-x-hidden" : "" } ${ hasHeaderSlot ? "app-shell--has-header" : "" } ${ hasRightSidebar ? "app-shell--has-right" : "" } ${ hasFooterSlot ? "app-shell--has-footer" : "" }` }
       >
         { showYugiohBackground ? <YugiohSiteBackground /> : null }
 
