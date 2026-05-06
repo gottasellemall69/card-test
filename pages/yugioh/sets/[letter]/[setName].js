@@ -1587,7 +1587,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     const activeVariant = cardItem.activeVariant || null;
     const overlayLabel = activeVariant ? buildVariantLabel( activeVariant ) : currentRarityLabel;
     const cardContainerClasses = [
-      "relative flex h-[24rem] w-full items-center justify-center overflow-hidden rounded border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
+      "relative flex aspect-[260/360] w-full items-center justify-center overflow-hidden rounded-[6px] border border-white/10 bg-black/40 shadow-lg transition duration-300 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
       isSelected ? "ring-2 ring-indigo-400/70" : "",
     ].filter( Boolean ).join( " " );
     const isFlipped = Boolean( flippedGridCards[ selectionKey ] );
@@ -1665,14 +1665,14 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     return (
       <div
         key={ selectionKey }
-        className="group relative h-full -mb-4 flex w-full max-w-[24rem] mx-auto flex-col glass bg-transparent transition hover:border-indigo-400/50"
+        className="group relative mx-auto flex h-full w-full max-w-[16rem] flex-col bg-transparent transition"
       >
-        <div className="rounded relative mx-auto w-full [perspective:1250px]">
+        <div className="relative mx-auto w-full [perspective:1500px]">
           <div
-            className={ `grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] will-change-transform ${ isFlipped ? "[transform:rotateY(180deg)]" : "" }` }
+            className={ `grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] [transition-timing-function:cubic-bezier(0.75,0,0.85,1)] ${ isFlipped ? "[transform:rotateY(180deg)]" : "" }` }
           >
             <div
-              className="col-start-1 row-start-1 flex w-full flex-col rounded [backface-visibility:hidden]"
+              className="col-start-1 row-start-1 flex w-full flex-col overflow-hidden rounded-[6px] shadow-lg [backface-visibility:hidden] [transform-style:preserve-3d]"
               role="button"
               tabIndex={ 0 }
               aria-pressed={ isFlipped }
@@ -1699,9 +1699,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
                   </button>
                 ) }
-                <div className="h-full w-full glass">
+                <div className="h-full w-full">
                   <img
-                    className="mx-auto block h-72 w-full object-contain object-top"
+                    className="mx-auto block h-full w-full object-contain object-top"
                     src={ primaryImageSrc }
                     data-next-src={ secondaryImageSrc || "" }
                     data-fallback-src={ fallbackImageSrc }
@@ -1711,11 +1711,15 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     onError={ handleImageError }
                   />
                 </div>
-                <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full items-end justify-start overflow-hidden rounded">
-                  <div aria-hidden="true" className="absolute inset-x-0 bottom-0 min-h-[24rem] bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90" />
+                <div
+                  aria-hidden="true"
+                  className="absolute -inset-px rounded-[6px] bg-gradient-to-t from-black/90 via-black/45 to-black/25 opacity-95 transition-opacity duration-300 group-hover:opacity-100"
+                />
+                <div className="pointer-events-none absolute inset-0 flex h-full items-end justify-start overflow-hidden rounded-[6px] [transform:translateZ(80px)]">
+                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent opacity-90" />
 
-                  <div className="relative flex flex-col gap-1 p-2 text-white text-shadow glass w-full bg-transparent">
-                    <h3 className="text-sm font-semibold leading-tight text-pretty line-clamp-2">{ cardItem.productName }</h3>
+                  <div className="relative flex w-full flex-col gap-1 p-4 text-left text-white text-shadow">
+                    <h3 className="line-clamp-3 text-base font-semibold leading-tight text-pretty break-words">{ cardItem.productName }</h3>
                     { marketPriceLabel && (
                       <p className="text-base font-semibold">{ marketPriceLabel }</p>
                     ) }
@@ -1729,30 +1733,36 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                         { conditionLabel }
                       </p>
                     ) }
+                    <span className="mt-2 inline-flex min-h-10 w-fit min-w-10 items-center justify-center rounded-[4px] border border-white/35 bg-black/35 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white shadow-[0_0_6px_rgba(0,0,0,0.3)]">
+                      Details
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="col-start-1 row-start-1 flex w-full flex-col justify-between gap-3 rounded border border-white/10 bg-black p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-center text-pretty break-words">{ cardItem.productName }</h3>
-                <div className="space-y-1 text-xs text-white/70 sm:text-sm">
+            <div className="col-start-1 row-start-1 flex aspect-[260/360] min-h-0 w-full flex-col overflow-hidden rounded-[6px] border border-white/10 bg-black p-5 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)] [transform-style:preserve-3d]">
+              <div className="flex h-full min-h-0 flex-col justify-between gap-2 [transform:translateZ(80px)_scale(0.94)]">
+                <div className="text-[0.8rem] font-semibold text-white">
+                  <h3 className="line-clamp-3 min-w-0 break-words text-center text-base font-semibold leading-tight">
+                    { cardItem.productName }
+                  </h3>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto pr-2 text-[0.86rem] font-semibold leading-[1.4] text-white/80 [scrollbar-width:thin]">
                   { detailEntries.map( ( entry ) => (
-                    <div key={ entry.label } className="flex min-w-0 items-start justify-between gap-3 border-b border-white/5 pb-1 last:border-b-0">
-                      <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-white/60 sm:text-xs">{ entry.label }</span>
-                      <span className="min-w-0 text-right break-words text-white">{ entry.value }</span>
+                    <div key={ entry.label } className="mb-2 rounded-[5px] border-b border-white/5 pb-2 last:border-b-0">
+                      <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-white/60 sm:text-xs">{ entry.label }</span>
+                      <span className="block min-w-0 break-words text-white">{ entry.value }</span>
                     </div>
                   ) ) }
                 </div>
-                { cardItem.selectionMissing && (
-                  <p className="rounded-md bg-amber-500/10 p-2 text-xs font-semibold text-amber-300">
-                    { cardItem.selectionLabel
-                      ? `No pricing data for ${ cardItem.selectionLabel }. Showing closest match.`
-                      : "No pricing data for the selected filters. Showing closest match." }
-                  </p>
-                ) }
-              </div>
-              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
+                  { cardItem.selectionMissing && (
+                    <p className="rounded-md bg-amber-500/10 p-2 text-xs font-semibold text-amber-300">
+                      { cardItem.selectionLabel
+                        ? `No pricing data for ${ cardItem.selectionLabel }. Showing closest match.`
+                        : "No pricing data for the selected filters. Showing closest match." }
+                    </p>
+                  ) }
                 { cardItem.hasMultipleRarities && (
                   <div className="space-y-2">
                     <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-100">
@@ -1773,19 +1783,19 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     </label>
                   </div>
                 ) }
-                <div className="mx-auto mt-2 flex flex-wrap w-full gap-2 text-pretty sm:gap-3">
+                <div className="mx-auto mt-1 flex w-full flex-wrap gap-1.5 text-pretty">
                   <Link
                     href={ {
                       pathname: "/yugioh/sets/[letter]/cards/card-details",
                       query: cardDetailsQuery,
                     } }
-                    className="inline-flex w-full items-center justify-center rounded border border-white/20 bg-white/10 px-2 py-1 text-sm font-semibold text-white transition hover:border-indigo-400 hover:bg-indigo-500/20"
+                    className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-white/10 px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-100"
                   >
                     View Details
                   </Link>
                   <button
                     type="button"
-                    className="inline-flex w-full items-center justify-center rounded border border-white/20 px-2 py-1 text-sm font-medium text-white transition hover:border-indigo-400 hover:text-indigo-200"
+                    className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-transparent px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:text-indigo-200"
                     onClick={ () => toggleGridCardFlip( selectionKey, false ) }
                   >
                     Show Card Front
@@ -1794,6 +1804,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
               </div>
             </div>
           </div>
+        </div>
         </div>
         { isAuthenticated && (
           <div className="mt-6 flex flex-col gap-3">
@@ -1885,7 +1896,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           <main
             className="w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8"
           >
-            <header className="rounded-3xl border border-white/10 bg-black/45 p-6 shadow-2xl backdrop-blur">
+            <header className="rounded-3xl border border-white/10 bg-black/55 p-6 shadow-2xl">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl text-center lg:text-left">
                   <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
@@ -1928,13 +1939,13 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
               <h2 id="cards-layout" className="sr-only">Card explorer</h2>
               <div className="space-y-8">
                 <div className="space-y-8">
-                  <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+                  <div className="rounded-3xl border border-white/10 bg-black/50 p-6 shadow-2xl">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                       <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
                         <span className="font-medium uppercase tracking-wide text-white/50">View</span>
                         <div
                           role="group"
-                          className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm backdrop-blur"
+                          className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm"
                         >
                           <button
                             type="button"
@@ -1972,7 +1983,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                             Card Numbers
                           </button>
                           { numbersOpen && (
-                            <div className="absolute right-0 z-50 mt-3 w-64 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-black/90 p-4 text-sm text-white/80 shadow-2xl backdrop-blur">
+                            <div className="absolute right-0 z-50 mt-3 w-64 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-black/95 p-4 text-sm text-white/80 shadow-2xl">
                               <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-white/50">
                                 <button
                                   type="button"
@@ -2453,14 +2464,3 @@ export async function getServerSideProps( { params } ) {
 }
 
 export default CardsInSetPage;
-
-
-
-
-
-
-
-
-
-
-

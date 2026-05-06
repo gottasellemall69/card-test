@@ -191,11 +191,6 @@
     display: none;
   }
 
-  .app-shell-desktop-header
-  {
-    display: flex;
-  }
-
   .app-shell
   {
     grid-template:

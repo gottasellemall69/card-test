@@ -204,7 +204,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
       </div>
 
       <div className="w-full rounded border border-white/10 bg-black/40 p-4 shadow-2xl sm:p-2">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="grid grid-cols-1 justify-items-center gap-x-8 gap-y-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           { memoizedAggregatedData.map( ( card ) => {
             if ( !card ) return null;
 
@@ -282,14 +282,14 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             return (
               <div
                 key={ card._id }
-                className="group relative flex flex-wrap mx-auto sm:w-fit lg:w-full min-h-96 h-full flex-col rounded border border-white/10 bg-black/30 transition hover:border-indigo-400/50"
+                className="group relative mx-auto flex h-full min-h-96 w-full max-w-[16rem] flex-col rounded-[6px] transition"
               >
-                <div className="rounded relative mx-auto w-full max-w-[24rem] [perspective:1250px]">
+                <div className="relative mx-auto w-full max-w-[16rem] [perspective:1500px]">
                   <div
-                    className={ `grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] will-change-transform ${ isFlipped ? "[transform:rotateY(180deg)]" : "" }` }
+                    className={ `grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] [transition-timing-function:cubic-bezier(0.75,0,0.85,1)] ${ isFlipped ? "[transform:rotateY(180deg)]" : "" }` }
                   >
                     <div
-                      className="col-start-1 row-start-1 flex w-full flex-col rounded [backface-visibility:hidden]"
+                      className="col-start-1 row-start-1 flex w-full flex-col overflow-hidden rounded-[6px] shadow-lg [backface-visibility:hidden] [transform-style:preserve-3d]"
                       role="button"
                       tabIndex={ 0 }
                       aria-pressed={ isFlipped }
@@ -301,22 +301,26 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                         }
                       } }
                     >
-                      <div className="relative flex max-h-[31rem] h-full w-full items-center justify-center overflow-hidden rounded border border-white/10 bg-black/40 shadow-lg transition duration-200 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
+                      <div className="relative flex aspect-[260/360] h-full max-h-[31rem] w-full items-center justify-center overflow-hidden rounded-[6px] border border-white/10 bg-black/40 transition duration-300 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
                         <img
                           className="mx-auto h-full w-full object-top object-cover"
                           src={ imageSrc }
                           alt={ `Card Image - ${ card.productName }` }
                           loading="lazy"
                         />
+                        <div
+                          aria-hidden="true"
+                          className="absolute -inset-px rounded-[6px] bg-gradient-to-t from-black/90 via-black/45 to-black/25 opacity-95 transition-opacity duration-300 group-hover:opacity-100"
+                        />
                         { ( formatCurrency( card.marketPrice ) || card.rarity || card.printing ) && (
-                          <div className="pointer-events-none absolute inset-x-0 top-0 flex h-full items-end justify-start overflow-hidden rounded">
+                          <div className="pointer-events-none absolute inset-0 flex h-full items-end justify-start overflow-hidden rounded-[6px] [transform:translateZ(80px)]">
                             <div
                               aria-hidden="true"
-                              className="absolute inset-x-0 bottom-0 min-h-[24rem] bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90"
+                              className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent opacity-90"
                             />
 
-                            <div className="relative flex flex-col gap-1 p-2 text-white text-shadow glass w-full bg-transparent">
-                              <h3 className="text-lg font-semibold text-pretty break-words">{ card.productName }</h3>
+                            <div className="relative flex w-full flex-col gap-1 p-4 text-left text-white text-shadow">
+                              <h3 className="line-clamp-3 text-base font-semibold leading-tight text-pretty break-words">{ card.productName }</h3>
                               { formatCurrency( card.marketPrice ) && (
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <p className="text-lg font-semibold">{ formatCurrency( card.marketPrice ) }</p>
@@ -330,47 +334,54 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                               <p className="text-xs font-medium uppercase tracking-wide">
                                 { [ card.rarity, card.printing ].filter( Boolean ).join( " • " ) }
                               </p>
+                              <span className="mt-2 inline-flex min-h-10 w-fit min-w-10 items-center justify-center rounded-[4px] border border-white/35 bg-black/35 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white shadow-[0_0_6px_rgba(0,0,0,0.3)]">
+                                Details
+                              </span>
                             </div>
                           </div>
                         ) }
                       </div>
                     </div>
-                    <div className="col-start-1 row-start-1 flex w-full flex-col justify-between gap-3 rounded border border-white/10 bg-black p-4 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                      <div className="space-y-3">
-                        <h3 className="text-lg font-semibold text-center text-pretty break-words">{ card.productName }</h3>
-                        <div className="space-y-1 text-xs text-white/70 sm:text-sm">
+                    <div className="col-start-1 row-start-1 flex aspect-[260/360] min-h-0 w-full flex-col overflow-hidden rounded-[6px] border border-white/10 bg-black p-5 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)] [transform-style:preserve-3d]">
+                      <div className="flex h-full min-h-0 flex-col justify-between gap-2 [transform:translateZ(80px)_scale(0.94)]">
+                        <div className="text-[0.8rem] font-semibold text-white">
+                          <h3 className="line-clamp-3 min-w-0 break-words text-center text-base font-semibold leading-tight text-white">
+                            { card.productName }
+                          </h3>
+                        </div>
+                        <div className="min-h-0 flex-1 overflow-y-auto pr-2 text-[0.86rem] font-semibold leading-[1.4] text-white/80 [scrollbar-width:thin]">
                           { detailEntries.map( ( entry ) => (
-                            <div key={ entry.label } className="flex min-w-0 items-start justify-between gap-3 border-b border-white/5 pb-1 last:border-b-0">
-                              <span className="text-[0.65rem] font-semibold uppercase tracking-wide text-white/60 sm:text-xs">
+                            <div key={ entry.label } className="mb-2 rounded-[5px] border-b border-white/5 pb-2 last:border-b-0">
+                              <span className="block text-[0.65rem] font-bold uppercase tracking-wide text-white/60 sm:text-xs">
                                 { entry.label }
                               </span>
-                              <span className="min-w-0 text-right break-words text-white">{ entry.value }</span>
+                              <span className="block min-w-0 break-words text-white">{ entry.value }</span>
                             </div>
                           ) ) }
                         </div>
-                      </div>
-                      <div className="mx-auto mt-2 flex flex-wrap w-full gap-2 text-pretty sm:gap-3">
-                        <Link
-                          className="inline-flex w-full items-center justify-center rounded border border-white/20 bg-white/10 px-2 py-1 text-sm font-semibold text-white transition hover:border-indigo-400 hover:bg-indigo-500/20"
-                          href={ {
-                            pathname: "/yugioh/sets/[letter]/cards/card-details",
-                            query: cardDetailsQuery,
-                          } }
-                        >
-                          View Details
-                        </Link>
-                        <button
-                          type="button"
-                          className="inline-flex w-full items-center justify-center rounded border border-white/20 px-2 py-1 text-sm font-medium text-white transition hover:border-indigo-400 hover:text-indigo-200"
-                          onClick={ () => toggleFlip( card._id, false ) }
-                        >
-                          Show Card Front
-                        </button>
+                        <div className="mx-auto flex w-full flex-wrap gap-1.5 text-pretty">
+                          <Link
+                            className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-white/10 px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-100"
+                            href={ {
+                              pathname: "/yugioh/sets/[letter]/cards/card-details",
+                              query: cardDetailsQuery,
+                            } }
+                          >
+                            View Details
+                          </Link>
+                          <button
+                            type="button"
+                            className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-transparent px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:text-indigo-200"
+                            onClick={ () => toggleFlip( card._id, false ) }
+                          >
+                            Show Card Front
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="mt-5 space-y-5 rounded border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+                <div className="mt-5 space-y-5 rounded-[6px] border border-white/10 bg-black/35 p-4 text-sm text-white/80">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <span className="text-xs font-semibold uppercase tracking-wide text-white/60">Quantity</span>
                     { edit[ card._id ] === "quantity" ? (
@@ -443,19 +454,3 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 };
 
 export default GridView;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

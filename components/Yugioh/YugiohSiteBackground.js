@@ -13,6 +13,28 @@ const ANIMATION_EASING = 0.08;
 const SETTLE_EPSILON = 0.002;
 
 const clampNumber = ( value, min, max ) => Math.min( Math.max( value, min ), max );
+const getSmallDesktopParallaxScale = ( width ) => {
+    if ( width <= 900 ) {
+        return 0;
+    }
+
+    if ( width >= 1440 ) {
+        return 0.72;
+    }
+
+    return 0.28 + ( ( width - 900 ) / 540 ) * 0.44;
+};
+const getCollectionParallaxScale = ( width ) => {
+    if ( width <= 900 ) {
+        return 0;
+    }
+
+    if ( width >= 1440 ) {
+        return 0.46;
+    }
+
+    return 0.16 + ( ( width - 900 ) / 540 ) * 0.3;
+};
 
 const bindMediaQuery = ( mediaQuery, handler ) => {
     if ( typeof mediaQuery.addEventListener === "function" ) {
@@ -40,6 +62,7 @@ export default function YugiohSiteBackground() {
     ].includes( router.pathname );
     const isCollectionPage = router.pathname.startsWith( "/yugioh/my-collection" );
     const isSetDetailPage = router.pathname === "/yugioh/sets/[letter]/[setName]";
+    const usesReducedMeasuredParallax = isCollectionPage || isSetDetailPage;
     const usesMeasuredArtBand = isCollectionPage || isSetDetailPage;
 
     useEffect( () => {
@@ -65,6 +88,7 @@ export default function YugiohSiteBackground() {
         let currentX = 0;
         let currentY = 0;
         let rafId = 0;
+        let syncRafId = 0;
         let desktopMetrics = {
             contentLeft: 0,
             usableWidth: window.innerWidth,
@@ -147,18 +171,40 @@ export default function YugiohSiteBackground() {
 
         const applyTransforms = ( x, y ) => {
             const { contentCenterPercent } = desktopMetrics;
+            const parallaxScale = isCollectionPage
+                ? getCollectionParallaxScale( window.innerWidth )
+                : usesReducedMeasuredParallax
+                    ? getSmallDesktopParallaxScale( window.innerWidth )
+                    : 1;
+            const scaledX = x * parallaxScale;
+            const scaledY = y * parallaxScale;
+            const perspectiveX = isCollectionPage ? scaledX * 3.2 : usesReducedMeasuredParallax ? scaledX * 5 : x * 7;
+            const perspectiveY = isCollectionPage ? scaledY * 2.2 : usesReducedMeasuredParallax ? scaledY * 3.5 : y * 5;
+            const cameraX = isCollectionPage ? scaledX * -3 : usesReducedMeasuredParallax ? scaledX * -5 : x * -8;
+            const cameraY = isCollectionPage ? scaledY * -2.5 : usesReducedMeasuredParallax ? scaledY * -4 : y * -6;
+            const cameraRotateX = isCollectionPage ? scaledY * -1.5 : usesReducedMeasuredParallax ? scaledY * -2.6 : y * -4.6;
+            const cameraRotateY = isCollectionPage ? scaledX * 1.9 : usesReducedMeasuredParallax ? scaledX * 3.2 : x * 5.6;
+            const glowX = isCollectionPage ? scaledX * -16 : usesReducedMeasuredParallax ? scaledX * -32 : x * -54;
+            const glowY = isCollectionPage ? scaledY * -15 : usesReducedMeasuredParallax ? scaledY * -30 : y * -50;
+            const characterX = isCollectionPage ? scaledX * -12 : usesReducedMeasuredParallax ? scaledX * -22 : x * -36;
+            const characterY = isCollectionPage ? scaledY * -11 : usesReducedMeasuredParallax ? scaledY * -20 : y * -34;
+            const sparksX = isCollectionPage ? scaledX * -6 : usesReducedMeasuredParallax ? scaledX * -12 : x * -18;
+            const sparksY = isCollectionPage ? scaledY * -5 : usesReducedMeasuredParallax ? scaledY * -10 : y * -16;
+            const glowScale = isCollectionPage ? 1.07 : usesReducedMeasuredParallax ? 1.12 : 1.14;
+            const characterScale = isCollectionPage ? 1.09 : usesReducedMeasuredParallax ? 1.14 : 1.18;
+            const sparksScale = isCollectionPage ? 1.01 : usesReducedMeasuredParallax ? 1.02 : 1.03;
 
             stage.style.perspectiveOrigin = isDesktop
-                ? `${ ( contentCenterPercent + ( x * 7 ) ).toFixed( 2 ) }% ${ ( 48 + ( y * 5 ) ).toFixed( 2 ) }%`
+                ? `${ ( contentCenterPercent + perspectiveX ).toFixed( 2 ) }% ${ ( 48 + perspectiveY ).toFixed( 2 ) }%`
                 : "50% 50%";
 
             camera.style.transform = isDesktop
-                ? `translate3d(${ ( x * -8 ).toFixed( 2 ) }px, ${ ( y * -6 ).toFixed( 2 ) }px, 0) translate3d(0, 1.5%, 0) scale(1.02) rotateX(${ ( y * -4.6 ).toFixed( 3 ) }deg) rotateY(${ ( x * 5.6 ).toFixed( 3 ) }deg)`
+                ? `translate3d(${ cameraX.toFixed( 2 ) }px, ${ cameraY.toFixed( 2 ) }px, 0) translate3d(0, 1.5%, 0) scale(1.02) rotateX(${ cameraRotateX.toFixed( 3 ) }deg) rotateY(${ cameraRotateY.toFixed( 3 ) }deg)`
                 : "translate3d(0, 1.5%, 0) scale(1.02) rotateX(0deg) rotateY(0deg)";
 
-            glow.style.transform = `translate3d(${ ( x * -54 ).toFixed( 2 ) }px, ${ ( y * -50 ).toFixed( 2 ) }px, 40px) scale(1.14)`;
-            character.style.transform = `translate3d(${ ( x * -36 ).toFixed( 2 ) }px, ${ ( y * -34 ).toFixed( 2 ) }px, 90px) scale(1.18)`;
-            sparks.style.transform = `translate3d(${ ( x * -18 ).toFixed( 2 ) }px, ${ ( y * -16 ).toFixed( 2 ) }px, 20px) scale(1.03)`;
+            glow.style.transform = `translate3d(${ glowX.toFixed( 2 ) }px, ${ glowY.toFixed( 2 ) }px, 40px) scale(${ glowScale })`;
+            character.style.transform = `translate3d(${ characterX.toFixed( 2 ) }px, ${ characterY.toFixed( 2 ) }px, 90px) scale(${ characterScale })`;
+            sparks.style.transform = `translate3d(${ sparksX.toFixed( 2 ) }px, ${ sparksY.toFixed( 2 ) }px, 20px) scale(${ sparksScale })`;
         };
 
         const stopAnimation = () => {
@@ -272,17 +318,34 @@ export default function YugiohSiteBackground() {
             applyTransforms( currentX, currentY );
         };
 
+        const scheduleSceneSync = () => {
+            if ( syncRafId ) {
+                return;
+            }
+
+            syncRafId = window.requestAnimationFrame( () => {
+                syncRafId = 0;
+                syncScene();
+                applyTransforms( currentX, currentY );
+            } );
+        };
+
         const onResize = () => {
+            resetPointer( false );
+            currentX = 0;
+            currentY = 0;
+            scheduleSceneSync();
+        };
+
+        const syncSceneImmediately = () => {
             syncScene();
             applyTransforms( currentX, currentY );
         };
 
         resetPointer( false );
-        syncScene();
-        applyTransforms( 0, 0 );
+        syncSceneImmediately();
         const postLayoutSyncId = window.requestAnimationFrame( () => {
-            syncScene();
-            applyTransforms( currentX, currentY );
+            syncSceneImmediately();
         } );
 
         window.addEventListener( "pointermove", onPointerMove, { passive: true } );
@@ -299,8 +362,7 @@ export default function YugiohSiteBackground() {
             : null;
         const resizeObserver = typeof ResizeObserver === "function" && mainRegion
             ? new ResizeObserver( () => {
-                syncScene();
-                applyTransforms( currentX, currentY );
+                scheduleSceneSync();
             } )
             : null;
 
@@ -320,9 +382,12 @@ export default function YugiohSiteBackground() {
             document.removeEventListener( "visibilitychange", onVisibilityChange );
             removeMediaListener();
             resizeObserver?.disconnect();
+            if ( syncRafId ) {
+                window.cancelAnimationFrame( syncRafId );
+            }
             stopAnimation();
         };
-    }, [ usesMeasuredArtBand, usesOriginalBackgroundPosition ] );
+    }, [ isCollectionPage, usesMeasuredArtBand, usesOriginalBackgroundPosition, usesReducedMeasuredParallax ] );
 
     return (
         <>
@@ -412,6 +477,14 @@ export default function YugiohSiteBackground() {
                     transform: translate3d(0, 1.5%, 0) scale(1.02) rotateX(0deg) rotateY(0deg);
                 }
 
+                .ygo-bg.reduced-measured-parallax-page .stage {
+                    perspective: 1800px;
+                }
+
+                .ygo-bg.collection-parallax-page .stage {
+                    perspective: 2200px;
+                }
+
                 .layer {
                     position: absolute;
                     inset: -6%;
@@ -456,6 +529,20 @@ export default function YugiohSiteBackground() {
 
                 .ygo-bg.measured-art-band-page .character {
                     background-size: auto var(--scene-character-height);
+                }
+
+                .ygo-bg.collection-parallax-page .glow {
+                    opacity: 0.26;
+                    filter: saturate(1.04) brightness(1);
+                }
+
+                .ygo-bg.collection-parallax-page .character {
+                    filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.22));
+                }
+
+                .ygo-bg.collection-parallax-page .sparks {
+                    opacity: 0.42;
+                    filter: none;
                 }
 
                 .sparks {
@@ -548,7 +635,7 @@ export default function YugiohSiteBackground() {
 
             <div
                 ref={ sceneRef }
-                className={ `ygo-bg${ usesOriginalBackgroundPosition ? " original-position-page" : "" }${ usesMeasuredArtBand ? " measured-art-band-page" : "" }` }
+                className={ `ygo-bg${ usesOriginalBackgroundPosition ? " original-position-page" : "" }${ usesMeasuredArtBand ? " measured-art-band-page" : "" }${ usesReducedMeasuredParallax ? " reduced-measured-parallax-page" : "" }${ isCollectionPage ? " collection-parallax-page" : "" }` }
                 aria-hidden="true"
             >
                 <div className="mobile-art" />

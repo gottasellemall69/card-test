@@ -161,7 +161,7 @@ export default function LoginPage() {
               type="text"
               value={ username }
               onChange={ ( e ) => setUsername( e.target.value ) }
-              className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-black outline-none transition placeholder:text-white/35 focus:border-blue-400/70 focus:ring-2 focus:ring-blue-400/35"
+              className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-blue-400/70 focus:ring-2 focus:ring-blue-400/35"
               required={ true }
             />
           </div>
@@ -174,7 +174,7 @@ export default function LoginPage() {
               type="password"
               value={ password }
               onChange={ ( e ) => setPassword( e.target.value ) }
-              className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-black outline-none transition placeholder:text-white/35 focus:border-blue-400/70 focus:ring-2 focus:ring-blue-400/35"
+              className="w-full rounded-2xl border border-white/15 bg-white/8 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-blue-400/70 focus:ring-2 focus:ring-blue-400/35"
               required={ true }
             />
           </div>

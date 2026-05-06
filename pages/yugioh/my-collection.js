@@ -651,7 +651,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
   if ( !isAuthenticated ) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center yugioh-bg px-4 text-center text-white">
-        <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/10 bg-black/45 p-10 shadow-2xl backdrop-blur">
+        <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/10 bg-black/55 p-10 shadow-2xl">
           <h2 className="text-3xl font-bold text-shadow">Please log in</h2>
           <p className="mt-3 text-white/70">
             You need to be logged in to view your Yu-Gi-Oh! collection.
@@ -676,10 +676,10 @@ const MyCollection = ( { initialAuthState = false } ) => {
         <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
         <meta charSet="UTF-8" />
       </Head>
-      <div className="min-h-screen yugioh-bg text-white">
-        <main className="min-h-screen mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4">
+      <div className="relative z-10 min-h-screen yugioh-bg text-white">
+        <main className="relative z-10 min-h-screen mx-auto w-full px-4 pb-20 pt-10 sm:px-2 lg:px-4">
 
-          <header className={ `rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur ${ SUMMARY_PANEL_HEIGHT }` }>
+          <header className={ `rounded-3xl border border-white/10 bg-black/50 p-6 shadow-2xl ${ SUMMARY_PANEL_HEIGHT }` }>
             <div className="flex flex-wrap flex-col lg:flex-row lg:items-end lg:justify-between">
               <div className="text-center lg:text-left">
                 <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">Collection</p>
@@ -708,7 +708,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
           </header>
 
           { hasCards && (
-            <div className={ `mt-6 min-h-fit h-auto w-full rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl backdrop-blur ${ CHART_PANEL_HEIGHT }` }>
+            <div className={ `mt-6 min-h-fit h-auto w-full rounded-3xl border border-white/10 bg-black/50 p-4 shadow-2xl ${ CHART_PANEL_HEIGHT }` }>
               { historyError && (
                 <p className="text-sm text-rose-200">{ historyError }</p>
               ) }
@@ -727,7 +727,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
           <section className="pt-10">
             <div className="space-y-8">
               <div className="space-y-8">
-                <div className="rounded-3xl border border-white/10 bg-black/40 p-6 shadow-2xl backdrop-blur">
+                <div className="rounded-3xl border border-white/10 bg-black/50 p-6 shadow-2xl">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
                       <span className="font-medium uppercase tracking-wide text-white/50">View</span>
