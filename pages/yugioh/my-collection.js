@@ -514,13 +514,10 @@ const MyCollection = ( { initialAuthState = false } ) => {
           unmatchedCount > 0
             ? `${ unmatchedCount } card${ unmatchedCount === 1 ? "" : "s" } in processed sets need manual review.`
             : "",
-        ].filter( Boolean ).join( " " );
+        ].filter( Boolean ).join( "\n" );
 
       await refreshCollection();
-      setNotification( {
-        show: true,
-        message: updateMessage,
-      } );
+      window.alert( updateMessage );
     } catch ( error ) {
       console.error( "Error updating card prices:", error );
       setNotification( { show: true, message: 'Failed to update card prices! Please try again!' } );

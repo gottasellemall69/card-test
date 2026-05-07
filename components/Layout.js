@@ -71,9 +71,8 @@ export default function Layout( { children } ) {
   };
 
   useEffect( () => {
-    clearSlots();
     setIsSidebarOpen( false );
-  }, [ clearSlots, router.asPath ] );
+  }, [ router.asPath ] );
 
   return (
     <ShellSlotsContext.Provider value={ contextValue }>

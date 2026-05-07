@@ -12,6 +12,12 @@ const TOKEN_COOKIE = "token";
 const AUTH_USER_HEADER = "x-authenticated-user";
 const NONCE_HEADER = "x-nonce";
 const CSP_HEADER = "Content-Security-Policy";
+const STATIC_STYLE_HASHES = [
+  "'sha256-wOOlbQsHffPa/XeSzb/hyZtdNuMNE9EDJ9dYETiwQ80='",
+  "'sha256-C8S6dNMSWod6IgqRVGm5rD7fWajo34AG++yTnMbIeks='",
+  "'sha256-Z5XTK23DFuEMs0PwnyZDO9SWxemQ5HxcpVaBNuUJyWY='",
+  "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
+];
 const isProduction = process.env.NODE_ENV === "production";
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -25,15 +31,19 @@ const buildContentSecurityPolicy = ( nonce: string ): string => {
   const scriptSrcElem = isDev
     ? "'self' 'unsafe-inline' https://va.vercel-scripts.com"
     : `'self' 'nonce-${ nonce }' https://va.vercel-scripts.com`;
+  const staticStyleHashes = STATIC_STYLE_HASHES.join( " " );
   const styleSrc = isDev
     ? "'self' 'unsafe-inline'"
-    : `'self' 'nonce-${ nonce }'`;
+    : `'self' 'nonce-${ nonce }' ${ staticStyleHashes }`;
+  const styleSrcElem = isDev
+    ? "'self' 'unsafe-inline'"
+    : `'self' 'nonce-${ nonce }' ${ staticStyleHashes }`;
   const cspHeader = `
     default-src 'self';
     script-src ${ scriptSrc };
     script-src-elem ${ scriptSrcElem };
     style-src ${ styleSrc };
-    style-src-elem ${ styleSrc };
+    style-src-elem ${ styleSrcElem };
     style-src-attr 'unsafe-inline';
     img-src 'self' blob: data: https://images.ygoprodeck.com https://images.unsplash.com https://tailwindcss.com https://raw.githubusercontent.com;
     font-src 'self' data:;

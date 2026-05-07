@@ -20,12 +20,15 @@ function usePrevious( value ) {
 export default function App( { Component, pageProps, router } ) {
   let previousPathname = usePrevious( router.pathname );
   const getLayout = Component.getLayout ?? ( ( page ) => <Layout>{ page }</Layout> );
+  const shouldRenderSpeedInsights =
+    process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
+    process.env.NEXT_PUBLIC_ENABLE_SPEED_INSIGHTS === "true";
 
   return getLayout(
     <CardProvider>
       <MarketPriceProvider>
         <Component previousPathname={ previousPathname } { ...pageProps } />
-        <SpeedInsights />
+        { shouldRenderSpeedInsights ? <SpeedInsights /> : null }
       </MarketPriceProvider>
     </CardProvider>
   );
