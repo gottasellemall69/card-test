@@ -628,13 +628,13 @@ const Home = () => {
                 </button>
               </div>
 
-              <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+              <div className="mt-5 grid gap-4 2xl:grid-cols-[minmax(0,2fr)_auto] lg:items-start">
                 <div>
                   <p className="text-sm text-white/70">Use this order for each line:</p>
                   <p className="mt-2 text-sm font-semibold text-white">
                     Quantity, Name, Set, Number, Edition, Rarity, Condition
                   </p>
-                  <p className="mt-3 text-sm text-white/60">
+                  <p className="mt-3 text-sm text-white/60 flex flex-wrap text-wrap">
                     Quantity is optional. Place the quantity number at the start of the list, like "2,Card Name..." or "3 Card Name".
                   </p>
                 </div>

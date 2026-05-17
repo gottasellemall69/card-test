@@ -72,8 +72,7 @@
   display: grid;
   grid-template:
     "header" auto
-    "main" minmax(0, 1fr)
-    "footer" auto / minmax(0, 1fr);
+    "main" minmax(0, 1fr) "footer" auto / minmax(0, 1fr);
   max-width: 100dvw;
   min-height: 100vh;
   min-height: 100svh;
@@ -204,8 +203,7 @@
   {
     grid-template:
       "header header header" auto
-      "left main right" minmax(0, 1fr)
-      "left footer right" auto / minmax(13rem, 16rem) minmax(0, 1fr) 0;
+      "left main right" minmax(0, 1fr) "left footer right" auto / minmax(13rem, 16rem) minmax(0, 1fr) 0;
   }
 
   .app-shell-left

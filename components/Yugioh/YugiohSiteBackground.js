@@ -6,8 +6,8 @@ import { useRouter } from "next/router";
 const MOBILE_BACKGROUND = "/images/backgrounds/yugioh/background.svg";
 const DESKTOP_CHARACTER = "/yugioh-parallax/character.png";
 const DESKTOP_GLOW = "/yugioh-parallax/glow.png";
-const DESKTOP_QUERY = "(min-width: 901px)";
-const ORIGINAL_SIDEBAR_BREAKPOINT = 1024;
+const DESKTOP_QUERY = "(min-width: 1280px)";
+const ORIGINAL_SIDEBAR_BREAKPOINT = 1280;
 const ORIGINAL_SIDEBAR_WIDTH = 324;
 const ANIMATION_EASING = 0.08;
 const SETTLE_EPSILON = 0.002;
@@ -358,7 +358,7 @@ export default function YugiohSiteBackground() {
         const mainRegion = document.querySelector( ".app-shell-main" );
         const measuredResultsBand = usesMeasuredArtBand
             ? document.getElementById( "collection-results-art-band" )
-                || document.getElementById( "set-results-art-band" )
+            || document.getElementById( "set-results-art-band" )
             : null;
         const resizeObserver = typeof ResizeObserver === "function" && mainRegion
             ? new ResizeObserver( () => {
@@ -474,7 +474,7 @@ export default function YugiohSiteBackground() {
                     transform-style: preserve-3d;
                     will-change: transform;
                     pointer-events: none;
-                    transform: translate3d(0, 1.5%, 0) scale(1.02) rotateX(0deg) rotateY(0deg);
+                    transform: translate3d(0, 1.5%, 0) rotateX(0deg) rotateY(0deg);
                 }
 
                 .ygo-bg.reduced-measured-parallax-page .stage {
@@ -621,7 +621,7 @@ export default function YugiohSiteBackground() {
                         );
                 }
 
-                @media ( max-width: 900px ) {
+                @media ( max-width: 1600px ) {
                     .mobile-art {
                         display: block;
                     }
