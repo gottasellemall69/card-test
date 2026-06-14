@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import dynamic from 'next/dynamic';
 import Notification from '@/components/Notification.js';
 
@@ -38,7 +38,12 @@ const getUnitPrice = ( value ) => {
 const getTotalPrice = ( item ) =>
     getUnitPrice( item?.data?.marketPrice ) * getQuantity( item?.card?.quantity );
 
-const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } ) => {
+const YugiohCardDataTable = ( {
+    matchedCardData = [],
+    isAuthenticated = false,
+    collectionMap = {},
+    onCollectionUpdated = null,
+} ) => {
     const router = useRouter();
     const itemsPerPage = 15;
     const [ currentPage, setCurrentPage ] = useState( 1 );
@@ -60,7 +65,7 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
 
     // Build base key from card properties (without index)
     const makeKey = ( { card } ) =>
-        `${ card?.productName }|${ card?.setName }|${ card?.number }|${ card?.printing }`;
+        `${ card?.productName }|${ card?.setName }|${ card?.number }|${ card?.printing }|${ card?.rarity }`;
 
     // Stable unique IDs including duplicate counts
     const safeMatchedData = Array.isArray( matchedCardData ) ? matchedCardData : [];
@@ -230,10 +235,13 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
 
             if ( !response.ok ) throw new Error();
             triggerNotification( "Card(s) added to the collection!" );
+            if ( typeof onCollectionUpdated === 'function' ) {
+                onCollectionUpdated();
+            }
         } catch {
             triggerNotification( "Card(s) failed to save!" );
         }
-    }, [ isAuthenticated, selectedKeys, safeMatchedData, itemUniqueIds, triggerNotification ] );
+    }, [ isAuthenticated, selectedKeys, safeMatchedData, itemUniqueIds, triggerNotification, onCollectionUpdated ] );
 
 
     const downloadCSV = useCallback( () => {
@@ -404,6 +412,7 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
                                         const uniqueId = itemUniqueIds[ originalIndex ];
                                         const isSelected = selectedKeys.has( uniqueId );
                                         const { card, data } = item;
+                                        const isCollected = isAuthenticated && Boolean( collectionMap?.[ item.collectionKey ] );
                                         const quantity = getQuantity( card?.quantity );
                                         const totalPrice = getTotalPrice( item );
 
@@ -454,7 +463,15 @@ const YugiohCardDataTable = ( { matchedCardData = [], isAuthenticated = false } 
                                                                 } }
                                                                 className="block h-full w-full cursor-pointer text-inherit hover:underline"
                                                             >
-                                                                { card?.productName || 'N/A' }
+                                                                <span className="inline-flex items-center gap-2">
+                                                                    { isCollected && (
+                                                                        <CheckCircleIcon
+                                                                            className="h-4 w-4 shrink-0 text-emerald-300"
+                                                                            aria-label="In collection"
+                                                                        />
+                                                                    ) }
+                                                                    <span>{ card?.productName || 'N/A' }</span>
+                                                                </span>
                                                             </Link>
                                                         );
                                                     } )() }

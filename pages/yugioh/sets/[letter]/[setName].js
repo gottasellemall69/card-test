@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Filter, Grid, List } from "lucide-react";
+import { CheckCircle2, Filter, Grid, List } from "lucide-react";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import CardFilter from "@/components/Yugioh/CardFilter";
 import FilterPanel from "@/components/Yugioh/FilterPanel";
@@ -843,45 +843,48 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     };
   }, [] );
 
+  const refreshCollectionCards = useCallback( async () => {
+    try {
+      const response = await fetch( "/api/Yugioh/my-collection", {
+        method: "GET",
+        credentials: "include",
+      } );
+
+      if ( response.status === 401 ) {
+        setCollectionCards( [] );
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+        return [];
+      }
+
+      if ( !response.ok ) {
+        setCollectionCards( [] );
+        return [];
+      }
+
+      const data = await response.json();
+      const nextCards = Array.isArray( data ) ? data : [];
+      setCollectionCards( nextCards );
+      return nextCards;
+    } catch ( error ) {
+      console.error( "Failed to load collection for set view:", error );
+      setCollectionCards( [] );
+      if ( error?.status === 401 ) {
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+      }
+      return [];
+    }
+  }, [] );
+
   useEffect( () => {
     if ( !isAuthenticated ) {
       setCollectionCards( [] );
       return;
     }
 
-    const fetchCollectionCards = async () => {
-      try {
-        const response = await fetch( "/api/Yugioh/my-collection", {
-          method: "GET",
-          credentials: "include",
-        } );
-
-        if ( response.status === 401 ) {
-          setCollectionCards( [] );
-          setIsAuthenticated( false );
-          dispatchAuthStateChange( false );
-          return;
-        }
-
-        if ( !response.ok ) {
-          setCollectionCards( [] );
-          return;
-        }
-
-        const data = await response.json();
-        setCollectionCards( data );
-      } catch ( error ) {
-        console.error( "Failed to load collection for set view:", error );
-        setCollectionCards( [] );
-        if ( error?.status === 401 ) {
-          setIsAuthenticated( false );
-          dispatchAuthStateChange( false );
-        }
-      }
-    };
-
-    fetchCollectionCards();
-  }, [ isAuthenticated ] );
+    refreshCollectionCards();
+  }, [ isAuthenticated, refreshCollectionCards ] );
 
   useEffect( () => {
     if ( isAuthenticated ) {
@@ -929,6 +932,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       setName: activeSetDisplayName,
       number: variant?.number || "",
       printing: variant?.printing || "Unknown Edition",
+      rarity: variant?.rarity || "Unknown Rarity",
     } ), [ activeSetDisplayName ] );
   const processedCards = useMemo( () => {
     let data = cards;
@@ -1474,12 +1478,13 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       }
 
       notify( "Card added!" );
+      refreshCollectionCards();
       closeModal();
     } catch ( error ) {
       console.error( error );
       notify( "Failed to add card. Try again." );
     }
-  }, [ selectedCard, modalVariant, activeSetDisplayName, closeModal, notify ] );
+  }, [ selectedCard, modalVariant, activeSetDisplayName, closeModal, notify, refreshCollectionCards ] );
 
   const closeBulkModal = useCallback( () => {
     setBulkModalVisible( false );
@@ -1563,6 +1568,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       }
 
       notify( `Added ${ payload.length } cards!` );
+      refreshCollectionCards();
       setSelectedRowIds( {} );
       setBulkSelections( {} );
       closeBulkModal();
@@ -1570,7 +1576,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       console.error( error );
       notify( "Error adding cards. Try again." );
     }
-  }, [ getSelectedCards, bulkSelections, activeSetDisplayName, closeBulkModal, notify ] );
+  }, [ getSelectedCards, bulkSelections, activeSetDisplayName, closeBulkModal, notify, refreshCollectionCards ] );
 
   const renderGridCard = useCallback( ( cardItem ) => {
     const selectionKey = cardItem.collectionKey;
@@ -1680,7 +1686,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
             >
               <div className={ cardContainerClasses }>
                 { isAuthenticated && isCollected && (
-                  <span className="absolute left-3 top-3 z-20 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                  <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                    <CheckCircle2 className="size-3.5" aria-hidden="true" />
                     In Collection
                   </span>
                 ) }
@@ -2233,6 +2240,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                           selectedRowIds={ selectedRowIds }
                           setSelectedRowIds={ setSelectedRowIds }
                           collectionMap={ collectionLookup }
+                          onCollectionUpdated={ refreshCollectionCards }
                           onRarityChange={ handleRarityOverrideChange }
                           autoRarityOptionValue={ AUTO_RARITY_OPTION }
                           isAuthenticated={ isAuthenticated }

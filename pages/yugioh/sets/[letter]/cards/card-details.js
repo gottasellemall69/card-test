@@ -5,9 +5,11 @@ import Breadcrumb from "@/components/Navigation/Breadcrumb";
 import { useAppShellSlots } from "@/components/Layout";
 import { useRouter } from "next/router";
 import useSWR, { mutate } from "swr";
+import { CheckCircle2 } from "lucide-react";
 import PriceHistoryChart from "@/components/Yugioh/PriceHistoryChart";
 import Notification from "@/components/Notification";
 import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
+import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
 
 const fetcher = async ( url ) => {
   const response = await fetch( url );
@@ -66,6 +68,42 @@ const buildPriceHistoryKey = ( cardId, versionTokens ) => {
 };
 
 const hasDisplayValue = ( value ) => value !== null && value !== undefined && value !== "";
+
+const normalizeComparableToken = ( value, { allowUnknown = false } = {} ) => {
+  if ( value === null || value === undefined ) {
+    return allowUnknown ? "unknown edition" : "";
+  }
+
+  const trimmed = value.toString().trim();
+  if ( !trimmed ) {
+    return allowUnknown ? "unknown edition" : "";
+  }
+
+  return trimmed.toLowerCase();
+};
+
+const normalizeLooseComparableToken = ( value, options ) =>
+  normalizeComparableToken( value, options ).replace( /[^a-z0-9]+/g, "" );
+
+const valueMatchesRouteToken = ( actualValue, routeValue, options ) => {
+  if ( routeValue === null || routeValue === undefined || routeValue.toString().trim() === "" ) {
+    return true;
+  }
+
+  const routeToken = normalizeComparableToken( routeValue, options );
+  if ( !routeToken ) {
+    return true;
+  }
+
+  const actualToken = normalizeComparableToken( actualValue, options );
+  if ( actualToken === routeToken ) {
+    return true;
+  }
+
+  const actualLoose = normalizeLooseComparableToken( actualValue, options );
+  const routeLoose = normalizeLooseComparableToken( routeValue, options );
+  return Boolean( actualLoose && routeLoose && actualLoose === routeLoose );
+};
 
 const formatCurrency = ( value, { allowZero = true } = {} ) => {
   const numeric = Number( value );
@@ -233,6 +271,7 @@ const CardDetails = () => {
   const [ selectedVersion, setSelectedVersion ] = useState( undefined );
   const [ isAuthenticated, setIsAuthenticated ] = useState( false );
   const [ isAddingToCollection, setIsAddingToCollection ] = useState( false );
+  const [ collectionCards, setCollectionCards ] = useState( [] );
   const [ notification, setNotification ] = useState( { show: false, message: "" } );
 
   const { data: cardData, error: cardError } = useSWR(
@@ -263,6 +302,49 @@ const CardDetails = () => {
       window.removeEventListener( "focus", syncAuthState );
     };
   }, [] );
+
+  const refreshCollectionCards = useCallback( async () => {
+    try {
+      const response = await fetch( "/api/Yugioh/my-collection", {
+        method: "GET",
+        credentials: "include",
+      } );
+
+      if ( response.status === 401 ) {
+        setCollectionCards( [] );
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+        return [];
+      }
+
+      if ( !response.ok ) {
+        setCollectionCards( [] );
+        return [];
+      }
+
+      const data = await response.json();
+      const nextCards = Array.isArray( data ) ? data : [];
+      setCollectionCards( nextCards );
+      return nextCards;
+    } catch ( error ) {
+      console.error( "Failed to load collection for card details:", error );
+      setCollectionCards( [] );
+      if ( error?.status === 401 ) {
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+      }
+      return [];
+    }
+  }, [] );
+
+  useEffect( () => {
+    if ( !isAuthenticated ) {
+      setCollectionCards( [] );
+      return;
+    }
+
+    refreshCollectionCards();
+  }, [ isAuthenticated, refreshCollectionCards ] );
 
   const shouldLookupByName = ( !cardId || cardError ) && cardName;
   const { data: cardLookupData, error: cardLookupError } = useSWR(
@@ -519,7 +601,90 @@ const CardDetails = () => {
   const selectedEditionLabel = selectedSetDetails
     ? normalizeEditionLabel( selectedSetDetails.set_edition )
     : normalizeEditionLabel( edition );
-  const selectedRarityLabel = selectedSetDetails?.set_rarity || resolvedRarityParam || "Unknown Rarity";
+  const routeRarityLabel =
+    typeof resolvedRarityParam === "string" && resolvedRarityParam.trim()
+      ? resolvedRarityParam.trim()
+      : "";
+  const selectedPrintCollectionEntry = useMemo( () => {
+    if ( !resolvedCardData || !selectedSetDetails || !Array.isArray( collectionCards ) ) {
+      return null;
+    }
+
+    const matchesSelectedPrint = ( collectionCard ) => {
+      if ( !collectionCard ) {
+        return false;
+      }
+
+      return (
+        valueMatchesRouteToken( collectionCard.productName, resolvedCardData.name ) &&
+        valueMatchesRouteToken( collectionCard.setName, selectedSetDetails.set_name || set_name ) &&
+        valueMatchesRouteToken( collectionCard.number, selectedSetDetails.set_code || set_code ) &&
+        valueMatchesRouteToken( collectionCard.printing, selectedEditionLabel, { allowUnknown: true } )
+      );
+    };
+
+    const candidates = collectionCards.filter( matchesSelectedPrint );
+    if ( candidates.length === 0 ) {
+      return null;
+    }
+
+    const preferredRarity = routeRarityLabel || selectedSetDetails.set_rarity || "";
+    const preferredRarityMatch = candidates.find( ( collectionCard ) =>
+      valueMatchesRouteToken( collectionCard.rarity, preferredRarity )
+    );
+
+    return preferredRarityMatch || candidates[ 0 ];
+  }, [
+    collectionCards,
+    resolvedCardData,
+    routeRarityLabel,
+    selectedEditionLabel,
+    selectedSetDetails,
+    set_code,
+    set_name,
+  ] );
+  const selectedPrintMatchesRoute = useMemo( () => {
+    if ( !selectedSetDetails ) {
+      return false;
+    }
+
+    return (
+      valueMatchesRouteToken( selectedSetDetails.set_name, set_name ) &&
+      valueMatchesRouteToken( selectedSetDetails.set_code, set_code ) &&
+      valueMatchesRouteToken( selectedSetDetails.set_edition, edition, { allowUnknown: true } )
+    );
+  }, [ selectedSetDetails, set_code, set_name, edition ] );
+  const selectedRarityLabel =
+    selectedPrintCollectionEntry?.rarity ||
+    ( selectedPrintMatchesRoute && routeRarityLabel
+      ? routeRarityLabel
+      : selectedSetDetails?.set_rarity || routeRarityLabel || "Unknown Rarity" );
+  const collectionLookup = useMemo( () => buildCollectionMap( collectionCards ), [ collectionCards ] );
+  const selectedCollectionKey = useMemo( () => {
+    if ( !resolvedCardData || !selectedSetDetails ) {
+      return "";
+    }
+
+    return buildCollectionKey( {
+      productName: resolvedCardData.name,
+      setName: selectedSetDetails.set_name || set_name || "",
+      number: selectedSetDetails.set_code || set_code || "",
+      printing: selectedEditionLabel,
+      rarity: selectedRarityLabel,
+    } );
+  }, [
+    resolvedCardData,
+    selectedEditionLabel,
+    selectedRarityLabel,
+    selectedSetDetails,
+    set_code,
+    set_name,
+  ] );
+  const selectedCollectionEntry =
+    ( selectedCollectionKey ? collectionLookup[ selectedCollectionKey ] : null ) ||
+    selectedPrintCollectionEntry;
+  const selectedCollectionQuantity = Number( selectedCollectionEntry?.quantity ) || 0;
+  const isSelectedVersionCollected = Boolean( selectedCollectionEntry );
   const selectedMarketPriceLabel = formatCurrency( selectedSetDetails?.set_price, { allowZero: false } );
   const versionCount = resolvedCardData?.card_sets?.length || 0;
   const cardPriceSnapshot = resolvedCardData?.card_prices?.[ 0 ] || null;
@@ -830,7 +995,7 @@ const CardDetails = () => {
       setName: selectedSetDetails.set_name || set_name || "",
       number: selectedSetDetails.set_code || set_code || "",
       printing: printingLabel,
-      rarity: selectedSetDetails.set_rarity || resolvedRarityParam || "",
+      rarity: selectedRarityLabel,
       condition: conditionLabel,
       marketPrice: parseFloat( selectedSetDetails.set_price ) || 0,
       lowPrice: 0,
@@ -863,6 +1028,7 @@ const CardDetails = () => {
       }
 
       triggerNotification( "Card added to the collection!" );
+      refreshCollectionCards();
     } catch ( error ) {
       console.error( "Error adding card to collection:", error );
       triggerNotification( "Failed to add card to the collection." );
@@ -876,9 +1042,11 @@ const CardDetails = () => {
     remoteImageSrc,
     resolvedCardData,
     resolvedRarityParam,
+    selectedRarityLabel,
     selectedSetDetails,
     set_code,
     set_name,
+    refreshCollectionCards,
     triggerNotification,
   ] );
 
@@ -966,6 +1134,12 @@ const CardDetails = () => {
                     <DetailBadge className={ cardTheme.badgeClass }>{ frameLabel }</DetailBadge>
                     <DetailBadge className="border-white/15 bg-white/5 text-white/80">{ selectedRarityLabel }</DetailBadge>
                     <DetailBadge className="border-white/15 bg-white/5 text-white/80">{ selectedEditionLabel }</DetailBadge>
+                    { isAuthenticated && isSelectedVersionCollected && (
+                      <DetailBadge className="gap-1.5 border-emerald-300/35 bg-emerald-400/15 text-emerald-100">
+                        <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                        In Collection
+                      </DetailBadge>
+                    ) }
                   </div>
 
                   <h1 className="mt-5 max-w-4xl text-4xl font-bold tracking-tight text-white lg:text-5xl">
@@ -1031,13 +1205,21 @@ const CardDetails = () => {
                     />
                     <DetailStatCard
                       label="Collection Status"
-                      value={ isAuthenticated ? "Ready to add" : "Login required" }
+                      value={
+                        isAuthenticated
+                          ? isSelectedVersionCollected
+                            ? "In Collection"
+                            : "Not in Collection"
+                          : "Login required"
+                      }
                       helper={
                         isAuthenticated
-                          ? "The selected version can be added directly."
+                          ? isSelectedVersionCollected
+                            ? `${ selectedCollectionQuantity || 1 } owned for this selected print.`
+                            : "This selected print is not in your collection yet."
                           : "Sign in to add this card to your collection."
                       }
-                      valueClassName={ isAuthenticated ? cardTheme.accentValueClass : "text-white" }
+                      valueClassName={ isAuthenticated && isSelectedVersionCollected ? "text-emerald-300" : "text-white" }
                     />
                   </div>
 
@@ -1047,7 +1229,11 @@ const CardDetails = () => {
                     disabled={ isAddingToCollection || !selectedSetDetails }
                     className={ `mt-5 w-full rounded-full border px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${ cardTheme.buttonClass }` }
                   >
-                    { isAddingToCollection ? "Adding..." : "Add to Collection" }
+                    { isAddingToCollection
+                      ? "Adding..."
+                      : isSelectedVersionCollected
+                        ? "Add Another Copy"
+                        : "Add to Collection" }
                   </button>
                 </section>
 
