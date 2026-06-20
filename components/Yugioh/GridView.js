@@ -1,8 +1,7 @@
-﻿import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import Notification from "@/components/Notification";
 import PriceTrendIndicator from "@/components/Yugioh/PriceTrendIndicator";
-import cardData from "@/public/card-data/Yugioh/card_data.json";
 
 const FALLBACK_IMAGE = "/images/yugioh-card.png";
 
@@ -106,13 +105,6 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 
   const getFullImagePath = useCallback( ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, [] );
 
-  const getCardImage = useCallback(
-    ( cardName ) => {
-      const cardInfo = cardData.find( ( item ) => item.name === cardName );
-      return cardInfo ? getFullImagePath( cardInfo.id ) : null;
-    },
-    [ getFullImagePath ],
-  );
 
   const memoizedAggregatedData = useMemo( () => {
     if ( !Array.isArray( aggregatedData ) ) return [];
@@ -209,10 +201,8 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
           { memoizedAggregatedData.map( ( card ) => {
             if ( !card ) return null;
 
-            const cardImage = getCardImage( card.productName );
-            const cardInfo = cardData.find( ( item ) => item.name === card.productName );
             const cardIdImage = card.cardId ? getFullImagePath( card.cardId ) : null;
-            const imageSrc = cardImage || cardIdImage || card.remoteImageUrl || FALLBACK_IMAGE;
+            const imageSrc = cardIdImage || card.remoteImageUrl || FALLBACK_IMAGE;
             const isFlipped = Boolean( flippedCards[ card._id ] );
             const quantity = Number( card.quantity ) || 0;
             const totalMarketPrice = ( Number( card.marketPrice ) || 0 ) * quantity;
@@ -235,7 +225,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             const cardDetailsQuery = ( () => {
               const query = { source: "collection" };
 
-              if ( cardInfo?.id ) query.card = cardInfo.id;
+              if ( card.cardId ) query.card = card.cardId;
               if ( computedLetter ) query.letter = computedLetter;
               if ( card.setName ) query.set_name = card.setName;
               if ( card.productName ) query.card_name = card.productName;

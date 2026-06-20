@@ -1,10 +1,15 @@
+const path = require("path");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
-  turbopack: {
-    root: __dirname,
+  experimental: {
+    webpackBuildWorker: false,
   },
+  turbopack: {
+    root: path.join(__dirname),
+  },
+
 
   async headers() {
     return [
