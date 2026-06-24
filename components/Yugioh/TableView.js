@@ -31,7 +31,7 @@ const getCardTotalPrice = ( card ) => {
   return ( Number.isFinite( unitPrice ) ? unitPrice : 0 ) * ( Number.isFinite( quantity ) ? quantity : 0 );
 };
 
-const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfig, handleSortChange } ) => {
+const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfig, handleSortChange, selectedCardIds, onSelectedCardIdsChange, folderNameMap = {} } ) => {
   const safeCards = Array.isArray( aggregatedData ) ? aggregatedData : [];
   const isExternallySorted = Boolean( sortConfig && typeof handleSortChange === 'function' );
   const [ internalSortConfig, setInternalSortConfig ] = useState( { key: DEFAULT_SORT_KEY, direction: 'ascending' } );
@@ -39,15 +39,32 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: '' } );
-  const [ selectedRows, setSelectedRows ] = useState( () => new Set() );
+  const [ internalSelectedRows, setInternalSelectedRows ] = useState( () => new Set() );
   const [ lastCheckedId, setLastCheckedId ] = useState( null );
+  const isSelectionControlled = selectedCardIds instanceof Set && typeof onSelectedCardIdsChange === 'function';
+  const selectedRows = isSelectionControlled ? selectedCardIds : internalSelectedRows;
+  const updateSelectedRows = useCallback(
+    ( updater ) => {
+      if ( isSelectionControlled ) {
+        onSelectedCardIdsChange( updater );
+        return;
+      }
+
+      setInternalSelectedRows( updater );
+    },
+    [ isSelectionControlled, onSelectedCardIdsChange ],
+  );
   const safeIds = useMemo(
     () => safeCards.map( ( card ) => card?._id ).filter( Boolean ),
     [ safeCards ],
   );
 
   useEffect( () => {
-    setSelectedRows( ( prev ) => {
+    if ( isSelectionControlled ) {
+      return;
+    }
+
+    setInternalSelectedRows( ( prev ) => {
       const validIdSet = new Set( safeIds );
       let changed = false;
       const next = new Set();
@@ -63,7 +80,7 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
       }
       return next;
     } );
-  }, [ safeIds ] );
+  }, [ isSelectionControlled, safeIds ] );
 
   const showNotification = useCallback( ( message ) => {
     setNotification( { show: true, message } );
@@ -197,7 +214,7 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
     ( event, cardId ) => {
       const { checked } = event.target;
       const isShift = event.nativeEvent?.shiftKey;
-      setSelectedRows( ( prev ) => {
+      updateSelectedRows( ( prev ) => {
         const next = new Set( prev );
         if ( isShift && lastCheckedId && lastCheckedId !== cardId ) {
           const start = displayedRowIds.indexOf( lastCheckedId );
@@ -219,12 +236,12 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
       } );
       setLastCheckedId( cardId );
     },
-    [ displayedRowIds, lastCheckedId ],
+    [ displayedRowIds, lastCheckedId, updateSelectedRows ],
   );
 
   const applySelectionToDisplayed = useCallback(
     ( shouldSelect ) => {
-      setSelectedRows( ( prev ) => {
+      updateSelectedRows( ( prev ) => {
         const next = new Set( prev );
         displayedRowIds.forEach( ( id ) => {
           if ( shouldSelect ) next.add( id );
@@ -233,7 +250,7 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
         return next;
       } );
     },
-    [ displayedRowIds ],
+    [ displayedRowIds, updateSelectedRows ],
   );
 
   const handleHeaderSelectAll = useCallback(
@@ -250,9 +267,9 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
   }, [ applySelectionToDisplayed, isAllSelected ] );
 
   const clearSelection = useCallback( () => {
-    setSelectedRows( new Set() );
+    updateSelectedRows( () => new Set() );
     setLastCheckedId( null );
-  }, [] );
+  }, [ updateSelectedRows ] );
 
   const handleBulkDelete = useCallback( async () => {
     const selectedIds = Array.from( selectedRows );
@@ -277,6 +294,13 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
   }, [ clearSelection, onDeleteCard, selectedRows, showNotification ] );
 
   const selectedCount = selectedRows.size;
+
+  const getFolderLabels = useCallback(
+    ( card ) => ( Array.isArray( card?.folderIds ) ? card.folderIds : [] )
+      .map( ( folderId ) => folderNameMap[ String( folderId ) ] )
+      .filter( Boolean ),
+    [ folderNameMap ],
+  );
 
   return (
     <div className="max-w-full overflow-x-auto">
@@ -345,6 +369,9 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
             </th>
             <th onClick={ () => handleSort( 'condition' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
               Condition { getSortArrow( 'condition' ) }
+            </th>
+            <th className="border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
+              Folders
             </th>
             <th onClick={ () => handleSort( 'marketPrice' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
               Unit Price { getSortArrow( 'marketPrice' ) }
@@ -443,6 +470,17 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.printing }</td>
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.rarity }</td>
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.condition }</td>
+                <td className="min-w-40 px-3 py-2 text-center sm:text-left">
+                  <div className="flex flex-wrap justify-center gap-1 sm:justify-start">
+                    { getFolderLabels( card ).length > 0 ? getFolderLabels( card ).map( ( label ) => (
+                      <span key={ label } className="rounded-full border border-indigo-300/30 bg-indigo-500/15 px-2 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wide text-indigo-50">
+                        { label }
+                      </span>
+                    ) ) : (
+                      <span className="text-white/35">-</span>
+                    ) }
+                  </div>
+                </td>
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ Number.isFinite( Number( card?.marketPrice ) ) ? Number( card.marketPrice ).toFixed( 2 ) : card?.marketPrice ?? '0.00' }</td>
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left font-semibold">{ getCardTotalPrice( card ).toFixed( 2 ) }</td>
                 <td className="flex items-center gap-2 px-3 py-2">

@@ -3,9 +3,6 @@ const path = require("path");
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
-  experimental: {
-    webpackBuildWorker: false,
-  },
   turbopack: {
     root: path.join(__dirname),
   },

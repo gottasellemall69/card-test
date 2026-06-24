@@ -125,6 +125,7 @@ export default async function handler( req, res ) {
             $setOnInsert: {
               marketPrice: card.marketPrice || 0,
               lowPrice: card.lowPrice || 0,
+              folderIds: [],
               userId: safeUserId,
               createdAt: now
             }

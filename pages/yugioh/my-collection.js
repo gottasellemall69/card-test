@@ -2,7 +2,7 @@
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { Filter, Grid, List, Loader2, TrendingUp, Trash2, Search } from "lucide-react";
+import { Check, Filter, FolderOpen, FolderPlus, Grid, List, Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import Notification from '@/components/Notification';
 import { useAppShellSlots } from "@/components/Layout";
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
@@ -50,6 +50,17 @@ const buildDefaultFilters = () => ( {
 } );
 const DEFAULT_FILTERS = buildDefaultFilters();
 const DEFAULT_SORT = { key: "number", direction: "ascending" };
+const ALL_FOLDERS_ID = "all";
+const UNCATEGORIZED_FOLDER_ID = "uncategorized";
+
+const getCardFolderIds = ( card ) => (
+  Array.isArray( card?.folderIds ) ? card.folderIds.map( ( folderId ) => String( folderId ) ) : []
+);
+
+const normalizeFolder = ( folder ) => ( {
+  ...folder,
+  _id: String( folder?._id ?? "" ),
+} );
 
 const MyCollection = ( { initialAuthState = false } ) => {
   const router = useRouter();
@@ -69,6 +80,15 @@ const MyCollection = ( { initialAuthState = false } ) => {
   const [ collectionValueHistory, setCollectionValueHistory ] = useState( [] );
   const [ isHistoryLoading, setIsHistoryLoading ] = useState( false );
   const [ historyError, setHistoryError ] = useState( null );
+  const [ folders, setFolders ] = useState( [] );
+  const [ activeFolderId, setActiveFolderId ] = useState( ALL_FOLDERS_ID );
+  const [ targetFolderId, setTargetFolderId ] = useState( "" );
+  const [ folderFormName, setFolderFormName ] = useState( "" );
+  const [ editingFolderId, setEditingFolderId ] = useState( "" );
+  const [ editingFolderName, setEditingFolderName ] = useState( "" );
+  const [ selectedCardIds, setSelectedCardIds ] = useState( () => new Set() );
+  const [ isFolderSaving, setIsFolderSaving ] = useState( false );
+  const [ folderAction, setFolderAction ] = useState( "" );
 
   const fetchCards = useCallback( async () => {
     const response = await fetch( "/api/Yugioh/my-collection", {
@@ -84,6 +104,22 @@ const MyCollection = ( { initialAuthState = false } ) => {
 
     const data = await response.json();
     return Array.isArray( data ) ? data : [];
+  }, [] );
+
+  const fetchFolders = useCallback( async () => {
+    const response = await fetch( "/api/Yugioh/collection/folders", {
+      method: "GET",
+      credentials: "include",
+    } );
+
+    if ( !response.ok ) {
+      const error = new Error( "Failed to fetch collection folders" );
+      error.status = response.status;
+      throw error;
+    }
+
+    const data = await response.json();
+    return Array.isArray( data ) ? data.map( normalizeFolder ).filter( ( folder ) => folder._id ) : [];
   }, [] );
 
   useEffect( () => {
@@ -133,6 +169,45 @@ const MyCollection = ( { initialAuthState = false } ) => {
     };
   }, [ fetchCards ] );
 
+  useEffect( () => {
+    if ( !isAuthenticated ) {
+      setFolders( [] );
+      return undefined;
+    }
+
+    let isActive = true;
+
+    const loadFolders = async () => {
+      try {
+        const data = await fetchFolders();
+        if ( isActive ) {
+          setFolders( data );
+        }
+      } catch ( error ) {
+        if ( !isActive ) {
+          return;
+        }
+        console.error( "Error loading collection folders:", error );
+        if ( error?.status === 401 ) {
+          setIsAuthenticated( false );
+          dispatchAuthStateChange( false );
+        } else {
+          setNotification( ( prev ) => ( {
+            ...prev,
+            show: true,
+            message: "Failed to load collection folders.",
+          } ) );
+        }
+      }
+    };
+
+    loadFolders();
+
+    return () => {
+      isActive = false;
+    };
+  }, [ fetchFolders, isAuthenticated ] );
+
   const refreshCollection = useCallback( async () => {
     try {
       const data = await fetchCards();
@@ -168,6 +243,20 @@ const MyCollection = ( { initialAuthState = false } ) => {
     }
 
     return cards.filter( ( card ) => {
+      const cardFolderIds = getCardFolderIds( card );
+
+      if ( activeFolderId === UNCATEGORIZED_FOLDER_ID && cardFolderIds.length > 0 ) {
+        return false;
+      }
+
+      if (
+        activeFolderId !== ALL_FOLDERS_ID &&
+        activeFolderId !== UNCATEGORIZED_FOLDER_ID &&
+        !cardFolderIds.includes( activeFolderId )
+      ) {
+        return false;
+      }
+
       if ( filters.rarity.length && !filters.rarity.includes( card?.rarity ) ) {
         return false;
       }
@@ -193,7 +282,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
         "condition",
       ].some( ( key ) => String( card?.[ key ] ?? "" ).toLowerCase().includes( normalizedSearch ) );
     } );
-  }, [ cards, filters.condition, filters.printing, filters.rarity, normalizedSearch ] );
+  }, [ activeFolderId, cards, filters.condition, filters.printing, filters.rarity, normalizedSearch ] );
 
   const sortedCards = useMemo( () => {
     const sortable = [ ...filteredCards ];
@@ -318,6 +407,78 @@ const MyCollection = ( { initialAuthState = false } ) => {
   const formattedEstimatedValue = currencyFormatter.format( estimatedValue || 0 );
   const hasCards = totalItems > 0;
 
+  const folderNameMap = useMemo( () => {
+    return folders.reduce( ( map, folder ) => {
+      map[ folder._id ] = folder.name;
+      return map;
+    }, {} );
+  }, [ folders ] );
+
+  const folderCounts = useMemo( () => {
+    const counts = {
+      [ ALL_FOLDERS_ID ]: cards.length,
+      [ UNCATEGORIZED_FOLDER_ID ]: 0,
+    };
+
+    folders.forEach( ( folder ) => {
+      counts[ folder._id ] = 0;
+    } );
+
+    cards.forEach( ( card ) => {
+      const cardFolderIds = getCardFolderIds( card );
+      if ( cardFolderIds.length === 0 ) {
+        counts[ UNCATEGORIZED_FOLDER_ID ] += 1;
+      }
+
+      cardFolderIds.forEach( ( folderId ) => {
+        counts[ folderId ] = ( counts[ folderId ] || 0 ) + 1;
+      } );
+    } );
+
+    return counts;
+  }, [ cards, folders ] );
+
+  const selectedCount = selectedCardIds.size;
+  const selectedCardIdList = useMemo( () => Array.from( selectedCardIds ), [ selectedCardIds ] );
+  const currentPageCardIds = useMemo(
+    () => paginatedCards.map( ( card ) => card?._id ).filter( Boolean ).map( String ),
+    [ paginatedCards ],
+  );
+  const isCurrentPageSelected = currentPageCardIds.length > 0 &&
+    currentPageCardIds.every( ( cardId ) => selectedCardIds.has( cardId ) );
+
+  useEffect( () => {
+    const validIds = new Set( cards.map( ( card ) => card?._id ).filter( Boolean ).map( String ) );
+    setSelectedCardIds( ( current ) => {
+      const next = new Set( Array.from( current ).filter( ( cardId ) => validIds.has( cardId ) ) );
+      return next.size === current.size ? current : next;
+    } );
+  }, [ cards ] );
+
+  useEffect( () => {
+    if ( targetFolderId && folders.some( ( folder ) => folder._id === targetFolderId ) ) {
+      return;
+    }
+
+    setTargetFolderId( folders[ 0 ]?._id || "" );
+  }, [ folders, targetFolderId ] );
+
+  useEffect( () => {
+    if (
+      activeFolderId === ALL_FOLDERS_ID ||
+      activeFolderId === UNCATEGORIZED_FOLDER_ID ||
+      folders.some( ( folder ) => folder._id === activeFolderId )
+    ) {
+      return;
+    }
+
+    setActiveFolderId( ALL_FOLDERS_ID );
+  }, [ activeFolderId, folders ] );
+
+  useEffect( () => {
+    setCurrentPage( 1 );
+  }, [ activeFolderId ] );
+
   useEffect( () => {
     let isActive = true;
 
@@ -392,6 +553,40 @@ const MyCollection = ( { initialAuthState = false } ) => {
     return badges;
   }, [ filters ] );
 
+  const showNotification = useCallback( ( message ) => {
+    setNotification( ( prev ) => ( { ...prev, show: true, message } ) );
+  }, [] );
+
+  const handleSelectedCardIdsChange = useCallback( ( nextSelection ) => {
+    setSelectedCardIds( ( current ) => {
+      const next = typeof nextSelection === "function" ? nextSelection( current ) : nextSelection;
+      return new Set( next );
+    } );
+  }, [] );
+
+  const handleToggleCurrentPageSelection = useCallback( () => {
+    setSelectedCardIds( ( current ) => {
+      const next = new Set( current );
+      currentPageCardIds.forEach( ( cardId ) => {
+        if ( isCurrentPageSelected ) {
+          next.delete( cardId );
+        } else {
+          next.add( cardId );
+        }
+      } );
+      return next;
+    } );
+  }, [ currentPageCardIds, isCurrentPageSelected ] );
+
+  const handleClearSelection = useCallback( () => {
+    setSelectedCardIds( new Set() );
+  }, [] );
+
+  const parseApiMessage = useCallback( async ( response, fallback ) => {
+    const payload = await response.json().catch( () => null );
+    return payload?.message || payload?.error || fallback;
+  }, [] );
+
   const handleSearchChange = useCallback( async ( event ) => {
     setSearchValue( event.target.value );
     setCurrentPage( 1 );
@@ -428,6 +623,203 @@ const MyCollection = ( { initialAuthState = false } ) => {
     } );
     setCurrentPage( 1 );
   }, [] );
+
+  const handleCreateFolder = useCallback( async ( event ) => {
+    event.preventDefault();
+    const name = folderFormName.trim();
+    if ( !name ) {
+      showNotification( "Enter a folder name." );
+      return;
+    }
+
+    setIsFolderSaving( true );
+    try {
+      const response = await fetch( "/api/Yugioh/collection/folders", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( { name } ),
+      } );
+
+      if ( response.status === 401 ) {
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+        return;
+      }
+
+      if ( !response.ok ) {
+        throw new Error( await parseApiMessage( response, "Failed to create folder." ) );
+      }
+
+      const folder = normalizeFolder( await response.json() );
+      setFolders( ( current ) => [ ...current, folder ].sort( ( a, b ) => a.name.localeCompare( b.name ) ) );
+      setActiveFolderId( folder._id );
+      setTargetFolderId( folder._id );
+      setFolderFormName( "" );
+      showNotification( "Folder created." );
+    } catch ( error ) {
+      console.error( "Error creating folder:", error );
+      showNotification( error.message || "Failed to create folder." );
+    } finally {
+      setIsFolderSaving( false );
+    }
+  }, [ folderFormName, parseApiMessage, showNotification ] );
+
+  const handleStartRenameFolder = useCallback( ( folder ) => {
+    setEditingFolderId( folder._id );
+    setEditingFolderName( folder.name );
+  }, [] );
+
+  const handleCancelRenameFolder = useCallback( () => {
+    setEditingFolderId( "" );
+    setEditingFolderName( "" );
+  }, [] );
+
+  const handleSaveFolderName = useCallback( async ( folderId ) => {
+    const name = editingFolderName.trim();
+    if ( !name ) {
+      showNotification( "Enter a folder name." );
+      return;
+    }
+
+    setFolderAction( `rename-${ folderId }` );
+    try {
+      const response = await fetch( "/api/Yugioh/collection/folders", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( { folderId, name } ),
+      } );
+
+      if ( response.status === 401 ) {
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+        return;
+      }
+
+      if ( !response.ok ) {
+        throw new Error( await parseApiMessage( response, "Failed to rename folder." ) );
+      }
+
+      const folder = normalizeFolder( await response.json() );
+      setFolders( ( current ) => current.map( ( item ) => ( item._id === folder._id ? folder : item ) ) );
+      handleCancelRenameFolder();
+      showNotification( "Folder renamed." );
+    } catch ( error ) {
+      console.error( "Error renaming folder:", error );
+      showNotification( error.message || "Failed to rename folder." );
+    } finally {
+      setFolderAction( "" );
+    }
+  }, [ editingFolderName, handleCancelRenameFolder, parseApiMessage, showNotification ] );
+
+  const handleDeleteFolder = useCallback( async ( folderId ) => {
+    const folder = folders.find( ( item ) => item._id === folderId );
+    if ( !folder ) {
+      return;
+    }
+
+    const confirmed = window.confirm( `Delete folder "${ folder.name }"? Cards will stay in your collection.` );
+    if ( !confirmed ) {
+      return;
+    }
+
+    setFolderAction( `delete-${ folderId }` );
+    try {
+      const response = await fetch( "/api/Yugioh/collection/folders", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( { folderId } ),
+      } );
+
+      if ( response.status === 401 ) {
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+        return;
+      }
+
+      if ( !response.ok ) {
+        throw new Error( await parseApiMessage( response, "Failed to delete folder." ) );
+      }
+
+      setFolders( ( current ) => current.filter( ( item ) => item._id !== folderId ) );
+      setCards( ( current ) => current.map( ( card ) => ( {
+        ...card,
+        folderIds: getCardFolderIds( card ).filter( ( value ) => value !== folderId ),
+      } ) ) );
+      if ( activeFolderId === folderId ) {
+        setActiveFolderId( ALL_FOLDERS_ID );
+      }
+      if ( targetFolderId === folderId ) {
+        setTargetFolderId( "" );
+      }
+      showNotification( "Folder deleted." );
+    } catch ( error ) {
+      console.error( "Error deleting folder:", error );
+      showNotification( error.message || "Failed to delete folder." );
+    } finally {
+      setFolderAction( "" );
+    }
+  }, [ activeFolderId, folders, parseApiMessage, showNotification, targetFolderId ] );
+
+  const handleApplyFolderToSelected = useCallback( async ( action ) => {
+    if ( selectedCardIdList.length === 0 ) {
+      showNotification( "Select at least one card." );
+      return;
+    }
+
+    if ( !targetFolderId ) {
+      showNotification( "Create a folder first." );
+      return;
+    }
+
+    setFolderAction( action );
+    try {
+      const response = await fetch( "/api/Yugioh/collection/card-folders", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify( {
+          cardIds: selectedCardIdList,
+          folderId: targetFolderId,
+          action,
+        } ),
+      } );
+
+      if ( response.status === 401 ) {
+        setIsAuthenticated( false );
+        dispatchAuthStateChange( false );
+        return;
+      }
+
+      if ( !response.ok ) {
+        throw new Error( await parseApiMessage( response, "Failed to update folder assignments." ) );
+      }
+
+      const selectedSet = new Set( selectedCardIdList );
+      setCards( ( current ) => current.map( ( card ) => {
+        const cardId = String( card?._id ?? "" );
+        if ( !selectedSet.has( cardId ) ) {
+          return card;
+        }
+
+        const cardFolderIds = getCardFolderIds( card );
+        const nextFolderIds = action === "add"
+          ? [ ...new Set( [ ...cardFolderIds, targetFolderId ] ) ]
+          : cardFolderIds.filter( ( folderId ) => folderId !== targetFolderId );
+
+        return { ...card, folderIds: nextFolderIds };
+      } ) );
+
+      showNotification( action === "add" ? "Cards added to folder." : "Cards removed from folder." );
+    } catch ( error ) {
+      console.error( "Error updating folder assignments:", error );
+      showNotification( error.message || "Failed to update folder assignments." );
+    } finally {
+      setFolderAction( "" );
+    }
+  }, [ parseApiMessage, selectedCardIdList, showNotification, targetFolderId ] );
 
   const handlePageClick = useCallback(
     ( page ) => {
@@ -577,6 +969,11 @@ const MyCollection = ( { initialAuthState = false } ) => {
       }
 
       setCards( ( current ) => current.filter( ( card ) => card?._id !== cardId ) );
+      setSelectedCardIds( ( current ) => {
+        const next = new Set( current );
+        next.delete( cardId );
+        return next;
+      } );
     } catch ( error ) {
       console.error( "Error deleting card:", error );
     }
@@ -611,6 +1008,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
       }
 
       setCards( [] );
+      setSelectedCardIds( new Set() );
       setCurrentPage( 1 );
     } catch ( error ) {
       console.error( "Error deleting all cards:", error );
@@ -766,6 +1164,181 @@ const MyCollection = ( { initialAuthState = false } ) => {
             </div>
           ) }
 
+          <section className="mt-6 rounded-3xl border border-white/10 bg-black/50 p-6 shadow-2xl">
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-white/50">
+                    <FolderOpen className="h-4 w-4" />
+                    Folders
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={ () => setActiveFolderId( ALL_FOLDERS_ID ) }
+                      className={ `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${ activeFolderId === ALL_FOLDERS_ID ? "border-indigo-300 bg-indigo-500/30 text-white" : "border-white/15 bg-white/10 text-white/75 hover:border-white/40 hover:text-white" }` }
+                    >
+                      All
+                      <span className="rounded-full bg-black/35 px-2 py-0.5 text-xs">{ folderCounts[ ALL_FOLDERS_ID ] || 0 }</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={ () => setActiveFolderId( UNCATEGORIZED_FOLDER_ID ) }
+                      className={ `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition ${ activeFolderId === UNCATEGORIZED_FOLDER_ID ? "border-indigo-300 bg-indigo-500/30 text-white" : "border-white/15 bg-white/10 text-white/75 hover:border-white/40 hover:text-white" }` }
+                    >
+                      Uncategorized
+                      <span className="rounded-full bg-black/35 px-2 py-0.5 text-xs">{ folderCounts[ UNCATEGORIZED_FOLDER_ID ] || 0 }</span>
+                    </button>
+                    { folders.map( ( folder ) => {
+                      const isActive = activeFolderId === folder._id;
+                      const isEditing = editingFolderId === folder._id;
+                      return (
+                        <div key={ folder._id } className={ `inline-flex items-center rounded-full border transition ${ isActive ? "border-indigo-300 bg-indigo-500/30" : "border-white/15 bg-white/10" }` }>
+                          { isEditing ? (
+                            <div className="flex items-center gap-1 px-2 py-1">
+                              <input
+                                type="text"
+                                value={ editingFolderName }
+                                onChange={ ( event ) => setEditingFolderName( event.target.value ) }
+                                onKeyDown={ ( event ) => {
+                                  if ( event.key === "Enter" ) {
+                                    event.preventDefault();
+                                    handleSaveFolderName( folder._id );
+                                  }
+                                  if ( event.key === "Escape" ) {
+                                    handleCancelRenameFolder();
+                                  }
+                                } }
+                                className="h-8 w-36 rounded-full border border-white/15 bg-black/70 px-3 text-sm text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                                autoFocus
+                              />
+                              <button
+                                type="button"
+                                onClick={ () => handleSaveFolderName( folder._id ) }
+                                disabled={ folderAction === `rename-${ folder._id }` }
+                                className="inline-flex size-8 items-center justify-center rounded-full text-white/75 transition hover:bg-white/10 hover:text-white disabled:opacity-60"
+                                aria-label="Save folder name"
+                              >
+                                { folderAction === `rename-${ folder._id }` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" /> }
+                              </button>
+                              <button
+                                type="button"
+                                onClick={ handleCancelRenameFolder }
+                                className="inline-flex size-8 items-center justify-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white"
+                                aria-label="Cancel rename"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={ () => setActiveFolderId( folder._id ) }
+                                className="inline-flex items-center gap-2 rounded-l-full px-3 py-1.5 text-sm font-semibold text-white/80 transition hover:text-white"
+                              >
+                                { folder.name }
+                                <span className="rounded-full bg-black/35 px-2 py-0.5 text-xs">{ folderCounts[ folder._id ] || 0 }</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={ () => handleStartRenameFolder( folder ) }
+                                className="inline-flex size-8 items-center justify-center text-white/55 transition hover:bg-white/10 hover:text-white"
+                                aria-label="Rename folder"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={ () => handleDeleteFolder( folder._id ) }
+                                disabled={ folderAction === `delete-${ folder._id }` }
+                                className="inline-flex size-8 items-center justify-center rounded-r-full text-white/55 transition hover:bg-rose-500/20 hover:text-rose-100 disabled:opacity-60"
+                                aria-label="Delete folder"
+                              >
+                                { folderAction === `delete-${ folder._id }` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" /> }
+                              </button>
+                            </>
+                          ) }
+                        </div>
+                      );
+                    } ) }
+                  </div>
+                </div>
+
+                <form onSubmit={ handleCreateFolder } className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                  <div className="relative min-w-0 sm:w-64">
+                    <FolderPlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/45" />
+                    <input
+                      type="text"
+                      value={ folderFormName }
+                      onChange={ ( event ) => setFolderFormName( event.target.value ) }
+                      placeholder="Folder name"
+                      className="w-full rounded-full border border-white/15 bg-black/60 px-10 py-2 text-sm text-white placeholder-white/45 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                      maxLength={ 80 }
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={ isFolderSaving }
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-indigo-300/40 bg-indigo-500/25 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500/35 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    { isFolderSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" /> }
+                    Create
+                  </button>
+                </form>
+              </div>
+
+              { folders.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3 border-t border-white/10 pt-4 text-sm text-white/80">
+                  <span className="font-semibold text-white">{ selectedCount } selected</span>
+                  <button
+                    type="button"
+                    onClick={ handleToggleCurrentPageSelection }
+                    disabled={ currentPageCardIds.length === 0 }
+                    className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white/40 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    { isCurrentPageSelected ? "Unselect Page" : "Select Page" }
+                  </button>
+                  <button
+                    type="button"
+                    onClick={ handleClearSelection }
+                    disabled={ selectedCount === 0 }
+                    className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white/40 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Clear
+                  </button>
+                  <select
+                    value={ targetFolderId }
+                    onChange={ ( event ) => setTargetFolderId( event.target.value ) }
+                    className="min-h-9 rounded-full border border-white/15 bg-black/60 px-3 py-1.5 text-sm font-semibold text-white/80 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                  >
+                    { folders.map( ( folder ) => (
+                      <option key={ folder._id } value={ folder._id }>{ folder.name }</option>
+                    ) ) }
+                  </select>
+                  <button
+                    type="button"
+                    onClick={ () => handleApplyFolderToSelected( "add" ) }
+                    disabled={ selectedCount === 0 || !targetFolderId || folderAction === "add" }
+                    className="inline-flex items-center gap-2 rounded-full border border-emerald-300/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-50 transition hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    { folderAction === "add" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" /> }
+                    Add selected
+                  </button>
+                  <button
+                    type="button"
+                    onClick={ () => handleApplyFolderToSelected( "remove" ) }
+                    disabled={ selectedCount === 0 || !targetFolderId || folderAction === "remove" }
+                    className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white/40 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    { folderAction === "remove" ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" /> }
+                    Remove selected
+                  </button>
+                </div>
+              ) }
+            </div>
+          </section>
+
           <section className="pt-10">
             <div className="space-y-8">
               <div className="space-y-8">
@@ -895,6 +1468,9 @@ const MyCollection = ( { initialAuthState = false } ) => {
                           onUpdateCard={ onUpdateCard }
                           handleSortChange={ handleSortChange }
                           sortConfig={ sortConfig }
+                          selectedCardIds={ selectedCardIds }
+                          onSelectedCardIdsChange={ handleSelectedCardIdsChange }
+                          folderNameMap={ folderNameMap }
                         />
                       ) : (
                         <GridView
@@ -903,6 +1479,9 @@ const MyCollection = ( { initialAuthState = false } ) => {
                           onUpdateCard={ onUpdateCard }
                           handleSortChange={ handleSortChange }
                           sortConfig={ sortConfig }
+                          selectedCardIds={ selectedCardIds }
+                          onSelectedCardIdsChange={ handleSelectedCardIdsChange }
+                          folderNameMap={ folderNameMap }
                         />
                       ) }
                     </div>

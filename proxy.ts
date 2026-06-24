@@ -35,10 +35,10 @@ const buildContentSecurityPolicy = ( nonce: string ): string => {
   const staticStyleHashes = STATIC_STYLE_HASHES.join( " " );
   const styleSrc = isDev
     ? "'self' 'unsafe-inline'"
-    : `'self' ${ staticStyleHashes }`;
+    : "'self' 'unsafe-inline'";
   const styleSrcElem = isDev
     ? "'self' 'unsafe-inline'"
-    : `'self' ${ staticStyleHashes }`;
+    : "'self' 'unsafe-inline'";
   const cspHeader = `
     default-src 'self';
     script-src ${ scriptSrc };

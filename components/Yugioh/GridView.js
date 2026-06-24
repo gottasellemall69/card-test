@@ -13,7 +13,7 @@ const formatCurrency = ( value ) => {
   return `$${ numeric.toFixed( 2 ) }`;
 };
 
-const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, handleSortChange } ) => {
+const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, handleSortChange, selectedCardIds, onSelectedCardIdsChange, folderNameMap = {} } ) => {
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
   const [ notification, setNotification ] = useState( { show: false, message: "" } );
@@ -25,6 +25,15 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
   const sortDirection = isExternallySorted
     ? ( sortConfig.direction === "descending" ? "desc" : "asc" )
     : internalSortDirection;
+  const isSelectionEnabled = selectedCardIds instanceof Set && typeof onSelectedCardIdsChange === "function";
+  const updateSelectedRows = useCallback(
+    ( updater ) => {
+      if ( isSelectionEnabled ) {
+        onSelectedCardIdsChange( updater );
+      }
+    },
+    [ isSelectionEnabled, onSelectedCardIdsChange ],
+  );
   const displayInputClasses =
     "min-w-[4rem] rounded border border-white/30 bg-black/50 px-3 py-1 text-center font-semibold text-white transition hover:border-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60";
   const displayInputClassesRose =
@@ -105,6 +114,13 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 
   const getFullImagePath = useCallback( ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, [] );
 
+
+  const getFolderLabels = useCallback(
+    ( card ) => ( Array.isArray( card?.folderIds ) ? card.folderIds : [] )
+      .map( ( folderId ) => folderNameMap[ String( folderId ) ] )
+      .filter( Boolean ),
+    [ folderNameMap ],
+  );
 
   const memoizedAggregatedData = useMemo( () => {
     if ( !Array.isArray( aggregatedData ) ) return [];
@@ -203,8 +219,11 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 
             const cardIdImage = card.cardId ? getFullImagePath( card.cardId ) : null;
             const imageSrc = cardIdImage || card.remoteImageUrl || FALLBACK_IMAGE;
+            const cardId = String( card._id ?? "" );
+            const isSelected = isSelectionEnabled && selectedCardIds.has( cardId );
             const isFlipped = Boolean( flippedCards[ card._id ] );
             const quantity = Number( card.quantity ) || 0;
+            const folderLabels = getFolderLabels( card );
             const totalMarketPrice = ( Number( card.marketPrice ) || 0 ) * quantity;
             const removeAmount = editValues[ card._id ]?.deleteAmount || 1;
 
@@ -214,6 +233,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
               { label: "Rarity", value: card.rarity },
               { label: "Printing", value: card.printing },
               { label: "Condition", value: card.condition },
+              { label: "Folders", value: folderLabels.join( ", " ) },
               { label: "Old Price", value: formatCurrency( card.oldPrice ) },
               { label: "Market Price", value: formatCurrency( card.marketPrice ) },
               { label: "Total Market Price", value: quantity > 1 ? formatCurrency( totalMarketPrice ) : null },
@@ -275,8 +295,36 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             return (
               <div
                 key={ card._id }
-                className="group relative mx-auto flex h-full min-h-96 w-full max-w-[16rem] flex-col rounded-[6px] transition"
+                className={ `group relative mx-auto flex h-full min-h-96 w-full max-w-[16rem] flex-col rounded-[6px] transition ${ isSelected ? "ring-2 ring-indigo-300/70 ring-offset-2 ring-offset-black/60" : "" }` }
               >
+                { isSelectionEnabled && (
+                  <label
+                    className="absolute left-2 top-2 z-20 inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/20 bg-black/75 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white shadow-lg transition hover:border-indigo-300/70"
+                    onClick={ ( event ) => event.stopPropagation() }
+                    onKeyDown={ ( event ) => event.stopPropagation() }
+                  >
+                    <input
+                      type="checkbox"
+                      className="size-4 cursor-pointer accent-indigo-500"
+                      checked={ isSelected }
+                      disabled={ !cardId }
+                      onChange={ ( event ) => {
+                        const { checked } = event.target;
+                        updateSelectedRows( ( current ) => {
+                          const next = new Set( current );
+                          if ( checked ) {
+                            next.add( cardId );
+                          } else {
+                            next.delete( cardId );
+                          }
+                          return next;
+                        } );
+                      } }
+                      aria-label="Select card"
+                    />
+                    Select
+                  </label>
+                ) }
                 <div className="relative mx-auto w-full max-w-[16rem] [perspective:1500px]">
                   <div
                     className={ `grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] [transition-timing-function:cubic-bezier(0.75,0,0.85,1)] ${ isFlipped ? "[transform:rotateY(180deg)]" : "" }` }
@@ -325,8 +373,13 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                                 </div>
                               ) }
                               <p className="text-xs font-medium uppercase tracking-wide">
-                                { [ card.rarity, card.printing ].filter( Boolean ).join( " • " ) }
+                                { [ card.rarity, card.printing ].filter( Boolean ).join( " / " ) }
                               </p>
+                              { folderLabels.length > 0 && (
+                                <p className="line-clamp-1 text-[0.68rem] font-semibold uppercase tracking-wide text-indigo-100">
+                                  { folderLabels.slice( 0, 2 ).join( " / " ) }
+                                </p>
+                              ) }
                               <span className="mt-2 inline-flex min-h-10 w-fit min-w-10 items-center justify-center rounded-[4px] border border-white/35 bg-black/35 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white shadow-[0_0_6px_rgba(0,0,0,0.3)]">
                                 Details
                               </span>

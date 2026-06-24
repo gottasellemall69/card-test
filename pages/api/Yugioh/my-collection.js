@@ -33,6 +33,7 @@ export default async function handler( req, res ) {
               lowPrice: 1,
               remoteImageUrl: 1,
               quantity: 1,
+              folderIds: 1,
             },
           },
           { $sort: { _id: 1 } },
