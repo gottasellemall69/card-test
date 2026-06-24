@@ -1,4 +1,5 @@
 const path = require("path");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -6,7 +7,6 @@ const nextConfig = {
   turbopack: {
     root: path.join(__dirname),
   },
-
 
   async headers() {
     return [

@@ -11,7 +11,7 @@
         "./*"
       ]
     },
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -26,11 +26,13 @@
   },
   "include": [
     "next-env.d.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx",
-    "**/*.js"
+    "**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next/cache"
   ]
 }

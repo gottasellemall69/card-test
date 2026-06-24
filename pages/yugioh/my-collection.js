@@ -2,7 +2,7 @@
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { Check, Filter, FolderOpen, FolderPlus, Grid, List, Loader2, Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import { Check, Filter, FolderOpen, FolderPlus, Grid, List, Loader2, Pencil, Plus, Search, Trash2, TrendingUp, X } from "lucide-react";
 import Notification from '@/components/Notification';
 import { useAppShellSlots } from "@/components/Layout";
 import DownloadYugiohCSVButton from "@/components/Yugioh/Buttons/DownloadYugiohCSVButton";
