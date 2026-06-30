@@ -114,6 +114,40 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 
   const getFullImagePath = useCallback( ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, [] );
 
+  const getCardImageSources = useCallback(
+    ( card ) => {
+      const localImageSrc = card?.cardId ? getFullImagePath( card.cardId ) : null;
+      const remoteImageSrc = typeof card?.remoteImageUrl === "string" && card.remoteImageUrl.trim()
+        ? card.remoteImageUrl.trim()
+        : null;
+      const primaryImageSrc = remoteImageSrc || localImageSrc || FALLBACK_IMAGE;
+      const secondaryImageSrc = primaryImageSrc === remoteImageSrc ? localImageSrc : remoteImageSrc;
+
+      return {
+        primaryImageSrc,
+        secondaryImageSrc: secondaryImageSrc && secondaryImageSrc !== primaryImageSrc ? secondaryImageSrc : null,
+      };
+    },
+    [ getFullImagePath ],
+  );
+
+  const handleCardImageError = useCallback( ( event ) => {
+    const image = event.currentTarget;
+    const nextSrc = image.dataset.nextSrc;
+    const fallbackSrc = image.dataset.fallbackSrc;
+
+    if ( nextSrc ) {
+      image.src = nextSrc;
+      image.dataset.nextSrc = "";
+      return;
+    }
+
+    if ( fallbackSrc ) {
+      image.src = fallbackSrc;
+      image.dataset.fallbackSrc = "";
+      image.onerror = null;
+    }
+  }, [] );
 
   const getFolderLabels = useCallback(
     ( card ) => ( Array.isArray( card?.folderIds ) ? card.folderIds : [] )
@@ -217,8 +251,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
           { memoizedAggregatedData.map( ( card ) => {
             if ( !card ) return null;
 
-            const cardIdImage = card.cardId ? getFullImagePath( card.cardId ) : null;
-            const imageSrc = cardIdImage || card.remoteImageUrl || FALLBACK_IMAGE;
+            const { primaryImageSrc, secondaryImageSrc } = getCardImageSources( card );
             const cardId = String( card._id ?? "" );
             const isSelected = isSelectionEnabled && selectedCardIds.has( cardId );
             const isFlipped = Boolean( flippedCards[ card._id ] );
@@ -345,9 +378,12 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                       <div className="relative flex aspect-[260/360] h-full max-h-[31rem] w-full items-center justify-center overflow-hidden rounded-[6px] border border-white/10 bg-black/40 transition duration-300 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60">
                         <img
                           className="mx-auto h-full w-full object-top object-cover"
-                          src={ imageSrc }
+                          src={ primaryImageSrc }
                           alt={ `Card Image - ${ card.productName }` }
                           loading="lazy"
+                          data-next-src={ secondaryImageSrc || "" }
+                          data-fallback-src={ FALLBACK_IMAGE }
+                          onError={ handleCardImageError }
                         />
                         <div
                           aria-hidden="true"

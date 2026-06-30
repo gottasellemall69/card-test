@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
@@ -54,12 +54,27 @@ const ALL_FOLDERS_ID = "all";
 const UNCATEGORIZED_FOLDER_ID = "uncategorized";
 
 const getCardFolderIds = ( card ) => (
-  Array.isArray( card?.folderIds ) ? card.folderIds.map( ( folderId ) => String( folderId ) ) : []
+  Array.isArray( card?.folderIds )
+    ? card.folderIds
+      .map( ( folderId ) => String( folderId ?? "" ).trim() )
+      .filter( Boolean )
+    : []
 );
 
 const normalizeFolder = ( folder ) => ( {
   ...folder,
   _id: String( folder?._id ?? "" ),
+  name: String( folder?.name ?? "" ).trim(),
+} );
+
+const normalizeCollectionCard = ( card ) => ( {
+  ...card,
+  _id: String( card?._id ?? "" ),
+  cardId: card?.cardId === null || card?.cardId === undefined ? null : String( card.cardId ).trim(),
+  remoteImageUrl: typeof card?.remoteImageUrl === "string" && card.remoteImageUrl.trim()
+    ? card.remoteImageUrl.trim()
+    : null,
+  folderIds: getCardFolderIds( card ),
 } );
 
 const MyCollection = ( { initialAuthState = false } ) => {
@@ -103,7 +118,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
     }
 
     const data = await response.json();
-    return Array.isArray( data ) ? data : [];
+    return Array.isArray( data ) ? data.map( normalizeCollectionCard ).filter( ( card ) => card._id ) : [];
   }, [] );
 
   const fetchFolders = useCallback( async () => {
@@ -119,7 +134,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
     }
 
     const data = await response.json();
-    return Array.isArray( data ) ? data.map( normalizeFolder ).filter( ( folder ) => folder._id ) : [];
+    return Array.isArray( data ) ? data.map( normalizeFolder ).filter( ( folder ) => folder._id && folder.name ) : [];
   }, [] );
 
   useEffect( () => {
