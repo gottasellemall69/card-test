@@ -61,21 +61,47 @@ const getCardFolderIds = ( card ) => (
     : []
 );
 
+const normalizeOptionalString = ( value ) => {
+  if ( value === null || value === undefined ) {
+    return null;
+  }
+
+  const normalized = String( value ).trim();
+  return normalized || null;
+};
+
+const getPrimaryCardImage = ( card ) => (
+  Array.isArray( card?.card_images )
+    ? card.card_images.find( ( image ) => image?.id || image?.image_url || image?.image_url_cropped || image?.image_url_small )
+    : null
+);
+
 const normalizeFolder = ( folder ) => ( {
   ...folder,
   _id: String( folder?._id ?? "" ),
   name: String( folder?.name ?? "" ).trim(),
 } );
 
-const normalizeCollectionCard = ( card ) => ( {
-  ...card,
-  _id: String( card?._id ?? "" ),
-  cardId: card?.cardId === null || card?.cardId === undefined ? null : String( card.cardId ).trim(),
-  remoteImageUrl: typeof card?.remoteImageUrl === "string" && card.remoteImageUrl.trim()
-    ? card.remoteImageUrl.trim()
-    : null,
-  folderIds: getCardFolderIds( card ),
-} );
+const normalizeCollectionCard = ( card ) => {
+  const primaryCardImage = getPrimaryCardImage( card );
+
+  return {
+    ...card,
+    _id: String( card?._id ?? "" ),
+    cardId:
+      normalizeOptionalString( primaryCardImage?.id ) ||
+      normalizeOptionalString( card?.cardImageId ) ||
+      normalizeOptionalString( card?.cardId ) ||
+      normalizeOptionalString( card?.id ),
+    remoteImageUrl:
+      normalizeOptionalString( card?.remoteImageUrl ) ||
+      normalizeOptionalString( card?.image_url ) ||
+      normalizeOptionalString( primaryCardImage?.image_url ) ||
+      normalizeOptionalString( primaryCardImage?.image_url_cropped ) ||
+      normalizeOptionalString( primaryCardImage?.image_url_small ),
+    folderIds: getCardFolderIds( card ),
+  };
+};
 
 const MyCollection = ( { initialAuthState = false } ) => {
   const router = useRouter();

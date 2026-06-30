@@ -13,6 +13,21 @@ const formatCurrency = ( value ) => {
   return `$${ numeric.toFixed( 2 ) }`;
 };
 
+const normalizeOptionalString = ( value ) => {
+  if ( value === null || value === undefined ) {
+    return null;
+  }
+
+  const normalized = String( value ).trim();
+  return normalized || null;
+};
+
+const getPrimaryCardImage = ( card ) => (
+  Array.isArray( card?.card_images )
+    ? card.card_images.find( ( image ) => image?.id || image?.image_url || image?.image_url_cropped || image?.image_url_small )
+    : null
+);
+
 const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, handleSortChange, selectedCardIds, onSelectedCardIdsChange, folderNameMap = {} } ) => {
   const [ edit, setEdit ] = useState( {} );
   const [ editValues, setEditValues ] = useState( {} );
@@ -116,10 +131,20 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 
   const getCardImageSources = useCallback(
     ( card ) => {
-      const localImageSrc = card?.cardId ? getFullImagePath( card.cardId ) : null;
-      const remoteImageSrc = typeof card?.remoteImageUrl === "string" && card.remoteImageUrl.trim()
-        ? card.remoteImageUrl.trim()
-        : null;
+      const primaryCardImage = getPrimaryCardImage( card );
+      const imageId =
+        normalizeOptionalString( primaryCardImage?.id ) ||
+        normalizeOptionalString( card?.cardImageId ) ||
+        normalizeOptionalString( card?.cardId ) ||
+        normalizeOptionalString( card?.cardDetailId ) ||
+        normalizeOptionalString( card?.id );
+      const localImageSrc = imageId ? getFullImagePath( imageId ) : null;
+      const remoteImageSrc =
+        normalizeOptionalString( card?.remoteImageUrl ) ||
+        normalizeOptionalString( card?.image_url ) ||
+        normalizeOptionalString( primaryCardImage?.image_url ) ||
+        normalizeOptionalString( primaryCardImage?.image_url_cropped ) ||
+        normalizeOptionalString( primaryCardImage?.image_url_small );
       const primaryImageSrc = remoteImageSrc || localImageSrc || FALLBACK_IMAGE;
       const secondaryImageSrc = primaryImageSrc === remoteImageSrc ? localImageSrc : remoteImageSrc;
 
@@ -252,6 +277,13 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             if ( !card ) return null;
 
             const { primaryImageSrc, secondaryImageSrc } = getCardImageSources( card );
+            const primaryCardImage = getPrimaryCardImage( card );
+            const detailCardId =
+              normalizeOptionalString( primaryCardImage?.id ) ||
+              normalizeOptionalString( card?.cardImageId ) ||
+              normalizeOptionalString( card?.cardId ) ||
+              normalizeOptionalString( card?.cardDetailId ) ||
+              normalizeOptionalString( card?.id );
             const cardId = String( card._id ?? "" );
             const isSelected = isSelectionEnabled && selectedCardIds.has( cardId );
             const isFlipped = Boolean( flippedCards[ card._id ] );
@@ -278,7 +310,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
             const cardDetailsQuery = ( () => {
               const query = { source: "collection" };
 
-              if ( card.cardId ) query.card = card.cardId;
+              if ( detailCardId ) query.card = detailCardId;
               if ( computedLetter ) query.letter = computedLetter;
               if ( card.setName ) query.set_name = card.setName;
               if ( card.productName ) query.card_name = card.productName;

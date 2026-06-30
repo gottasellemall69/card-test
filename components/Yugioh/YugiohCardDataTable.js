@@ -38,6 +38,28 @@ const getUnitPrice = ( value ) => {
 const getTotalPrice = ( item ) =>
     getUnitPrice( item?.data?.marketPrice ) * getQuantity( item?.card?.quantity );
 
+const getOptionalString = ( value ) => {
+    if ( value === null || value === undefined ) {
+        return null;
+    }
+
+    const normalized = String( value ).trim();
+    return normalized || null;
+};
+
+const getCollectionCardId = ( item ) =>
+    getOptionalString( item?.cardImageId ) ||
+    getOptionalString( item?.cardDetailId ) ||
+    getOptionalString( item?.detailParams?.cardId ) ||
+    getOptionalString( item?.card?.cardId ) ||
+    getOptionalString( item?.card?.cardDetailId ) ||
+    getOptionalString( item?.variant?.productID ) ||
+    getOptionalString( item?.resolvedVariant?.productID );
+
+const getCollectionRemoteImageUrl = ( item ) =>
+    getOptionalString( item?.remoteImageUrl ) ||
+    getOptionalString( item?.card?.remoteImageUrl );
+
 const YugiohCardDataTable = ( {
     matchedCardData = [],
     isAuthenticated = false,
@@ -212,16 +234,23 @@ const YugiohCardDataTable = ( {
             selectedKeys.has( itemUniqueIds[ index ] )
         );
 
-        const collectionArray = selectedData.map( ( { card, data } ) => ( {
-            productName: card?.productName,
-            setName: card?.setName,
-            number: card?.number,
-            printing: card?.printing,
-            rarity: card?.rarity,
-            condition: card?.condition,
-            marketPrice: data?.marketPrice,
-            quantity: getQuantity( card?.quantity ),
-        } ) );
+        const collectionArray = selectedData.map( ( item ) => {
+            const { card, data } = item;
+
+            return {
+                cardId: getCollectionCardId( item ),
+                productName: card?.productName,
+                setName: card?.setName,
+                number: card?.number,
+                printing: card?.printing,
+                rarity: card?.rarity,
+                condition: card?.condition,
+                marketPrice: data?.marketPrice,
+                lowPrice: data?.lowPrice,
+                remoteImageUrl: getCollectionRemoteImageUrl( item ),
+                quantity: getQuantity( card?.quantity ),
+            };
+        } );
 
         try {
             const response = await fetch( `/api/Yugioh/cards`, {

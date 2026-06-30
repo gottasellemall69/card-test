@@ -1324,6 +1324,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           printing: variant?.printing || "Unknown Edition",
           rarity: variant?.rarity || "Unknown Rarity",
           condition: conditionLabel || "Unknown Condition",
+          cardId: card.cardImageId || card.cardDetailId || card.cardMeta?.id || null,
+          remoteImageUrl: card.remoteImageUrl || null,
         },
         data: {
           marketPrice: variant?.marketPrice ?? null,
@@ -1331,9 +1333,11 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         },
         collectionKey: card.collectionKey,
         cardDetailId: card.cardDetailId,
+        cardImageId: card.cardImageId,
+        remoteImageUrl: card.remoteImageUrl,
         setLabel: card.setLabel,
         detailParams: {
-          cardId: card.cardMeta?.id || null,
+          cardId: card.cardImageId || card.cardDetailId || card.cardMeta?.id || null,
           cardName: resolveDetailLookupName( card.cardMeta?.name, card.productName ),
           setName: activeSetDisplayName || card.setLabel || "",
           setCode: variant?.number || "",
@@ -1452,6 +1456,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           cards: [
             {
               cardId:
+                selectedCard.cardImageId ||
                 selectedCard.cardDetailId ||
                 modalVariant.productID ||
                 modalVariant.id ||
@@ -1529,7 +1534,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
 
         return {
           cardId:
+            row.cardImageId ||
             row.cardDetailId ||
+            row.detailParams?.cardId ||
             variant.productID ||
             row.variant?.productID ||
             row.card?.cardDetailId ||
@@ -1544,7 +1551,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
               .filter( Boolean )
               .join( " " ) || "Unknown Condition",
           marketPrice: variant.marketPrice || 0,
-          remoteImageUrl: row.card.remoteImageUrl || null,
+          remoteImageUrl: row.remoteImageUrl || row.card?.remoteImageUrl || null,
           quantity: 1,
         };
       } )
@@ -1625,7 +1632,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           : undefined;
     const rarityForDetails = rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
 
-    const detailCardId = cardItem.cardMeta?.id || null;
+    const detailCardId = cardItem.cardImageId || cardItem.cardDetailId || cardItem.cardMeta?.id || null;
     const cardNameForDetails = resolveDetailLookupName( cardItem.cardMeta?.name, cardItem.productName );
 
     const cardDetailsQuery = Object.fromEntries(
