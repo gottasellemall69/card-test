@@ -216,10 +216,11 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
         getCroppedImagePath( imageId ),
       ] );
       const imageSources = getUniqueStrings( [
-        ...remoteImageSources,
         ...localImageSources,
+        ...remoteImageSources,
+        FALLBACK_IMAGE,
       ] );
-      const primaryImageSrc = imageSources[ 0 ] || "";
+      const primaryImageSrc = imageSources[ 0 ] || FALLBACK_IMAGE;
 
       return {
         primaryImageSrc,
