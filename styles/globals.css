@@ -1,8 +1,5 @@
-@import "shadcn/tailwind.css";
 @import "tw-animate-css";
 @import "tailwindcss";
-@source "../pages";
-@source "../components";
 
 :root
 {
@@ -34,15 +31,15 @@
 
 .login
 {
-  width: 100%;
-  min-height: 100%;
+  max-width: 100%;
+  height: 100%;
   background-image:
     linear-gradient(180deg, rgba(2, 6, 23, 0.2), rgba(2, 6, 23, 0.7)),
     url("/images/backgrounds/yugioh/background.svg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  background-attachment: fixed;
+  background-attachment: scroll;
   background-color: #050815;
 }
 

@@ -1,32 +1,9 @@
-const path = require("path");
-const ignoredAssetWatchPattern = /[\\/]public[\\/]images[\\/]yugiohImages(?:Cropped)?[\\/]/;
-
-const mergeWebpackIgnoredPaths = ( ignored ) => {
-  if ( !ignored ) {
-    return [ ignoredAssetWatchPattern ];
-  }
-
-  return Array.isArray( ignored )
-    ? [ ...ignored, ignoredAssetWatchPattern ]
-    : [ ignored, ignoredAssetWatchPattern ];
-};
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
   turbopack: {
-    root: path.join(__dirname),
-  },
-
-  webpack: ( config, { dev } ) => {
-    if ( dev ) {
-      config.watchOptions = {
-        ...( config.watchOptions || {} ),
-        ignored: mergeWebpackIgnoredPaths( config.watchOptions?.ignored ),
-      };
-    }
-
-    return config;
+    root: __dirname,
   },
 
   async headers() {

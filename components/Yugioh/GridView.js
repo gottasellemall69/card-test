@@ -4,6 +4,8 @@ import Notification from "@/components/Notification";
 import PriceTrendIndicator from "@/components/Yugioh/PriceTrendIndicator";
 
 const FALLBACK_IMAGE = "/images/yugioh-card.png";
+const LOCAL_IMAGE_BASE_PATH = "/images/yugiohImages";
+const LOCAL_CROPPED_IMAGE_BASE_PATH = "/images/yugiohImagesCropped";
 
 const formatCurrency = ( value ) => {
   const numeric = Number( value );
@@ -27,6 +29,67 @@ const getPrimaryCardImage = ( card ) => (
     ? card.card_images.find( ( image ) => image?.id || image?.image_url || image?.image_url_cropped || image?.image_url_small )
     : null
 );
+
+const getUniqueStrings = ( values ) => {
+  const seen = new Set();
+
+  return values.reduce( ( list, value ) => {
+    const normalized = normalizeOptionalString( value );
+    if ( !normalized || seen.has( normalized ) ) {
+      return list;
+    }
+
+    seen.add( normalized );
+    list.push( normalized );
+    return list;
+  }, [] );
+};
+
+const getImageIdFromUrl = ( value ) => {
+  const normalized = normalizeOptionalString( value );
+  if ( !normalized ) {
+    return null;
+  }
+
+  const path = normalized.split( /[?#]/ )[ 0 ];
+  const fileName = path.split( "/" ).pop() || "";
+  const match = fileName.match( /^(.+?)\.(?:jpe?g|png|webp)$/i );
+  return normalizeOptionalString( match?.[ 1 ] );
+};
+
+const normalizeImageId = ( value ) => {
+  const normalized = normalizeOptionalString( value );
+  if ( !normalized ) {
+    return null;
+  }
+
+  const idFromUrl = getImageIdFromUrl( normalized );
+  if ( idFromUrl ) {
+    return idFromUrl;
+  }
+
+  if ( /^(?:https?:)?\/\//i.test( normalized ) || normalized.startsWith( "/" ) ) {
+    return null;
+  }
+
+  return normalized.replace( /\.(?:jpe?g|png|webp)$/i, "" );
+};
+
+const buildLocalImagePath = ( basePath, imageId ) => `${ basePath }/${ encodeURIComponent( String( imageId ) ) }.jpg`;
+
+const getNextImageSources = ( image ) => {
+  const rawSources = image.dataset.nextSrcs;
+  if ( !rawSources ) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse( rawSources );
+    return Array.isArray( parsed ) ? parsed.filter( Boolean ) : [];
+  } catch ( error ) {
+    return rawSources.split( "|" ).filter( Boolean );
+  }
+};
 
 const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, handleSortChange, selectedCardIds, onSelectedCardIdsChange, folderNameMap = {} } ) => {
   const [ edit, setEdit ] = useState( {} );
@@ -127,43 +190,54 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
     } );
   }, [] );
 
-  const getFullImagePath = useCallback( ( cardId ) => `/images/yugiohImages/${ String( cardId ) }.jpg`, [] );
+  const getFullImagePath = useCallback( ( cardId ) => buildLocalImagePath( LOCAL_IMAGE_BASE_PATH, cardId ), [] );
+  const getCroppedImagePath = useCallback( ( cardId ) => buildLocalImagePath( LOCAL_CROPPED_IMAGE_BASE_PATH, cardId ), [] );
 
   const getCardImageSources = useCallback(
     ( card ) => {
       const primaryCardImage = getPrimaryCardImage( card );
-      const imageId =
-        normalizeOptionalString( primaryCardImage?.id ) ||
-        normalizeOptionalString( card?.cardImageId ) ||
-        normalizeOptionalString( card?.cardId ) ||
-        normalizeOptionalString( card?.cardDetailId ) ||
-        normalizeOptionalString( card?.id );
-      const localImageSrc = imageId ? getFullImagePath( imageId ) : null;
-      const remoteImageSrc =
-        normalizeOptionalString( card?.remoteImageUrl ) ||
-        normalizeOptionalString( card?.image_url ) ||
-        normalizeOptionalString( primaryCardImage?.image_url ) ||
-        normalizeOptionalString( primaryCardImage?.image_url_cropped ) ||
-        normalizeOptionalString( primaryCardImage?.image_url_small );
-      const primaryImageSrc = remoteImageSrc || localImageSrc || FALLBACK_IMAGE;
-      const secondaryImageSrc = primaryImageSrc === remoteImageSrc ? localImageSrc : remoteImageSrc;
+      const remoteImageSources = getUniqueStrings( [
+        card?.remoteImageUrl,
+        card?.image_url,
+        primaryCardImage?.image_url,
+        primaryCardImage?.image_url_cropped,
+        primaryCardImage?.image_url_small,
+      ] );
+      const imageIds = getUniqueStrings( [
+        normalizeImageId( primaryCardImage?.id ),
+        normalizeImageId( card?.cardImageId ),
+        normalizeImageId( card?.cardId ),
+        normalizeImageId( card?.cardDetailId ),
+        normalizeImageId( card?.id ),
+        ...remoteImageSources.map( getImageIdFromUrl ),
+      ] );
+      const localImageSources = imageIds.flatMap( ( imageId ) => [
+        getFullImagePath( imageId ),
+        getCroppedImagePath( imageId ),
+      ] );
+      const imageSources = getUniqueStrings( [
+        ...remoteImageSources,
+        ...localImageSources,
+        FALLBACK_IMAGE,
+      ] );
+      const primaryImageSrc = imageSources[ 0 ] || FALLBACK_IMAGE;
 
       return {
         primaryImageSrc,
-        secondaryImageSrc: secondaryImageSrc && secondaryImageSrc !== primaryImageSrc ? secondaryImageSrc : null,
+        backupImageSrcs: imageSources.slice( 1 ).filter( ( source ) => source !== FALLBACK_IMAGE ),
       };
     },
-    [ getFullImagePath ],
+    [ getCroppedImagePath, getFullImagePath ],
   );
 
   const handleCardImageError = useCallback( ( event ) => {
     const image = event.currentTarget;
-    const nextSrc = image.dataset.nextSrc;
+    const [ nextSrc, ...remainingSources ] = getNextImageSources( image );
     const fallbackSrc = image.dataset.fallbackSrc;
 
     if ( nextSrc ) {
       image.src = nextSrc;
-      image.dataset.nextSrc = "";
+      image.dataset.nextSrcs = JSON.stringify( remainingSources );
       return;
     }
 
@@ -276,7 +350,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
           { memoizedAggregatedData.map( ( card ) => {
             if ( !card ) return null;
 
-            const { primaryImageSrc, secondaryImageSrc } = getCardImageSources( card );
+            const { primaryImageSrc, backupImageSrcs } = getCardImageSources( card );
             const primaryCardImage = getPrimaryCardImage( card );
             const detailCardId =
               normalizeOptionalString( primaryCardImage?.id ) ||
@@ -413,7 +487,7 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
                           src={ primaryImageSrc }
                           alt={ `Card Image - ${ card.productName }` }
                           loading="lazy"
-                          data-next-src={ secondaryImageSrc || "" }
+                          data-next-srcs={ JSON.stringify( backupImageSrcs ) }
                           data-fallback-src={ FALLBACK_IMAGE }
                           onError={ handleCardImageError }
                         />
