@@ -2,9 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
-  turbopack: {
-    root: __dirname,
-  },
+  // Disable Turbopack - it's very disk I/O intensive
+  // turbopack: {
+  //   root: __dirname,
+  // },
 
   async headers() {
     return [
