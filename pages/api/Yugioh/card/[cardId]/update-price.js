@@ -1,4 +1,4 @@
-import { recordPriceHistoryEntry, buildHistoryFilter } from "@/utils/priceHistoryStore";
+import { recordPriceHistoryEntry } from "@/utils/priceHistoryStore";
 
 export default async function handler( req, res ) {
     if ( req.method !== "POST" ) {

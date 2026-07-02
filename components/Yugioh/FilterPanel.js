@@ -1,5 +1,3 @@
-'use client';
-
 import { useMemo } from 'react';
 import { Minus, Plus } from 'lucide-react';
 import { YUGIOH_FILTER_SECTIONS } from '@/constants/yugiohFilters';

@@ -1,5 +1,3 @@
-'use client';
-
 import Notification from '@/components/Notification.js';
 import { useState } from 'react';
 

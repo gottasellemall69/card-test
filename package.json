@@ -9,7 +9,8 @@
         "build": "next build --turbopack",
         "build:webpack": "next build --webpack",
         "start": "next start",
-        "lint": "next lint",
+        "lint": "eslint pages components constants context hooks lib services types utils proxy proxy.ts scripts next.config.js postcss.config.js tailwind.config.js eslint.config.mjs",
+        "typecheck": "tsc --noEmit",
         "refresh:sports-cache": "node scripts/refresh-sports-cache.js"
     },
     "dependencies": {

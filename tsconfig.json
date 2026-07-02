@@ -32,6 +32,11 @@
   ],
   "exclude": [
     "node_modules",
-    ".next"
+    ".next/**",
+    "build/**",
+    "out/**",
+    "public/images/yugiohImages/**",
+    "public/images/yugiohImages*/**",
+    ".sports-refresh-browser/**",
   ]
 }

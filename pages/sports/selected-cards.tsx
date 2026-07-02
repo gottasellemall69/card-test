@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from 'react';
 import { cardStorage } from '@/services/cardStorage';
 import { SelectedCard } from '@/types/Card';

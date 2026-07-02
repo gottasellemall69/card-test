@@ -1,5 +1,3 @@
-'use client';
-
 const CSV_DELIMITER = '|';
 const CSV_HEADER = [
   '"Name"',

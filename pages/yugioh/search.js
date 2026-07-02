@@ -59,13 +59,7 @@ const fetchFuzzyResults = async ( searchTerm ) => {
   const response = await fetch(
     `/api/Yugioh/cards/fuzzy-search?q=${ encodeURIComponent( searchTerm ) }&includeAll=1`
   );
-  let data = null;
-
-  try {
-    data = await response.json();
-  } catch ( error ) {
-    data = null;
-  }
+  const data = await response.json().catch( () => null );
 
   const results = Array.isArray( data?.results ) ? data.results : [];
   const message = data?.message || "Search failed.";

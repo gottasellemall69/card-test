@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState } from 'react';
 import { Filter } from 'lucide-react';
 import CardFilter from '@/components/Yugioh/CardFilter.js';

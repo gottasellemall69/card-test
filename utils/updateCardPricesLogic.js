@@ -565,7 +565,7 @@ export default async function updateCardPricesLogic( authContext ) {
       continue;
     }
 
-    let rows = [];
+    let rows;
 
     try {
       await sleep( REMOTE_FETCH_DELAY_MS );

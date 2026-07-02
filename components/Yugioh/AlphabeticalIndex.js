@@ -1,4 +1,3 @@
-"use client";
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { useRouter } from 'next/router';

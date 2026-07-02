@@ -1,5 +1,3 @@
-﻿'use client';
-
 import { useMemo, useState } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Minus, Plus, X } from 'lucide-react';

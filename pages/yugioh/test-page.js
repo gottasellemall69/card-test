@@ -1,8 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Suspense } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Head from "next/head";
-import dynamic from "next/dynamic";
 import {
     Dialog,
     DialogBackdrop,

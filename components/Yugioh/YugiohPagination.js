@@ -1,4 +1,3 @@
-"use client";
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const clampPage = ( value, min, max ) => Math.min( Math.max( value, min ), max );

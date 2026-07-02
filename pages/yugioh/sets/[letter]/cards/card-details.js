@@ -1,4 +1,3 @@
-"use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import Breadcrumb from "@/components/Navigation/Breadcrumb";
@@ -380,8 +379,9 @@ const CardDetails = () => {
     ? null
     : ( cardSetLookupError || cardLookupError || cardError );
 
-  const effectiveCardId = ( cardId || resolvedCardData?.id )
-    ? ( cardId || resolvedCardData?.id ).toString()
+  const rawEffectiveCardId = cardId || resolvedCardData?.id;
+  const effectiveCardId = rawEffectiveCardId
+    ? rawEffectiveCardId.toString()
     : undefined;
 
   useEffect( () => {

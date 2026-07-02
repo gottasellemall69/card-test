@@ -1,6 +1,5 @@
-﻿// components/Yugioh/YugiohCardDataTable.js
-"use client";
-import React, { useCallback, useMemo, useState } from 'react';
+// components/Yugioh/YugiohCardDataTable.js
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { CheckCircleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';

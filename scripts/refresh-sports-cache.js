@@ -273,7 +273,7 @@ const fetchJsonFromBrowser = async ( page, url ) => {
     return JSON.parse( result.text );
   } catch ( error ) {
     const snippet = result.text.slice( 0, 200 ).replace( /\s+/g, ' ' );
-    throw new Error( `Invalid JSON response: ${ snippet }` );
+    throw new Error( `Invalid JSON response: ${ snippet }`, { cause: error } );
   }
 };
 

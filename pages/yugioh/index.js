@@ -1,5 +1,3 @@
-﻿'use client';
-
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
@@ -146,7 +144,7 @@ const parseFreeformLine = ( line, knownSetNames ) => {
     'i'
   );
 
-  let rarity = '';
+  let rarity;
   let condition = '';
   const conditionMatch = afterNumber.match( conditionRegex );
   if ( conditionMatch ) {
@@ -367,7 +365,6 @@ const Home = () => {
       }
 
       if ( !setCache[ setNameId ] ) {
-        console.log( 'Fetching set data for ID:', setNameId );
         const response = await fetch( `/api/Yugioh/cards/${ setNameId }` );
         if ( !response.ok ) {
           return { card, data: null, error: `Failed to fetch set data for ID: ${ setNameId }` };
@@ -422,7 +419,6 @@ const Home = () => {
 
     for ( let i = 0; i < items.length; i += batchSize ) {
       const batch = items.slice( i, i + batchSize );
-      console.log( `Processing batch: ${ i / batchSize + 1 }` );
 
       const batchResults = await Promise.all(
         batch.map( async ( item ) => {

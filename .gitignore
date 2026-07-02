@@ -40,8 +40,8 @@ next-env.d.ts
 .aider*
 server/changeStreamHandler.js
 .codex
-.vscode
-/.vscode
+/.vscode/*
+
 
 /rift
 /.gpteng
@@ -52,4 +52,4 @@ prompt.md
 /skills
 .codex
 /.agents
-AGENTS.md
+AGENTS.override.md

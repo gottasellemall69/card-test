@@ -1,5 +1,4 @@
 // @/components/LoadingSpinner.js
-"use client";
 const LoadingSpinner = () => {
   return (
     <div className="z-50 w-24 h-24 backdrop-opacity-0 spinner">
