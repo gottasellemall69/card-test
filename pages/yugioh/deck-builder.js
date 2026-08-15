@@ -13,6 +13,16 @@ const isExtraDeckCard = ( card ) => {
   return EXTRA_DECK_TYPES.some( ( classification ) => type.includes( classification ) );
 };
 
+const getCardImageSrc = ( card ) => {
+  const primaryImage = card?.card_images?.[ 0 ] || null;
+  return (
+    primaryImage?.image_url ||
+    primaryImage?.image_url_cropped ||
+    primaryImage?.image_url_small ||
+    "/images/backgrounds/yugioh/background.svg"
+  );
+};
+
 const buildDeckWarnings = ( mainDeck, extraDeck ) => {
   const warnings = [];
   const mainDeckCount = mainDeck.filter( Boolean ).length;
@@ -180,7 +190,7 @@ export default function DeckBuilder() {
                     { slot ? (
                       <>
                         <Image
-                          src={ slot.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
+                          src={ getCardImageSrc( slot ) }
                           alt={ slot.name }
                           width={ 80 }
                           height={ 112 }
@@ -193,7 +203,7 @@ export default function DeckBuilder() {
                           className="text-red-700 absolute -top-1 -right-1 text-xl font-black bg-white/80 rounded-full px-1"
                           aria-label={ `Remove ${ slot.name } from deck` }
                         >
-                          ×
+                          Ã—
                         </button>
                       </>
                     ) : (
@@ -214,7 +224,7 @@ export default function DeckBuilder() {
                     className="relative w-20 h-28 bg-gray-200 flex flex-col items-center justify-center border border-gray-400 rounded"
                   >
                     <Image
-                      src={ card.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
+                      src={ getCardImageSrc( card ) }
                       alt={ card.name }
                       width={ 80 }
                       height={ 112 }
@@ -227,7 +237,7 @@ export default function DeckBuilder() {
                       className="text-red-700 absolute -top-1 -right-1 text-xl font-black bg-white/80 rounded-full px-1"
                       aria-label={ `Remove ${ card.name } from extra deck` }
                     >
-                      ×
+                      Ã—
                     </button>
                   </div>
                 ) ) }
@@ -263,7 +273,7 @@ export default function DeckBuilder() {
                   <h3 className="text-xl font-semibold text-white">Searched Card</h3>
                   <div className="p-4 bg-transparent text-white rounded shadow mb-4">
                     <Image
-                      src={ cards.searchedCard.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
+                      src={ getCardImageSrc( cards.searchedCard ) }
                       alt={ cards.searchedCard.name }
                       width={ 240 }
                       height={ 320 }
@@ -304,7 +314,7 @@ export default function DeckBuilder() {
                     <div key={ `${ card.id ?? card.name }-${ index }` } className="w-full rounded bg-white p-3 shadow">
                       <div className="flex flex-col gap-3 sm:flex-row">
                         <Image
-                          src={ card.card_images?.[ 0 ]?.image_url || "/images/backgrounds/yugioh/background.svg" }
+                          src={ getCardImageSrc( card ) }
                           alt={ card.name }
                           width={ 120 }
                           height={ 160 }

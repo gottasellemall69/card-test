@@ -54,7 +54,7 @@ const readCardImageIndex = async () => {
         image_url_small: primaryImage?.image_url_small ?? null,
         image_url_cropped: primaryImage?.image_url_cropped ?? null,
       } ],
-      remoteImageUrl: primaryImage?.image_url ?? null,
+      remoteImageUrl: primaryImage?.image_url ?? primaryImage?.image_url_cropped ?? primaryImage?.image_url_small ?? null,
     };
 
     if ( imageMeta.cardId ) {

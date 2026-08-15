@@ -584,7 +584,12 @@ const CardDetails = () => {
   }, [ resolvedCardData, selectedVersion ] );
 
   const localImageSrc = activeCardId ? buildImagePath( activeCardId ) : null;
-  const remoteImageSrc = resolvedCardData?.card_images?.[ 0 ]?.image_url || null;
+  const primaryCardImage = resolvedCardData?.card_images?.[ 0 ] || null;
+  const remoteImageSrc =
+    primaryCardImage?.image_url ||
+    primaryCardImage?.image_url_cropped ||
+    primaryCardImage?.image_url_small ||
+    null;
   const primaryImageSrc = localImageSrc || remoteImageSrc || FALLBACK_IMAGE;
   const secondaryImageSrc = primaryImageSrc === localImageSrc ? remoteImageSrc : localImageSrc;
 

@@ -18,6 +18,7 @@ export const formatYugiohCardData = ( card ) => ( {
   card_images: card?.card_images?.map( ( img ) => ( {
     id: img?.id,
     image_url: img?.image_url,
+    image_url_cropped: img?.image_url_cropped,
     image_url_small: img?.image_url_small,
   } ) ) || [],
   card_sets: card?.card_sets?.map( ( set ) => ( {

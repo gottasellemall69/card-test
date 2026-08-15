@@ -528,6 +528,28 @@
     "active": true
   },
   {
+    "setNameId": 180,
+    "categoryId": 2,
+    "name": "Duel Transer Promo Cards",
+    "cleanSetName": "Duel Transer Promo Cards",
+    "urlName": "duel-transer-promo-cards",
+    "abbreviation": "YDT1",
+    "releaseDate": null,
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 181,
+    "categoryId": 2,
+    "name": "Duelist Genesis",
+    "cleanSetName": "Duelist Genesis",
+    "urlName": "duelist-genesis",
+    "abbreviation": "",
+    "releaseDate": null,
+    "isSupplemental": false,
+    "active": true
+  },
+  {
     "setNameId": 182,
     "categoryId": 2,
     "name": "Duelist League Promo",
@@ -579,6 +601,17 @@
     "urlName": "duelist-pack-11-crow",
     "abbreviation": "DP11",
     "releaseDate": "2011-05-31T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 187,
+    "categoryId": 2,
+    "name": "Duelist Pack 7",
+    "cleanSetName": "Duelist Pack 7",
+    "urlName": "duelist-pack-7",
+    "abbreviation": "DP07",
+    "releaseDate": null,
     "isSupplemental": false,
     "active": true
   },
@@ -781,6 +814,17 @@
     "active": true
   },
   {
+    "setNameId": 206,
+    "categoryId": 2,
+    "name": "Forbidden Legacy 1",
+    "cleanSetName": "Forbidden Legacy 1",
+    "urlName": "forbidden-legacy-1",
+    "abbreviation": "",
+    "releaseDate": null,
+    "isSupplemental": false,
+    "active": true
+  },
+  {
     "setNameId": 207,
     "categoryId": 2,
     "name": "Forbidden Memories",
@@ -909,6 +953,17 @@
     "urlName": "gx-spirit-caller-promo",
     "abbreviation": "GX03",
     "releaseDate": "2007-01-02T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 221,
+    "categoryId": 2,
+    "name": "GX Tag Force 2 Promo",
+    "cleanSetName": "GX Tag Force 2 Promo",
+    "urlName": "gx-tag-force-2-promo",
+    "abbreviation": "GX04",
+    "releaseDate": null,
     "isSupplemental": false,
     "active": true
   },
@@ -1100,6 +1155,17 @@
     "active": true
   },
   {
+    "setNameId": 240,
+    "categoryId": 2,
+    "name": "Jump Award",
+    "cleanSetName": "Jump Award",
+    "urlName": "jump-award",
+    "abbreviation": "",
+    "releaseDate": null,
+    "isSupplemental": false,
+    "active": true
+  },
+  {
     "setNameId": 241,
     "categoryId": 2,
     "name": "Labyrinth of Nightmare",
@@ -1107,6 +1173,17 @@
     "urlName": "labyrinth-of-nightmare",
     "abbreviation": "LON",
     "releaseDate": "2004-12-01T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 242,
+    "categoryId": 2,
+    "name": "Labyrinth_of_Nightmare",
+    "cleanSetName": "Labyrinth_of_Nightmare",
+    "urlName": "labyrinth_of_nightmare",
+    "abbreviation": "",
+    "releaseDate": null,
     "isSupplemental": false,
     "active": true
   },
@@ -1129,6 +1206,17 @@
     "urlName": "legendary-collection-2",
     "abbreviation": "LC02",
     "releaseDate": "2017-12-01T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 246,
+    "categoryId": 2,
+    "name": "Light and Darkness Power Pack",
+    "cleanSetName": "Light and Darkness Power Pack",
+    "urlName": "light-and-darkness-power-pack",
+    "abbreviation": "LDPP",
+    "releaseDate": null,
     "isSupplemental": false,
     "active": true
   },
@@ -2020,6 +2108,17 @@
     "urlName": "the-legend-of-blue-eyes-white-dragon",
     "abbreviation": "LOB",
     "releaseDate": "2002-03-08T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 331,
+    "categoryId": 2,
+    "name": "The Sacred Cards",
+    "cleanSetName": "The Sacred Cards",
+    "urlName": "the-sacred-cards",
+    "abbreviation": "",
+    "releaseDate": null,
     "isSupplemental": false,
     "active": true
   },
@@ -2959,6 +3058,17 @@
     "active": true
   },
   {
+    "setNameId": 1301,
+    "categoryId": 2,
+    "name": "Exclusive Tin 2009",
+    "cleanSetName": "Exclusive Tin 2009",
+    "urlName": "exclusive-tin-2009",
+    "abbreviation": "",
+    "releaseDate": null,
+    "isSupplemental": false,
+    "active": true
+  },
+  {
     "setNameId": 1302,
     "categoryId": 2,
     "name": "Elemental Hero Collection 1",
@@ -3054,6 +3164,17 @@
     "urlName": "mattel-action-figure-promos-series-2",
     "abbreviation": "MF02",
     "releaseDate": "2006-08-01T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 1318,
+    "categoryId": 2,
+    "name": "Yu-Gi-Oh! 5D's Tag Force 4 Promo",
+    "cleanSetName": "Yu Gi Oh 5Ds Tag Force 4 Promo",
+    "urlName": "yu-gi-oh-5ds-tag-force-4-promo",
+    "abbreviation": "",
+    "releaseDate": null,
     "isSupplemental": false,
     "active": true
   },
@@ -3241,6 +3362,17 @@
     "urlName": "2002-collectors-tin",
     "abbreviation": "BPT",
     "releaseDate": "2002-10-04T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 1342,
+    "categoryId": 2,
+    "name": "Lost Millennium SE",
+    "cleanSetName": "Lost Millennium SE",
+    "urlName": "lost-millennium-se",
+    "abbreviation": "",
+    "releaseDate": null,
     "isSupplemental": false,
     "active": true
   },
@@ -4202,6 +4334,17 @@
     "active": true
   },
   {
+    "setNameId": 1921,
+    "categoryId": 2,
+    "name": "Yu-Gi-Oh! Video Game Promotional Cards",
+    "cleanSetName": "Yu Gi Oh Video Game Promotional Cards",
+    "urlName": "yu-gi-oh-video-game-promotional-cards",
+    "abbreviation": "VDP",
+    "releaseDate": null,
+    "isSupplemental": true,
+    "active": true
+  },
+  {
     "setNameId": 1922,
     "categoryId": 2,
     "name": "Maximum Crisis",
@@ -4466,6 +4609,28 @@
     "active": true
   },
   {
+    "setNameId": 2196,
+    "categoryId": 2,
+    "name": "The Lost Art Promotion",
+    "cleanSetName": "The Lost Art Promotion",
+    "urlName": "the-lost-art-promotion",
+    "abbreviation": "LART",
+    "releaseDate": null,
+    "isSupplemental": true,
+    "active": true
+  },
+  {
+    "setNameId": 2197,
+    "categoryId": 2,
+    "name": "Mattel Action Figure Promos: Series 3",
+    "cleanSetName": "Mattel Action Figure Promos Series 3",
+    "urlName": "mattel-action-figure-promos-series-3",
+    "abbreviation": "MF03",
+    "releaseDate": null,
+    "isSupplemental": true,
+    "active": true
+  },
+  {
     "setNameId": 2211,
     "categoryId": 2,
     "name": "Structure Deck: Lair of Darkness",
@@ -4485,6 +4650,17 @@
     "abbreviation": "FLOD",
     "releaseDate": "2018-05-04T00:00:00",
     "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 2215,
+    "categoryId": 2,
+    "name": "Pharaoh Tour Promos",
+    "cleanSetName": "Pharaoh Tour Promos",
+    "urlName": "pharaoh-tour-promos",
+    "abbreviation": "PTP-EU",
+    "releaseDate": null,
+    "isSupplemental": true,
     "active": true
   },
   {
@@ -4683,6 +4859,17 @@
     "abbreviation": "HISU",
     "releaseDate": "2018-11-16T00:00:00",
     "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 2353,
+    "categoryId": 2,
+    "name": "World Championship JPP Cards",
+    "cleanSetName": "World Championship JPP Cards",
+    "urlName": "world-championship-jpp-cards",
+    "abbreviation": "WCJPP",
+    "releaseDate": null,
+    "isSupplemental": true,
     "active": true
   },
   {
@@ -6633,6 +6820,17 @@
     "active": true
   },
   {
+    "setNameId": 23984,
+    "categoryId": 2,
+    "name": "Legendary Dragon Decks (2020 Date Reprint)",
+    "cleanSetName": "Legendary Dragon Decks 2020 Date Reprint",
+    "urlName": "legendary-dragon-decks-2020-date-reprint",
+    "abbreviation": "LEDD",
+    "releaseDate": null,
+    "isSupplemental": false,
+    "active": true
+  },
+  {
     "setNameId": 23995,
     "categoryId": 2,
     "name": "Alliance Insight",
@@ -6904,6 +7102,138 @@
     "urlName": "maze-of-muertos",
     "abbreviation": "",
     "releaseDate": "2026-02-20T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24581,
+    "categoryId": 2,
+    "name": "Blazing Dominion",
+    "cleanSetName": "Blazing Dominion",
+    "urlName": "blazing-dominion",
+    "abbreviation": "BLZD",
+    "releaseDate": "2026-05-08T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24621,
+    "categoryId": 2,
+    "name": "Battles of Legend: Glorious Gallery",
+    "cleanSetName": "Battles of Legend Glorious Gallery",
+    "urlName": "battles-of-legend-glorious-gallery",
+    "abbreviation": "BLGG",
+    "releaseDate": "2026-06-05T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24675,
+    "categoryId": 2,
+    "name": "Chaos Origins",
+    "cleanSetName": "Chaos Origins",
+    "urlName": "chaos-origins",
+    "abbreviation": "CORI",
+    "releaseDate": "2026-07-03T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24679,
+    "categoryId": 2,
+    "name": "Legendary Arc-V Decks",
+    "cleanSetName": "Legendary Arc V Decks",
+    "urlName": "legendary-arc-v-decks",
+    "abbreviation": "LAVD",
+    "releaseDate": "2026-08-07T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24703,
+    "categoryId": 2,
+    "name": "Limited Pack World Championship 2026",
+    "cleanSetName": "Limited Pack World Championship 2026",
+    "urlName": "limited-pack-world-championship-2026",
+    "abbreviation": "26LP",
+    "releaseDate": "2026-08-29T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24704,
+    "categoryId": 2,
+    "name": "Ultimate Tournament Pack 1",
+    "cleanSetName": "Ultimate Tournament Pack 1",
+    "urlName": "ultimate-tournament-pack-1",
+    "abbreviation": "UP01",
+    "releaseDate": "2026-07-08T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24707,
+    "categoryId": 2,
+    "name": "Magnificent Monsters",
+    "cleanSetName": "Magnificent Monsters",
+    "urlName": "magnificent-monsters",
+    "abbreviation": "MAMO",
+    "releaseDate": "2026-09-04T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24789,
+    "categoryId": 2,
+    "name": "Winner's Pack 2026-2027",
+    "cleanSetName": "Winners Pack 2026 2027",
+    "urlName": "winners-pack-2026-2027",
+    "abbreviation": "WI26",
+    "releaseDate": "2026-07-15T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24806,
+    "categoryId": 2,
+    "name": "Ultimate Tournament Pack 2",
+    "cleanSetName": "Ultimate Tournament Pack 2",
+    "urlName": "ultimate-tournament-pack-2",
+    "abbreviation": "UP02",
+    "releaseDate": "2026-11-04T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24808,
+    "categoryId": 2,
+    "name": "Magnificent Maestros",
+    "cleanSetName": "Magnificent Maestros",
+    "urlName": "magnificent-maestros",
+    "abbreviation": "MAMS",
+    "releaseDate": "2026-11-13T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24815,
+    "categoryId": 2,
+    "name": "Beyond the Brave",
+    "cleanSetName": "Beyond the Brave",
+    "urlName": "beyond-the-brave",
+    "abbreviation": "BETB",
+    "releaseDate": "2026-10-09T00:00:00",
+    "isSupplemental": false,
+    "active": true
+  },
+  {
+    "setNameId": 24822,
+    "categoryId": 2,
+    "name": "Glorious Victors",
+    "cleanSetName": "Glorious Victors",
+    "urlName": "glorious-victors",
+    "abbreviation": "GLVI",
+    "releaseDate": "2026-12-04T00:00:00",
     "isSupplemental": false,
     "active": true
   }

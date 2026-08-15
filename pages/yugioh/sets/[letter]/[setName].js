@@ -116,6 +116,9 @@ const normalizeFilterToken = ( value = "" ) => {
   return value.toString().toLowerCase().trim();
 };
 
+const normalizeIndexToken = ( value = "" ) =>
+  normalizeFilterToken( value ).replace( /[^a-z0-9]+/g, "" );
+
 const canonicalizePrintingLabel = ( value = "" ) => {
   const normalized = normalizeFilterToken( value );
 
@@ -265,13 +268,52 @@ const ensureAllConditionVariants = ( variants = [], { productId = null, productN
   return normalizedVariants;
 };
 
-const lookupCardMeta = ( productName = "", cardIndex = {} ) => {
-  const keys = buildCardNameKeys( productName );
+const lookupCardMeta = ( entry = {}, cardIndex = {} ) => {
+  const idCandidates = [
+    entry?.cardId,
+    entry?.cardImageId,
+    entry?.id,
+  ];
+
+  for ( const candidate of idCandidates ) {
+    const idKey = normalizeIndexToken( candidate );
+    const idMatch = idKey ? cardIndex[ '__id:' + idKey ] : undefined;
+    if ( idMatch ) {
+      return idMatch;
+    }
+  }
+
+  const setCodeKey = normalizeIndexToken( entry?.number );
+  if ( setCodeKey ) {
+    const setNameCandidates = [
+      entry?.set,
+      entry?.setName,
+      entry?.set_name,
+      entry?.setLabel,
+      entry?.cardSetName,
+    ];
+
+    for ( const setName of setNameCandidates ) {
+      const setNameKey = normalizeIndexToken( setName );
+      const combinedKey = setNameKey ? '__setname:' + setNameKey + '::' + setCodeKey : '';
+      if ( combinedKey && cardIndex[ combinedKey ] ) {
+        return cardIndex[ combinedKey ];
+      }
+    }
+
+    const setCodeMatch = cardIndex[ '__setcode:' + setCodeKey ];
+    if ( setCodeMatch ) {
+      return setCodeMatch;
+    }
+  }
+
+  const keys = buildCardNameKeys( entry?.productName || '' );
   for ( const key of keys ) {
     if ( key && cardIndex[ key ] ) {
       return cardIndex[ key ];
     }
   }
+
   return undefined;
 };
 
@@ -473,7 +515,7 @@ const aggregateEntries = ( entries = [], cardIndex = {} ) => {
       condition: conditionLabel || entry.condition || "",
     };
 
-    const cardMeta = lookupCardMeta( productName, cardIndex );
+    const cardMeta = lookupCardMeta( entry, cardIndex );
     const productId = entry.productID || cardMeta?.id || null;
 
     if ( !grouped.has( productName ) ) {
@@ -640,10 +682,31 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           const index = {};
           catalogue.forEach( ( card ) => {
             if ( !card?.name ) return;
+
             const keys = buildCardNameKeys( card.name );
             keys.forEach( ( key ) => {
               if ( key && !index[ key ] ) {
                 index[ key ] = card;
+              }
+            } );
+
+            const idKey = normalizeIndexToken( card.id );
+            if ( idKey && !index[ `__id:${ idKey }` ] ) {
+              index[ `__id:${ idKey }` ] = card;
+            }
+
+            const cardSets = Array.isArray( card.card_sets ) ? card.card_sets : [];
+            cardSets.forEach( ( setEntry ) => {
+              const setCodeKey = normalizeIndexToken( setEntry?.set_code );
+              if ( setCodeKey && !index[ `__setcode:${ setCodeKey }` ] ) {
+                index[ `__setcode:${ setCodeKey }` ] = card;
+              }
+
+              const setNameKey = normalizeIndexToken( setEntry?.set_name );
+              const combinedKey =
+                setNameKey && setCodeKey ? `__setname:${ setNameKey }::${ setCodeKey }` : "";
+              if ( combinedKey && !index[ combinedKey ] ) {
+                index[ combinedKey ] = card;
               }
             } );
           } );
@@ -1017,8 +1080,13 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
 
     const enrichedCards = data
       .map( ( card ) => {
-        const primaryImageId = card.cardMeta?.card_images?.[ 0 ]?.id || null;
-        const remoteImageUrl = card.cardMeta?.card_images?.[ 0 ]?.image_url || null;
+        const primaryCardImage = card.cardMeta?.card_images?.[ 0 ] || null;
+        const primaryImageId = primaryCardImage?.id || null;
+        const remoteImageUrl =
+          primaryCardImage?.image_url ||
+          primaryCardImage?.image_url_cropped ||
+          primaryCardImage?.image_url_small ||
+          null;
         const overrideKey = makeOverrideKey( card.productName );
         const forcedRarity = rarityOverrides[ overrideKey ];
         const normalizedForcedRarity = forcedRarity ? normalizeRarity( forcedRarity ) : null;
@@ -2477,3 +2545,4 @@ export async function getServerSideProps( { params } ) {
 }
 
 export default CardsInSetPage;
+

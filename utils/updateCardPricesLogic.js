@@ -5,12 +5,17 @@ import { ensureSafeUserId } from "@/utils/securityValidators.js";
 import { recordPriceHistoryEntry } from "@/utils/priceHistoryStore";
 import { getSetNameIdMap } from "@/utils/api.js";
 
-const REMOTE_FETCH_DELAY_MS = 1250;
+// Keep a small throttle between upstream set fetches, but not so large that
+// a normal collection needs a second serverless invocation to finish.
+const REMOTE_FETCH_DELAY_MS = 500;
 const REMOTE_FETCH_RETRY_LIMIT = 4;
-const UPDATE_TIME_BUDGET_MS = 4.5 * 60 * 1000;
+// Stay comfortably under Vercel's 5 minute ceiling while using most of it.
+const UPDATE_TIME_BUDGET_MS = 4.85 * 60 * 1000;
 const PRICE_UPDATE_JOB_COLLECTION = "yugiohPriceUpdateJobs";
 const ACTIVE_PRICE_UPDATE_STATUSES = [ "pending", "running", "partial", "rate_limited" ];
 const STALE_RUNNING_JOB_MS = 10 * 60 * 1000;
+const CARD_UPDATE_CONCURRENCY = 6;
+const REMOTE_FETCH_BUFFER_MS = 10000;
 
 const RARITY_NORMALIZATION_MAP = {
   "Common": "Common",
@@ -133,6 +138,28 @@ const slimPriceRows = ( rows ) =>
 
 const sleep = ( ms ) => new Promise( ( resolve ) => setTimeout( resolve, ms ) );
 
+const runWithConcurrency = async ( items, limit, iterator ) => {
+  if ( !Array.isArray( items ) || items.length === 0 ) {
+    return;
+  }
+
+  const concurrency = Math.max( 1, Math.min( limit, items.length ) );
+  let nextIndex = 0;
+
+  const workers = Array.from( { length: concurrency }, async () => {
+    while ( true ) {
+      const currentIndex = nextIndex++;
+      if ( currentIndex >= items.length ) {
+        break;
+      }
+
+      await iterator( items[ currentIndex ], currentIndex );
+    }
+  } );
+
+  await Promise.all( workers );
+};
+
 const getRetryDelay = ( response ) => {
   const retryAfter = response?.headers?.get?.( "retry-after" );
   const retrySeconds = Number.parseFloat( retryAfter );
@@ -146,7 +173,7 @@ const getRetryDelay = ( response ) => {
 
 const createDeadline = () => Date.now() + UPDATE_TIME_BUDGET_MS;
 
-const hasTimeForRemoteFetch = ( deadline ) => Date.now() + 15000 < deadline;
+const hasTimeForRemoteFetch = ( deadline ) => Date.now() + REMOTE_FETCH_BUFFER_MS < deadline;
 
 const editionsMatch = ( left, right ) => {
   const leftKey = normalizeEditionKey( left );
@@ -167,7 +194,10 @@ const raritiesMatch = ( left, right ) => {
     return true;
   }
 
-  return leftKey === rightKey || leftKey.includes( rightKey ) || rightKey.includes( leftKey );
+  // Rarity must match exactly when both sides provide a value.
+  // Loose substring matching can incorrectly map Ultimate Rare cards
+  // to lower-rarity rows like Rare or Ultra Rare.
+  return leftKey === rightKey;
 };
 
 const conditionsMatch = ( left, right ) => {
@@ -240,11 +270,18 @@ const scoreCandidate = ( row, card ) => {
   return { row, price: rowPrice, score };
 };
 
-const findBestPriceRow = ( rows, card ) =>
-  rows
-    .map( ( row ) => scoreCandidate( row, card ) )
-    .filter( Boolean )
-    .sort( ( a, b ) => b.score - a.score )[ 0 ] || null;
+const findBestPriceRow = ( rows, card ) => {
+  let bestMatch = null;
+
+  for ( const row of rows ) {
+    const scored = scoreCandidate( row, card );
+    if ( scored && ( !bestMatch || scored.score > bestMatch.score ) ) {
+      bestMatch = scored;
+    }
+  }
+
+  return bestMatch;
+};
 
 const buildCardsBySet = ( cards ) => {
   const cardsBySet = new Map();
@@ -632,7 +669,7 @@ export default async function updateCardPricesLogic( authContext ) {
       continue;
     }
 
-    for ( const card of entry.cards ) {
+    await runWithConcurrency( entry.cards, CARD_UPDATE_CONCURRENCY, async ( card ) => {
       try {
         const match = findBestPriceRow( rows, card );
 
@@ -694,7 +731,7 @@ export default async function updateCardPricesLogic( authContext ) {
           reason: error?.message || "Unexpected update error",
         } );
       }
-    }
+    } );
 
     processedSetCount += 1;
     completedSetKeys.add( planEntry.setKey );

@@ -46,18 +46,36 @@ const getOptionalString = ( value ) => {
     return normalized || null;
 };
 
+const getPrimaryCardImage = ( card ) =>
+    Array.isArray( card?.card_images )
+        ? card.card_images.find( ( image ) => image?.id || image?.image_url || image?.image_url_cropped || image?.image_url_small )
+        : null;
+
 const getCollectionCardId = ( item ) =>
     getOptionalString( item?.cardImageId ) ||
     getOptionalString( item?.cardDetailId ) ||
     getOptionalString( item?.detailParams?.cardId ) ||
     getOptionalString( item?.card?.cardId ) ||
+    getOptionalString( item?.card?.cardImageId ) ||
     getOptionalString( item?.card?.cardDetailId ) ||
+    getOptionalString( getPrimaryCardImage( item?.card )?.id ) ||
+    getOptionalString( item?.card?.id ) ||
     getOptionalString( item?.variant?.productID ) ||
     getOptionalString( item?.resolvedVariant?.productID );
 
-const getCollectionRemoteImageUrl = ( item ) =>
-    getOptionalString( item?.remoteImageUrl ) ||
-    getOptionalString( item?.card?.remoteImageUrl );
+const getCollectionRemoteImageUrl = ( item ) => {
+    const primaryCardImage = getPrimaryCardImage( item?.card );
+    return (
+        getOptionalString( item?.remoteImageUrl ) ||
+        getOptionalString( item?.card?.remoteImageUrl ) ||
+        getOptionalString( item?.card?.image_url ) ||
+        getOptionalString( item?.card?.image_url_cropped ) ||
+        getOptionalString( item?.card?.image_url_small ) ||
+        getOptionalString( primaryCardImage?.image_url ) ||
+        getOptionalString( primaryCardImage?.image_url_cropped ) ||
+        getOptionalString( primaryCardImage?.image_url_small )
+    );
+};
 
 const YugiohCardDataTable = ( {
     matchedCardData = [],
