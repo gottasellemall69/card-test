@@ -92,7 +92,6 @@ const getCardImageSources = ( cardItem ) => {
   const imageIds = getUniqueStrings( [
     primaryCardImage?.id,
     cardItem?.cardImageId,
-    cardItem?.cardDetailId,
     cardItem?.cardMeta?.id,
     ...remoteImageSources.map( getImageIdFromUrl ),
   ] );
@@ -1298,14 +1297,9 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         const selectedRarityOption = forcedRarity || AUTO_RARITY_OPTION;
 
         const collectionKey = makeCollectionKey( card.productName, activeVariant );
-        const cardDetailId =
-          card.cardMeta?.id ||
-          primaryImageId ||
-          card.productId ||
-          templateVariant?.productID ||
-          null;
-
-        const cardImageId = primaryImageId || cardDetailId;
+        const yugiohCardId = card.cardMeta?.id || primaryImageId || null;
+        const cardDetailId = yugiohCardId;
+        const cardImageId = primaryImageId || yugiohCardId;
         const cardNumber = activeVariant?.number || templateVariant?.number || variants[ 0 ]?.number || "";
         const setLabel = activeVariant?.set || templateVariant?.set || card.cardMeta?.set_name || activeSetDisplayName;
 
@@ -1474,7 +1468,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           printing: variant?.printing || "Unknown Edition",
           rarity: variant?.rarity || "Unknown Rarity",
           condition: conditionLabel || "Unknown Condition",
-          cardId: card.cardImageId || card.cardDetailId || card.cardMeta?.id || null,
+          cardId: card.cardImageId || card.cardDetailId || null,
           remoteImageUrl: card.remoteImageUrl || null,
         },
         data: {
@@ -1487,7 +1481,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         remoteImageUrl: card.remoteImageUrl,
         setLabel: card.setLabel,
         detailParams: {
-          cardId: card.cardImageId || card.cardDetailId || card.cardMeta?.id || null,
+          cardId: card.cardImageId || card.cardDetailId || null,
           cardName: resolveDetailLookupName( card.cardMeta?.name, card.productName ),
           setName: activeSetDisplayName || card.setLabel || "",
           setCode: variant?.number || "",
@@ -1778,7 +1772,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           : undefined;
     const rarityForDetails = rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
 
-    const detailCardId = cardItem.cardImageId || cardItem.cardDetailId || cardItem.cardMeta?.id || null;
+    const detailCardId = cardItem.cardImageId || cardItem.cardDetailId || null;
     const cardNameForDetails = resolveDetailLookupName( cardItem.cardMeta?.name, cardItem.productName );
 
     const cardDetailsQuery = Object.fromEntries(

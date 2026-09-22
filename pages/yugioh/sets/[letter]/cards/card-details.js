@@ -351,7 +351,8 @@ const CardDetails = () => {
     fetcher
   );
 
-  const shouldLookupBySet = ( !cardId || cardError || cardLookupError ) && set_name && set_code;
+  const hasSetLookupRoute = Boolean( set_name && set_code );
+  const shouldLookupBySet = hasSetLookupRoute;
   const setLookupParams = shouldLookupBySet
     ? new URLSearchParams( {
       set_name,
@@ -374,12 +375,15 @@ const CardDetails = () => {
     !cardSetLookupData &&
     ( isCardRequestPending || isNameLookupPending || isSetLookupPending );
 
-  const resolvedCardData = cardData || cardLookupData || cardSetLookupData;
+  const fallbackResolvedCardData = cardData || cardLookupData;
+  const resolvedCardData = hasSetLookupRoute
+    ? cardSetLookupData || ( isSetLookupPending ? null : fallbackResolvedCardData )
+    : fallbackResolvedCardData || cardSetLookupData;
   const resolvedCardError = resolvedCardData || isResolvingCardData
     ? null
     : ( cardSetLookupError || cardLookupError || cardError );
 
-  const rawEffectiveCardId = cardId || resolvedCardData?.id;
+  const rawEffectiveCardId = resolvedCardData?.id || cardId;
   const effectiveCardId = rawEffectiveCardId
     ? rawEffectiveCardId.toString()
     : undefined;
@@ -566,7 +570,7 @@ const CardDetails = () => {
     );
   };
 
-  const activeCardId = effectiveCardId || cardLookupData?.id || cardData?.id;
+  const activeCardId = effectiveCardId || resolvedCardData?.id || cardLookupData?.id || cardData?.id;
   const selectedVersionTokens = useMemo( () => parseVersion( selectedVersion ), [ selectedVersion ] );
   const priceHistoryKey = buildPriceHistoryKey( activeCardId, selectedVersionTokens );
 

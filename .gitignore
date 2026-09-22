@@ -53,5 +53,3 @@ prompt.md
 .codex
 /.agents
 AGENTS.override.md
-/public/images/yugiohImages/*.jpg
-/public/images/yugiohImagesCropped/*.jpg
