@@ -12,13 +12,6 @@ const TOKEN_COOKIE = "token";
 const AUTH_USER_HEADER = "x-authenticated-user";
 const NONCE_HEADER = "x-nonce";
 const CSP_HEADER = "Content-Security-Policy";
-const STATIC_STYLE_HASHES = [
-  "'sha256-wOOlbQsHffPa/XeSzb/hyZtdNuMNE9EDJ9dYETiwQ80='",
-  "'sha256-C8S6dNMSWod6IgqRVGm5rD7fWajo34AG++yTnMbIeks='",
-  "'sha256-Z5XTK23DFuEMs0PwnyZDO9SWxemQ5HxcpVaBNuUJyWY='",
-  "'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='",
-  "'sha256-T1KFVNpOYPeQlhrHp2f1IL3jc6L7h/0WitSJN8II3no='",
-];
 const isProduction = process.env.NODE_ENV === "production";
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -32,13 +25,8 @@ const buildContentSecurityPolicy = ( nonce: string ): string => {
   const scriptSrcElem = isDev
     ? "'self' 'unsafe-inline' https://va.vercel-scripts.com"
     : `'self' 'nonce-${ nonce }' https://va.vercel-scripts.com`;
-  const staticStyleHashes = STATIC_STYLE_HASHES.join( " " );
-  const styleSrc = isDev
-    ? "'self' 'unsafe-inline'"
-    : `'self' 'unsafe-inline' ${ staticStyleHashes }`;
-  const styleSrcElem = isDev
-    ? "'self' 'unsafe-inline'"
-    : `'self' 'unsafe-inline' ${ staticStyleHashes }`;
+  const styleSrc = "'self' 'unsafe-inline'";
+  const styleSrcElem = "'self' 'unsafe-inline'";
   const cspHeader = `
     default-src 'self';
     script-src ${ scriptSrc };
@@ -49,7 +37,9 @@ const buildContentSecurityPolicy = ( nonce: string ): string => {
     img-src 'self' blob: data: https://images.ygoprodeck.com https://images.unsplash.com https://tailwindcss.com https://raw.githubusercontent.com;
     font-src 'self' data:;
     connect-src 'self'${ isDev ? " ws: wss:" : "" } https://mpapi.tcgplayer.com https://infinite-api.tcgplayer.com https://db.ygoprodeck.com https://www.sportscardspro.com;
+    media-src 'self' blob: data:;
     object-src 'none';
+    worker-src 'self' blob:;
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';

@@ -8,6 +8,7 @@ const MAX_PAGE_SIZE = 100;
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 30;
 const MAX_CACHEABLE_RESULTS = 5000;
+const MAX_YGO_NAME_MATCHERS = 50;
 const YGO_CARD_SEARCH_ENDPOINT =
   "https://db.ygoprodeck.com/api/v7/cardinfo.php";
 const CARD_SETS_PATH = path.join(
@@ -71,6 +72,60 @@ const matchesTokens = ( haystack, tokens, compactQuery ) => {
   }
 
   return false;
+};
+
+const buildCardNameMatchers = ( matches ) => {
+  const seen = new Set();
+  const matchers = [];
+
+  for ( const match of Array.isArray( matches ) ? matches : [] ) {
+    const normalized = toSearchText( match?.name );
+    const compact = toCompactText( match?.name );
+    if ( !normalized || seen.has( normalized ) ) {
+      continue;
+    }
+
+    seen.add( normalized );
+    matchers.push( {
+      normalized,
+      compact,
+      tokens: normalized.split( /\s+/ ).filter( Boolean ),
+    } );
+
+    if ( matchers.length >= MAX_YGO_NAME_MATCHERS ) {
+      break;
+    }
+  }
+
+  return matchers;
+};
+
+const matchesCardNameMatchers = ( card, matchers ) => {
+  if ( !Array.isArray( matchers ) || matchers.length === 0 ) {
+    return false;
+  }
+
+  const haystack = {
+    normalized: toSearchText( card?.productName ),
+    compact: toCompactText( card?.productName ),
+  };
+
+  if ( !haystack.normalized && !haystack.compact ) {
+    return false;
+  }
+
+  return matchers.some( ( matcher ) => {
+    if ( matchesTokens( haystack, matcher.tokens, matcher.compact ) ) {
+      return true;
+    }
+
+    return (
+      ( matcher.normalized && haystack.normalized.includes( matcher.normalized ) ) ||
+      ( haystack.normalized && matcher.normalized.includes( haystack.normalized ) ) ||
+      ( matcher.compact && haystack.compact.includes( matcher.compact ) ) ||
+      ( haystack.compact && matcher.compact.includes( haystack.compact ) )
+    );
+  } );
 };
 
 const extractCardResults = ( payload ) => {
@@ -309,6 +364,7 @@ const buildSetNameLookup = ( setNameIdMap ) => {
   Object.keys( setNameIdMap ).forEach( ( setName ) => {
     if ( setName ) {
       lookup.set( setName.toLowerCase(), setName );
+      lookup.set( toSearchText( setName ), setName );
     }
   } );
   return lookup;
@@ -333,7 +389,9 @@ const collectCandidateSetsFromYgo = ( matches, setNameLookup, setCodeHint ) => {
         }
       }
 
-      const canonicalName = setNameLookup.get( setName.toLowerCase() );
+      const canonicalName =
+        setNameLookup.get( setName.toLowerCase() ) ||
+        setNameLookup.get( toSearchText( setName ) );
       if ( canonicalName ) {
         candidates.add( canonicalName );
       }
@@ -428,6 +486,7 @@ export default async function handler( req, res ) {
     const abbreviationMap = await loadSetAbbreviationMap();
     const codeHints = extractSetCodeHints( searchQuery, abbreviationMap );
     const candidateSetNames = new Set();
+    let ygoCardNameMatchers = [];
 
     codeHints.abbreviations.forEach( ( abbreviation ) => {
       const setName = abbreviationMap.get( abbreviation );
@@ -439,6 +498,7 @@ export default async function handler( req, res ) {
     if ( candidateSetNames.size === 0 ) {
       try {
         const ygoMatches = await fetchYgoMatches( searchQuery );
+        ygoCardNameMatchers = buildCardNameMatchers( ygoMatches );
         const ygoCandidates = collectCandidateSetsFromYgo(
           ygoMatches,
           setNameLookup,
@@ -482,7 +542,10 @@ export default async function handler( req, res ) {
 
           for ( const card of cards ) {
             const haystack = buildHaystack( card );
-            if ( !matchesTokens( haystack, tokens, compactQuery ) ) {
+            if (
+              !matchesTokens( haystack, tokens, compactQuery ) &&
+              !matchesCardNameMatchers( card, ygoCardNameMatchers )
+            ) {
               continue;
             }
 

@@ -29,6 +29,88 @@ const YugiohCardDataTable = dynamic(
 let cachedCardSets = null;
 let cachedCardSetsAt = 0;
 const SET_CACHE_TTL_MS = 60 * 60 * 1000;
+const LOCAL_IMAGE_BASE_PATH = '/images/yugiohImages';
+const LOCAL_CROPPED_IMAGE_BASE_PATH = '/images/yugiohImagesCropped';
+const FALLBACK_IMAGE = '/images/yugioh-card.png';
+
+const getUniqueStrings = ( values ) => {
+  const seen = new Set();
+  return values
+    .map( ( value ) => ( value === null || value === undefined ? '' : String( value ).trim() ) )
+    .filter( ( value ) => {
+      if ( !value || seen.has( value ) ) {
+        return false;
+      }
+
+      seen.add( value );
+      return true;
+    } );
+};
+
+const getImageIdFromUrl = ( value ) => {
+  if ( !value ) {
+    return null;
+  }
+
+  const match = String( value ).match( /\/(\d+)\.(?:jpe?g|png|webp)(?:\?.*)?$/i );
+  return match?.[ 1 ] || null;
+};
+
+const buildLocalImagePath = ( basePath, imageId ) =>
+  basePath + '/' + encodeURIComponent( String( imageId ) ) + '.jpg';
+
+const getNextImageSources = ( image ) => {
+  const rawSources = image.dataset.nextSrcs;
+  if ( !rawSources ) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse( rawSources );
+    return Array.isArray( parsed ) ? parsed.filter( Boolean ) : [];
+  } catch ( error ) {
+    return rawSources.split( '|' ).filter( Boolean );
+  }
+};
+
+const getCardImageSources = ( cardItem ) => {
+  const primaryCardImage = Array.isArray( cardItem?.cardMeta?.card_images )
+    ? cardItem.cardMeta.card_images.find(
+      ( image ) =>
+        image?.id ||
+        image?.image_url ||
+        image?.image_url_cropped ||
+        image?.image_url_small
+    )
+    : null;
+  const remoteImageSources = getUniqueStrings( [
+    cardItem?.remoteImageUrl,
+    primaryCardImage?.image_url,
+    primaryCardImage?.image_url_cropped,
+    primaryCardImage?.image_url_small,
+  ] );
+  const imageIds = getUniqueStrings( [
+    primaryCardImage?.id,
+    cardItem?.cardImageId,
+    cardItem?.cardDetailId,
+    cardItem?.cardMeta?.id,
+    ...remoteImageSources.map( getImageIdFromUrl ),
+  ] );
+  const localImageSources = imageIds.flatMap( ( imageId ) => [
+    buildLocalImagePath( LOCAL_IMAGE_BASE_PATH, imageId ),
+    buildLocalImagePath( LOCAL_CROPPED_IMAGE_BASE_PATH, imageId ),
+  ] );
+  const imageSources = getUniqueStrings( [
+    ...localImageSources,
+    ...remoteImageSources,
+    FALLBACK_IMAGE,
+  ] );
+
+  return {
+    primaryImageSrc: imageSources[ 0 ] || FALLBACK_IMAGE,
+    backupImageSrcs: imageSources.slice( 1 ).filter( ( source ) => source !== FALLBACK_IMAGE ),
+  };
+};
 
 const normalizeSetEntry = ( entry ) => {
   if ( !entry || !entry.name ) {
@@ -1657,11 +1739,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     const selectionKey = cardItem.collectionKey;
     const isSelected = Boolean( selectedRowIds[ selectionKey ] );
     const isCollected = Boolean( collectionLookup[ selectionKey ] );
-    const localImageSrc = cardItem.cardImageId ? `/images/yugiohImages/${ String( cardItem.cardImageId ) }.jpg` : null;
-    const remoteImageSrc = cardItem.remoteImageUrl || null;
-    const fallbackImageSrc = "/images/yugioh-card.png";
-    const primaryImageSrc = remoteImageSrc || localImageSrc || fallbackImageSrc;
-    const secondaryImageSrc = primaryImageSrc === remoteImageSrc ? localImageSrc : remoteImageSrc;
+    const { primaryImageSrc, backupImageSrcs } = getCardImageSources( cardItem );
     const raritySelectValue = cardItem.selectedRarityOption || AUTO_RARITY_OPTION;
     const currentRarityLabel = cardItem.selectedRarity || "Unknown Rarity";
     const activeVariant = cardItem.activeVariant || null;
@@ -1726,12 +1804,12 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
 
     const handleImageError = ( event ) => {
       const img = event.currentTarget;
-      const nextSrc = img.dataset.nextSrc;
+      const [ nextSrc, ...remainingSources ] = getNextImageSources( img );
       const fallbackSrc = img.dataset.fallbackSrc;
 
       if ( nextSrc ) {
         img.src = nextSrc;
-        img.dataset.nextSrc = "";
+        img.dataset.nextSrcs = JSON.stringify( remainingSources );
         return;
       }
 
@@ -1784,8 +1862,8 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                   <img
                     className="mx-auto block h-full w-full object-contain object-top"
                     src={ primaryImageSrc }
-                    data-next-src={ secondaryImageSrc || "" }
-                    data-fallback-src={ fallbackImageSrc }
+                    data-next-srcs={ JSON.stringify( backupImageSrcs ) }
+                    data-fallback-src={ FALLBACK_IMAGE }
                     alt={ `Card Image - ${ cardItem.productName }` }
                     loading="lazy"
                     decoding="async"
