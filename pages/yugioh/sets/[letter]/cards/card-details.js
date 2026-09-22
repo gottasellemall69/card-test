@@ -23,8 +23,22 @@ const VERSION_SEPARATOR = " - ";
 const LOCAL_IMAGE_BASE_PATH = "/images/yugiohImages";
 const FALLBACK_IMAGE = "/images/yugioh-card.png";
 const DEFAULT_CONDITION = "Near Mint";
+const UNKNOWN_EDITION_LABEL = "Unknown Edition";
 
-const normalizeEditionLabel = ( value ) => value || "Unknown Edition";
+const normalizeEditionLabel = ( value ) => {
+  const trimmed = ( value ?? "" ).toString().trim();
+  return trimmed || UNKNOWN_EDITION_LABEL;
+};
+
+const isUnknownEditionLabel = ( value ) =>
+  normalizeEditionLabel( value ).toLowerCase() === UNKNOWN_EDITION_LABEL.toLowerCase();
+
+const resolveVersionEdition = ( set, fallbackEdition = "" ) => {
+  const setEdition = normalizeEditionLabel( set?.set_edition );
+  return isUnknownEditionLabel( setEdition )
+    ? normalizeEditionLabel( fallbackEdition )
+    : setEdition;
+};
 
 const buildConditionLabel = ( printingLabel ) => {
   const trimmedPrinting = ( printingLabel ?? "" ).toString().trim();
@@ -34,12 +48,12 @@ const buildConditionLabel = ( printingLabel ) => {
   return `${ DEFAULT_CONDITION } ${ trimmedPrinting }`;
 };
 
-const serializeVersion = ( set ) =>
+const serializeVersion = ( set, fallbackEdition = "" ) =>
   [
     set.set_name,
     set.set_code,
     set.set_rarity,
-    normalizeEditionLabel( set.set_edition ),
+    resolveVersionEdition( set, fallbackEdition ),
   ].join( VERSION_SEPARATOR );
 
 const parseVersion = ( versionString ) => {
@@ -255,6 +269,7 @@ const CardDetails = () => {
     edition: queryEdition,
     source,
     card_name: queryCardName,
+    tcg_set_name: queryTcgSetName,
   } = router.query;
 
   const letter = Array.isArray( queryLetter ) ? queryLetter[ 0 ] : queryLetter;
@@ -265,6 +280,7 @@ const CardDetails = () => {
   const resolvedRarityParam = setRarityParam ?? legacyRarityParam ?? null;
   const edition = Array.isArray( queryEdition ) ? queryEdition[ 0 ] : queryEdition;
   const cardName = Array.isArray( queryCardName ) ? queryCardName[ 0 ] : queryCardName;
+  const tcg_set_name = Array.isArray( queryTcgSetName ) ? queryTcgSetName[ 0 ] : queryTcgSetName;
 
   const cardId = Array.isArray( card ) ? card[ 0 ]?.toString() : card?.toString();
   const [ selectedVersion, setSelectedVersion ] = useState( undefined );
@@ -357,7 +373,10 @@ const CardDetails = () => {
     ? new URLSearchParams( {
       set_name,
       set_code,
+      ...( tcg_set_name ? { tcg_set_name } : {} ),
       ...( cardName ? { card_name: cardName } : {} ),
+      ...( resolvedRarityParam ? { set_rarity: resolvedRarityParam, rarity: resolvedRarityParam } : {} ),
+      ...( edition ? { edition } : {} ),
     } )
     : null;
 
@@ -507,7 +526,7 @@ const CardDetails = () => {
       }
 
       if ( bestCandidate.set ) {
-        commitSelection( serializeVersion( bestCandidate.set ) );
+        commitSelection( serializeVersion( bestCandidate.set, edition ) );
         return;
       }
     }
@@ -515,9 +534,12 @@ const CardDetails = () => {
     if ( storageKey ) {
       const savedVersion = localStorage.getItem( storageKey );
       if ( savedVersion ) {
-        const savedMatch = cardSets.find( ( setEntry ) => serializeVersion( setEntry ) === savedVersion );
+        const savedMatch = cardSets.find( ( setEntry ) =>
+          serializeVersion( setEntry, edition ) === savedVersion ||
+          serializeVersion( setEntry ) === savedVersion
+        );
         if ( savedMatch ) {
-          commitSelection( savedVersion );
+          commitSelection( serializeVersion( savedMatch, edition ) );
           return;
         }
       }
@@ -533,12 +555,12 @@ const CardDetails = () => {
         );
       } );
       if ( matchBySetName ) {
-        commitSelection( serializeVersion( matchBySetName ) );
+        commitSelection( serializeVersion( matchBySetName, edition ) );
         return;
       }
     }
 
-    commitSelection( serializeVersion( cardSets[ 0 ] ) );
+    commitSelection( serializeVersion( cardSets[ 0 ], edition ) );
   }, [ resolvedCardData, effectiveCardId, set_name, set_code, resolvedRarityParam, edition ] );
 
   const handleVersionChange = ( event ) => {
@@ -562,6 +584,7 @@ const CardDetails = () => {
           rarity: newRarity,
           edition: newEdition,
           letter: newLetter,
+          tcg_set_name: tcg_set_name && newSetName === set_name ? tcg_set_name : undefined,
           source: "set",
         },
       },
@@ -584,8 +607,11 @@ const CardDetails = () => {
 
   const selectedSetDetails = useMemo( () => {
     if ( !selectedVersion || !resolvedCardData?.card_sets?.length ) return null;
-    return resolvedCardData.card_sets.find( ( setEntry ) => serializeVersion( setEntry ) === selectedVersion );
-  }, [ resolvedCardData, selectedVersion ] );
+    return resolvedCardData.card_sets.find( ( setEntry ) =>
+      serializeVersion( setEntry, edition ) === selectedVersion ||
+      serializeVersion( setEntry ) === selectedVersion
+    );
+  }, [ resolvedCardData, selectedVersion, edition ] );
 
   const localImageSrc = activeCardId ? buildImagePath( activeCardId ) : null;
   const primaryCardImage = resolvedCardData?.card_images?.[ 0 ] || null;
@@ -608,7 +634,7 @@ const CardDetails = () => {
   );
 
   const selectedEditionLabel = selectedSetDetails
-    ? normalizeEditionLabel( selectedSetDetails.set_edition )
+    ? resolveVersionEdition( selectedSetDetails, edition )
     : normalizeEditionLabel( edition );
   const routeRarityLabel =
     typeof resolvedRarityParam === "string" && resolvedRarityParam.trim()
@@ -660,9 +686,9 @@ const CardDetails = () => {
     return (
       valueMatchesRouteToken( selectedSetDetails.set_name, set_name ) &&
       valueMatchesRouteToken( selectedSetDetails.set_code, set_code ) &&
-      valueMatchesRouteToken( selectedSetDetails.set_edition, edition, { allowUnknown: true } )
+      valueMatchesRouteToken( selectedEditionLabel, edition, { allowUnknown: true } )
     );
-  }, [ selectedSetDetails, set_code, set_name, edition ] );
+  }, [ selectedEditionLabel, selectedSetDetails, set_code, set_name, edition ] );
   const selectedRarityLabel =
     selectedPrintCollectionEntry?.rarity ||
     ( selectedPrintMatchesRoute && routeRarityLabel
@@ -683,6 +709,7 @@ const CardDetails = () => {
     } );
   }, [
     resolvedCardData,
+    selectedEditionLabel,
     selectedEditionLabel,
     selectedRarityLabel,
     selectedSetDetails,
@@ -997,7 +1024,7 @@ const CardDetails = () => {
       return;
     }
 
-    const printingLabel = normalizeEditionLabel( selectedSetDetails.set_edition );
+    const printingLabel = selectedEditionLabel;
     const conditionLabel = buildConditionLabel( printingLabel );
     const cardPayload = {
       productName: resolvedCardData.name,
@@ -1051,6 +1078,7 @@ const CardDetails = () => {
     remoteImageSrc,
     resolvedCardData,
     resolvedRarityParam,
+    selectedEditionLabel,
     selectedRarityLabel,
     selectedSetDetails,
     set_code,
@@ -1058,6 +1086,12 @@ const CardDetails = () => {
     refreshCollectionCards,
     triggerNotification,
   ] );
+
+  const breadcrumbSetName = [ tcg_set_name, selectedSetDetails?.tcg_set_name, set_name ]
+    .find( ( value ) => typeof value === "string" && value.trim() );
+  const breadcrumbLetter = breadcrumbSetName
+    ? breadcrumbSetName.trim().charAt( 0 ).toUpperCase()
+    : letter || "";
 
   const shellHeader = useMemo( () => (
     <Breadcrumb
@@ -1067,16 +1101,16 @@ const CardDetails = () => {
         source === "collection"
           ? { label: "My Collection", href: "/yugioh/my-collection" }
           : { label: "Set Index", href: "/yugioh/sets/set-index" },
-        source !== "collection" && set_name
+        source !== "collection" && breadcrumbSetName
           ? {
-            label: set_name,
-            href: `/yugioh/sets/${ encodeURIComponent( letter || "" ) }/${ encodeURIComponent( set_name ) }`,
+            label: breadcrumbSetName,
+            href: `/yugioh/sets/${ encodeURIComponent( breadcrumbLetter ) }/${ encodeURIComponent( breadcrumbSetName ) }`,
           }
           : null,
         { label: resolvedCardData?.name || "Card Details", href: null },
       ].filter( Boolean ) }
     />
-  ), [ letter, resolvedCardData?.name, set_name, source ] );
+  ), [ breadcrumbLetter, breadcrumbSetName, resolvedCardData?.name, source ] );
 
   const shellFooter = useMemo( () => (
     <Notification
@@ -1324,9 +1358,9 @@ const CardDetails = () => {
                         { resolvedCardData.card_sets?.map( ( setEntry, index ) => (
                           <option
                             key={ `${ setEntry.set_code }-${ setEntry.set_rarity }-${ index }` }
-                            value={ serializeVersion( setEntry ) }
+                            value={ serializeVersion( setEntry, edition ) }
                           >
-                            { setEntry.set_name } - { setEntry.set_code } - { setEntry.set_rarity } - { normalizeEditionLabel( setEntry.set_edition ) }
+                            { setEntry.set_name } - { setEntry.set_code } - { setEntry.set_rarity } - { resolveVersionEdition( setEntry, edition ) }
                           </option>
                         ) ) }
                       </select>

@@ -443,7 +443,10 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
                     if ( card?.productName ) {
                       query.card_name = card.productName;
                     }
-                    if ( card?.setName ) query.set_name = card.setName;
+                    if ( card?.setName ) {
+                      query.set_name = card.setName;
+                      query.tcg_set_name = card.setName;
+                    }
                     if ( card?.number ) query.set_code = card.number;
                     if ( card?.rarity ) {
                       query.rarity = card.rarity;

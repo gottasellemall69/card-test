@@ -1,9 +1,143 @@
 import clientPromise from "@/utils/mongo";
+import { getCardData } from "@/utils/api.js";
 import {
     buildHistoryFilter,
     mergeLegacyHistory,
     recordPriceHistoryEntry,
 } from "@/utils/priceHistoryStore";
+
+const normalizeText = ( value ) =>
+    ( value ?? "" ).toString().replace( /\s+/g, " " ).trim().toLowerCase();
+
+const normalizeLooseText = ( value ) =>
+    normalizeText( value ).replace( /[^a-z0-9]+/g, " " ).trim();
+
+const normalizeToken = ( value ) =>
+    normalizeText( value ).replace( /[^a-z0-9]+/g, "" );
+
+const normalizeEditionKey = ( value ) => {
+    const normalized = normalizeLooseText( value );
+
+    if ( !normalized || normalized === "unknown edition" ) {
+        return "";
+    }
+
+    if ( /\bunlimited\b/.test( normalized ) ) return "unlimited";
+    if ( /\b1st\b|\bfirst\b/.test( normalized ) ) return "1st";
+    if ( /\blimited\b/.test( normalized ) ) return "limited";
+
+    return normalized.replace( /\bedition\b/g, "" ).replace( /\s+/g, " " ).trim();
+};
+
+const normalizeRarityKey = ( value ) => normalizeToken( value );
+
+const matchesSetCode = ( left, right ) => {
+    if ( !left || !right ) return false;
+    return normalizeToken( left ) === normalizeToken( right );
+};
+
+const raritiesMatch = ( left, right ) => {
+    const leftKey = normalizeRarityKey( left );
+    const rightKey = normalizeRarityKey( right );
+    return !leftKey || !rightKey || leftKey === rightKey;
+};
+
+const editionsMatch = ( left, right ) => {
+    const leftKey = normalizeEditionKey( left );
+    const rightKey = normalizeEditionKey( right );
+    return !leftKey || !rightKey || leftKey === rightKey;
+};
+
+const parsePrice = ( value ) => {
+    const numeric = Number.parseFloat( ( value ?? "" ).toString().replace( /[^0-9.-]+/g, "" ) );
+    return Number.isFinite( numeric ) ? numeric : null;
+};
+
+const extractTcgRows = ( payload ) => {
+    if ( Array.isArray( payload ) ) return payload;
+    if ( Array.isArray( payload?.results ) ) return payload.results;
+    if ( Array.isArray( payload?.result ) ) return payload.result;
+    if ( Array.isArray( payload?.data ) ) return payload.data;
+    return [];
+};
+
+const scoreTcgRow = ( row, { number, rarity, edition } ) => {
+    if ( !matchesSetCode( row?.number, number ) ) {
+        return null;
+    }
+
+    if ( !raritiesMatch( row?.rarity, rarity ) ) {
+        return null;
+    }
+
+    if ( !editionsMatch( row?.printing, edition ) ) {
+        return null;
+    }
+
+    const marketPrice = parsePrice( row?.marketPrice );
+    const lowPrice = parsePrice( row?.lowPrice );
+    const price = marketPrice ?? lowPrice;
+
+    if ( price === null ) {
+        return null;
+    }
+
+    let score = 40;
+    if ( marketPrice !== null ) score += 10;
+    if ( normalizeRarityKey( row?.rarity ) && normalizeRarityKey( row?.rarity ) === normalizeRarityKey( rarity ) ) score += 8;
+    if ( normalizeEditionKey( row?.printing ) && normalizeEditionKey( row?.printing ) === normalizeEditionKey( edition ) ) score += 5;
+
+    return { price, score };
+};
+
+const findTcgPrice = ( payload, target ) => {
+    const rows = extractTcgRows( payload );
+    let bestMatch = null;
+
+    for ( const row of rows ) {
+        const scored = scoreTcgRow( row, target );
+        if ( scored && ( !bestMatch || scored.score > bestMatch.score ) ) {
+            bestMatch = scored;
+        }
+    }
+
+    return bestMatch?.price ?? null;
+};
+
+const findYgoPrice = ( card, { set, number, rarity, edition } ) => {
+    const sets = Array.isArray( card?.card_sets ) ? card.card_sets : [];
+    let bestMatch = null;
+
+    for ( const setEntry of sets ) {
+        if ( !matchesSetCode( setEntry?.set_code, number ) ) {
+            continue;
+        }
+
+        if ( !raritiesMatch( setEntry?.set_rarity, rarity ) ) {
+            continue;
+        }
+
+        if ( !editionsMatch( setEntry?.set_edition, edition ) ) {
+            continue;
+        }
+
+        const price = parsePrice( setEntry?.set_price );
+        if ( price === null ) {
+            continue;
+        }
+
+        let score = 40;
+        if ( normalizeLooseText( setEntry?.set_name ) === normalizeLooseText( set ) ) score += 10;
+        if ( normalizeRarityKey( setEntry?.set_rarity ) === normalizeRarityKey( rarity ) ) score += 8;
+        if ( normalizeEditionKey( setEntry?.set_edition ) === normalizeEditionKey( edition ) ) score += 5;
+
+        if ( !bestMatch || score > bestMatch.score ) {
+            bestMatch = { price, score };
+        }
+    }
+
+    return bestMatch?.price ?? null;
+};
 
 const toTimestampKey = ( value ) => {
     const date = new Date( value );
@@ -95,22 +229,19 @@ export default async function handler( req, res ) {
         const lastDay = history.length ? toDayKey( history[ history.length - 1 ]?.date ) : null;
 
         if ( today && lastDay !== today ) {
-            const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent(
-                cardId
-            ) }`;
-            const response = await fetch( url );
-            const data = await response.json();
+            const tcgPayload = await getCardData( set );
+            let initialPrice = findTcgPrice( tcgPayload, { number, rarity, edition } );
 
-            const card = data?.data?.[ 0 ];
-            const matchingSet = card?.card_sets?.find(
-                ( s ) =>
-                    s.set_name === set &&
-                    s.set_code === number &&
-                    s.set_rarity === rarity &&
-                    s.set_edition === edition
-            );
+            if ( initialPrice === null ) {
+                const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent(
+                    cardId
+                ) }`;
+                const response = await fetch( url );
+                const data = await response.json();
+                const card = data?.data?.[ 0 ];
+                initialPrice = findYgoPrice( card, { set, number, rarity, edition } );
+            }
 
-            const initialPrice = matchingSet?.set_price ? parseFloat( matchingSet.set_price ) : null;
             if ( Number.isFinite( initialPrice ) ) {
                 await recordPriceHistoryEntry( {
                     cardId,

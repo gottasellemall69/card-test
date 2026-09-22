@@ -23,6 +23,7 @@ export const formatYugiohCardData = ( card ) => ( {
   } ) ) || [],
   card_sets: card?.card_sets?.map( ( set ) => ( {
     set_name: set.set_name,
+    tcg_set_name: set.tcg_set_name,
     set_code: set.set_code,
     set_rarity: set.set_rarity,
     rarity_code: set.set_rarity_code,

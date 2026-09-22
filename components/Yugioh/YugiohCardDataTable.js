@@ -489,7 +489,10 @@ const YugiohCardDataTable = ( {
 
                                                         if ( detailParams.cardId ) query.card = detailParams.cardId;
                                                         if ( detailParams.cardName || card?.productName ) query.card_name = detailParams.cardName || card?.productName;
-                                                        if ( fallbackSetName ) query.set_name = fallbackSetName;
+                                                        if ( fallbackSetName ) {
+                                                            query.set_name = fallbackSetName;
+                                                            query.tcg_set_name = fallbackSetName;
+                                                        }
                                                         const fallbackSetCode = detailParams.setCode || card?.number || '';
                                                         if ( fallbackSetCode ) query.set_code = fallbackSetCode;
                                                         const fallbackRarity = detailParams.rarity || detailParams.setRarity || card?.rarity || '';

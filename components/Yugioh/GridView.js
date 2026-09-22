@@ -386,7 +386,10 @@ const GridView = ( { aggregatedData, onDeleteCard, onUpdateCard, sortConfig, han
 
               if ( detailCardId ) query.card = detailCardId;
               if ( computedLetter ) query.letter = computedLetter;
-              if ( card.setName ) query.set_name = card.setName;
+              if ( card.setName ) {
+                query.set_name = card.setName;
+                query.tcg_set_name = card.setName;
+              }
               if ( card.productName ) query.card_name = card.productName;
               if ( card.number ) query.set_code = card.number;
               if ( card.rarity ) {

@@ -67,6 +67,7 @@ const Card = ( { cardData } ) => {
 
   if ( setNameValue ) {
     detailQuery.set_name = setNameValue;
+    detailQuery.tcg_set_name = setNameValue;
   }
 
   if ( setCode ) {

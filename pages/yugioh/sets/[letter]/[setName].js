@@ -1780,6 +1780,7 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
         card: detailCardId || undefined,
         letter: detailLetter,
         set_name: detailSetName,
+        tcg_set_name: activeSetDisplayName || detailSetName,
         card_name: cardNameForDetails,
         set_code: cardItem.cardNumber,
         rarity: rarityForDetails,

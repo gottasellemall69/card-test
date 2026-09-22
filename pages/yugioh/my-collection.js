@@ -397,6 +397,7 @@ const MyCollection = ( { initialAuthState = false } ) => {
       paginatedCards.map( ( card ) => ( {
         ...card,
         set_name: card?.setName,
+        tcg_set_name: card?.setName,
         set_code: card?.number,
         edition: card?.printing || "Unknown Edition",
         source: "collection",
