@@ -1,4 +1,4 @@
-import { buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
+import { buildCardNameCandidates, buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
 import { formatYugiohCardData } from "@/utils/formatYugiohCardData";
 
 const normalizeToken = ( value ) =>
@@ -39,6 +39,49 @@ const pickBestMatch = ( cards, setCode, cardName ) => {
   return codeMatches[ 0 ];
 };
 
+const fetchCards = async ( url ) => {
+  const response = await fetch( url );
+  if ( !response.ok ) {
+    return [];
+  }
+
+  const data = await response.json();
+  return Array.isArray( data?.data ) ? data.data : [];
+};
+
+const fetchCardsBySetName = ( setName ) =>
+  fetchCards( 'https://db.ygoprodeck.com/api/v7/cardinfo.php?set=' + encodeURIComponent( setName ) );
+
+const fetchCardsByName = async ( cardName ) => {
+  const candidates = buildCardNameCandidates( cardName );
+  const matchesById = new Map();
+
+  for ( const candidate of candidates ) {
+    const exactMatches = await fetchCards(
+      'https://db.ygoprodeck.com/api/v7/cardinfo.php?name=' + encodeURIComponent( candidate )
+    );
+    exactMatches.forEach( ( card ) => {
+      if ( card?.id && !matchesById.has( card.id ) ) {
+        matchesById.set( card.id, card );
+      }
+    } );
+  }
+
+  if ( matchesById.size === 0 ) {
+    const fallbackName = candidates[ candidates.length - 1 ] || cardName;
+    const fuzzyMatches = await fetchCards(
+      'https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=' + encodeURIComponent( fallbackName )
+    );
+    fuzzyMatches.forEach( ( card ) => {
+      if ( card?.id && !matchesById.has( card.id ) ) {
+        matchesById.set( card.id, card );
+      }
+    } );
+  }
+
+  return Array.from( matchesById.values() );
+};
+
 export default async function handler( req, res ) {
   if ( req.method !== "GET" ) {
     res.setHeader( "Allow", [ "GET" ] );
@@ -64,16 +107,13 @@ export default async function handler( req, res ) {
   }
 
   try {
-    const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?cardset=${ encodeURIComponent( setName ) }&tcgplayer_data=true`;
-    const response = await fetch( url );
+    const setCards = await fetchCardsBySetName( setName );
+    let match = pickBestMatch( setCards, setCode, cardName );
 
-    if ( !response.ok ) {
-      return res.status( 404 ).json( { error: "Card not found" } );
+    if ( !match && cardName ) {
+      const nameCards = await fetchCardsByName( cardName );
+      match = pickBestMatch( nameCards, setCode, cardName );
     }
-
-    const data = await response.json();
-    const cards = Array.isArray( data?.data ) ? data.data : [];
-    const match = pickBestMatch( cards, setCode, cardName );
 
     if ( !match ) {
       return res.status( 404 ).json( { error: "Card not found" } );

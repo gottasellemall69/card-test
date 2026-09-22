@@ -353,7 +353,7 @@ const writeCacheEntry = ( cacheKey, entry ) => {
 const fetchYgoMatches = async ( query ) => {
   const url = `${ YGO_CARD_SEARCH_ENDPOINT }?fname=${ encodeURIComponent(
     query
-  ) }&tcgplayer_data=true`;
+  ) }`;
   const response = await fetch( url );
   const data = await response.json();
   return Array.isArray( data?.data ) ? data.data : [];

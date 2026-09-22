@@ -14,7 +14,7 @@ export default async function handler( req, res ) {
     if ( archetype ) {
       url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?archetype=${ encodeURIComponent( archetype ) }`;
     } else {
-      url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${ encodeURIComponent( search ) }&tcgplayer_data=true`;
+      url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${ encodeURIComponent( search ) }`;
     }
 
     const response = await fetch( url );

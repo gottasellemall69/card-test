@@ -97,7 +97,7 @@ export default async function handler( req, res ) {
         if ( today && lastDay !== today ) {
             const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent(
                 cardId
-            ) }&tcgplayer_data=true`;
+            ) }`;
             const response = await fetch( url );
             const data = await response.json();
 

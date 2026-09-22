@@ -9,7 +9,7 @@ export default async function handler( req, res ) {
   }
 
   try {
-    const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent( normalizedCardId ) }&tcgplayer_data=true`;
+    const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?id=${ encodeURIComponent( normalizedCardId ) }`;
     const response = await fetch( url );
     const data = await response.json();
 

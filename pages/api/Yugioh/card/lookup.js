@@ -2,7 +2,7 @@ import { buildCardNameCandidates, buildCardNameKeys } from "@/utils/yugiohCardNa
 import { formatYugiohCardData } from "@/utils/formatYugiohCardData";
 
 const fetchExactName = async ( name ) => {
-  const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${ encodeURIComponent( name ) }&tcgplayer_data=true`;
+  const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${ encodeURIComponent( name ) }`;
   const response = await fetch( url );
   const data = await response.json();
   if ( !Array.isArray( data?.data ) || data.data.length === 0 ) {
@@ -12,7 +12,7 @@ const fetchExactName = async ( name ) => {
 };
 
 const fetchFuzzyName = async ( name ) => {
-  const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${ encodeURIComponent( name ) }&tcgplayer_data=true`;
+  const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${ encodeURIComponent( name ) }`;
   const response = await fetch( url );
   const data = await response.json();
   return Array.isArray( data?.data ) ? data.data : [];
