@@ -1,65 +1,60 @@
-const SAFE_USER_ID_PATTERN = /^[A-Za-z0-9@._-]{1,128}$/;
+import { HttpError } from '@/lib/server/errors';
 
-export const ensureSafeUserId = ( rawValue, { allowEmpty = false } = {} ) => {
-  if ( typeof rawValue !== "string" ) {
-    throw new Error( "Invalid user identifier" );
-  }
-
-  const trimmed = rawValue.trim();
-
-  if ( trimmed.length === 0 ) {
-    if ( allowEmpty ) {
-      return "";
-    }
-
-    throw new Error( "Invalid user identifier" );
-  }
-
-  if ( trimmed.length > 128 ) {
-    throw new Error( "User identifier is too long" );
-  }
-
-  if ( !SAFE_USER_ID_PATTERN.test( trimmed ) ) {
-    throw new Error( "User identifier contains unsupported characters" );
-  }
-
-  return trimmed;
+export const ensureSafeUserId = (value, { allowEmpty = false } = {}) => {
+  if (typeof value !== 'string') throw new HttpError(400, 'Invalid user identifier');
+  const text = value.trim();
+  if (allowEmpty && !text) return '';
+  if (!/^[A-Za-z0-9@._-]{1,128}$/.test(text)) throw new HttpError(400, 'Invalid user identifier');
+  return text;
 };
 
-export const coerceStringField = ( rawValue, { maxLength = 256, allowEmpty = false } = {} ) => {
-  if ( rawValue === null || rawValue === undefined ) {
-    if ( allowEmpty ) {
-      return "";
-    }
-    throw new Error( "Value is required" );
+export const coerceStringField = (value, { maxLength = 256, allowEmpty = false } = {}) => {
+  if (value === undefined || value === null) {
+    if (allowEmpty) return '';
+    throw new HttpError(400, 'Value is required');
   }
-
-  const stringValue = String( rawValue ).trim();
-
-  if ( stringValue.length === 0 ) {
-    if ( allowEmpty ) {
-      return "";
-    }
-    throw new Error( "Value is required" );
+  if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) {
+    throw new HttpError(400, 'Invalid text value');
   }
-
-  if ( stringValue.length > maxLength ) {
-    throw new Error( "Value exceeds maximum length" );
-  }
-
-  return stringValue;
+  const text = String(value).trim();
+  if ((!allowEmpty && !text) || text.length > maxLength)
+    throw new HttpError(400, 'Invalid text length');
+  return text;
 };
 
-export const coerceNumberField = ( rawValue, { min = Number.NEGATIVE_INFINITY, max = Number.POSITIVE_INFINITY } = {} ) => {
-  const numericValue = Number( rawValue );
-
-  if ( Number.isNaN( numericValue ) || !Number.isFinite( numericValue ) ) {
-    throw new Error( "Invalid numeric value" );
+export const coerceNumberField = (value, { min = 0, max = 1e9, integer = false } = {}) => {
+  if (
+    (typeof value !== 'number' && typeof value !== 'string') ||
+    (typeof value === 'string' && !value.trim())
+  )
+    throw new HttpError(400, 'Invalid numeric value');
+  const number = Number(value);
+  if (
+    !Number.isFinite(number) ||
+    number < min ||
+    number > max ||
+    (integer && !Number.isSafeInteger(number))
+  ) {
+    throw new HttpError(400, 'Numeric value out of range');
   }
+  return number;
+};
 
-  if ( numericValue < min || numericValue > max ) {
-    throw new Error( "Numeric value out of range" );
+export const safeImageUrl = (value) => {
+  if (!value) return null;
+  const text = coerceStringField(value, { maxLength: 1024 });
+  if (text.startsWith('/images/') && !text.includes('..')) return text;
+  try {
+    const url = new URL(text);
+    if (
+      url.protocol === 'https:' &&
+      url.hostname === 'images.ygoprodeck.com' &&
+      !url.username &&
+      !url.password
+    )
+      return url.href;
+  } catch {
+    /* Invalid URL. */
   }
-
-  return numericValue;
+  throw new HttpError(400, 'Invalid card image URL');
 };

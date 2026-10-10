@@ -1,4 +1,4 @@
-export const formatYugiohCardData = ( card ) => ( {
+export const formatYugiohCardData = (card) => ({
   id: card?.id,
   name: card?.name,
   type: card?.type,
@@ -12,27 +12,30 @@ export const formatYugiohCardData = ( card ) => ( {
   level: card?.level ?? null,
   linkval: card?.linkval ?? null,
   scale: card?.scale ?? null,
-  typeline: Array.isArray( card?.typeline ) ? card.typeline.filter( Boolean ) : [],
-  linkmarkers: Array.isArray( card?.linkmarkers ) ? card.linkmarkers.filter( Boolean ) : [],
+  typeline: Array.isArray(card?.typeline) ? card.typeline.filter(Boolean) : [],
+  linkmarkers: Array.isArray(card?.linkmarkers) ? card.linkmarkers.filter(Boolean) : [],
   ygoprodeck_url: card?.ygoprodeck_url,
-  card_images: card?.card_images?.map( ( img ) => ( {
-    id: img?.id,
-    image_url: img?.image_url,
-    image_url_cropped: img?.image_url_cropped,
-    image_url_small: img?.image_url_small,
-  } ) ) || [],
-  card_sets: card?.card_sets?.map( ( set ) => ( {
-    set_name: set.set_name,
-    tcg_set_name: set.tcg_set_name,
-    set_code: set.set_code,
-    set_rarity: set.set_rarity,
-    rarity_code: set.set_rarity_code,
-    set_edition: set.set_edition || "Unknown Edition",
-    set_price: set.set_price || "0.00",
-  } ) ) || [],
-  card_prices: card?.card_prices?.map( ( price ) => ( {
-    tcgplayer_price: price.tcgplayer_price || "0.00",
-    ebay_price: price.ebay_price || "0.00",
-    amazon_price: price.amazon_price || "0.00",
-  } ) ) || [],
-} );
+  card_images:
+    card?.card_images?.map((img) => ({
+      id: img?.id,
+      image_url: img?.image_url,
+      image_url_cropped: img?.image_url_cropped,
+      image_url_small: img?.image_url_small,
+    })) || [],
+  card_sets:
+    card?.card_sets?.map((set) => ({
+      set_name: set.set_name,
+      tcg_set_name: set.tcg_set_name,
+      set_code: set.set_code,
+      set_rarity: set.set_rarity,
+      rarity_code: set.set_rarity_code,
+      set_edition: set.set_edition || 'Unknown Edition',
+      set_price: set.set_price || '0.00',
+    })) || [],
+  card_prices:
+    card?.card_prices?.map((price) => ({
+      tcgplayer_price: price.tcgplayer_price || '0.00',
+      ebay_price: price.ebay_price || '0.00',
+      amazon_price: price.amazon_price || '0.00',
+    })) || [],
+});

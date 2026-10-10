@@ -4,17 +4,17 @@ import { formatDate } from '@/utils/dateUtils';
 
 interface CardGridItemProps {
   card: SelectedCard;
-  onRemove: ( cardId: string ) => void;
+  onRemove: (cardId: string) => void;
 }
 
-const CardGridItem: React.FC<CardGridItemProps> = ( { card, onRemove } ) => {
+const CardGridItem: React.FC<CardGridItemProps> = ({ card, onRemove }) => {
   return (
     <div className="bg-black/60 glass rounded-lg shadow-lg overflow-hidden">
       <div className="p-4">
         <div className="flex justify-between items-start">
           <h3 className="text-lg font-semibold text-white">{card.productName}</h3>
           <button
-            onClick={() => onRemove( card.id )}
+            onClick={() => onRemove(card.id)}
             className="text-red-400 hover:text-red-300 transition-colors"
           >
             ✕
@@ -36,9 +36,7 @@ const CardGridItem: React.FC<CardGridItemProps> = ( { card, onRemove } ) => {
             <div className="text-white">{card.price2}</div>
           </div>
 
-          <div className="text-xs text-gray-100 mt-2">
-            Added: {formatDate( card.dateAdded )}
-          </div>
+          <div className="text-xs text-gray-100 mt-2">Added: {formatDate(card.dateAdded)}</div>
         </div>
       </div>
     </div>

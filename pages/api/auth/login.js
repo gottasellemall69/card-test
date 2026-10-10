@@ -1,60 +1,25 @@
-import { MongoClient } from "mongodb";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcryptjs';
+import { apiRoute, limitAuthAttempts } from '@/lib/server/http';
+import { getDatabase } from '@/lib/server/database';
+import { HttpError } from '@/lib/server/errors';
+import { signSession, sessionCookies } from '@/lib/server/session';
+import { ensureSafeUserId } from '@/utils/securityValidators';
 
-
-export default async function handler( req, res ) {
-  if ( req.method !== "POST" ) {
-    return res.status( 405 ).json( { error: "Method not allowed" } );
+let dummyHash;
+export default apiRoute({ methods: ['POST'], scope: 'auth', limit: 30 }, async (req, res) => {
+  const username = ensureSafeUserId(req.body?.username);
+  const password = req.body?.password;
+  if (typeof password !== 'string' || !password || Buffer.byteLength(password) > 72) {
+    throw new HttpError(400, 'Invalid username or password');
   }
-
-  const { username, password } = req.body;
-
-  if ( !username || !password ) {
-    return res.status( 400 ).json( { error: "Username and password are required" } );
-  }
-
-  try {
-    const client = new MongoClient( process.env.MONGODB_URI );
-    const db = client.db( "cardPriceApp" );
-
-    // Find the user
-    const user = await db.collection( "users" ).findOne( { username: { $eq: username } } );
-    if ( !user ) {
-      return res.status( 401 ).json( { error: "Invalid username or password" } );
-    }
-
-    // Verify the password
-    const isPasswordValid = await bcrypt.compare( password, user.password );
-    if ( !isPasswordValid ) {
-      return res.status( 401 ).json( { error: "Invalid username or password" } );
-    }
-
-    // Create a token
-    const token = jwt.sign(
-      { userId: user._id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: 86400 }
-    );
-
-    const isProduction = process.env.NODE_ENV === "production";
-    const sharedAttributes = [
-      "Path=/",
-      "Max-Age=86400",
-      "SameSite=Strict",
-    ];
-    if ( isProduction ) {
-      sharedAttributes.push( "Secure" );
-    }
-
-    res.setHeader( "Set-Cookie", [
-      `token=${ token }; HttpOnly; ${ sharedAttributes.join( "; " ) }`,
-      `auth_state=1; ${ sharedAttributes.join( "; " ) }`,
-    ] );
-    res.status( 200 ).json( { message: "Logged in!" } );
-
-  } catch ( error ) {
-    console.error( "Error logging in user:", error );
-    res.status( 500 ).json( { error: "Internal server error" } );
-  }
-}
+  await limitAuthAttempts(req, username);
+  const db = await getDatabase();
+  const user = await db.collection('users').findOne({ username });
+  dummyHash ||= bcrypt.hash('not-a-user-password', 12);
+  const valid = await bcrypt.compare(password, user?.password || (await dummyHash));
+  if (!user || !valid) throw new HttpError(401, 'Invalid username or password');
+  const token = signSession({ userId: user._id.toString(), username: user.username });
+  res.setHeader('Set-Cookie', sessionCookies(token));
+  return res.status(200).json({ message: 'Logged in!' });
+});
+export const config = { api: { bodyParser: { sizeLimit: '8kb' } } };

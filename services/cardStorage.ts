@@ -15,7 +15,13 @@ export const cardStorage = {
   loadCards: (): SelectedCard[] => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      const parsed: unknown = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed)
+        ? parsed.filter(
+            (card): card is SelectedCard =>
+              !!card && typeof card.id === 'string' && typeof card.productName === 'string',
+          )
+        : [];
     } catch (error) {
       console.error('Error loading cards:', error);
       return [];
@@ -28,5 +34,5 @@ export const cardStorage = {
     } catch (error) {
       console.error('Error clearing cards:', error);
     }
-  }
+  },
 };

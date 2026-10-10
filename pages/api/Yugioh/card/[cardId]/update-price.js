@@ -1,29 +1,20 @@
-import { recordPriceHistoryEntry } from "@/utils/priceHistoryStore";
-
-export default async function handler( req, res ) {
-    if ( req.method !== "POST" ) {
-        return res.status( 405 ).json( { error: "Method Not Allowed" } );
-    }
-
-    const { cardId, setName, number, rarity, edition, newPrice } = req.body;
-    const numericPrice = Number( newPrice );
-    if ( !cardId || !setName || !number || !rarity || !edition || !Number.isFinite( numericPrice ) ) {
-        return res.status( 400 ).json( { error: "Missing or invalid parameters" } );
-    }
-
-    try {
-        await recordPriceHistoryEntry( {
-            cardId,
-            setName,
-            number,
-            rarity,
-            edition,
-            price: numericPrice,
-        } );
-
-        return res.status( 200 ).json( { message: "Price updated successfully" } );
-    } catch ( error ) {
-        console.error( "update-price error:", error );
-        return res.status( 500 ).json( { error: "Internal Server Error" } );
-    }
-}
+import { apiRoute } from '@/lib/server/http';
+import { recordPriceHistoryEntry } from '@/utils/priceHistoryStore';
+import { coerceNumberField, coerceStringField } from '@/utils/securityValidators';
+export default apiRoute({ methods: ['POST'], auth: true }, async (req, res) => {
+  const input = req.body || {};
+  const entry = Object.fromEntries(
+    ['cardId', 'setName', 'number', 'rarity', 'edition'].map((key) => [
+      key,
+      coerceStringField(input[key], { maxLength: 256 }),
+    ]),
+  );
+  const condition = coerceStringField(input.condition || 'Near Mint', { maxLength: 128 });
+  await recordPriceHistoryEntry({
+    ...entry,
+    condition,
+    price: coerceNumberField(input.newPrice),
+    userId: req.auth.decoded.username,
+  });
+  return res.status(200).json({ message: 'Price updated successfully' });
+});

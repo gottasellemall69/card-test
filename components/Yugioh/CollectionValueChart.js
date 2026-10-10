@@ -1,128 +1,115 @@
-import { useMemo, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useMemo, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const toDayKey = ( value ) => {
-  const date = new Date( value );
-  if ( Number.isNaN( date.getTime() ) ) return null;
-  return date.toISOString().split( "T" )[ 0 ];
+const toDayKey = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().split('T')[0];
 };
 
-const formatDateLabel = ( value ) =>
-  new Date( `${ value }T12:00:00Z` ).toLocaleDateString( "en-US", { month: "short", day: "numeric" } );
+const formatDateLabel = (value) =>
+  new Date(`${value}T12:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
 
-const currencyFormatter = new Intl.NumberFormat( "en-US", {
-  style: "currency",
-  currency: "USD",
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
   maximumFractionDigits: 0,
-} );
+});
 
 const RANGE_OPTIONS = [
-  { id: "1W", label: "1W", days: 7 },
-  { id: "1M", label: "1M", days: 30 },
-  { id: "3M", label: "3M", days: 90 },
-  { id: "1Y", label: "1Y", days: 365 },
-  { id: "ALL", label: "All", days: null },
+  { id: '1W', label: '1W', days: 7 },
+  { id: '1M', label: '1M', days: 30 },
+  { id: '3M', label: '3M', days: 90 },
+  { id: '1Y', label: '1Y', days: 365 },
+  { id: 'ALL', label: 'All', days: null },
 ];
 const MAX_RENDER_POINTS = 180;
 
-const compressSeries = ( points, maxPoints ) => {
-  if ( !Array.isArray( points ) || points.length <= maxPoints || maxPoints < 3 ) {
+const compressSeries = (points, maxPoints) => {
+  if (!Array.isArray(points) || points.length <= maxPoints || maxPoints < 3) {
     return points;
   }
 
   const sampled = [];
-  const step = ( points.length - 1 ) / ( maxPoints - 1 );
+  const step = (points.length - 1) / (maxPoints - 1);
 
-  for ( let i = 0; i < maxPoints; i += 1 ) {
-    const index = Math.round( i * step );
-    const point = points[ index ];
-    if ( point && sampled[ sampled.length - 1 ]?.date !== point.date ) {
-      sampled.push( point );
+  for (let i = 0; i < maxPoints; i += 1) {
+    const index = Math.round(i * step);
+    const point = points[index];
+    if (point && sampled[sampled.length - 1]?.date !== point.date) {
+      sampled.push(point);
     }
   }
 
-  const last = points[ points.length - 1 ];
-  if ( last && sampled[ sampled.length - 1 ]?.date !== last.date ) {
-    sampled.push( last );
+  const last = points[points.length - 1];
+  if (last && sampled[sampled.length - 1]?.date !== last.date) {
+    sampled.push(last);
   }
 
   return sampled;
 };
 
-const CollectionValueChart = ( { valueHistory = [], currentValue = 0 } ) => {
-  const [ rangeId, setRangeId ] = useState( "1M" );
-  const formattedData = useMemo( () => {
-    if ( !Array.isArray( valueHistory ) ) return [];
+const CollectionValueChart = ({ valueHistory = [], currentValue = 0 }) => {
+  const [rangeId, setRangeId] = useState('1M');
+  const formattedData = useMemo(() => {
+    if (!Array.isArray(valueHistory)) return [];
 
     const byDay = new Map();
 
     valueHistory
-      .map( ( entry ) => {
-        const date = toDayKey( entry?.date );
-        const value = Number( entry?.value );
-        if ( !date || !Number.isFinite( value ) ) return null;
+      .map((entry) => {
+        const date = toDayKey(entry?.date);
+        const value = Number(entry?.value);
+        if (!date || !Number.isFinite(value)) return null;
         return { date, value };
-      } )
-      .filter( Boolean )
-      .sort( ( a, b ) => a.date.localeCompare( b.date ) )
-      .forEach( ( entry ) => {
-        byDay.set( entry.date, entry.value );
-      } );
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .forEach((entry) => {
+        byDay.set(entry.date, entry.value);
+      });
 
-    const cleaned = Array.from( byDay.entries() ).map( ( [ date, value ] ) => ( {
+    const cleaned = Array.from(byDay.entries()).map(([date, value]) => ({
       date,
       value,
-    } ) );
+    }));
 
-    if ( cleaned.length === 0 && Number.isFinite( currentValue ) && currentValue > 0 ) {
-      const now = toDayKey( new Date() );
-      if ( now ) {
-        return [ { date: now, value: currentValue } ];
-      }
-    }
-
-    const today = toDayKey( new Date() );
-    if ( cleaned.length > 0 && today ) {
-      const lastEntry = cleaned[ cleaned.length - 1 ];
-      const lastDay = toDayKey( lastEntry.date );
-      if ( lastDay !== today ) {
-        const lastValue = lastEntry.value;
-        const nextValue = Number.isFinite( currentValue ) && currentValue > 0 ? currentValue : lastValue;
-        const now = toDayKey( new Date() );
-        if ( now ) {
-          cleaned.push( { date: now, value: nextValue } );
-        }
+    if (cleaned.length === 0 && Number.isFinite(currentValue) && currentValue > 0) {
+      const now = toDayKey(new Date());
+      if (now) {
+        return [{ date: now, value: currentValue }];
       }
     }
 
     return cleaned;
-  }, [ currentValue, valueHistory ] );
+  }, [currentValue, valueHistory]);
 
-  const filteredData = useMemo( () => {
-    if ( rangeId === "ALL" ) return formattedData;
+  const filteredData = useMemo(() => {
+    if (rangeId === 'ALL') return formattedData;
 
-    const range = RANGE_OPTIONS.find( ( option ) => option.id === rangeId );
-    if ( !range?.days || formattedData.length === 0 ) {
+    const range = RANGE_OPTIONS.find((option) => option.id === rangeId);
+    if (!range?.days || formattedData.length === 0) {
       return formattedData;
     }
 
-    const endDate = new Date( formattedData[ formattedData.length - 1 ].date );
-    if ( Number.isNaN( endDate.getTime() ) ) {
+    const endDate = new Date(formattedData[formattedData.length - 1].date);
+    if (Number.isNaN(endDate.getTime())) {
       return formattedData;
     }
 
-    const startDate = new Date( endDate );
-    startDate.setDate( endDate.getDate() - range.days + 1 );
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - range.days + 1);
 
-    return formattedData.filter( ( entry ) => new Date( entry.date ) >= startDate );
-  }, [ formattedData, rangeId ] );
+    return formattedData.filter((entry) => new Date(entry.date) >= startDate);
+  }, [formattedData, rangeId]);
 
-  const chartData = useMemo(
-    () => compressSeries( filteredData, MAX_RENDER_POINTS ),
-    [ filteredData ]
-  );
+  const chartData = useMemo(() => compressSeries(filteredData, MAX_RENDER_POINTS), [filteredData]);
 
-  if ( formattedData.length === 0 ) {
+  if (formattedData.length === 0) {
     return (
       <p className="text-sm text-white/70">
         No collection value history yet. Refresh prices to start tracking.
@@ -133,48 +120,60 @@ const CollectionValueChart = ( { valueHistory = [], currentValue = 0 } ) => {
   return (
     <div className="flex h-full w-full flex-col">
       <div className="mb-2 flex flex-wrap gap-2">
-        { RANGE_OPTIONS.map( ( option ) => {
+        {RANGE_OPTIONS.map((option) => {
           const isActive = option.id === rangeId;
           return (
             <button
-              key={ option.id }
+              key={option.id}
               type="button"
-              onClick={ () => setRangeId( option.id ) }
-              className={ `rounded-full border px-3 py-1 text-xs font-semibold transition ${ isActive
-                ? "border-emerald-400/80 bg-emerald-500/20 text-emerald-100"
-                : "border-white/20 bg-white/10 text-white/80 hover:border-white/40"
-                }` }
-              aria-pressed={ isActive }
+              onClick={() => setRangeId(option.id)}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                isActive
+                  ? 'border-emerald-400/80 bg-emerald-500/20 text-emerald-100'
+                  : 'border-white/20 bg-white/10 text-white/80 hover:border-white/40'
+              }`}
+              aria-pressed={isActive}
             >
-              { option.label }
+              {option.label}
             </button>
           );
-        } ) }
+        })}
       </div>
       <div className="h-24 min-h-0 flex-1">
-        { chartData.length === 0 ? (
+        {chartData.length === 0 ? (
           <p className="text-sm text-white/70">No data in this range yet.</p>
         ) : (
-          <ResponsiveContainer className="text-black  w-full max-w-[85%] mx-auto glass text-shadow backdrop rounded-md -p-10" width={ `75%` } height={ 112 }>
-            <LineChart data={ chartData }>
+          <ResponsiveContainer
+            className="text-black  w-full max-w-[85%] mx-auto glass text-shadow backdrop rounded-md -p-10"
+            width={`75%`}
+            height={112}
+          >
+            <LineChart data={chartData}>
               <XAxis
                 dataKey="date"
-                tick={ { fill: "white" } }
-                tickFormatter={ formatDateLabel }
-                minTickGap={ 28 }
+                tick={{ fill: 'white' }}
+                tickFormatter={formatDateLabel}
+                minTickGap={28}
               />
               <YAxis
-                tick={ { fill: "white" } }
-                tickFormatter={ ( value ) => currencyFormatter.format( value ) }
+                tick={{ fill: 'white' }}
+                tickFormatter={(value) => currencyFormatter.format(value)}
               />
               <Tooltip
-                formatter={ ( value ) => currencyFormatter.format( value ) }
-                labelFormatter={ formatDateLabel }
+                formatter={(value) => currencyFormatter.format(value)}
+                labelFormatter={formatDateLabel}
               />
-              <Line type="monotone" dataKey="value" stroke="#34d399" strokeWidth={ 2 } dot={ false } isAnimationActive={ false } />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#34d399"
+                strokeWidth={2}
+                dot={false}
+                isAnimationActive={false}
+              />
             </LineChart>
           </ResponsiveContainer>
-        ) }
+        )}
       </div>
     </div>
   );

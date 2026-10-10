@@ -1,8 +1,8 @@
-@import "tw-animate-css";
-@import "tailwindcss";
+@import 'tw-animate-css';
+@import 'tailwindcss';
+@config "../tailwind.config.js";
 
-:root
-{
+:root {
   --gradient-start: #060a1c;
   --gradient-mid: #111d3a;
   --gradient-end: #1b1036;
@@ -29,13 +29,12 @@
   --transition-slow: 340ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.login
-{
+.login {
   max-width: 100%;
   height: 100%;
   background-image:
     linear-gradient(180deg, rgba(2, 6, 23, 0.2), rgba(2, 6, 23, 0.7)),
-    url("/images/backgrounds/yugioh/background.svg");
+    url('/images/backgrounds/yugioh/background.svg');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -43,35 +42,30 @@
   background-color: #050815;
 }
 
-.yugioh-bg
-{
+.yugioh-bg {
   width: 100%;
   min-height: 100vh;
   min-height: 100svh;
   background: transparent;
 }
 
-.yugioh-stage
-{
+.yugioh-stage {
   min-height: clamp(24rem, 55vh, 44rem);
 }
 
-.yugioh-stage-table
-{
+.yugioh-stage-table {
   min-height: clamp(20rem, 45vh, 36rem);
 }
 
-.yugioh-pagination-slot
-{
+.yugioh-pagination-slot {
   min-height: 3rem;
 }
 
-.app-shell
-{
+.app-shell {
   display: grid;
   grid-template:
-    "header" auto
-    "main" minmax(0, 1fr) "footer" auto / minmax(0, 1fr);
+    'header' auto
+    'main' minmax(0, 1fr) 'footer' auto / minmax(0, 1fr);
   max-width: 100dvw;
   min-height: 100vh;
   min-height: 100svh;
@@ -80,8 +74,7 @@
   isolation: isolate;
 }
 
-.app-shell-header
-{
+.app-shell-header {
   grid-area: header;
   position: sticky;
   top: 0;
@@ -93,8 +86,7 @@
   backdrop-filter: saturate(145%) blur(18px);
 }
 
-.app-shell-mobile-header
-{
+.app-shell-mobile-header {
   display: flex;
   min-height: 3.5rem;
   align-items: center;
@@ -103,8 +95,7 @@
   box-shadow: 0 18px 36px -28px rgba(2, 6, 23, 0.9);
 }
 
-.app-shell-desktop-header
-{
+.app-shell-desktop-header {
   display: none;
   min-height: 3.75rem;
   align-items: center;
@@ -115,15 +106,13 @@
   box-shadow: 0 18px 36px -30px rgba(2, 6, 23, 0.9);
 }
 
-.app-shell-header-slot
-{
+.app-shell-header-slot {
   width: 100%;
   min-width: 0;
   background: rgba(2, 6, 23, 0.34);
 }
 
-.app-shell-left
-{
+.app-shell-left {
   grid-area: left;
   position: relative;
   z-index: 1;
@@ -135,8 +124,7 @@
   backdrop-filter: saturate(145%) blur(18px);
 }
 
-.app-shell-left-inner
-{
+.app-shell-left-inner {
   position: sticky;
   top: 4.5rem;
   min-height: 100%;
@@ -145,8 +133,7 @@
   padding: 1.5rem 1rem 2rem;
 }
 
-.app-shell-main
-{
+.app-shell-main {
   grid-area: main;
   position: relative;
   z-index: 1;
@@ -155,8 +142,7 @@
   background: transparent;
 }
 
-.app-shell-right
-{
+.app-shell-right {
   grid-area: right;
   position: relative;
   z-index: 1;
@@ -167,16 +153,14 @@
   backdrop-filter: saturate(145%) blur(18px);
 }
 
-.app-shell-right > *
-{
+.app-shell-right > * {
   position: sticky;
   top: 4.5rem;
   max-height: calc(100svh - 4.5rem);
   overflow-y: auto;
 }
 
-.app-shell-footer
-{
+.app-shell-footer {
   grid-area: footer;
   position: relative;
   z-index: 1;
@@ -186,62 +170,53 @@
   background: transparent;
 }
 
-.app-shell--has-footer .app-shell-footer
-{
+.app-shell--has-footer .app-shell-footer {
   display: block;
 }
 
-@media (min-width: 640px)
-{
-  .app-shell-mobile-header
-  {
+@media (min-width: 640px) {
+  .app-shell-mobile-header {
     display: none;
   }
 
-  .app-shell
-  {
+  .app-shell {
     grid-template:
-      "header header header" auto
-      "left main right" minmax(0, 1fr) "left footer right" auto / minmax(13rem, 16rem) minmax(0, 1fr) 0;
+      'header header header' auto
+      'left main right' minmax(0, 1fr) 'left footer right' auto / minmax(13rem, 16rem) minmax(
+        0,
+        1fr
+      ) 0;
   }
 
-  .app-shell-left
-  {
+  .app-shell-left {
     display: block;
   }
 
-  .app-shell:not(.app-shell--has-header) .app-shell-header
-  {
+  .app-shell:not(.app-shell--has-header) .app-shell-header {
     display: none;
   }
 }
 
-@media (min-width: 1024px)
-{
-  .app-shell
-  {
+@media (min-width: 1024px) {
+  .app-shell {
     grid-template-columns: minmax(16rem, 18rem) minmax(0, 1fr) 0;
   }
 }
 
-@media (min-width: 1280px)
-{
-  .app-shell--has-right
-  {
+@media (min-width: 1280px) {
+  .app-shell--has-right {
     grid-template-columns: minmax(16rem, 18rem) minmax(0, 1fr) minmax(18rem, 20rem);
   }
 
-  .app-shell--has-right .app-shell-right
-  {
+  .app-shell--has-right .app-shell-right {
     display: block;
   }
 }
 
-.sports-bg
-{
+.sports-bg {
   width: 100%;
   min-height: 100%;
-  background-image: url("/images/backgrounds/sports/sportsbg.svg");
+  background-image: url('/images/backgrounds/sports/sportsbg.svg');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -251,34 +226,31 @@
   background-blend-mode: darken;
 }
 
-img
-{
+img {
   max-width: 100%;
   height: auto;
 }
 
-a
-{
+a {
   color: inherit;
   text-decoration: none;
-  transition: color 180ms ease, text-shadow 220ms ease;
+  transition:
+    color 180ms ease,
+    text-shadow 220ms ease;
 }
 
-a:hover
-{
+a:hover {
   color: var(--text-secondary);
   text-shadow: 0 0 18px rgba(99, 102, 241, 0.45);
 }
 
-.navButton
-{
+.navButton {
   display: flex;
   justify-content: flex-start;
   padding-block: clamp(0.05rem, 0.45vw, 0.35rem);
 }
 
-.navLink
-{
+.navLink {
   --nav-icon-size: clamp(2.9rem, 5.4vw, 3.5rem);
   position: relative;
   display: flex;
@@ -300,22 +272,19 @@ a:hover
     transform 220ms ease;
 }
 
-.navLink:focus-visible
-{
+.navLink:focus-visible {
   outline: 2px solid rgba(99, 102, 241, 0.45);
   outline-offset: 2px;
 }
 
 .navLink:hover,
 .navLink:focus-visible,
-.navLink.navLink-active
-{
+.navLink.navLink-active {
   color: var(--text-secondary);
   transform: translateX(2px);
 }
 
-.navLink-circle
-{
+.navLink-circle {
   position: relative;
   display: grid;
   place-items: center;
@@ -327,24 +296,26 @@ a:hover
   box-shadow:
     inset 0 0 0 1px rgba(148, 163, 184, 0.24),
     inset 0 -10px 12px rgba(2, 6, 23, 0.9);
-  transition: transform 380ms ease, box-shadow 420ms ease;
+  transition:
+    transform 380ms ease,
+    box-shadow 420ms ease;
   overflow: visible;
 }
 
-.navLink-circle::before
-{
-  content: "";
+.navLink-circle::before {
+  content: '';
   position: absolute;
   inset: 0;
   border-radius: 50%;
   background: rgba(99, 102, 241, 0.32);
   transform: scale(0.88);
-  transition: transform 460ms ease, box-shadow 520ms ease;
+  transition:
+    transform 460ms ease,
+    box-shadow 520ms ease;
   z-index: -1;
 }
 
-.navLink-circleInner
-{
+.navLink-circleInner {
   position: relative;
   display: grid;
   place-items: center;
@@ -355,8 +326,7 @@ a:hover
   z-index: 0;
 }
 
-.navLink-iconImage
-{
+.navLink-iconImage {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -364,8 +334,7 @@ a:hover
   transition: filter 360ms ease;
 }
 
-.navLink-label
-{
+.navLink-label {
   position: relative;
   display: flex;
   align-items: center;
@@ -376,8 +345,7 @@ a:hover
   overflow: visible;
 }
 
-.navLink-labelText
-{
+.navLink-labelText {
   position: relative;
   display: inline-block;
   width: 100%;
@@ -387,23 +355,26 @@ a:hover
   color: inherit;
   letter-spacing: 0.04em;
   overflow-wrap: anywhere;
-  transition: color var(--transition-slow), filter 320ms ease;
+  transition:
+    color var(--transition-slow),
+    filter 320ms ease;
 }
 
 .navLink-labelText::before,
-.navLink-labelText::after
-{
+.navLink-labelText::after {
   content: attr(data-label);
   position: absolute;
   inset: 0;
   color: transparent;
   white-space: inherit;
   pointer-events: none;
-  transition: -webkit-text-stroke-color var(--transition-slow), filter 320ms ease, opacity var(--transition-slow);
+  transition:
+    -webkit-text-stroke-color var(--transition-slow),
+    filter 320ms ease,
+    opacity var(--transition-slow);
 }
 
-.navLink-labelText::before
-{
+.navLink-labelText::before {
   z-index: -1;
   -webkit-text-stroke-width: 1.6px;
   -webkit-text-stroke-color: rgba(99, 102, 241, 0.45);
@@ -411,8 +382,7 @@ a:hover
   opacity: 0.85;
 }
 
-.navLink-labelText::after
-{
+.navLink-labelText::after {
   z-index: -2;
   -webkit-text-stroke-width: 8px;
   -webkit-text-stroke-color: rgba(17, 24, 39, 0.85);
@@ -422,16 +392,14 @@ a:hover
 
 .navLink:hover .navLink-circle::before,
 .navLink:focus-visible .navLink-circle::before,
-.navLink.navLink-active .navLink-circle::before
-{
+.navLink.navLink-active .navLink-circle::before {
   transform: scale(1.08);
   box-shadow: 0 0 26px rgba(99, 102, 241, 0.6);
 }
 
 .navLink:hover .navLink-circle,
 .navLink:focus-visible .navLink-circle,
-.navLink.navLink-active .navLink-circle
-{
+.navLink.navLink-active .navLink-circle {
   transform: translateY(-2px);
   box-shadow:
     0 0 0 2px rgba(99, 102, 241, 0.3),
@@ -440,23 +408,21 @@ a:hover
 
 .navLink:hover .navLink-iconImage,
 .navLink:focus-visible .navLink-iconImage,
-.navLink.navLink-active .navLink-iconImage
-{
-  filter: brightness(0) saturate(100%) invert(88%) sepia(16%) saturate(1403%) hue-rotate(193deg) brightness(118%) contrast(103%);
+.navLink.navLink-active .navLink-iconImage {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(16%) saturate(1403%) hue-rotate(193deg)
+    brightness(118%) contrast(103%);
 }
 
 .navLink:hover .navLink-labelText,
 .navLink:focus-visible .navLink-labelText,
-.navLink.navLink-active .navLink-labelText
-{
+.navLink.navLink-active .navLink-labelText {
   color: var(--text-secondary);
   filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.4));
 }
 
 .navLink:hover .navLink-labelText::before,
 .navLink:focus-visible .navLink-labelText::before,
-.navLink.navLink-active .navLink-labelText::before
-{
+.navLink.navLink-active .navLink-labelText::before {
   -webkit-text-stroke-color: rgba(148, 163, 184, 0.85);
   filter: drop-shadow(0 0 2px rgba(99, 102, 241, 0.5));
   opacity: 1;
@@ -464,35 +430,30 @@ a:hover
 
 .navLink:hover .navLink-labelText::after,
 .navLink:focus-visible .navLink-labelText::after,
-.navLink.navLink-active .navLink-labelText::after
-{
+.navLink.navLink-active .navLink-labelText::after {
   -webkit-text-stroke-color: rgba(99, 102, 241, 0.48);
   filter: blur(2px);
   opacity: 0.95;
 }
 
-:root
-{
+:root {
   --glass-border: var(--border-strong);
   --glass-bg: var(--surface-glass);
   --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
 }
 
-#cardFilterX
-{
+#cardFilterX {
   font-size: 32px;
 }
 
-.spinner
-{
+.spinner {
   width: 40px;
   height: 40px;
   position: relative;
   margin: 0 auto;
 }
 
-.spinner-inner
-{
+.spinner-inner {
   width: 100%;
   height: 100%;
   border: 4px solid rgba(148, 163, 184, 0.12);
@@ -501,99 +462,81 @@ a:hover
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin
-{
-  to
-  {
+@keyframes spin {
+  to {
     transform: rotate(360deg);
   }
 }
 
-@keyframes floaty
-{
-  0%
-  {
+@keyframes floaty {
+  0% {
     transform: translateY(0);
   }
 
-  50%
-  {
+  50% {
     transform: translateY(-6px);
   }
 
-  100%
-  {
+  100% {
     transform: translateY(0);
   }
 }
 
-@keyframes pulseGlow
-{
-  0%
-  {
+@keyframes pulseGlow {
+  0% {
     box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.35);
   }
 
-  70%
-  {
+  70% {
     box-shadow: 0 0 0 12px rgba(99, 102, 241, 0);
   }
 
-  100%
-  {
+  100% {
     box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
   }
 }
 
-.backdrop
-{
+.backdrop {
   backdrop-filter: blur(26px);
 }
 
-.text-shadow
-{
-  text-shadow: 0 10px 25px rgba(15, 23, 42, 0.45), 0 0 20px rgba(99, 102, 241, 0.35);
+.text-shadow {
+  text-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.45),
+    0 0 20px rgba(99, 102, 241, 0.35);
 }
 
-@layer base
-{
-  body
-  {
+@layer base {
+  body {
     @apply min-h-screen max-h-svh bg-slate-950 text-slate-100;
   }
 
-  :focus-visible
-  {
+  :focus-visible {
     outline: 2px dashed var(--accent);
     outline-offset: 4px;
   }
 
-  ::selection
-  {
+  ::selection {
     color: goldenrod;
     background-color: rebeccapurple;
   }
 }
 
-@layer components
-{
-  .glass
-  {
+@layer components {
+  .glass {
     background: var(--surface-glass);
     backdrop-filter: saturate(140%) blur(22px);
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-soft);
   }
 
-  .glass-strong
-  {
+  .glass-strong {
     background: var(--surface-strong);
     border: 1px solid rgba(10, 10, 10, 0.308);
     box-shadow: var(--shadow-strong);
   }
 
-  .glass-card
-  {
+  .glass-card {
     background: linear-gradient(160deg, rgba(23, 37, 84, 0.82), rgba(30, 27, 75, 0.68));
     border: 1px solid rgba(148, 163, 184, 0.25);
     box-shadow: var(--shadow-soft);

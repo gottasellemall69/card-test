@@ -13,7 +13,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
   sortKey,
   onSort,
   getSortIcon,
-  className = ''
+  className = '',
 }) => (
   <th
     scope="col"
@@ -24,9 +24,7 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
   >
     <div className="flex items-center justify-center space-x-1">
       <span>{title}</span>
-      {getSortIcon(sortKey) && (
-        <span className="text-xs">{getSortIcon(sortKey)}</span>
-      )}
+      {getSortIcon(sortKey) && <span className="text-xs">{getSortIcon(sortKey)}</span>}
     </div>
   </th>
 );

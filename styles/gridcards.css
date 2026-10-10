@@ -1,15 +1,13 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root
-{
+:root {
   --card-height: 252px;
   --card-width: 180px;
 }
 
-.card
-{
+.card {
   width: min(var(--card-width), 100%);
   height: 100%;
   position: relative;
@@ -22,16 +20,14 @@
   padding: 1%;
 }
 
-.cover-image
-{
+.cover-image {
   width: 100%;
   height: 100%;
   object-fit: scale-down;
   transition: opacity 0.5s ease-in-out;
 }
 
-.wrapper
-{
+.wrapper {
   transition: all 0.5s;
   position: relative;
   width: 100%;
@@ -39,15 +35,13 @@
   max-width: var(--card-width);
 }
 
-.card:hover .wrapper
-{
+.card:hover .wrapper {
   transform: perspective(550px) translateY(-4%) rotateX(3deg) translateZ(0);
 }
 
 .wrapper::before,
-.wrapper::after
-{
-  content: "";
+.wrapper::after {
+  content: '';
   opacity: 0;
   width: 100%;
   height: 95%;
@@ -56,34 +50,34 @@
   left: 0;
 }
 
-.wrapper::before
-{
+.wrapper::before {
   top: 0;
   height: 95%;
-  background-image: linear-gradient(to top,
-      transparent 46%,
-      rgba(12, 13, 19, 0.5) 68%,
-      rgba(12, 13, 19) 97%);
+  background-image: linear-gradient(
+    to top,
+    transparent 46%,
+    rgba(12, 13, 19, 0.5) 68%,
+    rgba(12, 13, 19) 97%
+  );
 }
 
-.wrapper::after
-{
+.wrapper::after {
   bottom: 0;
   opacity: 1;
-  background-image: linear-gradient(to bottom,
-      transparent 46%,
-      rgba(12, 13, 19, 0.5) 68%,
-      rgba(12, 13, 19) 97%);
+  background-image: linear-gradient(
+    to bottom,
+    transparent 46%,
+    rgba(12, 13, 19, 0.5) 68%,
+    rgba(12, 13, 19) 97%
+  );
 }
 
 .card:hover .wrapper::before,
-.card:hover .wrapper::after
-{
+.card:hover .wrapper::after {
   opacity: 1;
 }
 
-.details
-{
+.details {
   display: none;
   position: absolute;
   bottom: 10px;
@@ -95,14 +89,12 @@
   z-index: 2;
 }
 
-.card:hover .details
-{
+.card:hover .details {
   display: block;
 }
 
-.black-overlay
-{
-  content: "";
+.black-overlay {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -114,7 +106,6 @@
   opacity: 0;
 }
 
-.card:hover .black-overlay
-{
+.card:hover .black-overlay {
   opacity: 1;
 }

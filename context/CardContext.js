@@ -1,18 +1,12 @@
-// @/context/CardContext.js
-import { createContext, useContext, useState } from 'react';
-
-const CardContext = createContext();
-
+import { createContext, useContext, useMemo, useState } from 'react';
+const CardContext = createContext(null);
 export function CardProvider({ children }) {
   const [cards, setCards] = useState([]);
-
-  return (
-    <CardContext.Provider value={{ cards, setCards }}>
-      {children}
-    </CardContext.Provider>
-  );
+  const value = useMemo(() => ({ cards, setCards }), [cards]);
+  return <CardContext.Provider value={value}>{children}</CardContext.Provider>;
 }
-
 export function useCards() {
-  return useContext(CardContext);
+  const context = useContext(CardContext);
+  if (!context) throw new Error('useCards must be used inside CardProvider');
+  return context;
 }

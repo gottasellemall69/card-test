@@ -1,10 +1,13 @@
-import { getSetNameIdMap } from '@/utils/api';
+import { apiRoute } from '@/lib/server/http';
+import { getSetNameIdMap } from '@/lib/server/cardApi';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   const setNameIdMap = await getSetNameIdMap();
   if (!setNameIdMap) {
-    res.status(500).json({ message: "Error fetching set name ID map" });
+    res.status(500).json({ message: 'Error fetching set name ID map' });
   } else {
     res.status(200).json(setNameIdMap);
   }
 }
+
+export default apiRoute({ methods: ['GET'], auth: false }, handler);

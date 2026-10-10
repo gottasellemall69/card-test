@@ -1,5 +1,5 @@
 import React from 'react';
-import {CARD_SETS} from '@/constants/cardSets';
+import { CARD_SETS } from '@/constants/cardSets';
 
 interface CardSetSelectorProps {
   value: string;
@@ -8,7 +8,7 @@ interface CardSetSelectorProps {
 
 const CardSetSelector: React.FC<CardSetSelectorProps> = ({ value, onChange }) => {
   return (
-    <select 
+    <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       aria-label="Select a sports card set"

@@ -19,5 +19,5 @@ export const CARD_SETS = [
   '1989 MLB Fleer',
   '1991 MLB Donruss',
   '1991 MLB SCORE',
-  '1991 MLB Fleer'
+  '1991 MLB Fleer',
 ];

@@ -1,118 +1,115 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/router";
-import Head from "next/head";
-import Link from "next/link";
-import dynamic from "next/dynamic";
-import { CheckCircle2, Filter, Grid, List } from "lucide-react";
-import Breadcrumb from "@/components/Navigation/Breadcrumb";
-import CardFilter from "@/components/Yugioh/CardFilter";
-import FilterPanel from "@/components/Yugioh/FilterPanel";
-import YugiohSearchBar from "@/components/Yugioh/YugiohSearchBar";
-import YugiohPagination from "@/components/Yugioh/YugiohPagination";
-import Notification from "@/components/Notification";
-import { useAppShellSlots } from "@/components/Layout";
-import { fetchCardData as fetchAllCardData, getSetCatalogue, getSetNameIdMap } from "@/utils/api";
-import { buildCardNameCandidates, buildCardNameKeys } from "@/utils/yugiohCardNameVariants";
-import { buildCollectionKey, buildCollectionMap } from "@/utils/collectionUtils.js";
-import { readAuthStateFromCookie, subscribeToAuthState, dispatchAuthStateChange } from "@/utils/authState";
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { CheckCircle2, Filter, Grid, List } from 'lucide-react';
+import Breadcrumb from '@/components/Navigation/Breadcrumb';
+import CardFilter from '@/components/Yugioh/CardFilter';
+import FilterPanel from '@/components/Yugioh/FilterPanel';
+import YugiohSearchBar from '@/components/Yugioh/YugiohSearchBar';
+import YugiohPagination from '@/components/Yugioh/YugiohPagination';
+import Notification from '@/components/Notification';
+import { useAppShellSlots } from '@/components/Layout';
+import { fetchCardData as fetchAllCardData } from '@/utils/api';
+import { getSetCatalogue, getSetNameIdMap } from '@/lib/server/cardApi';
+import { buildCardNameCandidates, buildCardNameKeys } from '@/utils/yugiohCardNameVariants';
+import { buildCollectionKey, buildCollectionMap } from '@/utils/collectionUtils.js';
+import {
+  readAuthStateFromCookie,
+  subscribeToAuthState,
+  dispatchAuthStateChange,
+} from '@/utils/authState';
 
-const YugiohCardDataTable = dynamic(
-  () => import( "@/components/Yugioh/YugiohCardDataTable" ),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="py-10 text-center text-white/70">Loading...</div>
-    ),
-  }
-);
+const YugiohCardDataTable = dynamic(() => import('@/components/Yugioh/YugiohCardDataTable'), {
+  ssr: false,
+  loading: () => <div className="py-10 text-center text-white/70">Loading...</div>,
+});
 
 let cachedCardSets = null;
 let cachedCardSetsAt = 0;
 const SET_CACHE_TTL_MS = 60 * 60 * 1000;
 const LOCAL_IMAGE_BASE_PATH = '/images/yugiohImages';
 const LOCAL_CROPPED_IMAGE_BASE_PATH = '/images/yugiohImagesCropped';
-const FALLBACK_IMAGE = '/images/yugioh-card.png';
+const FALLBACK_IMAGE = '/images/yugioh-card.svg';
 
-const getUniqueStrings = ( values ) => {
+const getUniqueStrings = (values) => {
   const seen = new Set();
   return values
-    .map( ( value ) => ( value === null || value === undefined ? '' : String( value ).trim() ) )
-    .filter( ( value ) => {
-      if ( !value || seen.has( value ) ) {
+    .map((value) => (value === null || value === undefined ? '' : String(value).trim()))
+    .filter((value) => {
+      if (!value || seen.has(value)) {
         return false;
       }
 
-      seen.add( value );
+      seen.add(value);
       return true;
-    } );
+    });
 };
 
-const getImageIdFromUrl = ( value ) => {
-  if ( !value ) {
+const getImageIdFromUrl = (value) => {
+  if (!value) {
     return null;
   }
 
-  const match = String( value ).match( /\/(\d+)\.(?:jpe?g|png|webp)(?:\?.*)?$/i );
-  return match?.[ 1 ] || null;
+  const match = String(value).match(/\/(\d+)\.(?:jpe?g|png|webp)(?:\?.*)?$/i);
+  return match?.[1] || null;
 };
 
-const buildLocalImagePath = ( basePath, imageId ) =>
-  basePath + '/' + encodeURIComponent( String( imageId ) ) + '.jpg';
+const buildLocalImagePath = (basePath, imageId) =>
+  basePath + '/' + encodeURIComponent(String(imageId)) + '.jpg';
 
-const getNextImageSources = ( image ) => {
+const getNextImageSources = (image) => {
   const rawSources = image.dataset.nextSrcs;
-  if ( !rawSources ) {
+  if (!rawSources) {
     return [];
   }
 
   try {
-    const parsed = JSON.parse( rawSources );
-    return Array.isArray( parsed ) ? parsed.filter( Boolean ) : [];
-  } catch ( error ) {
-    return rawSources.split( '|' ).filter( Boolean );
+    const parsed = JSON.parse(rawSources);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch (error) {
+    return rawSources.split('|').filter(Boolean);
   }
 };
 
-const getCardImageSources = ( cardItem ) => {
-  const primaryCardImage = Array.isArray( cardItem?.cardMeta?.card_images )
+const getCardImageSources = (cardItem) => {
+  const primaryCardImage = Array.isArray(cardItem?.cardMeta?.card_images)
     ? cardItem.cardMeta.card_images.find(
-      ( image ) =>
-        image?.id ||
-        image?.image_url ||
-        image?.image_url_cropped ||
-        image?.image_url_small
-    )
+        (image) =>
+          image?.id || image?.image_url || image?.image_url_cropped || image?.image_url_small,
+      )
     : null;
-  const remoteImageSources = getUniqueStrings( [
+  const remoteImageSources = getUniqueStrings([
     cardItem?.remoteImageUrl,
     primaryCardImage?.image_url,
     primaryCardImage?.image_url_cropped,
     primaryCardImage?.image_url_small,
-  ] );
-  const imageIds = getUniqueStrings( [
+  ]);
+  const imageIds = getUniqueStrings([
     primaryCardImage?.id,
     cardItem?.cardImageId,
     cardItem?.cardMeta?.id,
-    ...remoteImageSources.map( getImageIdFromUrl ),
-  ] );
-  const localImageSources = imageIds.flatMap( ( imageId ) => [
-    buildLocalImagePath( LOCAL_IMAGE_BASE_PATH, imageId ),
-    buildLocalImagePath( LOCAL_CROPPED_IMAGE_BASE_PATH, imageId ),
-  ] );
-  const imageSources = getUniqueStrings( [
+    ...remoteImageSources.map(getImageIdFromUrl),
+  ]);
+  const localImageSources = imageIds.flatMap((imageId) => [
+    buildLocalImagePath(LOCAL_IMAGE_BASE_PATH, imageId),
+    buildLocalImagePath(LOCAL_CROPPED_IMAGE_BASE_PATH, imageId),
+  ]);
+  const imageSources = getUniqueStrings([
     ...localImageSources,
     ...remoteImageSources,
     FALLBACK_IMAGE,
-  ] );
+  ]);
 
   return {
-    primaryImageSrc: imageSources[ 0 ] || FALLBACK_IMAGE,
-    backupImageSrcs: imageSources.slice( 1 ).filter( ( source ) => source !== FALLBACK_IMAGE ),
+    primaryImageSrc: imageSources[0] || FALLBACK_IMAGE,
+    backupImageSrcs: imageSources.slice(1).filter((source) => source !== FALLBACK_IMAGE),
   };
 };
 
-const normalizeSetEntry = ( entry ) => {
-  if ( !entry || !entry.name ) {
+const normalizeSetEntry = (entry) => {
+  if (!entry || !entry.name) {
     return null;
   }
 
@@ -122,117 +119,110 @@ const normalizeSetEntry = ( entry ) => {
     urlName: entry.urlName ?? entry.url_name ?? null,
     abbreviation: entry.abbreviation ?? entry.abbr ?? null,
     releaseDate:
-      entry.releaseDate ??
-      entry.releasedDate ??
-      entry.release_date ??
-      entry.release ??
-      null,
+      entry.releaseDate ?? entry.releasedDate ?? entry.release_date ?? entry.release ?? null,
     isSupplemental:
-      typeof entry.isSupplemental === "boolean"
+      typeof entry.isSupplemental === 'boolean'
         ? entry.isSupplemental
-        : typeof entry.is_supplemental === "boolean"
+        : typeof entry.is_supplemental === 'boolean'
           ? entry.is_supplemental
           : null,
   };
 };
 
 async function loadCardSets() {
-  if ( cachedCardSets && Date.now() - cachedCardSetsAt < SET_CACHE_TTL_MS ) {
+  if (cachedCardSets && Date.now() - cachedCardSetsAt < SET_CACHE_TTL_MS) {
     return cachedCardSets;
   }
 
   let catalogue = null;
   try {
     catalogue = await getSetCatalogue();
-  } catch ( error ) {
-    console.error( "Failed to load live set catalogue:", error );
+  } catch (error) {
+    console.error('Failed to load live set catalogue:', error);
   }
 
-  cachedCardSets = Array.isArray( catalogue )
-    ? catalogue.map( normalizeSetEntry ).filter( Boolean )
-    : [];
+  cachedCardSets = Array.isArray(catalogue) ? catalogue.map(normalizeSetEntry).filter(Boolean) : [];
   cachedCardSetsAt = Date.now();
   return cachedCardSets;
 }
 
-const normalizeSetLetter = ( value ) => {
-  if ( !value ) {
-    return "";
+const normalizeSetLetter = (value) => {
+  if (!value) {
+    return '';
   }
 
   const stringValue = value.toString().trim();
-  return stringValue ? stringValue.charAt( 0 ).toUpperCase() : "";
+  return stringValue ? stringValue.charAt(0).toUpperCase() : '';
 };
 
-const DEFAULT_AUTO_CONDITION = "";
-const DEFAULT_AUTO_PRINTING = "";
-const DEFAULT_CONDITION_FILTER = "Near Mint 1st Edition";
+const DEFAULT_AUTO_CONDITION = '';
+const DEFAULT_AUTO_PRINTING = '';
+const DEFAULT_CONDITION_FILTER = 'Near Mint 1st Edition';
 
 // Order matters: check "Unlimited" before "Limited" to avoid substring collisions
-const PRINTING_TOKENS = [ "1st Edition", "Unlimited", "Limited" ];
+const PRINTING_TOKENS = ['1st Edition', 'Unlimited', 'Limited'];
 const STANDARD_CONDITION_VALUES = [
-  "Near Mint 1st Edition",
-  "Lightly Played 1st Edition",
-  "Moderately Played 1st Edition",
-  "Heavily Played 1st Edition",
-  "Damaged 1st Edition",
-  "Near Mint Limited",
-  "Lightly Played Limited",
-  "Moderately Played Limited",
-  "Heavily Played Limited",
-  "Damaged Limited",
-  "Near Mint Unlimited",
-  "Lightly Played Unlimited",
-  "Moderately Played Unlimited",
-  "Heavily Played Unlimited",
-  "Damaged Unlimited",
+  'Near Mint 1st Edition',
+  'Lightly Played 1st Edition',
+  'Moderately Played 1st Edition',
+  'Heavily Played 1st Edition',
+  'Damaged 1st Edition',
+  'Near Mint Limited',
+  'Lightly Played Limited',
+  'Moderately Played Limited',
+  'Heavily Played Limited',
+  'Damaged Limited',
+  'Near Mint Unlimited',
+  'Lightly Played Unlimited',
+  'Moderately Played Unlimited',
+  'Heavily Played Unlimited',
+  'Damaged Unlimited',
 ];
 const GRID_ITEMS_PER_PAGE = 16;
 
-const normalizeFilterToken = ( value = "" ) => {
-  if ( value === null || value === undefined ) {
-    return "";
+const normalizeFilterToken = (value = '') => {
+  if (value === null || value === undefined) {
+    return '';
   }
 
   return value.toString().toLowerCase().trim();
 };
 
-const normalizeIndexToken = ( value = "" ) =>
-  normalizeFilterToken( value ).replace( /[^a-z0-9]+/g, "" );
+const normalizeIndexToken = (value = '') => normalizeFilterToken(value).replace(/[^a-z0-9]+/g, '');
 
-const canonicalizePrintingLabel = ( value = "" ) => {
-  const normalized = normalizeFilterToken( value );
+const canonicalizePrintingLabel = (value = '') => {
+  const normalized = normalizeFilterToken(value);
 
-  if ( !normalized ) {
-    return "";
+  if (!normalized) {
+    return '';
   }
 
-  if ( normalized.includes( "first" ) || normalized.includes( "1st" ) ) {
-    return "1st Edition";
+  if (normalized.includes('first') || normalized.includes('1st')) {
+    return '1st Edition';
   }
 
-  if ( normalized.includes( "unlimit" ) ) {
-    return "Unlimited";
+  if (normalized.includes('unlimit')) {
+    return 'Unlimited';
   }
 
-  if ( normalized.includes( "limited" ) ) {
-    return "Limited";
+  if (normalized.includes('limited')) {
+    return 'Limited';
   }
 
   return value.toString().trim();
 };
 
-const buildConditionLabel = ( baseCondition = "", printing = "" ) => {
-  const parts = [ baseCondition, printing ].filter( Boolean );
-  return parts.join( " " ).trim();
+const buildConditionLabel = (baseCondition = '', printing = '') => {
+  const parts = [baseCondition, printing].filter(Boolean);
+  return parts.join(' ').trim();
 };
 
-const parseConditionFilterValue = ( value ) => {
-  if ( typeof value !== "string" ) return null;
+const parseConditionFilterValue = (value) => {
+  if (typeof value !== 'string') return null;
 
   const trimmedValue = value.trim();
 
-  if ( !trimmedValue ) {
+  if (!trimmedValue) {
     return null;
   }
 
@@ -240,11 +230,11 @@ const parseConditionFilterValue = ( value ) => {
   let baseCondition = trimmedValue;
   let printing = null;
 
-  for ( const token of PRINTING_TOKENS ) {
+  for (const token of PRINTING_TOKENS) {
     const tokenLower = token.toLowerCase();
-    if ( lowerValue.endsWith( tokenLower ) ) {
-      const potentialBase = trimmedValue.slice( 0, trimmedValue.length - token.length ).trim();
-      if ( potentialBase ) {
+    if (lowerValue.endsWith(tokenLower)) {
+      const potentialBase = trimmedValue.slice(0, trimmedValue.length - token.length).trim();
+      if (potentialBase) {
         baseCondition = potentialBase;
         printing = token;
       }
@@ -256,27 +246,27 @@ const parseConditionFilterValue = ( value ) => {
     raw: trimmedValue,
     baseCondition,
     printing,
-    normalizedBase: normalizeFilterToken( baseCondition ),
-    normalizedPrinting: printing ? normalizeFilterToken( printing ) : null,
+    normalizedBase: normalizeFilterToken(baseCondition),
+    normalizedPrinting: printing ? normalizeFilterToken(printing) : null,
   };
 };
 
-const resolveConditionDetails = ( rawCondition, rawPrinting ) => {
-  const condition = typeof rawCondition === "string" ? rawCondition.trim() : "";
-  const printing = canonicalizePrintingLabel( rawPrinting );
+const resolveConditionDetails = (rawCondition, rawPrinting) => {
+  const condition = typeof rawCondition === 'string' ? rawCondition.trim() : '';
+  const printing = canonicalizePrintingLabel(rawPrinting);
 
-  const parsed = parseConditionFilterValue( condition );
+  const parsed = parseConditionFilterValue(condition);
 
   let baseCondition = parsed?.baseCondition?.trim() || condition;
-  let printingLabel = canonicalizePrintingLabel( printing || parsed?.printing );
+  let printingLabel = canonicalizePrintingLabel(printing || parsed?.printing);
 
-  if ( !printingLabel && condition ) {
-    const lowerCondition = normalizeFilterToken( condition );
-    for ( const token of PRINTING_TOKENS ) {
-      const tokenLower = normalizeFilterToken( token );
-      if ( lowerCondition.endsWith( tokenLower ) ) {
-        const potentialBase = condition.slice( 0, condition.length - token.length ).trim();
-        if ( potentialBase ) {
+  if (!printingLabel && condition) {
+    const lowerCondition = normalizeFilterToken(condition);
+    for (const token of PRINTING_TOKENS) {
+      const tokenLower = normalizeFilterToken(token);
+      if (lowerCondition.endsWith(tokenLower)) {
+        const potentialBase = condition.slice(0, condition.length - token.length).trim();
+        if (potentialBase) {
           baseCondition = potentialBase;
           printingLabel = token;
         }
@@ -285,11 +275,11 @@ const resolveConditionDetails = ( rawCondition, rawPrinting ) => {
     }
   }
 
-  if ( !baseCondition && condition ) {
+  if (!baseCondition && condition) {
     baseCondition = condition;
   }
 
-  const conditionLabel = buildConditionLabel( baseCondition, printingLabel );
+  const conditionLabel = buildConditionLabel(baseCondition, printingLabel);
 
   return {
     baseCondition,
@@ -298,39 +288,42 @@ const resolveConditionDetails = ( rawCondition, rawPrinting ) => {
   };
 };
 
-const ensureAllConditionVariants = ( variants = [], { productId = null, productName = "", cardMeta = null } = {} ) => {
-  const baseVariant = variants[ 0 ] || {};
+const ensureAllConditionVariants = (
+  variants = [],
+  { productId = null, productName = '', cardMeta = null } = {},
+) => {
+  const baseVariant = variants[0] || {};
   const defaultProductId = baseVariant.productID ?? productId ?? null;
-  const defaultNumber = baseVariant.number || "";
-  const defaultRarity = baseVariant.rarity || "Unknown Rarity";
+  const defaultNumber = baseVariant.number || '';
+  const defaultRarity = baseVariant.rarity || 'Unknown Rarity';
   const defaultSet = baseVariant.set || cardMeta?.set_name || null;
 
-  const normalizedVariants = variants.map( ( variant ) => {
+  const normalizedVariants = variants.map((variant) => {
     const conditionLabel =
-      variant.conditionLabel || buildConditionLabel( variant.baseCondition, variant.printing );
+      variant.conditionLabel || buildConditionLabel(variant.baseCondition, variant.printing);
     return {
       ...variant,
       productID: variant.productID ?? defaultProductId,
       productName: variant.productName || productName,
       conditionLabel,
-      condition: conditionLabel || variant.condition || "",
+      condition: conditionLabel || variant.condition || '',
     };
-  } );
+  });
 
   const existingConditionTokens = new Set(
     normalizedVariants
-      .map( ( variant ) => normalizeFilterToken( variant.conditionLabel ) )
-      .filter( Boolean )
+      .map((variant) => normalizeFilterToken(variant.conditionLabel))
+      .filter(Boolean),
   );
 
-  STANDARD_CONDITION_VALUES.forEach( ( conditionValue ) => {
-    const { baseCondition, printing, conditionLabel } = resolveConditionDetails( conditionValue );
-    const token = normalizeFilterToken( conditionLabel );
-    if ( !conditionLabel || existingConditionTokens.has( token ) ) {
+  STANDARD_CONDITION_VALUES.forEach((conditionValue) => {
+    const { baseCondition, printing, conditionLabel } = resolveConditionDetails(conditionValue);
+    const token = normalizeFilterToken(conditionLabel);
+    if (!conditionLabel || existingConditionTokens.has(token)) {
       return;
     }
 
-    normalizedVariants.push( {
+    normalizedVariants.push({
       productID: defaultProductId,
       productName,
       number: defaultNumber,
@@ -342,30 +335,26 @@ const ensureAllConditionVariants = ( variants = [], { productId = null, productN
       condition: conditionLabel,
       marketPrice: 0,
       lowPrice: 0,
-    } );
-    existingConditionTokens.add( token );
-  } );
+    });
+    existingConditionTokens.add(token);
+  });
 
   return normalizedVariants;
 };
 
-const lookupCardMeta = ( entry = {}, cardIndex = {} ) => {
-  const idCandidates = [
-    entry?.cardId,
-    entry?.cardImageId,
-    entry?.id,
-  ];
+const lookupCardMeta = (entry = {}, cardIndex = {}) => {
+  const idCandidates = [entry?.cardId, entry?.cardImageId, entry?.id];
 
-  for ( const candidate of idCandidates ) {
-    const idKey = normalizeIndexToken( candidate );
-    const idMatch = idKey ? cardIndex[ '__id:' + idKey ] : undefined;
-    if ( idMatch ) {
+  for (const candidate of idCandidates) {
+    const idKey = normalizeIndexToken(candidate);
+    const idMatch = idKey ? cardIndex['__id:' + idKey] : undefined;
+    if (idMatch) {
       return idMatch;
     }
   }
 
-  const setCodeKey = normalizeIndexToken( entry?.number );
-  if ( setCodeKey ) {
+  const setCodeKey = normalizeIndexToken(entry?.number);
+  if (setCodeKey) {
     const setNameCandidates = [
       entry?.set,
       entry?.setName,
@@ -374,322 +363,314 @@ const lookupCardMeta = ( entry = {}, cardIndex = {} ) => {
       entry?.cardSetName,
     ];
 
-    for ( const setName of setNameCandidates ) {
-      const setNameKey = normalizeIndexToken( setName );
+    for (const setName of setNameCandidates) {
+      const setNameKey = normalizeIndexToken(setName);
       const combinedKey = setNameKey ? '__setname:' + setNameKey + '::' + setCodeKey : '';
-      if ( combinedKey && cardIndex[ combinedKey ] ) {
-        return cardIndex[ combinedKey ];
+      if (combinedKey && cardIndex[combinedKey]) {
+        return cardIndex[combinedKey];
       }
     }
 
-    const setCodeMatch = cardIndex[ '__setcode:' + setCodeKey ];
-    if ( setCodeMatch ) {
+    const setCodeMatch = cardIndex['__setcode:' + setCodeKey];
+    if (setCodeMatch) {
       return setCodeMatch;
     }
   }
 
-  const keys = buildCardNameKeys( entry?.productName || '' );
-  for ( const key of keys ) {
-    if ( key && cardIndex[ key ] ) {
-      return cardIndex[ key ];
+  const keys = buildCardNameKeys(entry?.productName || '');
+  for (const key of keys) {
+    if (key && cardIndex[key]) {
+      return cardIndex[key];
     }
   }
 
   return undefined;
 };
 
-const resolveDetailLookupName = ( cardMetaName = "", productName = "" ) => {
-  if ( cardMetaName ) {
+const resolveDetailLookupName = (cardMetaName = '', productName = '') => {
+  if (cardMetaName) {
     return cardMetaName;
   }
 
-  const candidates = buildCardNameCandidates( productName );
-  return candidates[ candidates.length - 1 ] || productName || "";
+  const candidates = buildCardNameCandidates(productName);
+  return candidates[candidates.length - 1] || productName || '';
 };
 
-const safeCompare = ( a, b ) => {
-  const left = ( a ?? "" ).toString();
-  const right = ( b ?? "" ).toString();
-  return left.localeCompare( right, undefined, { numeric: true, sensitivity: "base" } );
+const safeCompare = (a, b) => {
+  const left = (a ?? '').toString();
+  const right = (b ?? '').toString();
+  return left.localeCompare(right, undefined, { numeric: true, sensitivity: 'base' });
 };
 
-const PRINTING_SORT_ORDER = [ "1st Edition", "Limited", "Unlimited" ];
+const PRINTING_SORT_ORDER = ['1st Edition', 'Limited', 'Unlimited'];
 const BASE_CONDITION_SORT_ORDER = [
-  "Near Mint",
-  "Lightly Played",
-  "Moderately Played",
-  "Heavily Played",
-  "Damaged",
+  'Near Mint',
+  'Lightly Played',
+  'Moderately Played',
+  'Heavily Played',
+  'Damaged',
 ];
 
-const compareWithOrder = ( left, right, order ) => {
-  const leftValue = ( left ?? "" ).toString().trim();
-  const rightValue = ( right ?? "" ).toString().trim();
+const compareWithOrder = (left, right, order) => {
+  const leftValue = (left ?? '').toString().trim();
+  const rightValue = (right ?? '').toString().trim();
 
-  if ( !leftValue && !rightValue ) {
+  if (!leftValue && !rightValue) {
     return 0;
   }
 
-  if ( !leftValue ) {
+  if (!leftValue) {
     return 1;
   }
 
-  if ( !rightValue ) {
+  if (!rightValue) {
     return -1;
   }
 
   const leftRank = order.findIndex(
-    ( entry ) => normalizeFilterToken( entry ) === normalizeFilterToken( leftValue )
+    (entry) => normalizeFilterToken(entry) === normalizeFilterToken(leftValue),
   );
   const rightRank = order.findIndex(
-    ( entry ) => normalizeFilterToken( entry ) === normalizeFilterToken( rightValue )
+    (entry) => normalizeFilterToken(entry) === normalizeFilterToken(rightValue),
   );
 
   const resolvedLeftRank = leftRank === -1 ? order.length : leftRank;
   const resolvedRightRank = rightRank === -1 ? order.length : rightRank;
 
-  if ( resolvedLeftRank !== resolvedRightRank ) {
+  if (resolvedLeftRank !== resolvedRightRank) {
     return resolvedLeftRank - resolvedRightRank;
   }
 
-  return safeCompare( leftValue, rightValue );
+  return safeCompare(leftValue, rightValue);
 };
 
-const comparePrinting = ( left, right ) => compareWithOrder( left, right, PRINTING_SORT_ORDER );
-const compareBaseCondition = ( left, right ) => compareWithOrder( left, right, BASE_CONDITION_SORT_ORDER );
+const comparePrinting = (left, right) => compareWithOrder(left, right, PRINTING_SORT_ORDER);
+const compareBaseCondition = (left, right) =>
+  compareWithOrder(left, right, BASE_CONDITION_SORT_ORDER);
 
-const formatPriceLabel = ( value ) => {
-  const numeric = Number( value );
-  if ( Number.isFinite( numeric ) ) {
-    return "$" + numeric.toFixed( 2 );
+const formatPriceLabel = (value) => {
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) {
+    return '$' + numeric.toFixed(2);
   }
-  return "n/a";
+  return 'n/a';
 };
 
-const normalizeRarity = ( rarity ) => rarity || "Unknown Rarity";
-const buildDefaultFilters = ( entries = [] ) => {
+const normalizeRarity = (rarity) => rarity || 'Unknown Rarity';
+const buildDefaultFilters = (entries = []) => {
   const raritySet = new Set();
   const printingSet = new Set();
 
-  entries.forEach( ( entry ) => {
-    if ( entry?.rarity ) {
-      raritySet.add( normalizeRarity( entry.rarity ) );
+  entries.forEach((entry) => {
+    if (entry?.rarity) {
+      raritySet.add(normalizeRarity(entry.rarity));
     }
 
-    const printingLabel = canonicalizePrintingLabel( entry?.printing );
-    if ( printingLabel ) {
-      printingSet.add( printingLabel );
+    const printingLabel = canonicalizePrintingLabel(entry?.printing);
+    if (printingLabel) {
+      printingSet.add(printingLabel);
     }
 
-    const conditionDetails = resolveConditionDetails( entry?.condition, entry?.printing );
-    if ( conditionDetails.printing ) {
-      printingSet.add( conditionDetails.printing );
+    const conditionDetails = resolveConditionDetails(entry?.condition, entry?.printing);
+    if (conditionDetails.printing) {
+      printingSet.add(conditionDetails.printing);
     }
-  } );
+  });
 
-  const sortValues = ( values ) =>
-    values.sort( ( left, right ) => safeCompare( left, right ) );
+  const sortValues = (values) => values.sort((left, right) => safeCompare(left, right));
 
-  const sortedPrintings = sortValues( Array.from( printingSet ) );
-  const defaultPrintings = sortedPrintings.includes( "1st Edition" )
-    ? [ "1st Edition" ]
+  const sortedPrintings = sortValues(Array.from(printingSet));
+  const defaultPrintings = sortedPrintings.includes('1st Edition')
+    ? ['1st Edition']
     : sortedPrintings.length > 0
-      ? [ sortedPrintings[ 0 ] ]
+      ? [sortedPrintings[0]]
       : [];
-  const defaultCondition = defaultPrintings[ 0 ]
-    ? buildConditionLabel( "Near Mint", defaultPrintings[ 0 ] )
+  const defaultCondition = defaultPrintings[0]
+    ? buildConditionLabel('Near Mint', defaultPrintings[0])
     : DEFAULT_CONDITION_FILTER;
 
   return {
     rarity: [],
-    condition: defaultCondition ? [ defaultCondition ] : [],
+    condition: defaultCondition ? [defaultCondition] : [],
     printing: [],
   };
 };
-const variantKey = ( variant ) => {
+const variantKey = (variant) => {
   return [
-    variant.productID ?? "",
-    variant.number ?? "",
-    variant.printing ?? "",
-    variant.baseCondition ?? "",
-    variant.rarity ?? "",
-  ].join( "|" );
+    variant.productID ?? '',
+    variant.number ?? '',
+    variant.printing ?? '',
+    variant.baseCondition ?? '',
+    variant.rarity ?? '',
+  ].join('|');
 };
 
-const buildVariantLabel = ( variant ) => {
+const buildVariantLabel = (variant) => {
   const conditionPart =
     variant.conditionLabel ||
-    buildConditionLabel( variant.baseCondition, variant.printing ) ||
-    "Unknown Condition";
-  const rarityPart = variant.rarity || "Unknown Rarity";
+    buildConditionLabel(variant.baseCondition, variant.printing) ||
+    'Unknown Condition';
+  const rarityPart = variant.rarity || 'Unknown Rarity';
 
-  return [ conditionPart, rarityPart ].join( " - " );
+  return [conditionPart, rarityPart].join(' - ');
 };
 
-const findBestVariant = ( variants = [], preferences = {} ) => {
-  if ( !Array.isArray( variants ) || variants.length === 0 ) {
+const findBestVariant = (variants = [], preferences = {}) => {
+  if (!Array.isArray(variants) || variants.length === 0) {
     return null;
   }
 
   const normalized = {
-    condition:
-      preferences.condition && preferences.condition !== ""
-        ? preferences.condition
-        : null,
-    printing:
-      preferences.printing && preferences.printing !== ""
-        ? preferences.printing
-        : null,
-    rarity:
-      preferences.rarity && preferences.rarity !== ""
-        ? preferences.rarity
-        : null,
+    condition: preferences.condition && preferences.condition !== '' ? preferences.condition : null,
+    printing: preferences.printing && preferences.printing !== '' ? preferences.printing : null,
+    rarity: preferences.rarity && preferences.rarity !== '' ? preferences.rarity : null,
   };
 
-  const matches = ( variant, keys ) =>
-    keys.every( ( key ) => {
-      if ( !normalized[ key ] ) return true;
-      if ( key === "condition" ) {
+  const matches = (variant, keys) =>
+    keys.every((key) => {
+      if (!normalized[key]) return true;
+      if (key === 'condition') {
         return variant.baseCondition === normalized.condition;
       }
-      return variant[ key ] === normalized[ key ];
-    } );
+      return variant[key] === normalized[key];
+    });
 
   const priority = [
-    [ "condition", "printing", "rarity" ],
-    [ "condition", "printing" ],
-    [ "condition", "rarity" ],
-    [ "printing", "rarity" ],
-    [ "condition" ],
-    [ "printing" ],
-    [ "rarity" ],
+    ['condition', 'printing', 'rarity'],
+    ['condition', 'printing'],
+    ['condition', 'rarity'],
+    ['printing', 'rarity'],
+    ['condition'],
+    ['printing'],
+    ['rarity'],
     [],
   ];
 
-  for ( const combination of priority ) {
-    const match = variants.find( ( variant ) => matches( variant, combination ) );
-    if ( match ) {
+  for (const combination of priority) {
+    const match = variants.find((variant) => matches(variant, combination));
+    if (match) {
       return match;
     }
   }
 
-  return variants[ 0 ];
+  return variants[0];
 };
 
-const aggregateEntries = ( entries = [], cardIndex = {} ) => {
+const aggregateEntries = (entries = [], cardIndex = {}) => {
   const grouped = new Map();
 
-  entries.forEach( ( entry ) => {
-    if ( !entry?.productName ) return;
+  entries.forEach((entry) => {
+    if (!entry?.productName) return;
 
     const productName = entry.productName.trim();
     const normalizedName = productName.toLowerCase();
-    const { baseCondition, printing: resolvedPrinting, conditionLabel } = resolveConditionDetails(
-      entry.condition,
-      entry.printing
-    );
+    const {
+      baseCondition,
+      printing: resolvedPrinting,
+      conditionLabel,
+    } = resolveConditionDetails(entry.condition, entry.printing);
     const variant = {
       ...entry,
       baseCondition,
       printing: resolvedPrinting,
-      conditionLabel: conditionLabel || entry.condition || "",
-      condition: conditionLabel || entry.condition || "",
+      conditionLabel: conditionLabel || entry.condition || '',
+      condition: conditionLabel || entry.condition || '',
     };
 
-    const cardMeta = lookupCardMeta( entry, cardIndex );
+    const cardMeta = lookupCardMeta(entry, cardIndex);
     const productId = entry.productID || cardMeta?.id || null;
 
-    if ( !grouped.has( productName ) ) {
-      grouped.set( productName, {
+    if (!grouped.has(productName)) {
+      grouped.set(productName, {
         productId,
         productName,
         normalizedName,
         cardMeta,
-        variants: [ variant ],
-      } );
+        variants: [variant],
+      });
     } else {
-      const existing = grouped.get( productName );
-      existing.variants.push( variant );
-      if ( !existing.cardMeta && cardMeta ) {
+      const existing = grouped.get(productName);
+      existing.variants.push(variant);
+      if (!existing.cardMeta && cardMeta) {
         existing.cardMeta = cardMeta;
       }
-      if ( !existing.productId && productId ) {
+      if (!existing.productId && productId) {
         existing.productId = productId;
       }
     }
-  } );
+  });
 
-  return Array.from( grouped.values() )
-    .map( ( card ) => {
+  return Array.from(grouped.values())
+    .map((card) => {
       const productId = card.productId || card.cardMeta?.id || null;
-      const augmentedVariants = ensureAllConditionVariants( card.variants, {
+      const augmentedVariants = ensureAllConditionVariants(card.variants, {
         productId,
         productName: card.productName,
         cardMeta: card.cardMeta,
-      } );
-      const sortedVariants = [ ...augmentedVariants ].sort( ( a, b ) => {
-        const printingCompare = comparePrinting( a.printing, b.printing );
-        if ( printingCompare !== 0 ) return printingCompare;
+      });
+      const sortedVariants = [...augmentedVariants].sort((a, b) => {
+        const printingCompare = comparePrinting(a.printing, b.printing);
+        if (printingCompare !== 0) return printingCompare;
 
-        const conditionCompare = compareBaseCondition( a.baseCondition, b.baseCondition );
-        if ( conditionCompare !== 0 ) return conditionCompare;
+        const conditionCompare = compareBaseCondition(a.baseCondition, b.baseCondition);
+        if (conditionCompare !== 0) return conditionCompare;
 
-        return safeCompare( a.rarity, b.rarity );
-      } );
+        return safeCompare(a.rarity, b.rarity);
+      });
 
       return {
         ...card,
         productId,
         variants: sortedVariants,
       };
-    } )
-    .sort( ( a, b ) => safeCompare( a.productName, b.productName ) );
+    })
+    .sort((a, b) => safeCompare(a.productName, b.productName));
 };
 
-const AUTO_RARITY_OPTION = "";
+const AUTO_RARITY_OPTION = '';
 
-const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } ) => {
+const CardsInSetPage = ({ initialSetName = '', setNameId = null, letter = '' }) => {
   const router = useRouter();
   const { setName, letter: routeLetter, rarity: routeRarity } = router.query;
 
-  const decodedSetName = useMemo( () => {
-    if ( typeof setName === "string" ) {
-      return decodeURIComponent( setName );
+  const decodedSetName = useMemo(() => {
+    if (typeof setName === 'string') {
+      return decodeURIComponent(setName);
     }
-    if ( initialSetName ) {
+    if (initialSetName) {
       return initialSetName;
     }
-    return "";
-  }, [ setName, initialSetName ] );
+    return '';
+  }, [setName, initialSetName]);
 
-  const [ cards, setCards ] = useState( [] );
-  const [ rawEntries, setRawEntries ] = useState( [] );
-  const [ cardIndex, setCardIndex ] = useState( {} );
-  const [ resolvedSetName, setResolvedSetName ] = useState( initialSetName || "" );
-  const [ isLoading, setIsLoading ] = useState( false );
-  const [ fetchError, setFetchError ] = useState( "" );
-  const [ filters, setFilters ] = useState( () => buildDefaultFilters() );
-  const [ rarityOverrides, setRarityOverrides ] = useState( {} );
-  const [ selectedNumbers, setSelectedNumbers ] = useState( [] );
-  const [ numbersOpen, setNumbersOpen ] = useState( false );
-  const [ selectedRowIds, setSelectedRowIds ] = useState( {} );
-  const [ bulkSelections, setBulkSelections ] = useState( {} );
-  const [ selectedCard, setSelectedCard ] = useState( null );
-  const [ modalVariant, setModalVariant ] = useState( null );
-  const [ modalVisible, setModalVisible ] = useState( false );
-  const [ bulkModalVisible, setBulkModalVisible ] = useState( false );
-  const [ isAuthenticated, setIsAuthenticated ] = useState( false );
-  const [ collectionCards, setCollectionCards ] = useState( [] );
-  const [ gridSelectionMode, setGridSelectionMode ] = useState( false );
-  const [ flippedGridCards, setFlippedGridCards ] = useState( {} );
-  const [ searchTerm, setSearchTerm ] = useState( "" );
-  const [ sortField, setSortField ] = useState( "number" );
-  const [ sortDirection, setSortDirection ] = useState( "asc" );
-  const [ viewMode, setViewMode ] = useState( "grid" );
-  const [ gridPage, setGridPage ] = useState( 1 );
-  const [ isFilterDrawerOpen, setIsFilterDrawerOpen ] = useState( false );
-  const [ isDesktopFilterOpen, setIsDesktopFilterOpen ] = useState( false );
-  const defaultFilters = useMemo( () => buildDefaultFilters( rawEntries ), [ rawEntries ] );
+  const [cards, setCards] = useState([]);
+  const [rawEntries, setRawEntries] = useState([]);
+  const [cardIndex, setCardIndex] = useState({});
+  const [resolvedSetName, setResolvedSetName] = useState(initialSetName || '');
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState('');
+  const [filters, setFilters] = useState(() => buildDefaultFilters());
+  const [rarityOverrides, setRarityOverrides] = useState({});
+  const [selectedNumbers, setSelectedNumbers] = useState([]);
+  const [numbersOpen, setNumbersOpen] = useState(false);
+  const [selectedRowIds, setSelectedRowIds] = useState({});
+  const [bulkSelections, setBulkSelections] = useState({});
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [modalVariant, setModalVariant] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [bulkModalVisible, setBulkModalVisible] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [collectionCards, setCollectionCards] = useState([]);
+  const [gridSelectionMode, setGridSelectionMode] = useState(false);
+  const [flippedGridCards, setFlippedGridCards] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState('number');
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [viewMode, setViewMode] = useState('grid');
+  const [gridPage, setGridPage] = useState(1);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(false);
+  const defaultFilters = useMemo(() => buildDefaultFilters(rawEntries), [rawEntries]);
 
   const selectedConditions = filters.condition;
   const selectedPrintings = filters.printing;
@@ -698,107 +679,107 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
   const conditionDescriptors = useMemo(
     () =>
       selectedConditions
-        .map( parseConditionFilterValue )
-        .filter( ( descriptor ) => descriptor && descriptor.normalizedBase ),
-    [ selectedConditions ]
+        .map(parseConditionFilterValue)
+        .filter((descriptor) => descriptor && descriptor.normalizedBase),
+    [selectedConditions],
   );
 
   const normalizedRarityFilters = useMemo(
-    () => selectedRarities.map( ( value ) => normalizeRarity( value ) ),
-    [ selectedRarities ]
+    () => selectedRarities.map((value) => normalizeRarity(value)),
+    [selectedRarities],
   );
 
-  const primaryCondition = conditionDescriptors[ 0 ]?.baseCondition || DEFAULT_AUTO_CONDITION;
+  const primaryCondition = conditionDescriptors[0]?.baseCondition || DEFAULT_AUTO_CONDITION;
   const primaryPrinting =
-    selectedPrintings[ 0 ] ||
-    conditionDescriptors.find( ( descriptor ) => Boolean( descriptor.printing ) )?.printing ||
+    selectedPrintings[0] ||
+    conditionDescriptors.find((descriptor) => Boolean(descriptor.printing))?.printing ||
     DEFAULT_AUTO_PRINTING;
-  const primaryRarity = normalizedRarityFilters[ 0 ] || null;
+  const primaryRarity = normalizedRarityFilters[0] || null;
   const activeFilterCount =
     selectedConditions.length + selectedPrintings.length + selectedRarities.length;
   const hasActiveFilters = activeFilterCount > 0;
 
-  const handleFilterChange = useCallback( ( filterType, values ) => {
-    setFilters( ( prev ) => ( {
+  const handleFilterChange = useCallback((filterType, values) => {
+    setFilters((prev) => ({
       ...prev,
-      [ filterType ]: Array.isArray( values ) ? values : prev[ filterType ],
-    } ) );
-  }, [] );
+      [filterType]: Array.isArray(values) ? values : prev[filterType],
+    }));
+  }, []);
 
-  const removeFilterValue = useCallback( ( filterType, value ) => {
-    setFilters( ( prev ) => ( {
+  const removeFilterValue = useCallback((filterType, value) => {
+    setFilters((prev) => ({
       ...prev,
-      [ filterType ]: ( prev[ filterType ] || [] ).filter( ( entry ) => entry !== value ),
-    } ) );
-  }, [] );
+      [filterType]: (prev[filterType] || []).filter((entry) => entry !== value),
+    }));
+  }, []);
 
-  const clearFilters = useCallback( () => {
-    setFilters( { ...defaultFilters } );
-  }, [ defaultFilters ] );
-  const toggleDesktopFilters = useCallback( () => {
-    setIsDesktopFilterOpen( ( prev ) => !prev );
-  }, [] );
-  const [ notification, setNotification ] = useState( { show: false, message: "" } );
+  const clearFilters = useCallback(() => {
+    setFilters({ ...defaultFilters });
+  }, [defaultFilters]);
+  const toggleDesktopFilters = useCallback(() => {
+    setIsDesktopFilterOpen((prev) => !prev);
+  }, []);
+  const [notification, setNotification] = useState({ show: false, message: '' });
 
-  const notify = useCallback( ( message ) => {
-    if ( !message ) return;
-    setNotification( { show: true, message } );
-  }, [] );
+  const notify = useCallback((message) => {
+    if (!message) return;
+    setNotification({ show: true, message });
+  }, []);
 
-  const updateNotificationVisibility = useCallback( ( showValue ) => {
-    setNotification( ( prev ) => ( { ...prev, show: showValue } ) );
-  }, [] );
+  const updateNotificationVisibility = useCallback((showValue) => {
+    setNotification((prev) => ({ ...prev, show: showValue }));
+  }, []);
 
-  useEffect( () => {
+  useEffect(() => {
     let isMounted = true;
 
     const loadCardIndex = async () => {
       try {
         const catalogue = await fetchAllCardData();
-        if ( !isMounted ) {
+        if (!isMounted) {
           return;
         }
 
-        if ( Array.isArray( catalogue ) ) {
+        if (Array.isArray(catalogue)) {
           const index = {};
-          catalogue.forEach( ( card ) => {
-            if ( !card?.name ) return;
+          catalogue.forEach((card) => {
+            if (!card?.name) return;
 
-            const keys = buildCardNameKeys( card.name );
-            keys.forEach( ( key ) => {
-              if ( key && !index[ key ] ) {
-                index[ key ] = card;
+            const keys = buildCardNameKeys(card.name);
+            keys.forEach((key) => {
+              if (key && !index[key]) {
+                index[key] = card;
               }
-            } );
+            });
 
-            const idKey = normalizeIndexToken( card.id );
-            if ( idKey && !index[ `__id:${ idKey }` ] ) {
-              index[ `__id:${ idKey }` ] = card;
+            const idKey = normalizeIndexToken(card.id);
+            if (idKey && !index[`__id:${idKey}`]) {
+              index[`__id:${idKey}`] = card;
             }
 
-            const cardSets = Array.isArray( card.card_sets ) ? card.card_sets : [];
-            cardSets.forEach( ( setEntry ) => {
-              const setCodeKey = normalizeIndexToken( setEntry?.set_code );
-              if ( setCodeKey && !index[ `__setcode:${ setCodeKey }` ] ) {
-                index[ `__setcode:${ setCodeKey }` ] = card;
+            const cardSets = Array.isArray(card.card_sets) ? card.card_sets : [];
+            cardSets.forEach((setEntry) => {
+              const setCodeKey = normalizeIndexToken(setEntry?.set_code);
+              if (setCodeKey && !index[`__setcode:${setCodeKey}`]) {
+                index[`__setcode:${setCodeKey}`] = card;
               }
 
-              const setNameKey = normalizeIndexToken( setEntry?.set_name );
+              const setNameKey = normalizeIndexToken(setEntry?.set_name);
               const combinedKey =
-                setNameKey && setCodeKey ? `__setname:${ setNameKey }::${ setCodeKey }` : "";
-              if ( combinedKey && !index[ combinedKey ] ) {
-                index[ combinedKey ] = card;
+                setNameKey && setCodeKey ? `__setname:${setNameKey}::${setCodeKey}` : '';
+              if (combinedKey && !index[combinedKey]) {
+                index[combinedKey] = card;
               }
-            } );
-          } );
-          setCardIndex( index );
+            });
+          });
+          setCardIndex(index);
         } else {
-          setCardIndex( {} );
+          setCardIndex({});
         }
-      } catch ( error ) {
-        console.error( "Error loading card metadata:", error );
-        if ( isMounted ) {
-          setCardIndex( {} );
+      } catch (error) {
+        console.error('Error loading card metadata:', error);
+        if (isMounted) {
+          setCardIndex({});
         }
       }
     };
@@ -808,35 +789,35 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     return () => {
       isMounted = false;
     };
-  }, [] );
+  }, []);
 
-  const collectionLookup = useMemo( () => buildCollectionMap( collectionCards ), [ collectionCards ] );
-  const activeSetDisplayName = resolvedSetName || decodedSetName || "Unknown Set";
-  const letterLabel = routeLetter || letter || "";
+  const collectionLookup = useMemo(() => buildCollectionMap(collectionCards), [collectionCards]);
+  const activeSetDisplayName = resolvedSetName || decodedSetName || 'Unknown Set';
+  const letterLabel = routeLetter || letter || '';
 
-  const preferences = useMemo( () => ( {
-    condition: primaryCondition,
-    printing: primaryPrinting,
-    rarity: primaryRarity,
-  } ), [ primaryCondition, primaryPrinting, primaryRarity ] );
-  const makeOverrideKey = useCallback(
-    ( productName ) => `${ productName }::${ activeSetDisplayName }`,
-    [ activeSetDisplayName ]
+  const preferences = useMemo(
+    () => ({
+      condition: primaryCondition,
+      printing: primaryPrinting,
+      rarity: primaryRarity,
+    }),
+    [primaryCondition, primaryPrinting, primaryRarity],
   );
-  const deriveSetFromCatalogue = useCallback( ( catalogue, targetName ) => {
-    if ( !Array.isArray( catalogue ) || !targetName ) {
+  const makeOverrideKey = useCallback(
+    (productName) => `${productName}::${activeSetDisplayName}`,
+    [activeSetDisplayName],
+  );
+  const deriveSetFromCatalogue = useCallback((catalogue, targetName) => {
+    if (!Array.isArray(catalogue) || !targetName) {
       return null;
     }
 
     const normalizedTarget = targetName.toLowerCase();
     const match = catalogue.find(
-      ( entry ) =>
-        entry?.name &&
-        entry?.setNameId &&
-        entry.name.toLowerCase() === normalizedTarget
+      (entry) => entry?.name && entry?.setNameId && entry.name.toLowerCase() === normalizedTarget,
     );
 
-    if ( !match ) {
+    if (!match) {
       return null;
     }
 
@@ -844,110 +825,110 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       officialName: match.name,
       setNameId: match.setNameId,
     };
-  }, [] );
+  }, []);
 
   const handleRarityOverrideChange = useCallback(
-    ( productName, value ) => {
-      const key = makeOverrideKey( productName );
-      setRarityOverrides( ( prev ) => {
+    (productName, value) => {
+      const key = makeOverrideKey(productName);
+      setRarityOverrides((prev) => {
         const next = { ...prev };
-        if ( !value || value === AUTO_RARITY_OPTION ) {
-          delete next[ key ];
+        if (!value || value === AUTO_RARITY_OPTION) {
+          delete next[key];
         } else {
-          next[ key ] = value;
+          next[key] = value;
         }
         return next;
-      } );
+      });
     },
-    [ makeOverrideKey ]
+    [makeOverrideKey],
   );
-  useEffect( () => {
-    if ( !decodedSetName ) return;
+  useEffect(() => {
+    if (!decodedSetName) return;
     let isMounted = true;
 
     const loadData = async () => {
-      setIsLoading( true );
-      setFetchError( "" );
+      setIsLoading(true);
+      setFetchError('');
 
       try {
         let effectiveSetId = setNameId;
         let officialName = initialSetName || decodedSetName;
 
-        if ( !effectiveSetId ) {
+        if (!effectiveSetId) {
           let resolvedSet = null;
 
           try {
-            const mapResponse = await fetch( "/api/Yugioh/setNameIdMap" );
-            if ( !mapResponse.ok ) {
-              throw new Error( `Failed to load set catalogue (${ mapResponse.status })` );
+            const mapResponse = await fetch('/api/Yugioh/setNameIdMap');
+            if (!mapResponse.ok) {
+              throw new Error(`Failed to load set catalogue (${mapResponse.status})`);
             }
 
             const setMap = await mapResponse.json();
-            if ( setMap && !Array.isArray( setMap ) ) {
-              const match = Object.entries( setMap ).find(
-                ( [ name ] ) => name.toLowerCase() === decodedSetName.toLowerCase()
+            if (setMap && !Array.isArray(setMap)) {
+              const match = Object.entries(setMap).find(
+                ([name]) => name.toLowerCase() === decodedSetName.toLowerCase(),
               );
 
-              if ( match ) {
+              if (match) {
                 resolvedSet = {
-                  officialName: match[ 0 ],
-                  setNameId: match[ 1 ],
+                  officialName: match[0],
+                  setNameId: match[1],
                 };
               } else {
-                throw new Error( "Set not found in catalogue" );
+                throw new Error('Set not found in catalogue');
               }
             } else {
-              throw new Error( "Unexpected set catalogue format" );
+              throw new Error('Unexpected set catalogue format');
             }
-          } catch ( catalogueError ) {
-            console.error( "Failed to resolve set from live catalogue:", catalogueError );
+          } catch (catalogueError) {
+            console.error('Failed to resolve set from live catalogue:', catalogueError);
           }
 
-          if ( resolvedSet ) {
+          if (resolvedSet) {
             officialName = resolvedSet.officialName;
             effectiveSetId = resolvedSet.setNameId;
           }
         }
 
-        if ( !effectiveSetId ) {
-          throw new Error( "Missing set identifier" );
+        if (!effectiveSetId) {
+          throw new Error('Missing set identifier');
         }
 
-        const priceResponse = await fetch( `/api/Yugioh/cards/${ effectiveSetId }` );
-        if ( !priceResponse.ok ) {
-          throw new Error( "Failed to load pricing" );
+        const priceResponse = await fetch(`/api/Yugioh/cards/${effectiveSetId}`);
+        if (!priceResponse.ok) {
+          throw new Error('Failed to load pricing');
         }
 
         const payload = await priceResponse.json();
-        const results = Array.isArray( payload ) ? payload : payload?.result;
+        const results = Array.isArray(payload) ? payload : payload?.result;
 
-        if ( !Array.isArray( results ) ) {
-          throw new Error( "Unexpected response format" );
+        if (!Array.isArray(results)) {
+          throw new Error('Unexpected response format');
         }
 
-        const initialFilters = buildDefaultFilters( results );
+        const initialFilters = buildDefaultFilters(results);
 
-        if ( isMounted ) {
-          setResolvedSetName( officialName || decodedSetName );
-          setRawEntries( results );
-          setSelectedRowIds( {} );
-          setBulkSelections( {} );
-          setSelectedNumbers( [] );
-          setFilters( initialFilters );
-          setRarityOverrides( {} );
-          setGridSelectionMode( false );
-          setGridPage( 1 );
+        if (isMounted) {
+          setResolvedSetName(officialName || decodedSetName);
+          setRawEntries(results);
+          setSelectedRowIds({});
+          setBulkSelections({});
+          setSelectedNumbers([]);
+          setFilters(initialFilters);
+          setRarityOverrides({});
+          setGridSelectionMode(false);
+          setGridPage(1);
         }
-      } catch ( error ) {
-        console.error( "Error loading set pricing:", error );
-        if ( isMounted ) {
-          setRawEntries( [] );
-          setCards( [] );
-          setFetchError( error?.message || "Unable to load pricing data for this set." );
+      } catch (error) {
+        console.error('Error loading set pricing:', error);
+        if (isMounted) {
+          setRawEntries([]);
+          setCards([]);
+          setFetchError(error?.message || 'Unable to load pricing data for this set.');
         }
       } finally {
-        if ( isMounted ) {
-          setIsLoading( false );
+        if (isMounted) {
+          setIsLoading(false);
         }
       }
     };
@@ -957,351 +938,352 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     return () => {
       isMounted = false;
     };
-  }, [ decodedSetName, initialSetName, setNameId, deriveSetFromCatalogue ] );
+  }, [decodedSetName, initialSetName, setNameId, deriveSetFromCatalogue]);
 
-  useEffect( () => {
-    if ( !Array.isArray( rawEntries ) || rawEntries.length === 0 ) {
-      setCards( [] );
+  useEffect(() => {
+    if (!Array.isArray(rawEntries) || rawEntries.length === 0) {
+      setCards([]);
       return;
     }
 
-    setCards( aggregateEntries( rawEntries, cardIndex ) );
-  }, [ rawEntries, cardIndex ] );
+    setCards(aggregateEntries(rawEntries, cardIndex));
+  }, [rawEntries, cardIndex]);
 
-  useEffect( () => {
+  useEffect(() => {
     const syncAuthState = () => {
-      setIsAuthenticated( readAuthStateFromCookie() );
+      setIsAuthenticated(readAuthStateFromCookie());
     };
 
     syncAuthState();
 
-    const unsubscribe = subscribeToAuthState( ( state ) => {
-      setIsAuthenticated( state );
-    } );
+    const unsubscribe = subscribeToAuthState((state) => {
+      setIsAuthenticated(state);
+    });
 
-    window.addEventListener( "focus", syncAuthState );
+    window.addEventListener('focus', syncAuthState);
 
     return () => {
       unsubscribe();
-      window.removeEventListener( "focus", syncAuthState );
+      window.removeEventListener('focus', syncAuthState);
     };
-  }, [] );
+  }, []);
 
-  const refreshCollectionCards = useCallback( async () => {
+  const refreshCollectionCards = useCallback(async () => {
     try {
-      const response = await fetch( "/api/Yugioh/my-collection", {
-        method: "GET",
-        credentials: "include",
-      } );
+      const response = await fetch('/api/Yugioh/my-collection', {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-      if ( response.status === 401 ) {
-        setCollectionCards( [] );
-        setIsAuthenticated( false );
-        dispatchAuthStateChange( false );
+      if (response.status === 401) {
+        setCollectionCards([]);
+        setIsAuthenticated(false);
+        dispatchAuthStateChange(false);
         return [];
       }
 
-      if ( !response.ok ) {
-        setCollectionCards( [] );
+      if (!response.ok) {
+        setCollectionCards([]);
         return [];
       }
 
       const data = await response.json();
-      const nextCards = Array.isArray( data ) ? data : [];
-      setCollectionCards( nextCards );
+      const nextCards = Array.isArray(data) ? data : [];
+      setCollectionCards(nextCards);
       return nextCards;
-    } catch ( error ) {
-      console.error( "Failed to load collection for set view:", error );
-      setCollectionCards( [] );
-      if ( error?.status === 401 ) {
-        setIsAuthenticated( false );
-        dispatchAuthStateChange( false );
+    } catch (error) {
+      console.error('Failed to load collection for set view:', error);
+      setCollectionCards([]);
+      if (error?.status === 401) {
+        setIsAuthenticated(false);
+        dispatchAuthStateChange(false);
       }
       return [];
     }
-  }, [] );
+  }, []);
 
-  useEffect( () => {
-    if ( !isAuthenticated ) {
-      setCollectionCards( [] );
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCollectionCards([]);
       return;
     }
 
     refreshCollectionCards();
-  }, [ isAuthenticated, refreshCollectionCards ] );
+  }, [isAuthenticated, refreshCollectionCards]);
 
-  useEffect( () => {
-    if ( isAuthenticated ) {
+  useEffect(() => {
+    if (isAuthenticated) {
       return;
     }
 
-    setGridSelectionMode( false );
-    setSelectedRowIds( ( prev ) => ( Object.keys( prev ).length === 0 ? prev : {} ) );
-    setBulkSelections( ( prev ) => ( Object.keys( prev ).length === 0 ? prev : {} ) );
-    setModalVisible( false );
-    setBulkModalVisible( false );
-    setSelectedCard( ( prev ) => ( prev === null ? prev : null ) );
-    setModalVariant( ( prev ) => ( prev === null ? prev : null ) );
-  }, [ isAuthenticated ] );
+    setGridSelectionMode(false);
+    setSelectedRowIds((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+    setBulkSelections((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+    setModalVisible(false);
+    setBulkModalVisible(false);
+    setSelectedCard((prev) => (prev === null ? prev : null));
+    setModalVariant((prev) => (prev === null ? prev : null));
+  }, [isAuthenticated]);
 
-  useEffect( () => {
-    if ( viewMode !== "grid" ) {
-      setGridSelectionMode( false );
+  useEffect(() => {
+    if (viewMode !== 'grid') {
+      setGridSelectionMode(false);
     }
-  }, [ viewMode ] );
+  }, [viewMode]);
 
-  useEffect( () => {
-    setSelectedRowIds( {} );
-    setBulkSelections( {} );
-    setGridPage( 1 );
-  }, [ selectedConditions, selectedPrintings, selectedRarities, rarityOverrides ] );
+  useEffect(() => {
+    setSelectedRowIds({});
+    setBulkSelections({});
+    setGridPage(1);
+  }, [selectedConditions, selectedPrintings, selectedRarities, rarityOverrides]);
 
-  const availableNumbers = useMemo( () => {
+  const availableNumbers = useMemo(() => {
     const values = new Set();
-    cards.forEach( ( card ) => {
-      card.variants.forEach( ( variant ) => {
-        if ( variant.number ) {
-          values.add( variant.number );
+    cards.forEach((card) => {
+      card.variants.forEach((variant) => {
+        if (variant.number) {
+          values.add(variant.number);
         }
-      } );
-    } );
-    return Array.from( values ).sort( ( a, b ) => safeCompare( a, b ) );
-  }, [ cards ] );
+      });
+    });
+    return Array.from(values).sort((a, b) => safeCompare(a, b));
+  }, [cards]);
 
-
-
-  const makeCollectionKey = useCallback( ( productName, variant ) =>
-    buildCollectionKey( {
-      productName,
-      setName: activeSetDisplayName,
-      number: variant?.number || "",
-      printing: variant?.printing || "Unknown Edition",
-      rarity: variant?.rarity || "Unknown Rarity",
-    } ), [ activeSetDisplayName ] );
-  const processedCards = useMemo( () => {
+  const makeCollectionKey = useCallback(
+    (productName, variant) =>
+      buildCollectionKey({
+        productName,
+        setName: activeSetDisplayName,
+        number: variant?.number || '',
+        printing: variant?.printing || 'Unknown Edition',
+        rarity: variant?.rarity || 'Unknown Rarity',
+      }),
+    [activeSetDisplayName],
+  );
+  const processedCards = useMemo(() => {
     let data = cards;
 
-    if ( searchTerm ) {
+    if (searchTerm) {
       const term = searchTerm.trim().toLowerCase();
-      data = data.filter( ( card ) => {
-        if ( card.productName.toLowerCase().includes( term ) ) return true;
+      data = data.filter((card) => {
+        if (card.productName.toLowerCase().includes(term)) return true;
         const meta = card.cardMeta;
-        if ( meta?.type && meta.type.toLowerCase().includes( term ) ) return true;
-        if ( meta?.archetype && meta.archetype.toLowerCase().includes( term ) ) return true;
+        if (meta?.type && meta.type.toLowerCase().includes(term)) return true;
+        if (meta?.archetype && meta.archetype.toLowerCase().includes(term)) return true;
         return false;
-      } );
+      });
     }
 
-    if ( selectedNumbers.length > 0 ) {
-      data = data.filter( ( card ) =>
-        card.variants.some( ( variant ) => selectedNumbers.includes( variant.number ) )
+    if (selectedNumbers.length > 0) {
+      data = data.filter((card) =>
+        card.variants.some((variant) => selectedNumbers.includes(variant.number)),
       );
     }
 
     const printingFilterSet = new Set(
       selectedPrintings
-        .map( ( value ) => normalizeFilterToken( value ) )
-        .filter( ( value ) => Boolean( value ) )
+        .map((value) => normalizeFilterToken(value))
+        .filter((value) => Boolean(value)),
     );
     const rarityFilterSet = new Set(
       normalizedRarityFilters
-        .map( ( value ) => normalizeFilterToken( value ) )
-        .filter( ( value ) => Boolean( value ) )
+        .map((value) => normalizeFilterToken(value))
+        .filter((value) => Boolean(value)),
     );
 
     const hasActiveVariantFilters =
-      conditionDescriptors.length > 0 ||
-      printingFilterSet.size > 0 ||
-      rarityFilterSet.size > 0;
+      conditionDescriptors.length > 0 || printingFilterSet.size > 0 || rarityFilterSet.size > 0;
 
-    const variantMatchesFilters = ( variant, activeRaritySet = rarityFilterSet ) => {
-      const rarityValue = normalizeFilterToken( normalizeRarity( variant.rarity ) );
-      const conditionValue = normalizeFilterToken( variant.baseCondition );
-      const printingValue = normalizeFilterToken( variant.printing );
+    const variantMatchesFilters = (variant, activeRaritySet = rarityFilterSet) => {
+      const rarityValue = normalizeFilterToken(normalizeRarity(variant.rarity));
+      const conditionValue = normalizeFilterToken(variant.baseCondition);
+      const printingValue = normalizeFilterToken(variant.printing);
 
-      const rarityMatches =
-        activeRaritySet.size === 0 || activeRaritySet.has( rarityValue );
+      const rarityMatches = activeRaritySet.size === 0 || activeRaritySet.has(rarityValue);
 
       const conditionMatches =
         conditionDescriptors.length === 0 ||
-        conditionDescriptors.some( ( descriptor ) => {
-          if ( !descriptor.normalizedBase ) {
+        conditionDescriptors.some((descriptor) => {
+          if (!descriptor.normalizedBase) {
             return false;
           }
-          if ( descriptor.normalizedBase !== conditionValue ) {
+          if (descriptor.normalizedBase !== conditionValue) {
             return false;
           }
-          if ( descriptor.normalizedPrinting ) {
+          if (descriptor.normalizedPrinting) {
             return descriptor.normalizedPrinting === printingValue;
           }
           return true;
-        } );
+        });
 
-      const printingMatches =
-        printingFilterSet.size === 0 || printingFilterSet.has( printingValue );
+      const printingMatches = printingFilterSet.size === 0 || printingFilterSet.has(printingValue);
 
       return rarityMatches && conditionMatches && printingMatches;
     };
 
-    if ( hasActiveVariantFilters ) {
-      data = data.filter( ( card ) =>
-        card.variants.some( ( variant ) => variantMatchesFilters( variant ) )
-      );
+    if (hasActiveVariantFilters) {
+      data = data.filter((card) => card.variants.some((variant) => variantMatchesFilters(variant)));
     }
 
     const baseSelectionLabelParts = [];
-    if ( selectedConditions.length > 0 ) {
-      baseSelectionLabelParts.push( selectedConditions.join( ", " ) );
+    if (selectedConditions.length > 0) {
+      baseSelectionLabelParts.push(selectedConditions.join(', '));
     }
-    if ( selectedPrintings.length > 0 ) {
-      baseSelectionLabelParts.push( selectedPrintings.join( ", " ) );
+    if (selectedPrintings.length > 0) {
+      baseSelectionLabelParts.push(selectedPrintings.join(', '));
     }
-    const raritySelectionLabel =
-      selectedRarities.length > 0 ? selectedRarities.join( ", " ) : null;
+    const raritySelectionLabel = selectedRarities.length > 0 ? selectedRarities.join(', ') : null;
 
     const enrichedCards = data
-      .map( ( card ) => {
-        const primaryCardImage = card.cardMeta?.card_images?.[ 0 ] || null;
+      .map((card) => {
+        const primaryCardImage = card.cardMeta?.card_images?.[0] || null;
         const primaryImageId = primaryCardImage?.id || null;
         const remoteImageUrl =
           primaryCardImage?.image_url ||
           primaryCardImage?.image_url_cropped ||
           primaryCardImage?.image_url_small ||
           null;
-        const overrideKey = makeOverrideKey( card.productName );
-        const forcedRarity = rarityOverrides[ overrideKey ];
-        const normalizedForcedRarity = forcedRarity ? normalizeRarity( forcedRarity ) : null;
+        const overrideKey = makeOverrideKey(card.productName);
+        const forcedRarity = rarityOverrides[overrideKey];
+        const normalizedForcedRarity = forcedRarity ? normalizeRarity(forcedRarity) : null;
         const forcedRarityToken = normalizedForcedRarity
-          ? normalizeFilterToken( normalizedForcedRarity )
+          ? normalizeFilterToken(normalizedForcedRarity)
           : null;
-        const activeRaritySet = forcedRarityToken
-          ? new Set( [ forcedRarityToken ] )
-          : rarityFilterSet;
+        const activeRaritySet = forcedRarityToken ? new Set([forcedRarityToken]) : rarityFilterSet;
         const desiredRarity = normalizedForcedRarity || preferences.rarity || null;
 
         const raritySet = new Set();
-        card.variants.forEach( ( variant ) => {
-          raritySet.add( normalizeRarity( variant.rarity ) );
-        } );
-        const rarityOptions = Array.from( raritySet ).sort( ( a, b ) => safeCompare( a, b ) );
+        card.variants.forEach((variant) => {
+          raritySet.add(normalizeRarity(variant.rarity));
+        });
+        const rarityOptions = Array.from(raritySet).sort((a, b) => safeCompare(a, b));
         const hasMultipleRarities = rarityOptions.length > 1;
 
         const variants = card.variants || [];
-        const exactVariant = variants.find( ( variant ) =>
-          variantMatchesFilters( variant, activeRaritySet )
+        const exactVariant = variants.find((variant) =>
+          variantMatchesFilters(variant, activeRaritySet),
         );
 
         let fallbackVariant = exactVariant;
 
-        if ( !fallbackVariant && normalizedForcedRarity ) {
+        if (!fallbackVariant && normalizedForcedRarity) {
           fallbackVariant = variants.find(
-            ( variant ) => normalizeRarity( variant.rarity ) === normalizedForcedRarity
+            (variant) => normalizeRarity(variant.rarity) === normalizedForcedRarity,
           );
         }
 
-        if ( !fallbackVariant ) {
-          fallbackVariant = variants.find( ( variant ) => {
-            const printingValue = normalizeFilterToken( variant.printing );
+        if (!fallbackVariant) {
+          fallbackVariant = variants.find((variant) => {
+            const printingValue = normalizeFilterToken(variant.printing);
             const printingMatches =
-              printingFilterSet.size === 0 || printingFilterSet.has( printingValue );
+              printingFilterSet.size === 0 || printingFilterSet.has(printingValue);
 
-            if ( !printingMatches ) {
+            if (!printingMatches) {
               return false;
             }
 
-            if ( conditionDescriptors.length === 0 ) {
+            if (conditionDescriptors.length === 0) {
               return true;
             }
 
-            const variantCondition = normalizeFilterToken( variant.baseCondition );
+            const variantCondition = normalizeFilterToken(variant.baseCondition);
 
-            return conditionDescriptors.some( ( descriptor ) => {
-              if ( descriptor.normalizedBase !== variantCondition ) {
+            return conditionDescriptors.some((descriptor) => {
+              if (descriptor.normalizedBase !== variantCondition) {
                 return false;
               }
-              if ( descriptor.normalizedPrinting ) {
+              if (descriptor.normalizedPrinting) {
                 return descriptor.normalizedPrinting === printingValue;
               }
               return true;
-            } );
-          } );
+            });
+          });
         }
 
-        if ( !fallbackVariant ) {
-          fallbackVariant = findBestVariant( variants, {
+        if (!fallbackVariant) {
+          fallbackVariant = findBestVariant(variants, {
             ...preferences,
             rarity: desiredRarity || undefined,
-          } );
+          });
         }
 
-        if ( !fallbackVariant && variants[ 0 ] ) {
-          fallbackVariant = variants[ 0 ];
+        if (!fallbackVariant && variants[0]) {
+          fallbackVariant = variants[0];
         }
 
-        const templateVariant = fallbackVariant || variants[ 0 ] || {};
+        const templateVariant = fallbackVariant || variants[0] || {};
         const resolvedVariant = exactVariant || fallbackVariant || null;
         const activeVariant = exactVariant
           ? { ...exactVariant }
           : {
-            ...templateVariant,
-            productName: card.productName,
-            productID: templateVariant.productID ?? card.productId,
-            number: templateVariant.number || "",
-            baseCondition: primaryCondition || templateVariant.baseCondition || "",
-            printing: primaryPrinting || templateVariant.printing || "",
-            conditionLabel: buildConditionLabel(
-              primaryCondition || templateVariant.baseCondition || "",
-              primaryPrinting || templateVariant.printing || ""
-            ),
-            rarity: desiredRarity || normalizeRarity( templateVariant.rarity ),
-            marketPrice: null,
-            lowPrice: null,
-          };
+              ...templateVariant,
+              productName: card.productName,
+              productID: templateVariant.productID ?? card.productId,
+              number: templateVariant.number || '',
+              baseCondition: primaryCondition || templateVariant.baseCondition || '',
+              printing: primaryPrinting || templateVariant.printing || '',
+              conditionLabel: buildConditionLabel(
+                primaryCondition || templateVariant.baseCondition || '',
+                primaryPrinting || templateVariant.printing || '',
+              ),
+              rarity: desiredRarity || normalizeRarity(templateVariant.rarity),
+              marketPrice: null,
+              lowPrice: null,
+            };
 
-        if ( !activeVariant.conditionLabel ) {
+        if (!activeVariant.conditionLabel) {
           activeVariant.conditionLabel = buildConditionLabel(
             activeVariant.baseCondition,
-            activeVariant.printing
+            activeVariant.printing,
           );
         }
 
-        if ( !exactVariant && desiredRarity && normalizeRarity( activeVariant.rarity ) !== desiredRarity ) {
+        if (
+          !exactVariant &&
+          desiredRarity &&
+          normalizeRarity(activeVariant.rarity) !== desiredRarity
+        ) {
           activeVariant.rarity = desiredRarity;
         }
 
-        if ( !exactVariant ) {
-          if ( primaryCondition ) {
+        if (!exactVariant) {
+          if (primaryCondition) {
             activeVariant.baseCondition = primaryCondition;
           }
-          if ( primaryPrinting ) {
+          if (primaryPrinting) {
             activeVariant.printing = primaryPrinting;
           }
           activeVariant.conditionLabel = buildConditionLabel(
             activeVariant.baseCondition,
-            activeVariant.printing
+            activeVariant.printing,
           );
           activeVariant.marketPrice = null;
           activeVariant.lowPrice = null;
         }
 
-        const selectionParts = [ ...baseSelectionLabelParts ];
-        if ( normalizedForcedRarity ) {
-          selectionParts.push( normalizedForcedRarity );
-        } else if ( raritySelectionLabel ) {
-          selectionParts.push( raritySelectionLabel );
+        const selectionParts = [...baseSelectionLabelParts];
+        if (normalizedForcedRarity) {
+          selectionParts.push(normalizedForcedRarity);
+        } else if (raritySelectionLabel) {
+          selectionParts.push(raritySelectionLabel);
         }
-        const selectionLabel = selectionParts.join( " / " );
+        const selectionLabel = selectionParts.join(' / ');
         const selectionMissing = selectionParts.length > 0 && !exactVariant;
 
-        const selectedRarity = normalizeRarity( activeVariant.rarity );
+        const selectedRarity = normalizeRarity(activeVariant.rarity);
         const selectedRarityOption = forcedRarity || AUTO_RARITY_OPTION;
 
-        const collectionKey = makeCollectionKey( card.productName, activeVariant );
+        const collectionKey = makeCollectionKey(card.productName, activeVariant);
         const yugiohCardId = card.cardMeta?.id || primaryImageId || null;
         const cardDetailId = yugiohCardId;
         const cardImageId = primaryImageId || yugiohCardId;
-        const cardNumber = activeVariant?.number || templateVariant?.number || variants[ 0 ]?.number || "";
-        const setLabel = activeVariant?.set || templateVariant?.set || card.cardMeta?.set_name || activeSetDisplayName;
+        const cardNumber =
+          activeVariant?.number || templateVariant?.number || variants[0]?.number || '';
+        const setLabel =
+          activeVariant?.set ||
+          templateVariant?.set ||
+          card.cardMeta?.set_name ||
+          activeSetDisplayName;
 
         return {
           ...card,
@@ -1320,71 +1302,69 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
           cardNumber,
           setLabel,
         };
-      } )
-      .filter( Boolean );
+      })
+      .filter(Boolean);
 
-    const getSortValue = ( card ) => {
-      switch ( sortField ) {
-        case "setName":
-          return card.setLabel || activeSetDisplayName || "";
-        case "number":
-          return card.cardNumber || "";
-        case "rarity":
-          return normalizeRarity( card.activeVariant?.rarity );
-        case "condition":
-          return card.activeVariant?.baseCondition || "";
-        case "printing":
-          return card.activeVariant?.printing || "";
-        case "marketPrice":
+    const getSortValue = (card) => {
+      switch (sortField) {
+        case 'setName':
+          return card.setLabel || activeSetDisplayName || '';
+        case 'number':
+          return card.cardNumber || '';
+        case 'rarity':
+          return normalizeRarity(card.activeVariant?.rarity);
+        case 'condition':
+          return card.activeVariant?.baseCondition || '';
+        case 'printing':
+          return card.activeVariant?.printing || '';
+        case 'marketPrice':
           return card.activeVariant?.marketPrice ?? null;
-        case "productName":
+        case 'productName':
         default:
-          return card.productName || "";
+          return card.productName || '';
       }
     };
 
-    const sortedCards = [ ...enrichedCards ].sort( ( left, right ) => {
-      const leftValue = getSortValue( left );
-      const rightValue = getSortValue( right );
+    const sortedCards = [...enrichedCards].sort((left, right) => {
+      const leftValue = getSortValue(left);
+      const rightValue = getSortValue(right);
 
-      if ( leftValue == null && rightValue == null ) {
+      if (leftValue == null && rightValue == null) {
         return 0;
       }
 
-      if ( leftValue == null ) {
-        return sortDirection === "asc" ? 1 : -1;
+      if (leftValue == null) {
+        return sortDirection === 'asc' ? 1 : -1;
       }
 
-      if ( rightValue == null ) {
-        return sortDirection === "asc" ? -1 : 1;
+      if (rightValue == null) {
+        return sortDirection === 'asc' ? -1 : 1;
       }
 
-      const leftNumber = Number( leftValue );
-      const rightNumber = Number( rightValue );
+      const leftNumber = Number(leftValue);
+      const rightNumber = Number(rightValue);
 
-      if ( Number.isFinite( leftNumber ) && Number.isFinite( rightNumber ) ) {
-        return sortDirection === "asc"
-          ? leftNumber - rightNumber
-          : rightNumber - leftNumber;
+      if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber)) {
+        return sortDirection === 'asc' ? leftNumber - rightNumber : rightNumber - leftNumber;
       }
 
       const leftLabel = leftValue.toString().toLowerCase();
       const rightLabel = rightValue.toString().toLowerCase();
 
-      const comparison = leftLabel.localeCompare( rightLabel, undefined, {
+      const comparison = leftLabel.localeCompare(rightLabel, undefined, {
         numeric: true,
-        sensitivity: "base",
-      } );
+        sensitivity: 'base',
+      });
 
-      if ( comparison !== 0 ) {
-        return sortDirection === "asc" ? comparison : -comparison;
+      if (comparison !== 0) {
+        return sortDirection === 'asc' ? comparison : -comparison;
       }
 
-      return left.productName.localeCompare( right.productName, undefined, {
+      return left.productName.localeCompare(right.productName, undefined, {
         numeric: true,
-        sensitivity: "base",
-      } );
-    } );
+        sensitivity: 'base',
+      });
+    });
 
     return sortedCards;
   }, [
@@ -1405,144 +1385,142 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     rarityOverrides,
     makeOverrideKey,
     activeSetDisplayName,
-  ] );
-  const gridTotalPages = Math.max(
-    1,
-    Math.ceil( ( processedCards.length || 0 ) / GRID_ITEMS_PER_PAGE )
-  );
-  const safeGridPage = Math.min( Math.max( gridPage, 1 ), gridTotalPages );
-  const paginatedGridCards = useMemo( () => {
-    if ( viewMode !== "grid" ) {
+  ]);
+  const gridTotalPages = Math.max(1, Math.ceil((processedCards.length || 0) / GRID_ITEMS_PER_PAGE));
+  const safeGridPage = Math.min(Math.max(gridPage, 1), gridTotalPages);
+  const paginatedGridCards = useMemo(() => {
+    if (viewMode !== 'grid') {
       return processedCards;
     }
-    const startIndex = ( safeGridPage - 1 ) * GRID_ITEMS_PER_PAGE;
-    return processedCards.slice( startIndex, startIndex + GRID_ITEMS_PER_PAGE );
-  }, [ processedCards, viewMode, safeGridPage ] );
+    const startIndex = (safeGridPage - 1) * GRID_ITEMS_PER_PAGE;
+    return processedCards.slice(startIndex, startIndex + GRID_ITEMS_PER_PAGE);
+  }, [processedCards, viewMode, safeGridPage]);
 
   const handleGridPageChange = useCallback(
-    ( page ) => {
-      if ( viewMode !== "grid" ) return;
-      const clamped = Math.min( Math.max( page, 1 ), gridTotalPages );
-      setGridPage( clamped );
+    (page) => {
+      if (viewMode !== 'grid') return;
+      const clamped = Math.min(Math.max(page, 1), gridTotalPages);
+      setGridPage(clamped);
     },
-    [ gridTotalPages, viewMode ]
+    [gridTotalPages, viewMode],
   );
 
-  useEffect( () => {
-    if ( viewMode !== "grid" ) return;
-    setGridPage( ( prev ) => {
-      const clamped = Math.min( Math.max( prev, 1 ), gridTotalPages );
+  useEffect(() => {
+    if (viewMode !== 'grid') return;
+    setGridPage((prev) => {
+      const clamped = Math.min(Math.max(prev, 1), gridTotalPages);
       return clamped === prev ? prev : clamped;
-    } );
-  }, [ gridTotalPages, viewMode ] );
+    });
+  }, [gridTotalPages, viewMode]);
 
-  useEffect( () => {
-    setFlippedGridCards( {} );
-  }, [ viewMode, safeGridPage, processedCards ] );
+  useEffect(() => {
+    setFlippedGridCards({});
+  }, [viewMode, safeGridPage, processedCards]);
 
-  useEffect( () => {
-    if ( !selectedCard ) return;
-    const latest = processedCards.find(
-      ( card ) => card.productName === selectedCard.productName
-    );
-    if ( !latest ) return;
-    if ( latest.collectionKey !== selectedCard.collectionKey ) {
-      setSelectedCard( latest );
-      setModalVariant( latest.activeVariant || latest.variants?.[ 0 ] || null );
+  useEffect(() => {
+    if (!selectedCard) return;
+    const latest = processedCards.find((card) => card.productName === selectedCard.productName);
+    if (!latest) return;
+    if (latest.collectionKey !== selectedCard.collectionKey) {
+      setSelectedCard(latest);
+      setModalVariant(latest.activeVariant || latest.variants?.[0] || null);
     }
-  }, [ processedCards, selectedCard ] );
+  }, [processedCards, selectedCard]);
 
-  const matchedCardData = useMemo( () =>
-    processedCards.map( ( card ) => {
-      const variant = card.activeVariant;
-      const conditionLabel =
-        variant?.conditionLabel ||
-        buildConditionLabel( variant?.baseCondition, variant?.printing ) ||
-        "Unknown Condition";
+  const matchedCardData = useMemo(
+    () =>
+      processedCards.map((card) => {
+        const variant = card.activeVariant;
+        const conditionLabel =
+          variant?.conditionLabel ||
+          buildConditionLabel(variant?.baseCondition, variant?.printing) ||
+          'Unknown Condition';
 
-      return {
-        card: {
+        return {
+          card: {
+            productName: card.productName,
+            setName: activeSetDisplayName,
+            number: variant?.number || '',
+            printing: variant?.printing || 'Unknown Edition',
+            rarity: variant?.rarity || 'Unknown Rarity',
+            condition: conditionLabel || 'Unknown Condition',
+            cardId: card.cardImageId || card.cardDetailId || null,
+            remoteImageUrl: card.remoteImageUrl || null,
+          },
+          data: {
+            marketPrice: variant?.marketPrice ?? null,
+            lowPrice: variant?.lowPrice ?? null,
+          },
+          collectionKey: card.collectionKey,
+          cardDetailId: card.cardDetailId,
+          cardImageId: card.cardImageId,
+          remoteImageUrl: card.remoteImageUrl,
+          setLabel: card.setLabel,
+          detailParams: {
+            cardId: card.cardImageId || card.cardDetailId || null,
+            cardName: resolveDetailLookupName(card.cardMeta?.name, card.productName),
+            setName: activeSetDisplayName || card.setLabel || '',
+            setCode: variant?.number || '',
+            rarity: variant?.rarity || 'Unknown Rarity',
+            setRarity: variant?.rarity || 'Unknown Rarity',
+            edition: variant?.printing || 'Unknown Edition',
+          },
+          variant,
+          resolvedVariant: card.resolvedVariant,
+          variants: card.variants,
+          rarityOptions: card.rarityOptions,
+          selectedRarityOption: card.selectedRarityOption,
+          selectedRarity: card.selectedRarity,
+          hasMultipleRarities: card.hasMultipleRarities,
           productName: card.productName,
-          setName: activeSetDisplayName,
-          number: variant?.number || "",
-          printing: variant?.printing || "Unknown Edition",
-          rarity: variant?.rarity || "Unknown Rarity",
-          condition: conditionLabel || "Unknown Condition",
-          cardId: card.cardImageId || card.cardDetailId || null,
-          remoteImageUrl: card.remoteImageUrl || null,
-        },
-        data: {
-          marketPrice: variant?.marketPrice ?? null,
-          lowPrice: variant?.lowPrice ?? null,
-        },
-        collectionKey: card.collectionKey,
-        cardDetailId: card.cardDetailId,
-        cardImageId: card.cardImageId,
-        remoteImageUrl: card.remoteImageUrl,
-        setLabel: card.setLabel,
-        detailParams: {
-          cardId: card.cardImageId || card.cardDetailId || null,
-          cardName: resolveDetailLookupName( card.cardMeta?.name, card.productName ),
-          setName: activeSetDisplayName || card.setLabel || "",
-          setCode: variant?.number || "",
-          rarity: variant?.rarity || "Unknown Rarity",
-          setRarity: variant?.rarity || "Unknown Rarity",
-          edition: variant?.printing || "Unknown Edition",
-        },
-        variant,
-        resolvedVariant: card.resolvedVariant,
-        variants: card.variants,
-        rarityOptions: card.rarityOptions,
-        selectedRarityOption: card.selectedRarityOption,
-        selectedRarity: card.selectedRarity,
-        hasMultipleRarities: card.hasMultipleRarities,
-        productName: card.productName,
-      };
-    } ),
-    [ processedCards, activeSetDisplayName ] );
+        };
+      }),
+    [processedCards, activeSetDisplayName],
+  );
 
-  const getSelectedCards = useCallback( () =>
-    matchedCardData.filter( ( row ) => selectedRowIds[ row.collectionKey ] ),
-    [ matchedCardData, selectedRowIds ] );
+  const getSelectedCards = useCallback(
+    () => matchedCardData.filter((row) => selectedRowIds[row.collectionKey]),
+    [matchedCardData, selectedRowIds],
+  );
 
-  const toggleGridCardFlip = useCallback( ( key, forceValue = null ) => {
-    setFlippedGridCards( ( prev ) => {
+  const toggleGridCardFlip = useCallback((key, forceValue = null) => {
+    setFlippedGridCards((prev) => {
       const next = { ...prev };
-      const nextValue = forceValue === null ? !prev[ key ] : Boolean( forceValue );
-      if ( nextValue ) {
-        next[ key ] = true;
+      const nextValue = forceValue === null ? !prev[key] : Boolean(forceValue);
+      if (nextValue) {
+        next[key] = true;
       } else {
-        delete next[ key ];
+        delete next[key];
       }
       return next;
-    } );
-  }, [] );
+    });
+  }, []);
 
-  const toggleSelection = useCallback( ( key ) => {
-    setSelectedRowIds( ( prev ) => {
+  const toggleSelection = useCallback((key) => {
+    setSelectedRowIds((prev) => {
       const next = { ...prev };
-      if ( next[ key ] ) {
-        delete next[ key ];
+      if (next[key]) {
+        delete next[key];
       } else {
-        next[ key ] = true;
+        next[key] = true;
       }
       return next;
-    } );
-  }, [] );
-  const openModal = useCallback( ( card ) => {
-    setSelectedCard( card );
-    setModalVariant( card.activeVariant || card.variants?.[ 0 ] || null );
-    setModalVisible( true );
-  }, [] );
+    });
+  }, []);
+  const openModal = useCallback((card) => {
+    setSelectedCard(card);
+    setModalVariant(card.activeVariant || card.variants?.[0] || null);
+    setModalVisible(true);
+  }, []);
 
-  const closeModal = useCallback( () => {
-    setModalVisible( false );
-    setSelectedCard( null );
-    setModalVariant( null );
-  }, [] );
+  const closeModal = useCallback(() => {
+    setModalVisible(false);
+    setSelectedCard(null);
+    setModalVariant(null);
+  }, []);
 
-  const modalOptions = useMemo( () => {
-    if ( !selectedCard ) {
+  const modalOptions = useMemo(() => {
+    if (!selectedCard) {
       return { conditions: [], printings: [], rarities: [] };
     }
 
@@ -1550,53 +1528,56 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
     const printings = new Set();
     const rarities = new Set();
 
-    selectedCard.variants.forEach( ( variant ) => {
-      if ( variant.baseCondition ) conditions.add( variant.baseCondition );
-      if ( variant.printing ) printings.add( variant.printing );
-      if ( variant.rarity ) rarities.add( variant.rarity );
-    } );
+    selectedCard.variants.forEach((variant) => {
+      if (variant.baseCondition) conditions.add(variant.baseCondition);
+      if (variant.printing) printings.add(variant.printing);
+      if (variant.rarity) rarities.add(variant.rarity);
+    });
 
     return {
-      conditions: Array.from( conditions ).sort( ( a, b ) => compareBaseCondition( a, b ) ),
-      printings: Array.from( printings ).sort( ( a, b ) => comparePrinting( a, b ) ),
-      rarities: Array.from( rarities ).sort( ( a, b ) => safeCompare( a, b ) ),
+      conditions: Array.from(conditions).sort((a, b) => compareBaseCondition(a, b)),
+      printings: Array.from(printings).sort((a, b) => comparePrinting(a, b)),
+      rarities: Array.from(rarities).sort((a, b) => safeCompare(a, b)),
     };
-  }, [ selectedCard ] );
+  }, [selectedCard]);
 
-  const updateModalVariant = useCallback( ( updates ) => {
-    if ( !selectedCard ) return;
+  const updateModalVariant = useCallback(
+    (updates) => {
+      if (!selectedCard) return;
 
-    const condition = updates.condition ?? modalVariant?.baseCondition ?? null;
-    const printing = updates.printing ?? modalVariant?.printing ?? null;
-    const rarity = updates.rarity ?? modalVariant?.rarity ?? null;
+      const condition = updates.condition ?? modalVariant?.baseCondition ?? null;
+      const printing = updates.printing ?? modalVariant?.printing ?? null;
+      const rarity = updates.rarity ?? modalVariant?.rarity ?? null;
 
-    const resolvedVariant = findBestVariant( selectedCard.variants, {
-      condition: condition || "All",
-      printing: printing || "All",
-      rarity: rarity || "All",
-    } );
+      const resolvedVariant = findBestVariant(selectedCard.variants, {
+        condition: condition || 'All',
+        printing: printing || 'All',
+        rarity: rarity || 'All',
+      });
 
-    if ( resolvedVariant ) {
-      setModalVariant( resolvedVariant );
-      handleRarityOverrideChange(
-        selectedCard.productName,
-        resolvedVariant.rarity || AUTO_RARITY_OPTION
-      );
-    }
-  }, [ modalVariant, selectedCard, handleRarityOverrideChange ] );
+      if (resolvedVariant) {
+        setModalVariant(resolvedVariant);
+        handleRarityOverrideChange(
+          selectedCard.productName,
+          resolvedVariant.rarity || AUTO_RARITY_OPTION,
+        );
+      }
+    },
+    [modalVariant, selectedCard, handleRarityOverrideChange],
+  );
 
-  const handleAddToCollection = useCallback( async () => {
-    if ( !selectedCard || !modalVariant ) {
-      notify( "Please choose a printing, rarity, and condition before adding." );
+  const handleAddToCollection = useCallback(async () => {
+    if (!selectedCard || !modalVariant) {
+      notify('Please choose a printing, rarity, and condition before adding.');
       return;
     }
 
     try {
-      const response = await fetch( "/api/Yugioh/cards", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify( {
+      const response = await fetch('/api/Yugioh/cards', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           cards: [
             {
               cardId:
@@ -1607,406 +1588,455 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 null,
               productName: selectedCard.productName,
               setName: modalVariant.set || activeSetDisplayName,
-              number: modalVariant.number || "",
-              printing: modalVariant.printing || "Unknown Edition",
-              rarity: modalVariant.rarity || "Unknown Rarity",
+              number: modalVariant.number || '',
+              printing: modalVariant.printing || 'Unknown Edition',
+              rarity: modalVariant.rarity || 'Unknown Rarity',
               condition:
                 modalVariant.conditionLabel ||
-                buildConditionLabel( modalVariant.baseCondition, modalVariant.printing ) ||
-                "Unknown Condition",
+                buildConditionLabel(modalVariant.baseCondition, modalVariant.printing) ||
+                'Unknown Condition',
               marketPrice: modalVariant.marketPrice || 0,
               remoteImageUrl: selectedCard.remoteImageUrl || null,
               quantity: 1,
             },
           ],
-        } ),
-      } );
+        }),
+      });
 
-      if ( !response.ok ) {
-        throw new Error( "Failed to add card to collection" );
+      if (!response.ok) {
+        throw new Error('Failed to add card to collection');
       }
 
-      notify( "Card added!" );
+      notify('Card added!');
       refreshCollectionCards();
       closeModal();
-    } catch ( error ) {
-      console.error( error );
-      notify( "Failed to add card. Try again." );
+    } catch (error) {
+      console.error(error);
+      notify('Failed to add card. Try again.');
     }
-  }, [ selectedCard, modalVariant, activeSetDisplayName, closeModal, notify, refreshCollectionCards ] );
+  }, [
+    selectedCard,
+    modalVariant,
+    activeSetDisplayName,
+    closeModal,
+    notify,
+    refreshCollectionCards,
+  ]);
 
-  const closeBulkModal = useCallback( () => {
-    setBulkModalVisible( false );
-    setBulkSelections( {} );
-  }, [] );
+  const closeBulkModal = useCallback(() => {
+    setBulkModalVisible(false);
+    setBulkSelections({});
+  }, []);
 
-  const openBulkModal = useCallback( () => {
+  const openBulkModal = useCallback(() => {
     const selected = getSelectedCards();
-    if ( selected.length === 0 ) {
-      notify( "No cards selected." );
+    if (selected.length === 0) {
+      notify('No cards selected.');
       return;
     }
 
     const initial = {};
-    selected.forEach( ( row ) => {
-      initial[ row.card.productName ] =
-        row.resolvedVariant || row.variant || row.variants?.[ 0 ];
-    } );
+    selected.forEach((row) => {
+      initial[row.card.productName] = row.resolvedVariant || row.variant || row.variants?.[0];
+    });
 
-    setBulkSelections( initial );
-    setBulkModalVisible( true );
-  }, [ getSelectedCards, notify ] );
+    setBulkSelections(initial);
+    setBulkModalVisible(true);
+  }, [getSelectedCards, notify]);
 
-  const handleBulkSubmit = useCallback( async ( event ) => {
-    event.preventDefault();
-    const selected = getSelectedCards();
-    if ( selected.length === 0 ) {
-      notify( "No cards selected." );
-      return;
-    }
-
-    const payload = selected
-      .map( ( row ) => {
-        const variant =
-          bulkSelections[ row.card.productName ] ||
-          row.variant ||
-          row.variants?.[ 0 ];
-
-        if ( !variant ) {
-          return null;
-        }
-
-        return {
-          cardId:
-            row.cardImageId ||
-            row.cardDetailId ||
-            row.detailParams?.cardId ||
-            variant.productID ||
-            row.variant?.productID ||
-            row.card?.cardDetailId ||
-            null,
-          productName: row.card.productName,
-          setName: variant.set || activeSetDisplayName,
-          number: variant.number || "",
-          printing: variant.printing || "Unknown Edition",
-          rarity: variant.rarity || "Unknown Rarity",
-          condition:
-            [ variant.baseCondition, variant.printing ]
-              .filter( Boolean )
-              .join( " " ) || "Unknown Condition",
-          marketPrice: variant.marketPrice || 0,
-          remoteImageUrl: row.remoteImageUrl || row.card?.remoteImageUrl || null,
-          quantity: 1,
-        };
-      } )
-      .filter( Boolean );
-
-    if ( payload.length === 0 ) {
-      notify( "No valid selections to add." );
-      return;
-    }
-
-    try {
-      const response = await fetch( "/api/Yugioh/cards", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify( { cards: payload } ),
-      } );
-
-      if ( !response.ok ) {
-        throw new Error( "Bulk add failed" );
-      }
-
-      notify( `Added ${ payload.length } cards!` );
-      refreshCollectionCards();
-      setSelectedRowIds( {} );
-      setBulkSelections( {} );
-      closeBulkModal();
-    } catch ( error ) {
-      console.error( error );
-      notify( "Error adding cards. Try again." );
-    }
-  }, [ getSelectedCards, bulkSelections, activeSetDisplayName, closeBulkModal, notify, refreshCollectionCards ] );
-
-  const renderGridCard = useCallback( ( cardItem ) => {
-    const selectionKey = cardItem.collectionKey;
-    const isSelected = Boolean( selectedRowIds[ selectionKey ] );
-    const isCollected = Boolean( collectionLookup[ selectionKey ] );
-    const { primaryImageSrc, backupImageSrcs } = getCardImageSources( cardItem );
-    const raritySelectValue = cardItem.selectedRarityOption || AUTO_RARITY_OPTION;
-    const currentRarityLabel = cardItem.selectedRarity || "Unknown Rarity";
-    const activeVariant = cardItem.activeVariant || null;
-    const overlayLabel = activeVariant ? buildVariantLabel( activeVariant ) : currentRarityLabel;
-    const cardContainerClasses = [
-      "relative flex aspect-[260/360] w-full items-center justify-center overflow-hidden rounded-[6px] border border-white/10 bg-black/40 shadow-lg transition duration-300 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60",
-      isSelected ? "ring-2 ring-indigo-400/70" : "",
-    ].filter( Boolean ).join( " " );
-    const isFlipped = Boolean( flippedGridCards[ selectionKey ] );
-    const resolvedSetLabel = cardItem.setLabel || activeSetDisplayName;
-    const detailSetName = activeSetDisplayName || resolvedSetLabel;
-    const rarityLabel = activeVariant?.rarity || cardItem.selectedRarity || "";
-    const printingLabel = activeVariant?.printing || "";
-    const conditionLabel =
-      activeVariant?.conditionLabel || buildConditionLabel( activeVariant?.baseCondition || "", activeVariant?.printing || "" );
-    const marketPriceLabel =
-      activeVariant && Number.isFinite( Number( activeVariant.marketPrice ) ) ? formatPriceLabel( activeVariant.marketPrice ) : null;
-    const lowPriceLabel =
-      activeVariant && Number.isFinite( Number( activeVariant.lowPrice ) ) ? formatPriceLabel( activeVariant.lowPrice ) : null;
-
-    const detailEntries = [
-      { label: "Set", value: resolvedSetLabel },
-      { label: "Number", value: cardItem.cardNumber || "" },
-      { label: "Rarity", value: rarityLabel },
-      { label: "Printing", value: printingLabel },
-      { label: "Condition", value: conditionLabel },
-      marketPriceLabel ? { label: "Market Price", value: marketPriceLabel } : null,
-      lowPriceLabel ? { label: "Low Price", value: lowPriceLabel } : null,
-    ].filter( ( entry ) => entry && entry.value );
-
-    const detailLetter =
-      typeof routeLetter === "string" && routeLetter.trim()
-        ? routeLetter.trim().charAt( 0 ).toUpperCase()
-        : detailSetName
-          ? detailSetName.charAt( 0 ).toUpperCase()
-          : undefined;
-    const rarityForDetails = rarityLabel || ( typeof routeRarity === "string" ? routeRarity : undefined ) || undefined;
-
-    const detailCardId = cardItem.cardImageId || cardItem.cardDetailId || null;
-    const cardNameForDetails = resolveDetailLookupName( cardItem.cardMeta?.name, cardItem.productName );
-
-    const cardDetailsQuery = Object.fromEntries(
-      Object.entries( {
-        card: detailCardId || undefined,
-        letter: detailLetter,
-        set_name: detailSetName,
-        tcg_set_name: activeSetDisplayName || detailSetName,
-        card_name: cardNameForDetails,
-        set_code: cardItem.cardNumber,
-        rarity: rarityForDetails,
-        set_rarity: rarityForDetails,
-        edition: printingLabel,
-        source: "set",
-      } ).filter( ( [ , value ] ) => value !== undefined && value !== null && value !== "" )
-    );
-
-    const handleFrontKeyDown = ( event ) => {
-      if ( event.key === "Enter" || event.key === " " ) {
-        event.preventDefault();
-        toggleGridCardFlip( selectionKey );
-      }
-    };
-
-    const handleImageError = ( event ) => {
-      const img = event.currentTarget;
-      const [ nextSrc, ...remainingSources ] = getNextImageSources( img );
-      const fallbackSrc = img.dataset.fallbackSrc;
-
-      if ( nextSrc ) {
-        img.src = nextSrc;
-        img.dataset.nextSrcs = JSON.stringify( remainingSources );
+  const handleBulkSubmit = useCallback(
+    async (event) => {
+      event.preventDefault();
+      const selected = getSelectedCards();
+      if (selected.length === 0) {
+        notify('No cards selected.');
         return;
       }
 
-      if ( fallbackSrc ) {
-        img.src = fallbackSrc;
-        img.dataset.fallbackSrc = "";
-        img.onerror = null;
+      const payload = selected
+        .map((row) => {
+          const variant = bulkSelections[row.card.productName] || row.variant || row.variants?.[0];
+
+          if (!variant) {
+            return null;
+          }
+
+          return {
+            cardId:
+              row.cardImageId ||
+              row.cardDetailId ||
+              row.detailParams?.cardId ||
+              variant.productID ||
+              row.variant?.productID ||
+              row.card?.cardDetailId ||
+              null,
+            productName: row.card.productName,
+            setName: variant.set || activeSetDisplayName,
+            number: variant.number || '',
+            printing: variant.printing || 'Unknown Edition',
+            rarity: variant.rarity || 'Unknown Rarity',
+            condition:
+              [variant.baseCondition, variant.printing].filter(Boolean).join(' ') ||
+              'Unknown Condition',
+            marketPrice: variant.marketPrice || 0,
+            remoteImageUrl: row.remoteImageUrl || row.card?.remoteImageUrl || null,
+            quantity: 1,
+          };
+        })
+        .filter(Boolean);
+
+      if (payload.length === 0) {
+        notify('No valid selections to add.');
+        return;
       }
-    };
 
-    return (
-      <div
-        key={ selectionKey }
-        className="group relative mx-auto flex h-full w-full max-w-[16rem] flex-col bg-transparent transition"
-      >
-        <div className="relative mx-auto w-full [perspective:1500px]">
-          <div
-            className={ `grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] [transition-timing-function:cubic-bezier(0.75,0,0.85,1)] ${ isFlipped ? "[transform:rotateY(180deg)]" : "" }` }
-          >
+      try {
+        const response = await fetch('/api/Yugioh/cards', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cards: payload }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Bulk add failed');
+        }
+
+        notify(`Added ${payload.length} cards!`);
+        refreshCollectionCards();
+        setSelectedRowIds({});
+        setBulkSelections({});
+        closeBulkModal();
+      } catch (error) {
+        console.error(error);
+        notify('Error adding cards. Try again.');
+      }
+    },
+    [
+      getSelectedCards,
+      bulkSelections,
+      activeSetDisplayName,
+      closeBulkModal,
+      notify,
+      refreshCollectionCards,
+    ],
+  );
+
+  const renderGridCard = useCallback(
+    (cardItem) => {
+      const selectionKey = cardItem.collectionKey;
+      const isSelected = Boolean(selectedRowIds[selectionKey]);
+      const isCollected = Boolean(collectionLookup[selectionKey]);
+      const { primaryImageSrc, backupImageSrcs } = getCardImageSources(cardItem);
+      const raritySelectValue = cardItem.selectedRarityOption || AUTO_RARITY_OPTION;
+      const currentRarityLabel = cardItem.selectedRarity || 'Unknown Rarity';
+      const activeVariant = cardItem.activeVariant || null;
+      const overlayLabel = activeVariant ? buildVariantLabel(activeVariant) : currentRarityLabel;
+      const cardContainerClasses = [
+        'relative flex aspect-[260/360] w-full items-center justify-center overflow-hidden rounded-[6px] border border-white/10 bg-black/40 shadow-lg transition duration-300 group-hover:border-indigo-400/60 dark:border-white/20 dark:bg-gray-900/60',
+        isSelected ? 'ring-2 ring-indigo-400/70' : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
+      const isFlipped = Boolean(flippedGridCards[selectionKey]);
+      const resolvedSetLabel = cardItem.setLabel || activeSetDisplayName;
+      const detailSetName = activeSetDisplayName || resolvedSetLabel;
+      const rarityLabel = activeVariant?.rarity || cardItem.selectedRarity || '';
+      const printingLabel = activeVariant?.printing || '';
+      const conditionLabel =
+        activeVariant?.conditionLabel ||
+        buildConditionLabel(activeVariant?.baseCondition || '', activeVariant?.printing || '');
+      const marketPriceLabel =
+        activeVariant && Number.isFinite(Number(activeVariant.marketPrice))
+          ? formatPriceLabel(activeVariant.marketPrice)
+          : null;
+      const lowPriceLabel =
+        activeVariant && Number.isFinite(Number(activeVariant.lowPrice))
+          ? formatPriceLabel(activeVariant.lowPrice)
+          : null;
+
+      const detailEntries = [
+        { label: 'Set', value: resolvedSetLabel },
+        { label: 'Number', value: cardItem.cardNumber || '' },
+        { label: 'Rarity', value: rarityLabel },
+        { label: 'Printing', value: printingLabel },
+        { label: 'Condition', value: conditionLabel },
+        marketPriceLabel ? { label: 'Market Price', value: marketPriceLabel } : null,
+        lowPriceLabel ? { label: 'Low Price', value: lowPriceLabel } : null,
+      ].filter((entry) => entry && entry.value);
+
+      const detailLetter =
+        typeof routeLetter === 'string' && routeLetter.trim()
+          ? routeLetter.trim().charAt(0).toUpperCase()
+          : detailSetName
+            ? detailSetName.charAt(0).toUpperCase()
+            : undefined;
+      const rarityForDetails =
+        rarityLabel || (typeof routeRarity === 'string' ? routeRarity : undefined) || undefined;
+
+      const detailCardId = cardItem.cardImageId || cardItem.cardDetailId || null;
+      const cardNameForDetails = resolveDetailLookupName(
+        cardItem.cardMeta?.name,
+        cardItem.productName,
+      );
+
+      const cardDetailsQuery = Object.fromEntries(
+        Object.entries({
+          card: detailCardId || undefined,
+          letter: detailLetter,
+          set_name: detailSetName,
+          tcg_set_name: activeSetDisplayName || detailSetName,
+          card_name: cardNameForDetails,
+          set_code: cardItem.cardNumber,
+          rarity: rarityForDetails,
+          set_rarity: rarityForDetails,
+          edition: printingLabel,
+          source: 'set',
+        }).filter(([, value]) => value !== undefined && value !== null && value !== ''),
+      );
+
+      const handleFrontKeyDown = (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleGridCardFlip(selectionKey);
+        }
+      };
+
+      const handleImageError = (event) => {
+        const img = event.currentTarget;
+        const [nextSrc, ...remainingSources] = getNextImageSources(img);
+        const fallbackSrc = img.dataset.fallbackSrc;
+
+        if (nextSrc) {
+          img.src = nextSrc;
+          img.dataset.nextSrcs = JSON.stringify(remainingSources);
+          return;
+        }
+
+        if (fallbackSrc) {
+          img.src = fallbackSrc;
+          img.dataset.fallbackSrc = '';
+          img.onerror = null;
+        }
+      };
+
+      return (
+        <div
+          key={selectionKey}
+          className="group relative mx-auto flex h-full w-full max-w-[16rem] flex-col bg-transparent transition"
+        >
+          <div className="relative mx-auto w-full [perspective:1500px]">
             <div
-              className="col-start-1 row-start-1 flex w-full flex-col overflow-hidden rounded-[6px] shadow-lg [backface-visibility:hidden] [transform-style:preserve-3d]"
-              role="button"
-              tabIndex={ 0 }
-              aria-pressed={ isFlipped }
-              onClick={ () => toggleGridCardFlip( selectionKey ) }
-              onKeyDown={ handleFrontKeyDown }
+              className={`grid w-full transition-transform duration-[800ms] [transform-style:preserve-3d] [transition-timing-function:cubic-bezier(0.75,0,0.85,1)] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
             >
-              <div className={ cardContainerClasses }>
-                { isAuthenticated && isCollected && (
-                  <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
-                    <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                    In Collection
-                  </span>
-                ) }
-                { gridSelectionMode && isAuthenticated && (
-                  <button
-                    type="button"
-                    className="multi-select-checkbox absolute right-3 top-3 z-20 flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/60 text-white transition hover:bg-black/70"
-                    onClick={ ( event ) => {
-                      event.stopPropagation();
-                      toggleSelection( selectionKey );
-                    } }
-                    aria-pressed={ isSelected }
-                    aria-label={ isSelected ? "Deselect card" : "Select card" }
-                  >
-                    <input type="checkbox" checked={ isSelected } readOnly className="pointer-events-none" />
-                  </button>
-                ) }
-                <div className="h-full w-full">
-                  <img
-                    className="mx-auto block h-full w-full object-contain object-top"
-                    src={ primaryImageSrc }
-                    data-next-srcs={ JSON.stringify( backupImageSrcs ) }
-                    data-fallback-src={ FALLBACK_IMAGE }
-                    alt={ `Card Image - ${ cardItem.productName }` }
-                    loading="lazy"
-                    decoding="async"
-                    onError={ handleImageError }
-                  />
-                </div>
-                <div
-                  aria-hidden="true"
-                  className="absolute -inset-px rounded-[6px] bg-gradient-to-t from-black/90 via-black/45 to-black/25 opacity-95 transition-opacity duration-300 group-hover:opacity-100"
-                />
-                <div className="pointer-events-none absolute inset-0 flex h-full items-end justify-start overflow-hidden rounded-[6px] [transform:translateZ(80px)]">
-                  <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent opacity-90" />
-
-                  <div className="relative flex w-full flex-col gap-1 p-4 text-left text-white text-shadow">
-                    <h3 className="line-clamp-3 text-base font-semibold leading-tight text-pretty break-words">{ cardItem.productName }</h3>
-                    { marketPriceLabel && (
-                      <p className="text-base font-semibold">{ marketPriceLabel }</p>
-                    ) }
-                    { ( rarityLabel || overlayLabel ) && (
-                      <p className="text-[0.7rem] font-semibold uppercase tracking-wide text-white/90">
-                        { rarityLabel || overlayLabel }
-                      </p>
-                    ) }
-                    { conditionLabel && (
-                      <p className="text-[0.7rem] font-medium uppercase tracking-wide text-white/70">
-                        { conditionLabel }
-                      </p>
-                    ) }
-                    <span className="mt-2 inline-flex min-h-10 w-fit min-w-10 items-center justify-center rounded-[4px] border border-white/35 bg-black/35 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white shadow-[0_0_6px_rgba(0,0,0,0.3)]">
-                      Details
+              <div
+                className="col-start-1 row-start-1 flex w-full flex-col overflow-hidden rounded-[6px] shadow-lg [backface-visibility:hidden] [transform-style:preserve-3d]"
+                role="button"
+                tabIndex={0}
+                aria-pressed={isFlipped}
+                onClick={() => toggleGridCardFlip(selectionKey)}
+                onKeyDown={handleFrontKeyDown}
+              >
+                <div className={cardContainerClasses}>
+                  {isAuthenticated && isCollected && (
+                    <span className="absolute left-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                      <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                      In Collection
                     </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-start-1 row-start-1 flex aspect-[260/360] min-h-0 w-full flex-col overflow-hidden rounded-[6px] border border-white/10 bg-black p-5 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)] [transform-style:preserve-3d]">
-              <div className="flex h-full min-h-0 flex-col justify-between gap-2 [transform:translateZ(80px)_scale(0.94)]">
-                <div className="text-[0.8rem] font-semibold text-white">
-                  <h3 className="line-clamp-3 min-w-0 break-words text-center text-base font-semibold leading-tight">
-                    { cardItem.productName }
-                  </h3>
-                </div>
-                <div className="min-h-0 flex-1 overflow-y-auto pr-2 text-[0.86rem] font-semibold leading-[1.4] text-white/80 [scrollbar-width:thin]">
-                  { detailEntries.map( ( entry ) => (
-                    <div key={ entry.label } className="mb-2 rounded-[5px] border-b border-white/5 pb-2 last:border-b-0">
-                      <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-white/60 sm:text-xs">{ entry.label }</span>
-                      <span className="block min-w-0 break-words text-white">{ entry.value }</span>
-                    </div>
-                  ) ) }
-                </div>
-                <div className="flex flex-col gap-2">
-                  { cardItem.selectionMissing && (
-                    <p className="rounded-md bg-amber-500/10 p-2 text-xs font-semibold text-amber-300">
-                      { cardItem.selectionLabel
-                        ? `No pricing data for ${ cardItem.selectionLabel }. Showing closest match.`
-                        : "No pricing data for the selected filters. Showing closest match." }
-                    </p>
-                  ) }
-                  { cardItem.hasMultipleRarities && (
-                    <div className="space-y-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-100">
-                        Multiple rarities available
-                      </span>
-                      <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-white/70">
-                        Select Rarity
-                        <select
-                          className="rounded-md border border-white/20 bg-white/10 px-2 py-1 text-sm text-white transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          value={ raritySelectValue }
-                          onChange={ ( event ) => handleRarityOverrideChange( cardItem.productName, event.target.value ) }
-                        >
-                          <option value={ AUTO_RARITY_OPTION }>{ `Auto (${ currentRarityLabel })` }</option>
-                          { cardItem.rarityOptions.map( ( option ) => (
-                            <option key={ option } value={ option }>{ option }</option>
-                          ) ) }
-                        </select>
-                      </label>
-                    </div>
-                  ) }
-                  <div className="mx-auto mt-1 flex w-full flex-wrap gap-1.5 text-pretty">
-                    <Link
-                      href={ {
-                        pathname: "/yugioh/sets/[letter]/cards/card-details",
-                        query: cardDetailsQuery,
-                      } }
-                      className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-white/10 px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-100"
-                    >
-                      View Details
-                    </Link>
+                  )}
+                  {gridSelectionMode && isAuthenticated && (
                     <button
                       type="button"
-                      className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-transparent px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:text-indigo-200"
-                      onClick={ () => toggleGridCardFlip( selectionKey, false ) }
+                      className="multi-select-checkbox absolute right-3 top-3 z-20 flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/60 text-white transition hover:bg-black/70"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleSelection(selectionKey);
+                      }}
+                      aria-pressed={isSelected}
+                      aria-label={isSelected ? 'Deselect card' : 'Select card'}
                     >
-                      Show Card Front
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        readOnly
+                        className="pointer-events-none"
+                      />
                     </button>
+                  )}
+                  <div className="h-full w-full">
+                    <img
+                      className="mx-auto block h-full w-full object-contain object-top"
+                      src={primaryImageSrc}
+                      data-next-srcs={JSON.stringify(backupImageSrcs)}
+                      data-fallback-src={FALLBACK_IMAGE}
+                      alt={`Card Image - ${cardItem.productName}`}
+                      loading="lazy"
+                      decoding="async"
+                      onError={handleImageError}
+                    />
+                  </div>
+                  <div
+                    aria-hidden="true"
+                    className="absolute -inset-px rounded-[6px] bg-gradient-to-t from-black/90 via-black/45 to-black/25 opacity-95 transition-opacity duration-300 group-hover:opacity-100"
+                  />
+                  <div className="pointer-events-none absolute inset-0 flex h-full items-end justify-start overflow-hidden rounded-[6px] [transform:translateZ(80px)]">
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent opacity-90"
+                    />
+
+                    <div className="relative flex w-full flex-col gap-1 p-4 text-left text-white text-shadow">
+                      <h3 className="line-clamp-3 text-base font-semibold leading-tight text-pretty break-words">
+                        {cardItem.productName}
+                      </h3>
+                      {marketPriceLabel && (
+                        <p className="text-base font-semibold">{marketPriceLabel}</p>
+                      )}
+                      {(rarityLabel || overlayLabel) && (
+                        <p className="text-[0.7rem] font-semibold uppercase tracking-wide text-white/90">
+                          {rarityLabel || overlayLabel}
+                        </p>
+                      )}
+                      {conditionLabel && (
+                        <p className="text-[0.7rem] font-medium uppercase tracking-wide text-white/70">
+                          {conditionLabel}
+                        </p>
+                      )}
+                      <span className="mt-2 inline-flex min-h-10 w-fit min-w-10 items-center justify-center rounded-[4px] border border-white/35 bg-black/35 px-4 py-2 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white shadow-[0_0_6px_rgba(0,0,0,0.3)]">
+                        Details
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-start-1 row-start-1 flex aspect-[260/360] min-h-0 w-full flex-col overflow-hidden rounded-[6px] border border-white/10 bg-black p-5 text-white shadow-lg dark:border-white/20 dark:bg-gray-900/80 [backface-visibility:hidden] [transform:rotateY(180deg)] [transform-style:preserve-3d]">
+                <div className="flex h-full min-h-0 flex-col justify-between gap-2 [transform:translateZ(80px)_scale(0.94)]">
+                  <div className="text-[0.8rem] font-semibold text-white">
+                    <h3 className="line-clamp-3 min-w-0 break-words text-center text-base font-semibold leading-tight">
+                      {cardItem.productName}
+                    </h3>
+                  </div>
+                  <div className="min-h-0 flex-1 overflow-y-auto pr-2 text-[0.86rem] font-semibold leading-[1.4] text-white/80 [scrollbar-width:thin]">
+                    {detailEntries.map((entry) => (
+                      <div
+                        key={entry.label}
+                        className="mb-2 rounded-[5px] border-b border-white/5 pb-2 last:border-b-0"
+                      >
+                        <span className="block text-[0.65rem] font-semibold uppercase tracking-wide text-white/60 sm:text-xs">
+                          {entry.label}
+                        </span>
+                        <span className="block min-w-0 break-words text-white">{entry.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {cardItem.selectionMissing && (
+                      <p className="rounded-md bg-amber-500/10 p-2 text-xs font-semibold text-amber-300">
+                        {cardItem.selectionLabel
+                          ? `No pricing data for ${cardItem.selectionLabel}. Showing closest match.`
+                          : 'No pricing data for the selected filters. Showing closest match.'}
+                      </p>
+                    )}
+                    {cardItem.hasMultipleRarities && (
+                      <div className="space-y-2">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-100">
+                          Multiple rarities available
+                        </span>
+                        <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-white/70">
+                          Select Rarity
+                          <select
+                            className="rounded-md border border-white/20 bg-white/10 px-2 py-1 text-sm text-white transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            value={raritySelectValue}
+                            onChange={(event) =>
+                              handleRarityOverrideChange(cardItem.productName, event.target.value)
+                            }
+                          >
+                            <option
+                              value={AUTO_RARITY_OPTION}
+                            >{`Auto (${currentRarityLabel})`}</option>
+                            {cardItem.rarityOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    )}
+                    <div className="mx-auto mt-1 flex w-full flex-wrap gap-1.5 text-pretty">
+                      <Link
+                        href={{
+                          pathname: '/yugioh/sets/[letter]/cards/card-details',
+                          query: cardDetailsQuery,
+                        }}
+                        className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-white/10 px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-100"
+                      >
+                        View Details
+                      </Link>
+                      <button
+                        type="button"
+                        className="inline-flex min-h-8 w-full items-center justify-center rounded-[4px] border border-white/20 bg-transparent px-3 py-1.5 text-center text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-white transition duration-300 hover:border-indigo-400 hover:text-indigo-200"
+                        onClick={() => toggleGridCardFlip(selectionKey, false)}
+                      >
+                        Show Card Front
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        { isAuthenticated && (
-          <div className="mt-6 flex flex-col gap-3">
-            <button
-              type="button"
-              className="relative flex mx-auto w-full max-w-prose items-center justify-center rounded-md border border-transparent bg-gray-900 px-8 py-2 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
-              onClick={ () => openModal( cardItem ) }
-            >
-              Add to Collection
-              <span className="sr-only">, { cardItem.productName }</span>
-            </button>
-            { gridSelectionMode && (
+          {isAuthenticated && (
+            <div className="mt-6 flex flex-col gap-3">
               <button
                 type="button"
-                className={ `relative flex w-full items-center justify-center rounded-md border px-8 py-2 text-sm font-medium transition ${ isSelected
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-400 dark:bg-indigo-400/20 dark:text-indigo-100"
-                  : "border-gray-300 bg-white text-gray-900 hover:bg-gray-100 dark:border-white/10 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800"
-                  }` }
-                onClick={ () => toggleSelection( selectionKey ) }
+                className="relative flex mx-auto w-full max-w-prose items-center justify-center rounded-md border border-transparent bg-gray-900 px-8 py-2 text-sm font-medium text-white transition hover:bg-gray-700 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                onClick={() => openModal(cardItem)}
               >
-                { isSelected ? "Selected" : "Select" }
+                Add to Collection
+                <span className="sr-only">, {cardItem.productName}</span>
               </button>
-            ) }
-          </div>
-        ) }
-      </div>
-    );
-  }, [
-    collectionLookup,
-    gridSelectionMode,
-    isAuthenticated,
-    selectedRowIds,
-    toggleSelection,
-    openModal,
-    handleRarityOverrideChange,
-    flippedGridCards,
-    toggleGridCardFlip,
-    activeSetDisplayName,
-    routeLetter,
-    routeRarity,
-  ] );
+              {gridSelectionMode && (
+                <button
+                  type="button"
+                  className={`relative flex w-full items-center justify-center rounded-md border px-8 py-2 text-sm font-medium transition ${
+                    isSelected
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-400 dark:bg-indigo-400/20 dark:text-indigo-100'
+                      : 'border-gray-300 bg-white text-gray-900 hover:bg-gray-100 dark:border-white/10 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  onClick={() => toggleSelection(selectionKey)}
+                >
+                  {isSelected ? 'Selected' : 'Select'}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    },
+    [
+      collectionLookup,
+      gridSelectionMode,
+      isAuthenticated,
+      selectedRowIds,
+      toggleSelection,
+      openModal,
+      handleRarityOverrideChange,
+      flippedGridCards,
+      toggleGridCardFlip,
+      activeSetDisplayName,
+      routeLetter,
+      routeRarity,
+    ],
+  );
 
-  const shellHeader = useMemo( () => (
-    <Breadcrumb className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8" />
-  ), [] );
+  const shellHeader = useMemo(
+    () => <Breadcrumb className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8" />,
+    [],
+  );
 
-  const shellRightSidebar = useMemo( () => {
-    if ( !isDesktopFilterOpen ) {
+  const shellRightSidebar = useMemo(() => {
+    if (!isDesktopFilterOpen) {
       return null;
     }
 
@@ -2014,115 +2044,131 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
       <div id="set-desktop-filter-panel" className="flex h-full w-full flex-col px-4 py-4">
         <FilterPanel
           className="h-full rounded-2xl border-white/10 bg-black/60 text-white shadow-none"
-          filters={ filters }
-          updateFilters={ handleFilterChange }
-          clearFilters={ clearFilters }
+          filters={filters}
+          updateFilters={handleFilterChange}
+          clearFilters={clearFilters}
         />
       </div>
     );
-  }, [ clearFilters, filters, handleFilterChange, isDesktopFilterOpen ] );
+  }, [clearFilters, filters, handleFilterChange, isDesktopFilterOpen]);
 
-  const shellFooter = useMemo( () => (
-    <Notification
-      show={ notification.show }
-      setShow={ updateNotificationVisibility }
-      message={ notification.message }
-    />
-  ), [ notification.message, notification.show, updateNotificationVisibility ] );
+  const shellFooter = useMemo(
+    () => (
+      <Notification
+        show={notification.show}
+        setShow={updateNotificationVisibility}
+        message={notification.message}
+      />
+    ),
+    [notification.message, notification.show, updateNotificationVisibility],
+  );
 
-  useAppShellSlots( {
+  useAppShellSlots({
     header: shellHeader,
     rightSidebar: shellRightSidebar,
     footer: shellFooter,
-  } );
+  });
 
   return (
     <>
       <Head>
         <title>Yu-Gi-Oh! Set Contents</title>
-        <meta name="description" content={ `Explore ${ processedCards.length || 0 } card listings with live pricing and quick filters.` } />
-        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta
+          name="description"
+          content={`Explore ${processedCards.length || 0} card listings with live pricing and quick filters.`}
+        />
+        <meta
+          name="keywords"
+          content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss"
+        />
         <meta charSet="UTF-8" />
       </Head>
       <div className="yugioh-bg relative w-full min-h-screen overflow-hidden text-white">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-black/20 to-black/50" />
         <div className="relative z-10">
-          <main
-            className="w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8"
-          >
+          <main className="w-full mx-auto px-4 pb-20 pt-10 sm:px-6 lg:px-8">
             <header className="rounded-3xl border border-white/10 bg-black/55 p-6 shadow-2xl">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div className="max-w-3xl text-center lg:text-left">
                   <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
                     Yu-Gi-Oh! Sets
-                    { letterLabel ? ` - ${ letterLabel.toString().toUpperCase() }` : "" }
+                    {letterLabel ? ` - ${letterLabel.toString().toUpperCase()}` : ''}
                   </p>
                   <h1 className="mt-6 text-4xl font-bold tracking-tight text-white lg:text-5xl">
-                    Cards in { activeSetDisplayName }
+                    Cards in {activeSetDisplayName}
                   </h1>
                   <p className="mx-auto mt-4 max-w-2xl text-base text-white/70 lg:mx-0">
-                    Explore { processedCards.length || 0 } card listings with live pricing and quick filters.
+                    Explore {processedCards.length || 0} card listings with live pricing and quick
+                    filters.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-end">
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left">
                     <p className="text-xs uppercase tracking-wide text-white/55">Visible Cards</p>
-                    <p className="mt-2 text-2xl font-semibold text-white">{ processedCards.length || 0 }</p>
+                    <p className="mt-2 text-2xl font-semibold text-white">
+                      {processedCards.length || 0}
+                    </p>
                   </div>
                   <div className="hidden xl:flex">
                     <button
                       type="button"
-                      onClick={ toggleDesktopFilters }
-                      aria-expanded={ isDesktopFilterOpen }
+                      onClick={toggleDesktopFilters}
+                      aria-expanded={isDesktopFilterOpen}
                       aria-controls="set-desktop-filter-panel"
                       className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
                     >
-                      <Filter size={ 16 } />
-                      { isDesktopFilterOpen ? "Hide Filters" : "Show Filters" }
-                      { hasActiveFilters && (
+                      <Filter size={16} />
+                      {isDesktopFilterOpen ? 'Hide Filters' : 'Show Filters'}
+                      {hasActiveFilters && (
                         <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
-                          { activeFilterCount }
+                          {activeFilterCount}
                         </span>
-                      ) }
+                      )}
                     </button>
                   </div>
                 </div>
               </div>
             </header>
             <section aria-labelledby="cards-layout" className=" pt-10 w-full mx-auto">
-              <h2 id="cards-layout" className="sr-only">Card explorer</h2>
+              <h2 id="cards-layout" className="sr-only">
+                Card explorer
+              </h2>
               <div className="space-y-8">
                 <div className="space-y-8">
                   <div className="rounded-3xl border border-white/10 bg-black/50 p-6 shadow-2xl">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                       <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
-                        <span className="font-medium uppercase tracking-wide text-white/50">View</span>
+                        <span className="font-medium uppercase tracking-wide text-white/50">
+                          View
+                        </span>
                         <div
                           role="group"
                           className="flex items-center rounded-full border border-white/15 bg-white/10 shadow-sm"
                         >
                           <button
                             type="button"
-                            onClick={ () => setViewMode( "grid" ) }
+                            onClick={() => setViewMode('grid')}
                             title="Grid view"
-                            className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "grid"
-                              ? "bg-indigo-500/80 text-white shadow"
-                              : "text-white/70 hover:text-white"
-                              }` }
+                            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                              viewMode === 'grid'
+                                ? 'bg-indigo-500/80 text-white shadow'
+                                : 'text-white/70 hover:text-white'
+                            }`}
                           >
-                            <Grid size={ 20 } />
+                            <Grid size={20} />
                             Grid
                           </button>
                           <button
                             type="button"
-                            onClick={ () => setViewMode( "table" ) }
+                            onClick={() => setViewMode('table')}
                             title="Table view"
-                            className={ `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${ viewMode === "table"
-                              ? "bg-indigo-500/80 text-white shadow"
-                              : "text-white/70 hover:text-white"
-                              }` }
+                            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                              viewMode === 'table'
+                                ? 'bg-indigo-500/80 text-white shadow'
+                                : 'text-white/70 hover:text-white'
+                            }`}
                           >
-                            <List size={ 20 } />
+                            <List size={20} />
                             Table
                           </button>
                         </div>
@@ -2130,73 +2176,74 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                           <button
                             type="button"
                             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 shadow-sm transition hover:border-white/40 hover:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
-                            onClick={ () => setNumbersOpen( ( open ) => !open ) }
-                            aria-expanded={ numbersOpen }
+                            onClick={() => setNumbersOpen((open) => !open)}
+                            aria-expanded={numbersOpen}
                             aria-haspopup="true"
                           >
                             Card Numbers
                           </button>
-                          { numbersOpen && (
+                          {numbersOpen && (
                             <div className="absolute right-0 z-50 mt-3 w-64 max-h-64 overflow-y-auto rounded-2xl border border-white/10 bg-black/95 p-4 text-sm text-white/80 shadow-2xl">
                               <div className="mb-3 flex items-center justify-between text-xs uppercase tracking-wide text-white/50">
                                 <button
                                   type="button"
-                                  onClick={ () => setSelectedNumbers( [] ) }
+                                  onClick={() => setSelectedNumbers([])}
                                   className="font-medium text-red-300 transition hover:text-red-200"
                                 >
                                   Clear All
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={ () => setNumbersOpen( false ) }
+                                  onClick={() => setNumbersOpen(false)}
                                   className="font-medium text-indigo-300 transition hover:text-indigo-200"
                                 >
                                   Done
                                 </button>
                               </div>
                               <div className="space-y-2">
-                                { availableNumbers.map( ( num ) => (
+                                {availableNumbers.map((num) => (
                                   <label
-                                    key={ num }
+                                    key={num}
                                     className="flex items-center gap-3 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white/80 hover:border-white/30"
                                   >
                                     <input
                                       type="checkbox"
-                                      checked={ selectedNumbers.includes( num ) }
-                                      onChange={ ( event ) =>
-                                        setSelectedNumbers( ( prev ) =>
+                                      checked={selectedNumbers.includes(num)}
+                                      onChange={(event) =>
+                                        setSelectedNumbers((prev) =>
                                           event.target.checked
-                                            ? [ ...prev, num ]
-                                            : prev.filter( ( value ) => value !== num )
+                                            ? [...prev, num]
+                                            : prev.filter((value) => value !== num),
                                         )
                                       }
                                     />
-                                    { num }
+                                    {num}
                                   </label>
-                                ) ) }
+                                ))}
                               </div>
                             </div>
-                          ) }
+                          )}
                         </div>
-                        { viewMode === "grid" && isAuthenticated && (
+                        {viewMode === 'grid' && isAuthenticated && (
                           <button
                             type="button"
-                            onClick={ () => setGridSelectionMode( ( prev ) => !prev ) }
-                            className={ `inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition ${ gridSelectionMode
-                              ? "bg-indigo-500/80 text-white shadow hover:bg-indigo-500"
-                              : "border border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:text-white"
-                              }` }
+                            onClick={() => setGridSelectionMode((prev) => !prev)}
+                            className={`inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold transition ${
+                              gridSelectionMode
+                                ? 'bg-indigo-500/80 text-white shadow hover:bg-indigo-500'
+                                : 'border border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:text-white'
+                            }`}
                           >
-                            { gridSelectionMode ? "Done Selecting" : "Enable Multi-Select" }
+                            {gridSelectionMode ? 'Done Selecting' : 'Enable Multi-Select'}
                           </button>
-                        ) }
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-white/80">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-white/70">Sort</span>
                           <select
-                            value={ sortField }
-                            onChange={ ( event ) => setSortField( event.target.value ) }
+                            value={sortField}
+                            onChange={(event) => setSortField(event.target.value)}
                             className="rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-sm font-medium text-white/80 shadow-sm transition hover:border-white/40 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
                           >
                             <option value="productName">Card Name</option>
@@ -2209,215 +2256,220 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                           </select>
                           <button
                             type="button"
-                            onClick={ () =>
-                              setSortDirection( ( prev ) => ( prev === "asc" ? "desc" : "asc" ) )
+                            onClick={() =>
+                              setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'))
                             }
                             className="rounded-full border border-white/20 bg-white/10 px-3 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white"
                           >
-                            { sortDirection === "asc" ? "Ascending" : "Descending" }
+                            {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
                           </button>
                         </div>
                         <div className="xl:hidden">
                           <CardFilter
-                            filters={ filters }
-                            updateFilters={ handleFilterChange }
-                            clearFilters={ clearFilters }
-                            open={ isFilterDrawerOpen }
-                            setOpen={ setIsFilterDrawerOpen }
+                            filters={filters}
+                            updateFilters={handleFilterChange}
+                            clearFilters={clearFilters}
+                            open={isFilterDrawerOpen}
+                            setOpen={setIsFilterDrawerOpen}
                             title="Filter cards"
-                            renderTrigger={ ( { openFilters } ) => (
+                            renderTrigger={({ openFilters }) => (
                               <button
                                 type="button"
-                                onClick={ openFilters }
+                                onClick={openFilters}
                                 className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
                               >
-                                <Filter size={ 16 } />
+                                <Filter size={16} />
                                 Filters
-                                { hasActiveFilters && (
+                                {hasActiveFilters && (
                                   <span className="ml-2 rounded-full bg-indigo-500/40 px-2 py-0.5 text-xs font-semibold text-indigo-50">
-                                    { activeFilterCount }
+                                    {activeFilterCount}
                                   </span>
-                                ) }
+                                )}
                               </button>
-                            ) }
+                            )}
                           />
                         </div>
                       </div>
                     </div>
                     <div className="mt-6 rounded-2xl border border-white/10 bg-black/60 p-2 shadow-inner">
-                      <YugiohSearchBar onSearch={ setSearchTerm } />
+                      <YugiohSearchBar onSearch={setSearchTerm} />
                     </div>
-                    { hasActiveFilters && (
+                    {hasActiveFilters && (
                       <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/80">
                         <button
                           type="button"
-                          onClick={ () => {
+                          onClick={() => {
                             clearFilters();
-                            setIsFilterDrawerOpen( false );
-                          } }
+                            setIsFilterDrawerOpen(false);
+                          }}
                           className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/80 transition hover:border-white/40 hover:text-white"
                         >
                           Clear Filters
                         </button>
                         <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-indigo-100/90">
-                          { activeFilterCount } active
+                          {activeFilterCount} active
                         </span>
                       </div>
-                    ) }
-                    { hasActiveFilters && (
+                    )}
+                    {hasActiveFilters && (
                       <div className="mt-4 flex flex-wrap gap-2 text-sm text-white/80">
-                        { selectedConditions.map( ( value ) => (
+                        {selectedConditions.map((value) => (
                           <span
-                            key={ `condition-${ value }` }
+                            key={`condition-${value}`}
                             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
                           >
-                            <span className="text-white/60">Condition:</span> { value }
+                            <span className="text-white/60">Condition:</span> {value}
                             <button
                               type="button"
-                              onClick={ () => removeFilterValue( "condition", value ) }
+                              onClick={() => removeFilterValue('condition', value)}
                               className="text-xs text-red-300 transition hover:text-red-200"
                             >
                               x
                             </button>
                           </span>
-                        ) ) }
-                        { selectedPrintings.map( ( value ) => (
+                        ))}
+                        {selectedPrintings.map((value) => (
                           <span
-                            key={ `printing-${ value }` }
+                            key={`printing-${value}`}
                             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
                           >
-                            <span className="text-white/60">Printing:</span> { value }
+                            <span className="text-white/60">Printing:</span> {value}
                             <button
                               type="button"
-                              onClick={ () => removeFilterValue( "printing", value ) }
+                              onClick={() => removeFilterValue('printing', value)}
                               className="text-xs text-red-300 transition hover:text-red-200"
                             >
                               x
                             </button>
                           </span>
-                        ) ) }
-                        { selectedRarities.map( ( value ) => (
+                        ))}
+                        {selectedRarities.map((value) => (
                           <span
-                            key={ `rarity-${ value }` }
+                            key={`rarity-${value}`}
                             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
                           >
-                            <span className="text-white/60">Rarity:</span> { value }
+                            <span className="text-white/60">Rarity:</span> {value}
                             <button
                               type="button"
-                              onClick={ () => removeFilterValue( "rarity", value ) }
+                              onClick={() => removeFilterValue('rarity', value)}
                               className="text-xs text-red-300 transition hover:text-red-200"
                             >
                               x
                             </button>
                           </span>
-                        ) ) }
+                        ))}
                       </div>
-                    ) }
-                    { selectedNumbers.length > 0 && (
+                    )}
+                    {selectedNumbers.length > 0 && (
                       <div className="mt-4 flex flex-wrap gap-2 text-sm">
-                        { selectedNumbers.map( ( num ) => (
+                        {selectedNumbers.map((num) => (
                           <span
-                            key={ num }
+                            key={num}
                             className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 shadow-sm"
                           >
-                            { num }
+                            {num}
                             <button
                               type="button"
-                              onClick={ () =>
-                                setSelectedNumbers( ( prev ) => prev.filter( ( value ) => value !== num ) )
+                              onClick={() =>
+                                setSelectedNumbers((prev) => prev.filter((value) => value !== num))
                               }
                               className="text-xs text-red-300 transition hover:text-red-200"
                             >
                               x
                             </button>
                           </span>
-                        ) ) }
+                        ))}
                       </div>
-                    ) }
+                    )}
                   </div>
-                  { fetchError && (
+                  {fetchError && (
                     <div className="rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100 shadow-lg">
-                      { fetchError }
+                      {fetchError}
                     </div>
-                  ) }
-                  { isLoading ? (
-                    <div className="min-h-[28rem] py-16 text-center text-white/70">Loading latest prices...</div>
+                  )}
+                  {isLoading ? (
+                    <div className="min-h-[28rem] py-16 text-center text-white/70">
+                      Loading latest prices...
+                    </div>
                   ) : processedCards.length === 0 ? (
                     <div className="min-h-[28rem] py-16 text-center text-white/70">
                       No cards found for this set with the selected filters.
                     </div>
-                  ) : viewMode === "grid" ? (
+                  ) : viewMode === 'grid' ? (
                     <div id="set-results-art-band">
                       <div className="mt-8 flex justify-center">
                         <YugiohPagination
-                          currentPage={ safeGridPage }
-                          itemsPerPage={ GRID_ITEMS_PER_PAGE }
-                          totalItems={ processedCards.length }
-                          handlePageClick={ handleGridPageChange }
+                          currentPage={safeGridPage}
+                          itemsPerPage={GRID_ITEMS_PER_PAGE}
+                          totalItems={processedCards.length}
+                          handlePageClick={handleGridPageChange}
                         />
                       </div>
                       <div className="w-full bg-transparent text-shadow p-4 shadow-2xl sm:p-2">
                         <div
-                          className={ `grid grid-cols-1 justify-items-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 ${ isDesktopFilterOpen
-                            ? "gap-x-10 gap-y-10 xl:grid-cols-2 2xl:grid-cols-3"
-                            : "gap-x-8 gap-y-10 xl:grid-cols-3 2xl:grid-cols-4"
-                            }` }
+                          className={`grid grid-cols-1 justify-items-center sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 ${
+                            isDesktopFilterOpen
+                              ? 'gap-x-10 gap-y-10 xl:grid-cols-2 2xl:grid-cols-3'
+                              : 'gap-x-8 gap-y-10 xl:grid-cols-3 2xl:grid-cols-4'
+                          }`}
                         >
-                          { paginatedGridCards.map( ( card ) => (
-                            <div key={ card.collectionKey } className="w-full min-w-0">
-                              { renderGridCard( card ) }
+                          {paginatedGridCards.map((card) => (
+                            <div key={card.collectionKey} className="w-full min-w-0">
+                              {renderGridCard(card)}
                             </div>
-                          ) ) }
+                          ))}
                         </div>
                       </div>
                       <div className="mt-8 flex justify-center">
                         <YugiohPagination
-                          currentPage={ safeGridPage }
-                          itemsPerPage={ GRID_ITEMS_PER_PAGE }
-                          totalItems={ processedCards.length }
-                          handlePageClick={ handleGridPageChange }
+                          currentPage={safeGridPage}
+                          itemsPerPage={GRID_ITEMS_PER_PAGE}
+                          totalItems={processedCards.length}
+                          handlePageClick={handleGridPageChange}
                         />
                       </div>
-
                     </div>
                   ) : (
                     <div id="set-results-art-band">
                       <div className="overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4 shadow-2xl">
                         <YugiohCardDataTable
-                          matchedCardData={ matchedCardData }
-                          selectedRowIds={ selectedRowIds }
-                          setSelectedRowIds={ setSelectedRowIds }
-                          collectionMap={ collectionLookup }
-                          onCollectionUpdated={ refreshCollectionCards }
-                          onRarityChange={ handleRarityOverrideChange }
-                          autoRarityOptionValue={ AUTO_RARITY_OPTION }
-                          isAuthenticated={ isAuthenticated }
+                          matchedCardData={matchedCardData}
+                          selectedRowIds={selectedRowIds}
+                          setSelectedRowIds={setSelectedRowIds}
+                          collectionMap={collectionLookup}
+                          onCollectionUpdated={refreshCollectionCards}
+                          onRarityChange={handleRarityOverrideChange}
+                          autoRarityOptionValue={AUTO_RARITY_OPTION}
+                          isAuthenticated={isAuthenticated}
                         />
                       </div>
                     </div>
-                  ) }
-                  { isAuthenticated &&
-                    Object.values( selectedRowIds ).some( Boolean ) &&
-                    ( viewMode === "table" || ( viewMode === "grid" && gridSelectionMode ) ) && (
+                  )}
+                  {isAuthenticated &&
+                    Object.values(selectedRowIds).some(Boolean) &&
+                    (viewMode === 'table' || (viewMode === 'grid' && gridSelectionMode)) && (
                       <div className="rounded-2xl border border-indigo-400/40 bg-indigo-500/10 p-6 text-center shadow-lg">
-                        <button onClick={ openBulkModal } className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-indigo-400">
+                        <button
+                          onClick={openBulkModal}
+                          className="inline-flex items-center justify-center rounded-full bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-indigo-400"
+                        >
                           Add Selected to Collection
                         </button>
                       </div>
-                    ) }
+                    )}
                 </div>
               </div>
             </section>
           </main>
-          { isAuthenticated && modalVisible && selectedCard && (
+          {isAuthenticated && modalVisible && selectedCard && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
               <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
-                <h2 className="mb-4 text-xl font-bold">{ selectedCard.productName }</h2>
+                <h2 className="mb-4 text-xl font-bold">{selectedCard.productName}</h2>
                 <form
-                  onSubmit={ ( event ) => {
+                  onSubmit={(event) => {
                     event.preventDefault();
                     handleAddToCollection();
-                  } }
+                  }}
                   className="space-y-4"
                 >
                   <label className="block">
@@ -2426,64 +2478,60 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                     </span>
                     <select
                       className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                      value={ modalVariant?.baseCondition || "" }
-                      onChange={ ( event ) => updateModalVariant( { condition: event.target.value } ) }
+                      value={modalVariant?.baseCondition || ''}
+                      onChange={(event) => updateModalVariant({ condition: event.target.value })}
                       required
                     >
-                      { modalOptions.conditions.map( ( option ) => (
-                        <option key={ option } value={ option }>
-                          { option }
+                      {modalOptions.conditions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
                         </option>
-                      ) ) }
+                      ))}
                     </select>
                   </label>
 
                   <label className="block">
-                    <span className="mb-1 block text-sm font-semibold text-white/80">
-                      Printing
-                    </span>
+                    <span className="mb-1 block text-sm font-semibold text-white/80">Printing</span>
                     <select
                       className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                      value={ modalVariant?.printing || "" }
-                      onChange={ ( event ) => updateModalVariant( { printing: event.target.value } ) }
+                      value={modalVariant?.printing || ''}
+                      onChange={(event) => updateModalVariant({ printing: event.target.value })}
                       required
                     >
-                      { modalOptions.printings.map( ( option ) => (
-                        <option key={ option } value={ option }>
-                          { option }
+                      {modalOptions.printings.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
                         </option>
-                      ) ) }
+                      ))}
                     </select>
                   </label>
 
                   <label className="block">
-                    <span className="mb-1 block text-sm font-semibold text-white/80">
-                      Rarity
-                    </span>
+                    <span className="mb-1 block text-sm font-semibold text-white/80">Rarity</span>
                     <select
                       className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                      value={ modalVariant?.rarity || "" }
-                      onChange={ ( event ) => updateModalVariant( { rarity: event.target.value } ) }
+                      value={modalVariant?.rarity || ''}
+                      onChange={(event) => updateModalVariant({ rarity: event.target.value })}
                       required
                     >
-                      { modalOptions.rarities.map( ( option ) => (
-                        <option key={ option } value={ option }>
-                          { option }
+                      {modalOptions.rarities.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
                         </option>
-                      ) ) }
+                      ))}
                     </select>
                   </label>
 
-                  { modalVariant && (
+                  {modalVariant && (
                     <p className="text-sm text-white/80">
-                      Current market price: { formatPriceLabel( modalVariant.marketPrice ) }
+                      Current market price: {formatPriceLabel(modalVariant.marketPrice)}
                     </p>
-                  ) }
+                  )}
 
                   <div className="flex justify-between pt-2">
                     <button
                       type="button"
-                      onClick={ closeModal }
+                      onClick={closeModal}
                       className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
                     >
                       Cancel
@@ -2498,23 +2546,26 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 </form>
               </div>
             </div>
-          ) }
+          )}
 
-          { isAuthenticated && bulkModalVisible && (
+          {isAuthenticated && bulkModalVisible && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 lg:p-6">
               <div className="glass w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-xl">
                 <h2 className="mb-4 text-xl font-bold">Add Selected Cards</h2>
-                <form onSubmit={ handleBulkSubmit } className="space-y-6">
-                  { getSelectedCards().map( ( row ) => {
-                    const cardEntry = cards.find( ( card ) => card.productName === row.card.productName );
+                <form onSubmit={handleBulkSubmit} className="space-y-6">
+                  {getSelectedCards().map((row) => {
+                    const cardEntry = cards.find(
+                      (card) => card.productName === row.card.productName,
+                    );
                     const variants = cardEntry?.variants || [];
-                    const selectedVariant = bulkSelections[ row.card.productName ] || row.variant || variants[ 0 ];
-                    const selectedValue = selectedVariant ? variantKey( selectedVariant ) : "";
+                    const selectedVariant =
+                      bulkSelections[row.card.productName] || row.variant || variants[0];
+                    const selectedValue = selectedVariant ? variantKey(selectedVariant) : '';
 
                     return (
-                      <div key={ row.card.productName } className="border-b pb-4">
-                        <h3 className="mb-2 font-semibold">{ row.card.productName }</h3>
-                        { variants.length === 0 ? (
+                      <div key={row.card.productName} className="border-b pb-4">
+                        <h3 className="mb-2 font-semibold">{row.card.productName}</h3>
+                        {variants.length === 0 ? (
                           <p className="text-sm text-white/70">No pricing data available.</p>
                         ) : (
                           <label className="block">
@@ -2523,31 +2574,34 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                             </span>
                             <select
                               className="w-full rounded-2xl border border-white/10 bg-black/60 p-3 text-white focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
-                              value={ selectedValue }
-                              onChange={ ( event ) => {
-                                const nextVariant = variants.find( ( variant ) => variantKey( variant ) === event.target.value ) || variants[ 0 ];
-                                setBulkSelections( ( prev ) => ( {
+                              value={selectedValue}
+                              onChange={(event) => {
+                                const nextVariant =
+                                  variants.find(
+                                    (variant) => variantKey(variant) === event.target.value,
+                                  ) || variants[0];
+                                setBulkSelections((prev) => ({
                                   ...prev,
-                                  [ row.card.productName ]: nextVariant,
-                                } ) );
-                              } }
+                                  [row.card.productName]: nextVariant,
+                                }));
+                              }}
                             >
-                              { variants.map( ( variant ) => (
-                                <option key={ variantKey( variant ) } value={ variantKey( variant ) }>
-                                  { `${ buildVariantLabel( variant ) } - ${ formatPriceLabel( variant.marketPrice ) }` }
+                              {variants.map((variant) => (
+                                <option key={variantKey(variant)} value={variantKey(variant)}>
+                                  {`${buildVariantLabel(variant)} - ${formatPriceLabel(variant.marketPrice)}`}
                                 </option>
-                              ) ) }
+                              ))}
                             </select>
                           </label>
-                        ) }
+                        )}
                       </div>
                     );
-                  } ) }
+                  })}
 
                   <div className="mt-6 flex justify-between">
                     <button
                       type="button"
-                      onClick={ closeBulkModal }
+                      onClick={closeBulkModal}
                       className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-white transition hover:border-white/40"
                     >
                       Cancel
@@ -2562,51 +2616,49 @@ const CardsInSetPage = ( { initialSetName = "", setNameId = null, letter = "" } 
                 </form>
               </div>
             </div>
-          ) }
+          )}
         </div>
       </div>
     </>
   );
 };
 
-export async function getServerSideProps( { params } ) {
-  const rawLetter = Array.isArray( params?.letter ) ? params.letter[ 0 ] : params?.letter;
-  const rawSetName = Array.isArray( params?.setName ) ? params.setName[ 0 ] : params?.setName;
+export async function getServerSideProps({ params }) {
+  const rawLetter = Array.isArray(params?.letter) ? params.letter[0] : params?.letter;
+  const rawSetName = Array.isArray(params?.setName) ? params.setName[0] : params?.setName;
 
-  if ( !rawSetName ) {
+  if (!rawSetName) {
     return { notFound: true };
   }
 
   const sets = await loadCardSets();
 
-  let matchedSet = sets.find(
-    ( set ) => set?.name?.toLowerCase() === rawSetName.toLowerCase()
-  );
+  let matchedSet = sets.find((set) => set?.name?.toLowerCase() === rawSetName.toLowerCase());
 
-  if ( !matchedSet ) {
+  if (!matchedSet) {
     try {
       const setNameIdMap = await getSetNameIdMap();
-      if ( setNameIdMap && typeof setNameIdMap === "object" ) {
-        const match = Object.entries( setNameIdMap ).find(
-          ( [ name ] ) => name.toLowerCase() === rawSetName.toLowerCase()
+      if (setNameIdMap && typeof setNameIdMap === 'object') {
+        const match = Object.entries(setNameIdMap).find(
+          ([name]) => name.toLowerCase() === rawSetName.toLowerCase(),
         );
-        if ( match ) {
+        if (match) {
           matchedSet = {
-            name: match[ 0 ],
-            setNameId: match[ 1 ],
+            name: match[0],
+            setNameId: match[1],
           };
         }
       }
-    } catch ( error ) {
-      console.error( "Failed to resolve set from live map:", error );
+    } catch (error) {
+      console.error('Failed to resolve set from live map:', error);
     }
   }
 
-  if ( !matchedSet ) {
+  if (!matchedSet) {
     return { notFound: true };
   }
 
-  const normalizedLetter = normalizeSetLetter( rawLetter || matchedSet.name );
+  const normalizedLetter = normalizeSetLetter(rawLetter || matchedSet.name);
 
   return {
     props: {
@@ -2618,4 +2670,3 @@ export async function getServerSideProps( { params } ) {
 }
 
 export default CardsInSetPage;
-

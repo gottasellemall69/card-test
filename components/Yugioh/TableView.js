@@ -17,320 +17,337 @@ const SORTABLE_COLUMNS = {
 
 const DEFAULT_SORT_KEY = 'setName';
 
-const normalizeValue = ( value, type ) => {
-  if ( type === 'number' ) {
-    const numeric = Number( value );
-    return Number.isFinite( numeric ) ? numeric : 0;
+const normalizeValue = (value, type) => {
+  if (type === 'number') {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : 0;
   }
-  return ( value ?? '' ).toString().toLowerCase();
+  return (value ?? '').toString().toLowerCase();
 };
 
-const getCardTotalPrice = ( card ) => {
-  const unitPrice = Number( card?.marketPrice );
-  const quantity = Number( card?.quantity );
-  return ( Number.isFinite( unitPrice ) ? unitPrice : 0 ) * ( Number.isFinite( quantity ) ? quantity : 0 );
+const getCardTotalPrice = (card) => {
+  const unitPrice = Number(card?.marketPrice);
+  const quantity = Number(card?.quantity);
+  return (Number.isFinite(unitPrice) ? unitPrice : 0) * (Number.isFinite(quantity) ? quantity : 0);
 };
 
-const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfig, handleSortChange, selectedCardIds, onSelectedCardIdsChange, folderNameMap = {} } ) => {
-  const safeCards = Array.isArray( aggregatedData ) ? aggregatedData : [];
-  const isExternallySorted = Boolean( sortConfig && typeof handleSortChange === 'function' );
-  const [ internalSortConfig, setInternalSortConfig ] = useState( { key: DEFAULT_SORT_KEY, direction: 'ascending' } );
+const TableView = ({
+  aggregatedData = [],
+  onDeleteCard,
+  onUpdateCard,
+  sortConfig,
+  handleSortChange,
+  selectedCardIds,
+  onSelectedCardIdsChange,
+  folderNameMap = {},
+}) => {
+  const safeCards = useMemo(
+    () => (Array.isArray(aggregatedData) ? aggregatedData : []),
+    [aggregatedData],
+  );
+  const isExternallySorted = Boolean(sortConfig && typeof handleSortChange === 'function');
+  const [internalSortConfig, setInternalSortConfig] = useState({
+    key: DEFAULT_SORT_KEY,
+    direction: 'ascending',
+  });
   const activeSortConfig = isExternallySorted ? sortConfig : internalSortConfig;
-  const [ edit, setEdit ] = useState( {} );
-  const [ editValues, setEditValues ] = useState( {} );
-  const [ notification, setNotification ] = useState( { show: false, message: '' } );
-  const [ internalSelectedRows, setInternalSelectedRows ] = useState( () => new Set() );
-  const [ lastCheckedId, setLastCheckedId ] = useState( null );
-  const isSelectionControlled = selectedCardIds instanceof Set && typeof onSelectedCardIdsChange === 'function';
+  const [edit, setEdit] = useState({});
+  const [editValues, setEditValues] = useState({});
+  const [notification, setNotification] = useState({ show: false, message: '' });
+  const [internalSelectedRows, setInternalSelectedRows] = useState(() => new Set());
+  const [lastCheckedId, setLastCheckedId] = useState(null);
+  const isSelectionControlled =
+    selectedCardIds instanceof Set && typeof onSelectedCardIdsChange === 'function';
   const selectedRows = isSelectionControlled ? selectedCardIds : internalSelectedRows;
   const updateSelectedRows = useCallback(
-    ( updater ) => {
-      if ( isSelectionControlled ) {
-        onSelectedCardIdsChange( updater );
+    (updater) => {
+      if (isSelectionControlled) {
+        onSelectedCardIdsChange(updater);
         return;
       }
 
-      setInternalSelectedRows( updater );
+      setInternalSelectedRows(updater);
     },
-    [ isSelectionControlled, onSelectedCardIdsChange ],
+    [isSelectionControlled, onSelectedCardIdsChange],
   );
-  const safeIds = useMemo(
-    () => safeCards.map( ( card ) => card?._id ).filter( Boolean ),
-    [ safeCards ],
-  );
+  const safeIds = useMemo(() => safeCards.map((card) => card?._id).filter(Boolean), [safeCards]);
 
-  useEffect( () => {
-    if ( isSelectionControlled ) {
+  useEffect(() => {
+    if (isSelectionControlled) {
       return;
     }
 
-    setInternalSelectedRows( ( prev ) => {
-      const validIdSet = new Set( safeIds );
+    setInternalSelectedRows((prev) => {
+      const validIdSet = new Set(safeIds);
       let changed = false;
       const next = new Set();
-      prev.forEach( ( id ) => {
-        if ( validIdSet.has( id ) ) {
-          next.add( id );
+      prev.forEach((id) => {
+        if (validIdSet.has(id)) {
+          next.add(id);
         } else {
           changed = true;
         }
-      } );
-      if ( !changed && next.size === prev.size ) {
+      });
+      if (!changed && next.size === prev.size) {
         return prev;
       }
       return next;
-    } );
-  }, [ isSelectionControlled, safeIds ] );
+    });
+  }, [isSelectionControlled, safeIds]);
 
-  const showNotification = useCallback( ( message ) => {
-    setNotification( { show: true, message } );
-  }, [] );
+  const showNotification = useCallback((message) => {
+    setNotification({ show: true, message });
+  }, []);
 
-  const cardLookup = useMemo( () => {
-    return safeCards.reduce( ( map, card ) => {
-      map.set( card._id, card );
+  const cardLookup = useMemo(() => {
+    return safeCards.reduce((map, card) => {
+      map.set(card._id, card);
       return map;
-    }, new Map() );
-  }, [ safeCards ] );
+    }, new Map());
+  }, [safeCards]);
 
-  const handleEdit = useCallback( ( cardId, field ) => {
-    const card = cardLookup.get( cardId );
-    if ( !card ) return;
+  const handleEdit = useCallback(
+    (cardId, field) => {
+      const card = cardLookup.get(cardId);
+      if (!card) return;
 
-    setEdit( ( prev ) => ( { ...prev, [ cardId ]: field } ) );
-    setEditValues( ( prev ) => ( {
-      ...prev,
-      [ cardId ]: { ...card, deleteAmount: prev[ cardId ]?.deleteAmount ?? 1 },
-    } ) );
-  }, [ cardLookup ] );
+      setEdit((prev) => ({ ...prev, [cardId]: field }));
+      setEditValues((prev) => ({
+        ...prev,
+        [cardId]: { ...card, deleteAmount: prev[cardId]?.deleteAmount ?? 1 },
+      }));
+    },
+    [cardLookup],
+  );
 
-  const handleChange = ( event, cardId, field ) => {
+  const handleChange = (event, cardId, field) => {
     const { value } = event.target;
-    setEditValues( ( prev ) => ( {
+    setEditValues((prev) => ({
       ...prev,
-      [ cardId ]: { ...prev[ cardId ], [ field ]: value },
-    } ) );
+      [cardId]: { ...prev[cardId], [field]: value },
+    }));
   };
 
-  const handleSave = async ( cardId, field ) => {
-    const rawValue = editValues[ cardId ]?.[ field ];
-    const parsedValue = Number( rawValue );
+  const handleSave = async (cardId, field) => {
+    const rawValue = editValues[cardId]?.[field];
+    const parsedValue = Number(rawValue);
 
-    if ( Number.isNaN( parsedValue ) ) {
-      showNotification( 'Please enter a valid number.' );
+    if (Number.isNaN(parsedValue)) {
+      showNotification('Please enter a valid number.');
       return;
     }
 
     try {
-      await onUpdateCard( cardId, field, parsedValue );
-      setEdit( ( prev ) => ( { ...prev, [ cardId ]: null } ) );
-      showNotification( 'Card quantity updated successfully!' );
-    } catch ( err ) {
-      console.error( 'Save failed', err );
-      showNotification( 'Unable to update this card. Please try again.' );
+      await onUpdateCard(cardId, field, parsedValue);
+      setEdit((prev) => ({ ...prev, [cardId]: null }));
+      showNotification('Card quantity updated successfully!');
+    } catch (err) {
+      console.error('Save failed', err);
+      showNotification('Unable to update this card. Please try again.');
     }
   };
 
-  const updateQuantity = async ( cardId, quantity ) => {
-    const nextQuantity = Number( quantity );
-    if ( Number.isNaN( nextQuantity ) ) {
-      showNotification( 'Please enter a valid quantity.' );
+  const updateQuantity = async (cardId, quantity) => {
+    const nextQuantity = Number(quantity);
+    if (Number.isNaN(nextQuantity)) {
+      showNotification('Please enter a valid quantity.');
       return;
     }
 
     try {
-      if ( nextQuantity <= 0 ) {
-        await onDeleteCard( cardId );
-        showNotification( 'Card deleted successfully!' );
+      if (nextQuantity <= 0) {
+        await onDeleteCard(cardId);
+        showNotification('Card deleted successfully!');
       } else {
-        await onUpdateCard( cardId, 'quantity', nextQuantity );
-        showNotification( 'Card quantity updated successfully!' );
+        await onUpdateCard(cardId, 'quantity', nextQuantity);
+        showNotification('Card quantity updated successfully!');
       }
-    } catch ( err ) {
-      console.error( 'Quantity update failed', err );
-      showNotification( 'Unable to update this card. Please try again.' );
+    } catch (err) {
+      console.error('Quantity update failed', err);
+      showNotification('Unable to update this card. Please try again.');
     }
   };
 
-  const handleDelete = async ( cardId ) => {
-    const delAmount = Number( editValues[ cardId ]?.deleteAmount ) || 1;
-    const current = cardLookup.get( cardId );
-    const newQty = Math.max( 0, ( current?.quantity || 0 ) - delAmount );
-    await updateQuantity( cardId, newQty );
+  const handleDelete = async (cardId) => {
+    const delAmount = Number(editValues[cardId]?.deleteAmount) || 1;
+    const current = cardLookup.get(cardId);
+    const newQty = Math.max(0, (current?.quantity || 0) - delAmount);
+    await updateQuantity(cardId, newQty);
   };
 
-  const handleSort = ( key ) => {
-    if ( !SORTABLE_COLUMNS[ key ] ) return;
-    if ( isExternallySorted ) {
-      handleSortChange( key );
+  const handleSort = (key) => {
+    if (!SORTABLE_COLUMNS[key]) return;
+    if (isExternallySorted) {
+      handleSortChange(key);
       return;
     }
     let direction = 'ascending';
-    if ( activeSortConfig.key === key && activeSortConfig.direction === 'ascending' ) {
+    if (activeSortConfig.key === key && activeSortConfig.direction === 'ascending') {
       direction = 'descending';
     }
 
-    setInternalSortConfig( { key, direction } );
+    setInternalSortConfig({ key, direction });
   };
 
-  const sortedData = useMemo( () => {
-    if ( isExternallySorted ) {
+  const sortedData = useMemo(() => {
+    if (isExternallySorted) {
       return safeCards;
     }
 
     const { key, direction } = activeSortConfig;
-    const column = SORTABLE_COLUMNS[ key ] || SORTABLE_COLUMNS[ DEFAULT_SORT_KEY ];
-    const items = [ ...safeCards ];
+    const column = SORTABLE_COLUMNS[key] || SORTABLE_COLUMNS[DEFAULT_SORT_KEY];
+    const items = [...safeCards];
 
-    items.sort( ( a, b ) => {
-      const aValue = column.key === 'totalPrice'
-        ? getCardTotalPrice( a )
-        : normalizeValue( a?.[ column.key ], column.type );
-      const bValue = column.key === 'totalPrice'
-        ? getCardTotalPrice( b )
-        : normalizeValue( b?.[ column.key ], column.type );
-      if ( aValue < bValue ) return direction === 'ascending' ? -1 : 1;
-      if ( aValue > bValue ) return direction === 'ascending' ? 1 : -1;
+    items.sort((a, b) => {
+      const aValue =
+        column.key === 'totalPrice'
+          ? getCardTotalPrice(a)
+          : normalizeValue(a?.[column.key], column.type);
+      const bValue =
+        column.key === 'totalPrice'
+          ? getCardTotalPrice(b)
+          : normalizeValue(b?.[column.key], column.type);
+      if (aValue < bValue) return direction === 'ascending' ? -1 : 1;
+      if (aValue > bValue) return direction === 'ascending' ? 1 : -1;
       return 0;
-    } );
+    });
 
     return items;
-  }, [ activeSortConfig, isExternallySorted, safeCards ] );
+  }, [activeSortConfig, isExternallySorted, safeCards]);
 
-  const getSortArrow = ( key ) => {
-    if ( activeSortConfig.key !== key ) return '';
+  const getSortArrow = (key) => {
+    if (activeSortConfig.key !== key) return '';
     return activeSortConfig.direction === 'ascending' ? '^' : 'v';
   };
 
   const displayedRowIds = useMemo(
-    () => sortedData.map( ( card ) => card?._id ).filter( Boolean ),
-    [ sortedData ],
+    () => sortedData.map((card) => card?._id).filter(Boolean),
+    [sortedData],
   );
 
   const isAllSelected =
-    displayedRowIds.length > 0 && displayedRowIds.every( ( id ) => selectedRows.has( id ) );
+    displayedRowIds.length > 0 && displayedRowIds.every((id) => selectedRows.has(id));
 
   const toggleRowSelection = useCallback(
-    ( event, cardId ) => {
+    (event, cardId) => {
       const { checked } = event.target;
       const isShift = event.nativeEvent?.shiftKey;
-      updateSelectedRows( ( prev ) => {
-        const next = new Set( prev );
-        if ( isShift && lastCheckedId && lastCheckedId !== cardId ) {
-          const start = displayedRowIds.indexOf( lastCheckedId );
-          const end = displayedRowIds.indexOf( cardId );
-          if ( start !== -1 && end !== -1 ) {
-            const [ lo, hi ] = start < end ? [ start, end ] : [ end, start ];
-            for ( let i = lo; i <= hi; i += 1 ) {
-              const idInRange = displayedRowIds[ i ];
-              if ( checked ) next.add( idInRange );
-              else next.delete( idInRange );
+      updateSelectedRows((prev) => {
+        const next = new Set(prev);
+        if (isShift && lastCheckedId && lastCheckedId !== cardId) {
+          const start = displayedRowIds.indexOf(lastCheckedId);
+          const end = displayedRowIds.indexOf(cardId);
+          if (start !== -1 && end !== -1) {
+            const [lo, hi] = start < end ? [start, end] : [end, start];
+            for (let i = lo; i <= hi; i += 1) {
+              const idInRange = displayedRowIds[i];
+              if (checked) next.add(idInRange);
+              else next.delete(idInRange);
             }
           }
         }
 
-        if ( checked ) next.add( cardId );
-        else next.delete( cardId );
+        if (checked) next.add(cardId);
+        else next.delete(cardId);
 
         return next;
-      } );
-      setLastCheckedId( cardId );
+      });
+      setLastCheckedId(cardId);
     },
-    [ displayedRowIds, lastCheckedId, updateSelectedRows ],
+    [displayedRowIds, lastCheckedId, updateSelectedRows],
   );
 
   const applySelectionToDisplayed = useCallback(
-    ( shouldSelect ) => {
-      updateSelectedRows( ( prev ) => {
-        const next = new Set( prev );
-        displayedRowIds.forEach( ( id ) => {
-          if ( shouldSelect ) next.add( id );
-          else next.delete( id );
-        } );
+    (shouldSelect) => {
+      updateSelectedRows((prev) => {
+        const next = new Set(prev);
+        displayedRowIds.forEach((id) => {
+          if (shouldSelect) next.add(id);
+          else next.delete(id);
+        });
         return next;
-      } );
+      });
     },
-    [ displayedRowIds, updateSelectedRows ],
+    [displayedRowIds, updateSelectedRows],
   );
 
   const handleHeaderSelectAll = useCallback(
-    ( event ) => {
-      applySelectionToDisplayed( event.target.checked );
-      setLastCheckedId( null );
+    (event) => {
+      applySelectionToDisplayed(event.target.checked);
+      setLastCheckedId(null);
     },
-    [ applySelectionToDisplayed ],
+    [applySelectionToDisplayed],
   );
 
-  const handleToolbarSelectToggle = useCallback( () => {
-    applySelectionToDisplayed( !isAllSelected );
-    setLastCheckedId( null );
-  }, [ applySelectionToDisplayed, isAllSelected ] );
+  const handleToolbarSelectToggle = useCallback(() => {
+    applySelectionToDisplayed(!isAllSelected);
+    setLastCheckedId(null);
+  }, [applySelectionToDisplayed, isAllSelected]);
 
-  const clearSelection = useCallback( () => {
-    updateSelectedRows( () => new Set() );
-    setLastCheckedId( null );
-  }, [ updateSelectedRows ] );
+  const clearSelection = useCallback(() => {
+    updateSelectedRows(() => new Set());
+    setLastCheckedId(null);
+  }, [updateSelectedRows]);
 
-  const handleBulkDelete = useCallback( async () => {
-    const selectedIds = Array.from( selectedRows );
-    if ( selectedIds.length === 0 ) {
-      showNotification( 'Select at least one card to delete.' );
+  const handleBulkDelete = useCallback(async () => {
+    const selectedIds = Array.from(selectedRows);
+    if (selectedIds.length === 0) {
+      showNotification('Select at least one card to delete.');
       return;
     }
     const confirmed = window.confirm(
-      `Delete ${ selectedIds.length } selected card${ selectedIds.length > 1 ? 's' : '' }?`,
+      `Delete ${selectedIds.length} selected card${selectedIds.length > 1 ? 's' : ''}?`,
     );
-    if ( !confirmed ) {
+    if (!confirmed) {
       return;
     }
     try {
-      await Promise.all( selectedIds.map( ( cardId ) => onDeleteCard( cardId ) ) );
-      showNotification( 'Selected cards deleted.' );
+      await Promise.all(selectedIds.map((cardId) => onDeleteCard(cardId)));
+      showNotification('Selected cards deleted.');
       clearSelection();
-    } catch ( error ) {
-      console.error( 'Bulk delete failed:', error );
-      showNotification( 'Failed to delete one or more cards. Please try again.' );
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      showNotification('Failed to delete one or more cards. Please try again.');
     }
-  }, [ clearSelection, onDeleteCard, selectedRows, showNotification ] );
+  }, [clearSelection, onDeleteCard, selectedRows, showNotification]);
 
   const selectedCount = selectedRows.size;
 
   const getFolderLabels = useCallback(
-    ( card ) => ( Array.isArray( card?.folderIds ) ? card.folderIds : [] )
-      .map( ( folderId ) => folderNameMap[ String( folderId ) ] )
-      .filter( Boolean ),
-    [ folderNameMap ],
+    (card) =>
+      (Array.isArray(card?.folderIds) ? card.folderIds : [])
+        .map((folderId) => folderNameMap[String(folderId)])
+        .filter(Boolean),
+    [folderNameMap],
   );
 
   return (
     <div className="max-w-full overflow-x-auto">
       <Notification
-        show={ notification.show }
-        setShow={ ( show ) => setNotification( ( prev ) => ( { ...prev, show } ) ) }
-        message={ notification.message }
+        show={notification.show}
+        setShow={(show) => setNotification((prev) => ({ ...prev, show }))}
+        message={notification.message}
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80">
-        <span className="font-semibold text-white">
-          { selectedCount } selected
-        </span>
+        <span className="font-semibold text-white">{selectedCount} selected</span>
         <button
           type="button"
-          onClick={ handleToolbarSelectToggle }
+          onClick={handleToolbarSelectToggle}
           className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white/40"
         >
-          { isAllSelected ? 'Unselect Page' : 'Select Page' }
+          {isAllSelected ? 'Unselect Page' : 'Select Page'}
         </button>
         <button
           type="button"
-          onClick={ clearSelection }
+          onClick={clearSelection}
           className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:border-white/40"
         >
           Clear All
         </button>
         <button
           type="button"
-          onClick={ handleBulkDelete }
+          onClick={handleBulkDelete}
           className="rounded-full border border-rose-400/50 bg-rose-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-rose-100 transition hover:bg-rose-500/20"
         >
           Delete Selected
@@ -344,40 +361,67 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
               <input
                 type="checkbox"
                 className="size-4 cursor-pointer accent-indigo-500"
-                checked={ isAllSelected }
-                onChange={ handleHeaderSelectAll }
+                checked={isAllSelected}
+                onChange={handleHeaderSelectAll}
                 aria-label="Select all visible cards"
               />
             </th>
-            <th onClick={ () => handleSort( 'quantity' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Qty { getSortArrow( 'quantity' ) }
+            <th
+              onClick={() => handleSort('quantity')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Qty {getSortArrow('quantity')}
             </th>
-            <th onClick={ () => handleSort( 'productName' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Name { getSortArrow( 'productName' ) }
+            <th
+              onClick={() => handleSort('productName')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Name {getSortArrow('productName')}
             </th>
-            <th onClick={ () => handleSort( 'setName' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Set { getSortArrow( 'setName' ) }
+            <th
+              onClick={() => handleSort('setName')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Set {getSortArrow('setName')}
             </th>
-            <th onClick={ () => handleSort( 'number' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Code { getSortArrow( 'number' ) }
+            <th
+              onClick={() => handleSort('number')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Code {getSortArrow('number')}
             </th>
-            <th onClick={ () => handleSort( 'printing' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Printing { getSortArrow( 'printing' ) }
+            <th
+              onClick={() => handleSort('printing')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Printing {getSortArrow('printing')}
             </th>
-            <th onClick={ () => handleSort( 'rarity' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Rarity { getSortArrow( 'rarity' ) }
+            <th
+              onClick={() => handleSort('rarity')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Rarity {getSortArrow('rarity')}
             </th>
-            <th onClick={ () => handleSort( 'condition' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Condition { getSortArrow( 'condition' ) }
+            <th
+              onClick={() => handleSort('condition')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Condition {getSortArrow('condition')}
             </th>
             <th className="border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
               Folders
             </th>
-            <th onClick={ () => handleSort( 'marketPrice' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Unit Price { getSortArrow( 'marketPrice' ) }
+            <th
+              onClick={() => handleSort('marketPrice')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Unit Price {getSortArrow('marketPrice')}
             </th>
-            <th onClick={ () => handleSort( 'totalPrice' ) } className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
-              Total Price { getSortArrow( 'totalPrice' ) }
+            <th
+              onClick={() => handleSort('totalPrice')}
+              className="cursor-pointer border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide"
+            >
+              Total Price {getSortArrow('totalPrice')}
             </th>
             <th className="border border-white/10 px-3 py-2" />
             <th className="border border-white/10 px-3 py-2 text-center font-semibold uppercase tracking-wide">
@@ -386,126 +430,147 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
           </tr>
         </thead>
         <tbody>
-          { sortedData?.map( ( card, index ) => {
+          {sortedData?.map((card, index) => {
             const cardId = card?._id;
-            const rowKey = cardId ?? `${ card?.productName ?? 'card' }-${ index }`;
-            const isSelected = cardId ? selectedRows.has( cardId ) : false;
+            const rowKey = cardId ?? `${card?.productName ?? 'card'}-${index}`;
+            const isSelected = cardId ? selectedRows.has(cardId) : false;
             return (
               <tr
-                key={ rowKey }
-                className={ `border-b border-white/5 bg-black/30 text-white transition-colors hover:bg-black/20 ${ isSelected ? 'bg-indigo-500/10' : '' }` }
+                key={rowKey}
+                className={`border-b border-white/5 bg-black/30 text-white transition-colors hover:bg-black/20 ${isSelected ? 'bg-indigo-500/10' : ''}`}
               >
                 <td className="px-3 py-2 text-center">
                   <input
                     type="checkbox"
                     className="size-4 cursor-pointer accent-indigo-500"
-                    checked={ isSelected }
-                    disabled={ !cardId }
-                    onChange={ ( event ) => cardId && toggleRowSelection( event, cardId ) }
+                    checked={isSelected}
+                    disabled={!cardId}
+                    onChange={(event) => cardId && toggleRowSelection(event, cardId)}
                     aria-label="Select card"
                   />
                 </td>
                 <td className="px-3 py-2 text-center">
-                  { edit[ card._id ] === 'quantity' ? (
+                  {edit[card._id] === 'quantity' ? (
                     <input
                       type="number"
                       className="w-16 rounded border border-white/20 bg-white/90 px-2 py-1 text-center text-black"
-                      value={ editValues[ card._id ]?.quantity ?? card.quantity ?? '' }
-                      onChange={ ( e ) => handleChange( e, card._id, 'quantity' ) }
-                      onBlur={ () => handleSave( card._id, 'quantity' ) }
+                      value={editValues[card._id]?.quantity ?? card.quantity ?? ''}
+                      onChange={(e) => handleChange(e, card._id, 'quantity')}
+                      onBlur={() => handleSave(card._id, 'quantity')}
                     />
                   ) : (
                     <span
                       className="cursor-pointer font-semibold text-indigo-200 underline-offset-4 hover:text-white hover:underline"
-                      onClick={ () => handleEdit( card._id, 'quantity' ) }
+                      onClick={() => handleEdit(card._id, 'quantity')}
                     >
-                      { card.quantity }
+                      {card.quantity}
                     </span>
-                  ) }
+                  )}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">
-                  { ( () => {
+                  {(() => {
                     const letterFromSet =
                       typeof card?.setName === 'string' && card.setName.length > 0
-                        ? card.setName.charAt( 0 ).toUpperCase()
+                        ? card.setName.charAt(0).toUpperCase()
                         : null;
                     const fallbackLetter =
                       typeof card?.productName === 'string' && card.productName.length > 0
-                        ? card.productName.charAt( 0 ).toUpperCase()
+                        ? card.productName.charAt(0).toUpperCase()
                         : null;
                     const letter = letterFromSet || fallbackLetter || undefined;
 
                     const query = { source: 'collection' };
 
-                    if ( card?.cardId ) {
-                      query.card = String( card.cardId );
+                    if (card?.cardId) {
+                      query.card = String(card.cardId);
                     }
-                    if ( card?.productName ) {
+                    if (card?.productName) {
                       query.card_name = card.productName;
                     }
-                    if ( card?.setName ) {
+                    if (card?.setName) {
                       query.set_name = card.setName;
                       query.tcg_set_name = card.setName;
                     }
-                    if ( card?.number ) query.set_code = card.number;
-                    if ( card?.rarity ) {
+                    if (card?.number) query.set_code = card.number;
+                    if (card?.rarity) {
                       query.rarity = card.rarity;
                       query.set_rarity = card.rarity;
                     }
-                    if ( card?.printing ) query.edition = card.printing;
-                    if ( letter ) query.letter = letter;
+                    if (card?.printing) query.edition = card.printing;
+                    if (letter) query.letter = letter;
 
                     return (
                       <Link
-                        href={ {
+                        href={{
                           pathname: '/yugioh/sets/[letter]/cards/card-details',
                           query,
-                        } }
+                        }}
                         className="block h-full w-full cursor-pointer text-inherit hover:underline"
                       >
-                        { card?.productName || 'Unknown Name' }
+                        {card?.productName || 'Unknown Name'}
                       </Link>
                     );
-                  } )() }
+                  })()}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.setName }</td>
-                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.number }</td>
-                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.printing }</td>
-                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.rarity }</td>
-                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ card?.condition }</td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">
+                  {card?.setName}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">
+                  {card?.number}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">
+                  {card?.printing}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">
+                  {card?.rarity}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">
+                  {card?.condition}
+                </td>
                 <td className="min-w-40 px-3 py-2 text-center sm:text-left">
                   <div className="flex flex-wrap justify-center gap-1 sm:justify-start">
-                    { getFolderLabels( card ).length > 0 ? getFolderLabels( card ).map( ( label ) => (
-                      <span key={ label } className="rounded-full border border-indigo-300/30 bg-indigo-500/15 px-2 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wide text-indigo-50">
-                        { label }
-                      </span>
-                    ) ) : (
+                    {getFolderLabels(card).length > 0 ? (
+                      getFolderLabels(card).map((label) => (
+                        <span
+                          key={label}
+                          className="rounded-full border border-indigo-300/30 bg-indigo-500/15 px-2 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wide text-indigo-50"
+                        >
+                          {label}
+                        </span>
+                      ))
+                    ) : (
                       <span className="text-white/35">-</span>
-                    ) }
+                    )}
                   </div>
                 </td>
-                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">{ Number.isFinite( Number( card?.marketPrice ) ) ? Number( card.marketPrice ).toFixed( 2 ) : card?.marketPrice ?? '0.00' }</td>
-                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left font-semibold">{ getCardTotalPrice( card ).toFixed( 2 ) }</td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left">
+                  {Number.isFinite(Number(card?.marketPrice))
+                    ? Number(card.marketPrice).toFixed(2)
+                    : (card?.marketPrice ?? '0.00')}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2 text-center sm:text-left font-semibold">
+                  {getCardTotalPrice(card).toFixed(2)}
+                </td>
                 <td className="flex items-center gap-2 px-3 py-2">
                   <input
                     type="number"
                     className="w-16 rounded border border-white/20 bg-white/90 px-2 py-1 text-center text-black"
-                    min={ 1 }
-                    max={ card.quantity }
-                    value={ editValues[ card._id ]?.deleteAmount ?? 1 }
-                    onChange={ ( e ) =>
-                      setEditValues( ( prev ) => ( {
+                    min={1}
+                    max={card.quantity}
+                    value={editValues[card._id]?.deleteAmount ?? 1}
+                    onChange={(e) =>
+                      setEditValues((prev) => ({
                         ...prev,
-                        [ card._id ]: {
-                          ...prev[ card._id ],
-                          deleteAmount: Number( e.target.value ) || 1,
+                        [card._id]: {
+                          ...prev[card._id],
+                          deleteAmount: Number(e.target.value) || 1,
                         },
-                      } ) )
+                      }))
                     }
                   />
                   <button
                     type="button"
-                    onClick={ () => handleDelete( card._id ) }
+                    onClick={() => handleDelete(card._id)}
                     className="text-sm font-semibold text-rose-300 hover:text-rose-100"
                   >
                     Delete
@@ -513,13 +578,13 @@ const TableView = ( { aggregatedData = [], onDeleteCard, onUpdateCard, sortConfi
                 </td>
                 <td className="px-3 py-2 text-center">
                   <PriceTrendIndicator
-                    previousPrice={ card?.oldPrice }
-                    currentPrice={ card?.marketPrice }
+                    previousPrice={card?.oldPrice}
+                    currentPrice={card?.marketPrice}
                   />
                 </td>
               </tr>
             );
-          } ) }
+          })}
         </tbody>
       </table>
     </div>

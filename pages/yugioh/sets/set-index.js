@@ -1,6 +1,6 @@
-import Head from "next/head";
+import Head from 'next/head';
 
-import AlphabeticalIndex from "@/components/Yugioh/AlphabeticalIndex";
+import AlphabeticalIndex from '@/components/Yugioh/AlphabeticalIndex';
 
 export default function SetsPage() {
   return (
@@ -8,7 +8,10 @@ export default function SetsPage() {
       <Head>
         <title>Yu-Gi-Oh! Set Index</title>
         <meta name="description" content="Index of Yu-Gi-Oh! sets" />
-        <meta name="keywords" content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss" />
+        <meta
+          name="keywords"
+          content="javascript,nextjs,price-tracker,trading-card-game,tailwindcss"
+        />
         <meta charSet="UTF-8" />
       </Head>
       <div className="yugioh-bg relative mx-auto min-h-screen w-full overflow-hidden p-2">

@@ -1,653 +1,710 @@
-import { useEffect, useRef } from "react";
-import { useRouter } from "next/router";
+import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
 
-const MOBILE_BACKGROUND = "/images/backgrounds/yugioh/background.svg";
-const DESKTOP_CHARACTER = "/yugioh-parallax/character.png";
-const DESKTOP_GLOW = "/yugioh-parallax/glow.png";
-const DESKTOP_QUERY = "(min-width: 1280px)";
+const MOBILE_BACKGROUND = '/images/backgrounds/yugioh/background.svg';
+const DESKTOP_CHARACTER = '/yugioh-parallax/character.png';
+const DESKTOP_GLOW = '/yugioh-parallax/glow.png';
+const DESKTOP_QUERY = '(min-width: 1280px)';
 const ORIGINAL_SIDEBAR_BREAKPOINT = 1280;
 const ORIGINAL_SIDEBAR_WIDTH = 324;
 const ANIMATION_EASING = 0.08;
 const SETTLE_EPSILON = 0.002;
 
-const clampNumber = ( value, min, max ) => Math.min( Math.max( value, min ), max );
-const getSmallDesktopParallaxScale = ( width ) => {
-    if ( width <= 900 ) {
-        return 0;
-    }
+const clampNumber = (value, min, max) => Math.min(Math.max(value, min), max);
+const getSmallDesktopParallaxScale = (width) => {
+  if (width <= 900) {
+    return 0;
+  }
 
-    if ( width >= 1440 ) {
-        return 0.72;
-    }
+  if (width >= 1440) {
+    return 0.72;
+  }
 
-    return 0.28 + ( ( width - 900 ) / 540 ) * 0.44;
+  return 0.28 + ((width - 900) / 540) * 0.44;
 };
-const getCollectionParallaxScale = ( width ) => {
-    if ( width <= 900 ) {
-        return 0;
-    }
+const getCollectionParallaxScale = (width) => {
+  if (width <= 900) {
+    return 0;
+  }
 
-    if ( width >= 1440 ) {
-        return 0.46;
-    }
+  if (width >= 1440) {
+    return 0.46;
+  }
 
-    return 0.16 + ( ( width - 900 ) / 540 ) * 0.3;
+  return 0.16 + ((width - 900) / 540) * 0.3;
 };
 
-const bindMediaQuery = ( mediaQuery, handler ) => {
-    if ( typeof mediaQuery.addEventListener === "function" ) {
-        mediaQuery.addEventListener( "change", handler );
-        return () => mediaQuery.removeEventListener( "change", handler );
-    }
+const bindMediaQuery = (mediaQuery, handler) => {
+  if (typeof mediaQuery.addEventListener === 'function') {
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }
 
-    mediaQuery.addListener( handler );
-    return () => mediaQuery.removeListener( handler );
+  mediaQuery.addListener(handler);
+  return () => mediaQuery.removeListener(handler);
 };
 
 export default function YugiohSiteBackground() {
-    const router = useRouter();
-    const sceneRef = useRef( null );
-    const stageRef = useRef( null );
-    const cameraRef = useRef( null );
-    const glowRef = useRef( null );
-    const characterRef = useRef( null );
-    const sparksRef = useRef( null );
-    const usesOriginalBackgroundPosition = [
-        "/yugioh",
-        "/yugioh/sets/set-index",
-        "/yugioh/sets/[...letter]",
-        "/yugioh/deck-builder",
-    ].includes( router.pathname );
-    const isCollectionPage = router.pathname.startsWith( "/yugioh/my-collection" );
-    const isSetDetailPage = router.pathname === "/yugioh/sets/[letter]/[setName]";
-    const usesReducedMeasuredParallax = isCollectionPage || isSetDetailPage;
-    const usesMeasuredArtBand = isCollectionPage || isSetDetailPage;
+  const router = useRouter();
+  const sceneRef = useRef(null);
+  const stageRef = useRef(null);
+  const cameraRef = useRef(null);
+  const glowRef = useRef(null);
+  const characterRef = useRef(null);
+  const sparksRef = useRef(null);
+  const usesOriginalBackgroundPosition = [
+    '/yugioh',
+    '/yugioh/sets/set-index',
+    '/yugioh/sets/[...letter]',
+    '/yugioh/deck-builder',
+  ].includes(router.pathname);
+  const isCollectionPage = router.pathname.startsWith('/yugioh/my-collection');
+  const isSetDetailPage = router.pathname === '/yugioh/sets/[letter]/[setName]';
+  const usesReducedMeasuredParallax = isCollectionPage || isSetDetailPage;
+  const usesMeasuredArtBand = isCollectionPage || isSetDetailPage;
 
-    useEffect( () => {
-        if ( typeof window === "undefined" ) {
-            return undefined;
-        }
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
 
-        const scene = sceneRef.current;
-        const stage = stageRef.current;
-        const camera = cameraRef.current;
-        const glow = glowRef.current;
-        const character = characterRef.current;
-        const sparks = sparksRef.current;
+    const scene = sceneRef.current;
+    const stage = stageRef.current;
+    const camera = cameraRef.current;
+    const glow = glowRef.current;
+    const character = characterRef.current;
+    const sparks = sparksRef.current;
 
-        if ( !scene || !stage || !camera || !glow || !character || !sparks ) {
-            return undefined;
-        }
+    if (!scene || !stage || !camera || !glow || !character || !sparks) {
+      return undefined;
+    }
 
-        const desktopQuery = window.matchMedia( DESKTOP_QUERY );
-        let isDesktop = desktopQuery.matches;
-        let targetX = 0;
-        let targetY = 0;
-        let currentX = 0;
-        let currentY = 0;
-        let rafId = 0;
-        let syncRafId = 0;
-        let desktopMetrics = {
-            contentLeft: 0,
-            usableWidth: window.innerWidth,
-            contentCenterPercent: 50,
-            sceneOffsetPx: 0,
+    const desktopQuery = window.matchMedia(DESKTOP_QUERY);
+    let isDesktop = desktopQuery.matches;
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let rafId = 0;
+    let syncRafId = 0;
+    let desktopMetrics = {
+      contentLeft: 0,
+      usableWidth: window.innerWidth,
+      contentCenterPercent: 50,
+      sceneOffsetPx: 0,
+    };
+    let scenePageTop = 0;
+    let scenePageLeft = 0;
+
+    const getDesktopMetrics = () => {
+      if (usesOriginalBackgroundPosition) {
+        const sidebarWidth =
+          window.innerWidth >= ORIGINAL_SIDEBAR_BREAKPOINT ? ORIGINAL_SIDEBAR_WIDTH : 0;
+        const usableWidth = Math.max(1, window.innerWidth - sidebarWidth);
+        const contentCenter = sidebarWidth + usableWidth / 2;
+
+        return {
+          contentLeft: sidebarWidth,
+          usableWidth,
+          contentCenterPercent: (contentCenter / window.innerWidth) * 100,
+          sceneOffsetPx: sidebarWidth / 2,
         };
-        let scenePageTop = 0;
-        let scenePageLeft = 0;
+      }
 
-        const getDesktopMetrics = () => {
-            if ( usesOriginalBackgroundPosition ) {
-                const sidebarWidth = window.innerWidth >= ORIGINAL_SIDEBAR_BREAKPOINT
-                    ? ORIGINAL_SIDEBAR_WIDTH
-                    : 0;
-                const usableWidth = Math.max( 1, window.innerWidth - sidebarWidth );
-                const contentCenter = sidebarWidth + ( usableWidth / 2 );
+      const mainRegion = document.querySelector('.app-shell-main');
+      const mainRect = mainRegion?.getBoundingClientRect();
+      const contentLeft = mainRect ? Math.max(0, mainRect.left) : 0;
+      const usableWidth = Math.max(1, window.innerWidth - contentLeft);
+      const contentCenter = contentLeft + usableWidth / 2;
 
-                return {
-                    contentLeft: sidebarWidth,
-                    usableWidth,
-                    contentCenterPercent: ( contentCenter / window.innerWidth ) * 100,
-                    sceneOffsetPx: sidebarWidth / 2,
-                };
-            }
+      return {
+        contentLeft,
+        usableWidth,
+        contentCenterPercent: (contentCenter / window.innerWidth) * 100,
+        sceneOffsetPx: contentCenter - window.innerWidth / 2,
+      };
+    };
 
-            const mainRegion = document.querySelector( ".app-shell-main" );
-            const mainRect = mainRegion?.getBoundingClientRect();
-            const contentLeft = mainRect ? Math.max( 0, mainRect.left ) : 0;
-            const usableWidth = Math.max( 1, window.innerWidth - contentLeft );
-            const contentCenter = contentLeft + ( usableWidth / 2 );
+    const syncMeasurements = () => {
+      const rect = scene.getBoundingClientRect();
 
-            return {
-                contentLeft,
-                usableWidth,
-                contentCenterPercent: ( contentCenter / window.innerWidth ) * 100,
-                sceneOffsetPx: contentCenter - ( window.innerWidth / 2 ),
-            };
-        };
+      desktopMetrics = getDesktopMetrics();
+      scenePageTop = rect.top + window.scrollY;
+      scenePageLeft = rect.left + window.scrollX;
+      scene.style.setProperty('--scene-offset-x', `${desktopMetrics.sceneOffsetPx}px`);
+    };
 
-        const syncMeasurements = () => {
-            const rect = scene.getBoundingClientRect();
+    const syncMeasuredArtBounds = () => {
+      if (!usesMeasuredArtBand) {
+        return;
+      }
 
-            desktopMetrics = getDesktopMetrics();
-            scenePageTop = rect.top + window.scrollY;
-            scenePageLeft = rect.left + window.scrollX;
-            scene.style.setProperty( "--scene-offset-x", `${ desktopMetrics.sceneOffsetPx }px` );
-        };
+      const resultsBand =
+        document.getElementById('collection-results-art-band') ||
+        document.getElementById('set-results-art-band');
 
-        const syncMeasuredArtBounds = () => {
-            if ( !usesMeasuredArtBand ) {
-                return;
-            }
+      if (!resultsBand) {
+        scene.style.removeProperty('--scene-art-y');
+        scene.style.removeProperty('--scene-character-height');
+        scene.style.removeProperty('--scene-glow-height');
+        return;
+      }
 
-            const resultsBand = document.getElementById( "collection-results-art-band" )
-                || document.getElementById( "set-results-art-band" );
+      const sceneRect = scene.getBoundingClientRect();
+      const bandRect = resultsBand.getBoundingClientRect();
+      const top = Math.max(0, bandRect.top - sceneRect.top);
+      const rootFontSize =
+        Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
+      const characterHeight = clampNumber(
+        window.innerHeight * 1.16,
+        rootFontSize * 50,
+        rootFontSize * 80,
+      );
+      const glowHeight = clampNumber(window.innerHeight, rootFontSize * 42, rootFontSize * 72);
 
-            if ( !resultsBand ) {
-                scene.style.removeProperty( "--scene-art-y" );
-                scene.style.removeProperty( "--scene-character-height" );
-                scene.style.removeProperty( "--scene-glow-height" );
-                return;
-            }
+      scene.style.setProperty('--scene-art-y', `${top}px`);
+      scene.style.setProperty('--scene-character-height', `${characterHeight}px`);
+      scene.style.setProperty('--scene-glow-height', `${glowHeight}px`);
+    };
 
-            const sceneRect = scene.getBoundingClientRect();
-            const bandRect = resultsBand.getBoundingClientRect();
-            const top = Math.max( 0, bandRect.top - sceneRect.top );
-            const rootFontSize = Number.parseFloat( window.getComputedStyle( document.documentElement ).fontSize ) || 16;
-            const characterHeight = clampNumber( window.innerHeight * 1.16, rootFontSize * 50, rootFontSize * 80 );
-            const glowHeight = clampNumber( window.innerHeight, rootFontSize * 42, rootFontSize * 72 );
+    const syncScene = () => {
+      syncMeasurements();
+      syncMeasuredArtBounds();
+    };
 
-            scene.style.setProperty( "--scene-art-y", `${ top }px` );
-            scene.style.setProperty( "--scene-character-height", `${ characterHeight }px` );
-            scene.style.setProperty( "--scene-glow-height", `${ glowHeight }px` );
-        };
+    const applyTransforms = (x, y) => {
+      const { contentCenterPercent } = desktopMetrics;
+      const parallaxScale = isCollectionPage
+        ? getCollectionParallaxScale(window.innerWidth)
+        : usesReducedMeasuredParallax
+          ? getSmallDesktopParallaxScale(window.innerWidth)
+          : 1;
+      const scaledX = x * parallaxScale;
+      const scaledY = y * parallaxScale;
+      const perspectiveX = isCollectionPage
+        ? scaledX * 3.2
+        : usesReducedMeasuredParallax
+          ? scaledX * 5
+          : x * 7;
+      const perspectiveY = isCollectionPage
+        ? scaledY * 2.2
+        : usesReducedMeasuredParallax
+          ? scaledY * 3.5
+          : y * 5;
+      const cameraX = isCollectionPage
+        ? scaledX * -3
+        : usesReducedMeasuredParallax
+          ? scaledX * -5
+          : x * -8;
+      const cameraY = isCollectionPage
+        ? scaledY * -2.5
+        : usesReducedMeasuredParallax
+          ? scaledY * -4
+          : y * -6;
+      const cameraRotateX = isCollectionPage
+        ? scaledY * -1.5
+        : usesReducedMeasuredParallax
+          ? scaledY * -2.6
+          : y * -4.6;
+      const cameraRotateY = isCollectionPage
+        ? scaledX * 1.9
+        : usesReducedMeasuredParallax
+          ? scaledX * 3.2
+          : x * 5.6;
+      const glowX = isCollectionPage
+        ? scaledX * -16
+        : usesReducedMeasuredParallax
+          ? scaledX * -32
+          : x * -54;
+      const glowY = isCollectionPage
+        ? scaledY * -15
+        : usesReducedMeasuredParallax
+          ? scaledY * -30
+          : y * -50;
+      const characterX = isCollectionPage
+        ? scaledX * -12
+        : usesReducedMeasuredParallax
+          ? scaledX * -22
+          : x * -36;
+      const characterY = isCollectionPage
+        ? scaledY * -11
+        : usesReducedMeasuredParallax
+          ? scaledY * -20
+          : y * -34;
+      const sparksX = isCollectionPage
+        ? scaledX * -6
+        : usesReducedMeasuredParallax
+          ? scaledX * -12
+          : x * -18;
+      const sparksY = isCollectionPage
+        ? scaledY * -5
+        : usesReducedMeasuredParallax
+          ? scaledY * -10
+          : y * -16;
+      const glowScale = isCollectionPage ? 1.07 : usesReducedMeasuredParallax ? 1.12 : 1.14;
+      const characterScale = isCollectionPage ? 1.09 : usesReducedMeasuredParallax ? 1.14 : 1.18;
+      const sparksScale = isCollectionPage ? 1.01 : usesReducedMeasuredParallax ? 1.02 : 1.03;
 
-        const syncScene = () => {
-            syncMeasurements();
-            syncMeasuredArtBounds();
-        };
+      stage.style.perspectiveOrigin = isDesktop
+        ? `${(contentCenterPercent + perspectiveX).toFixed(2)}% ${(48 + perspectiveY).toFixed(2)}%`
+        : '50% 50%';
 
-        const applyTransforms = ( x, y ) => {
-            const { contentCenterPercent } = desktopMetrics;
-            const parallaxScale = isCollectionPage
-                ? getCollectionParallaxScale( window.innerWidth )
-                : usesReducedMeasuredParallax
-                    ? getSmallDesktopParallaxScale( window.innerWidth )
-                    : 1;
-            const scaledX = x * parallaxScale;
-            const scaledY = y * parallaxScale;
-            const perspectiveX = isCollectionPage ? scaledX * 3.2 : usesReducedMeasuredParallax ? scaledX * 5 : x * 7;
-            const perspectiveY = isCollectionPage ? scaledY * 2.2 : usesReducedMeasuredParallax ? scaledY * 3.5 : y * 5;
-            const cameraX = isCollectionPage ? scaledX * -3 : usesReducedMeasuredParallax ? scaledX * -5 : x * -8;
-            const cameraY = isCollectionPage ? scaledY * -2.5 : usesReducedMeasuredParallax ? scaledY * -4 : y * -6;
-            const cameraRotateX = isCollectionPage ? scaledY * -1.5 : usesReducedMeasuredParallax ? scaledY * -2.6 : y * -4.6;
-            const cameraRotateY = isCollectionPage ? scaledX * 1.9 : usesReducedMeasuredParallax ? scaledX * 3.2 : x * 5.6;
-            const glowX = isCollectionPage ? scaledX * -16 : usesReducedMeasuredParallax ? scaledX * -32 : x * -54;
-            const glowY = isCollectionPage ? scaledY * -15 : usesReducedMeasuredParallax ? scaledY * -30 : y * -50;
-            const characterX = isCollectionPage ? scaledX * -12 : usesReducedMeasuredParallax ? scaledX * -22 : x * -36;
-            const characterY = isCollectionPage ? scaledY * -11 : usesReducedMeasuredParallax ? scaledY * -20 : y * -34;
-            const sparksX = isCollectionPage ? scaledX * -6 : usesReducedMeasuredParallax ? scaledX * -12 : x * -18;
-            const sparksY = isCollectionPage ? scaledY * -5 : usesReducedMeasuredParallax ? scaledY * -10 : y * -16;
-            const glowScale = isCollectionPage ? 1.07 : usesReducedMeasuredParallax ? 1.12 : 1.14;
-            const characterScale = isCollectionPage ? 1.09 : usesReducedMeasuredParallax ? 1.14 : 1.18;
-            const sparksScale = isCollectionPage ? 1.01 : usesReducedMeasuredParallax ? 1.02 : 1.03;
+      camera.style.transform = isDesktop
+        ? `translate3d(${cameraX.toFixed(2)}px, ${cameraY.toFixed(2)}px, 0) translate3d(0, 1.5%, 0) scale(1.02) rotateX(${cameraRotateX.toFixed(3)}deg) rotateY(${cameraRotateY.toFixed(3)}deg)`
+        : 'translate3d(0, 1.5%, 0) scale(1.02) rotateX(0deg) rotateY(0deg)';
 
-            stage.style.perspectiveOrigin = isDesktop
-                ? `${ ( contentCenterPercent + perspectiveX ).toFixed( 2 ) }% ${ ( 48 + perspectiveY ).toFixed( 2 ) }%`
-                : "50% 50%";
+      glow.style.transform = `translate3d(${glowX.toFixed(2)}px, ${glowY.toFixed(2)}px, 40px) scale(${glowScale})`;
+      character.style.transform = `translate3d(${characterX.toFixed(2)}px, ${characterY.toFixed(2)}px, 90px) scale(${characterScale})`;
+      sparks.style.transform = `translate3d(${sparksX.toFixed(2)}px, ${sparksY.toFixed(2)}px, 20px) scale(${sparksScale})`;
+    };
 
-            camera.style.transform = isDesktop
-                ? `translate3d(${ cameraX.toFixed( 2 ) }px, ${ cameraY.toFixed( 2 ) }px, 0) translate3d(0, 1.5%, 0) scale(1.02) rotateX(${ cameraRotateX.toFixed( 3 ) }deg) rotateY(${ cameraRotateY.toFixed( 3 ) }deg)`
-                : "translate3d(0, 1.5%, 0) scale(1.02) rotateX(0deg) rotateY(0deg)";
+    const stopAnimation = () => {
+      if (!rafId) {
+        return;
+      }
 
-            glow.style.transform = `translate3d(${ glowX.toFixed( 2 ) }px, ${ glowY.toFixed( 2 ) }px, 40px) scale(${ glowScale })`;
-            character.style.transform = `translate3d(${ characterX.toFixed( 2 ) }px, ${ characterY.toFixed( 2 ) }px, 90px) scale(${ characterScale })`;
-            sparks.style.transform = `translate3d(${ sparksX.toFixed( 2 ) }px, ${ sparksY.toFixed( 2 ) }px, 20px) scale(${ sparksScale })`;
-        };
+      window.cancelAnimationFrame(rafId);
+      rafId = 0;
+    };
 
-        const stopAnimation = () => {
-            if ( !rafId ) {
-                return;
-            }
+    const animate = () => {
+      currentX += (targetX - currentX) * ANIMATION_EASING;
+      currentY += (targetY - currentY) * ANIMATION_EASING;
+      applyTransforms(currentX, currentY);
 
-            window.cancelAnimationFrame( rafId );
-            rafId = 0;
-        };
+      const hasSettled =
+        Math.abs(targetX - currentX) < SETTLE_EPSILON &&
+        Math.abs(targetY - currentY) < SETTLE_EPSILON;
 
-        const animate = () => {
-            currentX += ( targetX - currentX ) * ANIMATION_EASING;
-            currentY += ( targetY - currentY ) * ANIMATION_EASING;
-            applyTransforms( currentX, currentY );
+      if (hasSettled) {
+        currentX = targetX;
+        currentY = targetY;
+        applyTransforms(currentX, currentY);
+        rafId = 0;
+        return;
+      }
 
-            const hasSettled = Math.abs( targetX - currentX ) < SETTLE_EPSILON
-                && Math.abs( targetY - currentY ) < SETTLE_EPSILON;
+      rafId = window.requestAnimationFrame(animate);
+    };
 
-            if ( hasSettled ) {
-                currentX = targetX;
-                currentY = targetY;
-                applyTransforms( currentX, currentY );
-                rafId = 0;
-                return;
-            }
+    const startAnimation = () => {
+      if (!isDesktop || rafId) {
+        return;
+      }
 
-            rafId = window.requestAnimationFrame( animate );
-        };
+      rafId = window.requestAnimationFrame(animate);
+    };
 
-        const startAnimation = () => {
-            if ( !isDesktop || rafId ) {
-                return;
-            }
+    const resetPointer = (shouldAnimate = true) => {
+      targetX = 0;
+      targetY = 0;
+      scene.style.setProperty('--px', '50%');
+      scene.style.setProperty('--py', '50%');
 
-            rafId = window.requestAnimationFrame( animate );
-        };
+      if (shouldAnimate) {
+        startAnimation();
+      }
+    };
 
-        const resetPointer = ( shouldAnimate = true ) => {
-            targetX = 0;
-            targetY = 0;
-            scene.style.setProperty( "--px", "50%" );
-            scene.style.setProperty( "--py", "50%" );
+    const setPointer = (x, y) => {
+      if (!isDesktop) {
+        return;
+      }
 
-            if ( shouldAnimate ) {
-                startAnimation();
-            }
-        };
+      const { contentLeft, usableWidth } = desktopMetrics;
+      const localX = x + window.scrollX - scenePageLeft;
+      const localY = y + window.scrollY - scenePageTop;
+      const normalizedX = ((x - contentLeft) / usableWidth - 0.5) * 2;
+      const normalizedY = (y / window.innerHeight - 0.5) * 2;
 
-        const setPointer = ( x, y ) => {
-            if ( !isDesktop ) {
-                return;
-            }
+      targetX = Math.max(-1, Math.min(1, normalizedX));
+      targetY = Math.max(-1, Math.min(1, normalizedY));
+      scene.style.setProperty('--px', `${localX}px`);
+      scene.style.setProperty('--py', `${localY}px`);
+      startAnimation();
+    };
 
-            const { contentLeft, usableWidth } = desktopMetrics;
-            const localX = x + window.scrollX - scenePageLeft;
-            const localY = y + window.scrollY - scenePageTop;
-            const normalizedX = ( ( x - contentLeft ) / usableWidth - 0.5 ) * 2;
-            const normalizedY = ( y / window.innerHeight - 0.5 ) * 2;
+    const onPointerMove = (event) => {
+      if (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') {
+        return;
+      }
 
-            targetX = Math.max( -1, Math.min( 1, normalizedX ) );
-            targetY = Math.max( -1, Math.min( 1, normalizedY ) );
-            scene.style.setProperty( "--px", `${ localX }px` );
-            scene.style.setProperty( "--py", `${ localY }px` );
-            startAnimation();
-        };
+      setPointer(event.clientX, event.clientY);
+    };
 
-        const onPointerMove = ( event ) => {
-            if ( event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen" ) {
-                return;
-            }
+    const onMouseLeave = () => {
+      resetPointer();
+    };
 
-            setPointer( event.clientX, event.clientY );
-        };
+    const onWindowBlur = () => {
+      stopAnimation();
+      resetPointer(false);
+      currentX = 0;
+      currentY = 0;
+      applyTransforms(0, 0);
+    };
 
-        const onMouseLeave = () => {
-            resetPointer();
-        };
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') {
+        stopAnimation();
+        resetPointer(false);
+        currentX = 0;
+        currentY = 0;
+        applyTransforms(0, 0);
+      }
+    };
 
-        const onWindowBlur = () => {
-            stopAnimation();
-            resetPointer( false );
-            currentX = 0;
-            currentY = 0;
-            applyTransforms( 0, 0 );
-        };
+    const syncViewportMode = () => {
+      isDesktop = desktopQuery.matches;
+      syncScene();
 
-        const onVisibilityChange = () => {
-            if ( document.visibilityState !== "visible" ) {
-                stopAnimation();
-                resetPointer( false );
-                currentX = 0;
-                currentY = 0;
-                applyTransforms( 0, 0 );
-            }
-        };
+      if (!isDesktop) {
+        stopAnimation();
+        resetPointer(false);
+        currentX = 0;
+        currentY = 0;
+        applyTransforms(0, 0);
+        return;
+      }
 
-        const syncViewportMode = () => {
-            isDesktop = desktopQuery.matches;
-            syncScene();
+      applyTransforms(currentX, currentY);
+    };
 
-            if ( !isDesktop ) {
-                stopAnimation();
-                resetPointer( false );
-                currentX = 0;
-                currentY = 0;
-                applyTransforms( 0, 0 );
-                return;
-            }
+    const scheduleSceneSync = () => {
+      if (syncRafId) {
+        return;
+      }
 
-            applyTransforms( currentX, currentY );
-        };
+      syncRafId = window.requestAnimationFrame(() => {
+        syncRafId = 0;
+        syncScene();
+        applyTransforms(currentX, currentY);
+      });
+    };
 
-        const scheduleSceneSync = () => {
-            if ( syncRafId ) {
-                return;
-            }
+    const onResize = () => {
+      resetPointer(false);
+      currentX = 0;
+      currentY = 0;
+      scheduleSceneSync();
+    };
 
-            syncRafId = window.requestAnimationFrame( () => {
-                syncRafId = 0;
-                syncScene();
-                applyTransforms( currentX, currentY );
-            } );
-        };
+    const syncSceneImmediately = () => {
+      syncScene();
+      applyTransforms(currentX, currentY);
+    };
 
-        const onResize = () => {
-            resetPointer( false );
-            currentX = 0;
-            currentY = 0;
+    resetPointer(false);
+    syncSceneImmediately();
+    const postLayoutSyncId = window.requestAnimationFrame(() => {
+      syncSceneImmediately();
+    });
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('mouseleave', onMouseLeave);
+    window.addEventListener('blur', onWindowBlur);
+    window.addEventListener('resize', onResize);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    const removeMediaListener = bindMediaQuery(desktopQuery, syncViewportMode);
+    const mainRegion = document.querySelector('.app-shell-main');
+    const measuredResultsBand = usesMeasuredArtBand
+      ? document.getElementById('collection-results-art-band') ||
+        document.getElementById('set-results-art-band')
+      : null;
+    const resizeObserver =
+      typeof ResizeObserver === 'function' && mainRegion
+        ? new ResizeObserver(() => {
             scheduleSceneSync();
-        };
+          })
+        : null;
 
-        const syncSceneImmediately = () => {
-            syncScene();
-            applyTransforms( currentX, currentY );
-        };
+    if (resizeObserver && mainRegion) {
+      resizeObserver.observe(mainRegion);
+      if (measuredResultsBand) {
+        resizeObserver.observe(measuredResultsBand);
+      }
+    }
 
-        resetPointer( false );
-        syncSceneImmediately();
-        const postLayoutSyncId = window.requestAnimationFrame( () => {
-            syncSceneImmediately();
-        } );
+    return () => {
+      window.cancelAnimationFrame(postLayoutSyncId);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('mouseleave', onMouseLeave);
+      window.removeEventListener('blur', onWindowBlur);
+      window.removeEventListener('resize', onResize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      removeMediaListener();
+      resizeObserver?.disconnect();
+      if (syncRafId) {
+        window.cancelAnimationFrame(syncRafId);
+      }
+      stopAnimation();
+    };
+  }, [
+    isCollectionPage,
+    usesMeasuredArtBand,
+    usesOriginalBackgroundPosition,
+    usesReducedMeasuredParallax,
+  ]);
 
-        window.addEventListener( "pointermove", onPointerMove, { passive: true } );
-        window.addEventListener( "mouseleave", onMouseLeave );
-        window.addEventListener( "blur", onWindowBlur );
-        window.addEventListener( "resize", onResize );
-        document.addEventListener( "visibilitychange", onVisibilityChange );
+  return (
+    <>
+      <style jsx>{`
+        .ygo-bg {
+          --px: 50%;
+          --py: 50%;
+          --scene-offset-x: 0px;
+          --scene-art-y: clamp(34rem, 62svh, 46rem);
+          --shine: radial-gradient(
+            circle at var(--px) var(--py),
+            rgba(255, 198, 124, 0.18),
+            rgba(255, 198, 124, 0.05) 12%,
+            transparent 22%
+          );
 
-        const removeMediaListener = bindMediaQuery( desktopQuery, syncViewportMode );
-        const mainRegion = document.querySelector( ".app-shell-main" );
-        const measuredResultsBand = usesMeasuredArtBand
-            ? document.getElementById( "collection-results-art-band" )
-            || document.getElementById( "set-results-art-band" )
-            : null;
-        const resizeObserver = typeof ResizeObserver === "function" && mainRegion
-            ? new ResizeObserver( () => {
-                scheduleSceneSync();
-            } )
-            : null;
-
-        if ( resizeObserver && mainRegion ) {
-            resizeObserver.observe( mainRegion );
-            if ( measuredResultsBand ) {
-                resizeObserver.observe( measuredResultsBand );
-            }
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          min-height: 100svh;
+          z-index: 0;
+          overflow: hidden;
+          isolation: isolate;
+          pointer-events: none;
+          contain: paint;
+          background:
+            radial-gradient(circle at 50% 35%, rgba(255, 138, 64, 0.22), transparent 28%),
+            radial-gradient(circle at 25% 60%, rgba(255, 102, 0, 0.14), transparent 30%),
+            radial-gradient(circle at 78% 28%, rgba(135, 60, 255, 0.16), transparent 32%), #09090d;
         }
 
-        return () => {
-            window.cancelAnimationFrame( postLayoutSyncId );
-            window.removeEventListener( "pointermove", onPointerMove );
-            window.removeEventListener( "mouseleave", onMouseLeave );
-            window.removeEventListener( "blur", onWindowBlur );
-            window.removeEventListener( "resize", onResize );
-            document.removeEventListener( "visibilitychange", onVisibilityChange );
-            removeMediaListener();
-            resizeObserver?.disconnect();
-            if ( syncRafId ) {
-                window.cancelAnimationFrame( syncRafId );
-            }
-            stopAnimation();
-        };
-    }, [ isCollectionPage, usesMeasuredArtBand, usesOriginalBackgroundPosition, usesReducedMeasuredParallax ] );
+        .ygo-bg.measured-art-band-page {
+          --scene-art-y: clamp(76rem, 132svh, 102rem);
+          --scene-character-height: clamp(50rem, 116vh, 80rem);
+          --scene-glow-height: clamp(42rem, 100vh, 72rem);
+        }
 
-    return (
-        <>
-            <style jsx>{ `
-                .ygo-bg {
-                    --px: 50%;
-                    --py: 50%;
-                    --scene-offset-x: 0px;
-                    --scene-art-y: clamp(34rem, 62svh, 46rem);
-                    --shine: radial-gradient(
-                        circle at var(--px) var(--py),
-                        rgba(255, 198, 124, 0.18),
-                        rgba(255, 198, 124, 0.05) 12%,
-                        transparent 22%
-                    );
+        .ygo-bg.original-position-page .stage {
+          position: fixed;
+          contain: layout paint style;
+        }
 
-                    position: absolute;
-                    inset: 0;
-                    width: 100%;
-                    height: 100%;
-                    min-height: 100svh;
-                    z-index: 0;
-                    overflow: hidden;
-                    isolation: isolate;
-                    pointer-events: none;
-                    contain: paint;
-                    background:
-                        radial-gradient(circle at 50% 35%, rgba(255, 138, 64, 0.22), transparent 28%),
-                        radial-gradient(circle at 25% 60%, rgba(255, 102, 0, 0.14), transparent 30%),
-                        radial-gradient(circle at 78% 28%, rgba(135, 60, 255, 0.16), transparent 32%),
-                        #09090d;
-                }
+        .ygo-bg.original-position-page .glow {
+          inset: -12% -10%;
+          background-position: calc(50% + var(--scene-offset-x)) 51%;
+        }
 
-                .ygo-bg.measured-art-band-page {
-                    --scene-art-y: clamp(76rem, 132svh, 102rem);
-                    --scene-character-height: clamp(50rem, 116vh, 80rem);
-                    --scene-glow-height: clamp(42rem, 100vh, 72rem);
-                }
+        .ygo-bg.original-position-page .character {
+          inset: -22% -12%;
+          background-position: calc(50% + var(--scene-offset-x)) 50%;
+        }
 
-                .ygo-bg.original-position-page .stage {
-                    position: fixed;
-                    contain: layout paint style;
-                }
+        .mobile-art {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          display: none;
+          background-image: url('${MOBILE_BACKGROUND}');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        }
 
-                .ygo-bg.original-position-page .glow {
-                    inset: -12% -10%;
-                    background-position: calc(50% + var(--scene-offset-x)) 51%;
-                }
+        .stage {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          overflow: hidden;
+          perspective: 1200px;
+          perspective-origin: 50% 50%;
+          transform-style: preserve-3d;
+          pointer-events: none;
+          contain: paint style;
+        }
 
-                .ygo-bg.original-position-page .character {
-                    inset: -22% -12%;
-                    background-position: calc(50% + var(--scene-offset-x)) 50%;
-                }
+        .camera {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          min-height: 100%;
+          transform-style: preserve-3d;
+          will-change: transform;
+          pointer-events: none;
+          transform: translate3d(0, 1.5%, 0) rotateX(0deg) rotateY(0deg);
+        }
 
-                .mobile-art {
-                    position: absolute;
-                    inset: 0;
-                    z-index: 0;
-                    display: none;
-                    background-image: url("${ MOBILE_BACKGROUND }");
-                    background-size: cover;
-                    background-position: center;
-                    background-repeat: no-repeat;
-                }
+        .ygo-bg.reduced-measured-parallax-page .stage {
+          perspective: 1800px;
+        }
 
-                .stage {
-                    position: absolute;
-                    inset: 0;
-                    z-index: 1;
-                    overflow: hidden;
-                    perspective: 1200px;
-                    perspective-origin: 50% 50%;
-                    transform-style: preserve-3d;
-                    pointer-events: none;
-                    contain: paint style;
-                }
+        .ygo-bg.collection-parallax-page .stage {
+          perspective: 2200px;
+        }
 
-                .camera {
-                    position: absolute;
-                    inset: 0;
-                    width: 100%;
-                    height: 100%;
-                    min-height: 100%;
-                    transform-style: preserve-3d;
-                    will-change: transform;
-                    pointer-events: none;
-                    transform: translate3d(0, 1.5%, 0) rotateX(0deg) rotateY(0deg);
-                }
+        .layer {
+          position: absolute;
+          inset: -6%;
+          background-repeat: no-repeat;
+          pointer-events: none;
+          transform-style: preserve-3d;
+          transform-origin: center center;
+          backface-visibility: hidden;
+        }
 
-                .ygo-bg.reduced-measured-parallax-page .stage {
-                    perspective: 1800px;
-                }
+        .glow {
+          z-index: 4;
+          inset: 0 -10%;
+          background-image: url('${DESKTOP_GLOW}');
+          background-size: auto clamp(42rem, 100vh, 72rem);
+          background-position: calc(50% + var(--scene-offset-x)) var(--scene-art-y);
+          background-repeat: no-repeat;
+          mix-blend-mode: screen;
+          will-change: transform;
+          opacity: 0.38;
+          filter: blur(12px) saturate(1.14) brightness(1.01);
+          transform: translate3d(0px, 0px, 40px) scale(1.14);
+        }
 
-                .ygo-bg.collection-parallax-page .stage {
-                    perspective: 2200px;
-                }
+        .character {
+          inset: 0 -12%;
+          z-index: 5;
+          background-image: url('${DESKTOP_CHARACTER}');
+          background-size: auto clamp(50rem, 116vh, 80rem);
+          background-position: calc(50% + var(--scene-offset-x)) var(--scene-art-y);
+          background-repeat: no-repeat;
+          will-change: transform;
+          filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.28))
+            drop-shadow(0 24px 32px rgba(0, 0, 0, 0.2));
+          transform: translate3d(0px, 0px, 90px) scale(1.18);
+        }
 
-                .layer {
-                    position: absolute;
-                    inset: -6%;
-                    background-repeat: no-repeat;
-                    pointer-events: none;
-                    transform-style: preserve-3d;
-                    transform-origin: center center;
-                    backface-visibility: hidden;
-                }
+        .ygo-bg.measured-art-band-page .glow {
+          background-size: auto var(--scene-glow-height);
+        }
 
-                .glow {
-                    z-index: 4;
-                    inset: 0 -10%;
-                    background-image: url("${ DESKTOP_GLOW }");
-                    background-size: auto clamp(42rem, 100vh, 72rem);
-                    background-position: calc(50% + var(--scene-offset-x)) var(--scene-art-y);
-                    background-repeat: no-repeat;
-                    mix-blend-mode: screen;
-                    will-change: transform;
-                    opacity: 0.38;
-                    filter: blur(12px) saturate(1.14) brightness(1.01);
-                    transform: translate3d(0px, 0px, 40px) scale(1.14);
-                }
+        .ygo-bg.measured-art-band-page .character {
+          background-size: auto var(--scene-character-height);
+        }
 
-                .character {
-                    inset: 0 -12%;
-                    z-index: 5;
-                    background-image: url("${ DESKTOP_CHARACTER }");
-                    background-size: auto clamp(50rem, 116vh, 80rem);
-                    background-position: calc(50% + var(--scene-offset-x)) var(--scene-art-y);
-                    background-repeat: no-repeat;
-                    will-change: transform;
-                    filter:
-                        drop-shadow(0 14px 18px rgba(0, 0, 0, 0.28))
-                        drop-shadow(0 24px 32px rgba(0, 0, 0, 0.2));
-                    transform: translate3d(0px, 0px, 90px) scale(1.18);
-                }
+        .ygo-bg.collection-parallax-page .glow {
+          opacity: 0.26;
+          filter: saturate(1.04) brightness(1);
+        }
 
-                .ygo-bg.measured-art-band-page .glow {
-                    background-size: auto var(--scene-glow-height);
-                }
+        .ygo-bg.collection-parallax-page .character {
+          filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.22));
+        }
 
-                .ygo-bg.measured-art-band-page .character {
-                    background-size: auto var(--scene-character-height);
-                }
+        .ygo-bg.collection-parallax-page .sparks {
+          opacity: 0.42;
+          filter: none;
+        }
 
-                .ygo-bg.collection-parallax-page .glow {
-                    opacity: 0.26;
-                    filter: saturate(1.04) brightness(1);
-                }
+        .sparks {
+          position: absolute;
+          z-index: 3;
+          inset: -10%;
+          pointer-events: none;
+          opacity: 0.95;
+          background:
+            radial-gradient(circle at 14% 20%, rgba(255, 225, 154, 0.95) 0 3px, transparent 4px),
+            radial-gradient(circle at 22% 72%, rgba(255, 225, 154, 0.92) 0 4px, transparent 5px),
+            radial-gradient(circle at 36% 18%, rgba(255, 184, 84, 0.9) 0 2px, transparent 3px),
+            radial-gradient(circle at 48% 76%, rgba(255, 184, 84, 0.9) 0 4px, transparent 5px),
+            radial-gradient(circle at 62% 14%, rgba(255, 225, 154, 0.95) 0 3px, transparent 4px),
+            radial-gradient(circle at 79% 25%, rgba(255, 184, 84, 0.9) 0 2px, transparent 3px),
+            radial-gradient(circle at 84% 66%, rgba(255, 225, 154, 0.95) 0 4px, transparent 5px),
+            radial-gradient(circle at 68% 84%, rgba(255, 184, 84, 0.95) 0 3px, transparent 4px);
+          will-change: transform;
+          transform: translate3d(0px, 0px, 20px) scale(1.03);
+          filter: blur(0.2px);
+          backface-visibility: hidden;
+        }
 
-                .ygo-bg.collection-parallax-page .character {
-                    filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.22));
-                }
+        .flare {
+          position: absolute;
+          z-index: 6;
+          inset: 0;
+          pointer-events: none;
+          background:
+            var(--shine),
+            linear-gradient(
+              135deg,
+              rgba(255, 152, 74, 0.05),
+              transparent 34%,
+              rgba(103, 49, 197, 0.08) 78%,
+              transparent
+            );
+          mix-blend-mode: screen;
+          opacity: 0.82;
+        }
 
-                .ygo-bg.collection-parallax-page .sparks {
-                    opacity: 0.42;
-                    filter: none;
-                }
+        .scanlines {
+          position: absolute;
+          z-index: 7;
+          inset: 0;
+          pointer-events: none;
+          opacity: 0.08;
+          background: repeating-linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.14) 0,
+            rgba(255, 255, 255, 0.14) 1px,
+            transparent 2px,
+            transparent 4px
+          );
+        }
 
-                .sparks {
-                    position: absolute;
-                    z-index: 3;
-                    inset: -10%;
-                    pointer-events: none;
-                    opacity: 0.95;
-                    background:
-                        radial-gradient(circle at 14% 20%, rgba(255, 225, 154, 0.95) 0 3px, transparent 4px),
-                        radial-gradient(circle at 22% 72%, rgba(255, 225, 154, 0.92) 0 4px, transparent 5px),
-                        radial-gradient(circle at 36% 18%, rgba(255, 184, 84, 0.9) 0 2px, transparent 3px),
-                        radial-gradient(circle at 48% 76%, rgba(255, 184, 84, 0.9) 0 4px, transparent 5px),
-                        radial-gradient(circle at 62% 14%, rgba(255, 225, 154, 0.95) 0 3px, transparent 4px),
-                        radial-gradient(circle at 79% 25%, rgba(255, 184, 84, 0.9) 0 2px, transparent 3px),
-                        radial-gradient(circle at 84% 66%, rgba(255, 225, 154, 0.95) 0 4px, transparent 5px),
-                        radial-gradient(circle at 68% 84%, rgba(255, 184, 84, 0.95) 0 3px, transparent 4px);
-                    will-change: transform;
-                    transform: translate3d(0px, 0px, 20px) scale(1.03);
-                    filter: blur(0.2px);
-                    backface-visibility: hidden;
-                }
+        .vignette {
+          position: absolute;
+          z-index: 8;
+          inset: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(
+              circle at center,
+              transparent 46%,
+              rgba(8, 8, 12, 0.18) 72%,
+              rgba(3, 3, 6, 0.7) 100%
+            ),
+            linear-gradient(
+              to bottom,
+              rgba(0, 0, 0, 0.28),
+              transparent 24%,
+              transparent 76%,
+              rgba(0, 0, 0, 0.36)
+            );
+        }
 
-                .flare {
-                    position: absolute;
-                    z-index: 6;
-                    inset: 0;
-                    pointer-events: none;
-                    background:
-                        var(--shine),
-                        linear-gradient(
-                            135deg,
-                            rgba(255, 152, 74, 0.05),
-                            transparent 34%,
-                            rgba(103, 49, 197, 0.08) 78%,
-                            transparent
-                        );
-                    mix-blend-mode: screen;
-                    opacity: 0.82;
-                }
+        @media (max-width: 1600px) {
+          .mobile-art {
+            display: block;
+          }
 
-                .scanlines {
-                    position: absolute;
-                    z-index: 7;
-                    inset: 0;
-                    pointer-events: none;
-                    opacity: 0.08;
-                    background:
-                        repeating-linear-gradient(
-                            to bottom,
-                            rgba(255, 255, 255, 0.14) 0,
-                            rgba(255, 255, 255, 0.14) 1px,
-                            transparent 2px,
-                            transparent 4px
-                        );
-                }
+          .stage,
+          .flare {
+            display: none;
+          }
+        }
+      `}</style>
 
-                .vignette {
-                    position: absolute;
-                    z-index: 8;
-                    inset: 0;
-                    pointer-events: none;
-                    background:
-                        radial-gradient(
-                            circle at center,
-                            transparent 46%,
-                            rgba(8, 8, 12, 0.18) 72%,
-                            rgba(3, 3, 6, 0.7) 100%
-                        ),
-                        linear-gradient(
-                            to bottom,
-                            rgba(0, 0, 0, 0.28),
-                            transparent 24%,
-                            transparent 76%,
-                            rgba(0, 0, 0, 0.36)
-                        );
-                }
-
-                @media ( max-width: 1600px ) {
-                    .mobile-art {
-                        display: block;
-                    }
-
-                    .stage,
-                    .flare {
-                        display: none;
-                    }
-                }
-            ` }</style>
-
-            <div
-                ref={ sceneRef }
-                className={ `ygo-bg${ usesOriginalBackgroundPosition ? " original-position-page" : "" }${ usesMeasuredArtBand ? " measured-art-band-page" : "" }${ usesReducedMeasuredParallax ? " reduced-measured-parallax-page" : "" }${ isCollectionPage ? " collection-parallax-page" : "" }` }
-                aria-hidden="true"
-            >
-                <div className="mobile-art" />
-                <div ref={ stageRef } className="stage">
-                    <div ref={ cameraRef } className="camera">
-                        <div ref={ glowRef } className="layer glow" />
-                        <div ref={ sparksRef } className="sparks" />
-                        <div ref={ characterRef } className="layer character" />
-                    </div>
-                    <div className="scanlines" />
-                    <div className="vignette" />
-                </div>
-                <div className="flare" />
-            </div>
-        </>
-    );
+      <div
+        ref={sceneRef}
+        className={`ygo-bg${usesOriginalBackgroundPosition ? ' original-position-page' : ''}${usesMeasuredArtBand ? ' measured-art-band-page' : ''}${usesReducedMeasuredParallax ? ' reduced-measured-parallax-page' : ''}${isCollectionPage ? ' collection-parallax-page' : ''}`}
+        aria-hidden="true"
+      >
+        <div className="mobile-art" />
+        <div ref={stageRef} className="stage">
+          <div ref={cameraRef} className="camera">
+            <div ref={glowRef} className="layer glow" />
+            <div ref={sparksRef} className="sparks" />
+            <div ref={characterRef} className="layer character" />
+          </div>
+          <div className="scanlines" />
+          <div className="vignette" />
+        </div>
+        <div className="flare" />
+      </div>
+    </>
+  );
 }

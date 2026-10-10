@@ -1,58 +1,47 @@
-import { MongoClient } from "mongodb";
-import bcrypt from "bcryptjs";
+import bcrypt from 'bcryptjs';
+import { apiRoute, limitAuthAttempts } from '@/lib/server/http';
+import { getDatabase } from '@/lib/server/database';
+import { HttpError } from '@/lib/server/errors';
+import { ensureSafeUserId } from '@/utils/securityValidators';
 
-export default async function handler( req, res ) {
-  if ( req.method !== "POST" ) {
-    return res.status( 405 ).json( { error: "Method not allowed" } );
+export default apiRoute({ methods: ['POST'], scope: 'auth', limit: 30 }, async (req, res) => {
+  const username = ensureSafeUserId(req.body?.username);
+  const password = req.body?.password;
+  if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password) > 72) {
+    throw new HttpError(400, 'Password must be at least 8 characters and at most 72 bytes');
   }
-
-  const { username, password } = req.body;
-
-  if ( !username || !password ) {
-    return res.status( 400 ).json( { error: "Username and password are required" } );
+  await limitAuthAttempts(req, username);
+  const db = await getDatabase();
+  const users = db.collection('users');
+  // The unique index makes concurrent registrations safe; old duplicates need db:setup cleanup.
+  await users.createIndex({ username: 1 }, { unique: true });
+  if (await users.findOne({ username }, { projection: { _id: 1 } })) {
+    throw new HttpError(409, 'Username is already taken.');
   }
-
-  const client = new MongoClient( process.env.MONGODB_URI );
-
+  const passwordHash = await bcrypt.hash(password, 12);
+  const legacy = await users
+    .find({ userId: { $type: 'number' } })
+    .sort({ userId: -1 })
+    .limit(1)
+    .next();
+  await db.collection('counters').createIndex({ key: 1 }, { unique: true });
+  await db
+    .collection('counters')
+    .updateOne({ key: 'userId' }, { $max: { value: legacy?.userId || 0 } }, { upsert: true });
+  const counter = await db
+    .collection('counters')
+    .findOneAndUpdate({ key: 'userId' }, { $inc: { value: 1 } }, { returnDocument: 'after' });
   try {
-    await client.connect();
-    const db = client.db( "cardPriceApp" );
-    const usersCollection = db.collection( "users" );
-
-    // Check if username exists
-    const existingUser = await usersCollection.findOne( { username: { $eq: username } } );
-    if ( existingUser ) {
-      return res.status( 409 ).json( { error: "Username is already taken." } );
-    }
-
-    // Generate incremental userId
-    const existingUserIds = await usersCollection.distinct( "userId" );
-    const newUserId = ( () => {
-      for ( let i = 1; ; i++ ) {
-        if ( !existingUserIds.includes( i ) ) return i;
-      }
-    } )();
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash( password, 10 );
-
-    // Insert user
-    const result = await usersCollection.insertOne( {
+    await users.insertOne({
       username,
-      password: hashedPassword,
+      password: passwordHash,
       createdAt: new Date(),
-      userId: newUserId,
-    } );
-
-    if ( result.insertedId ) {
-      res.status( 201 ).json( { message: "User registered successfully." } );
-    } else {
-      throw new Error( "Failed to register user." );
-    }
-  } catch ( error ) {
-    console.error( "Error registering user:", error );
-    res.status( 500 ).json( { error: "Internal server error." } );
-  } finally {
-    await client.close();
+      userId: counter.value,
+    });
+  } catch (error) {
+    if (error?.code === 11000) throw new HttpError(409, 'Username is already taken.');
+    throw error;
   }
-}
+  return res.status(201).json({ message: 'User registered successfully.' });
+});
+export const config = { api: { bodyParser: { sizeLimit: '8kb' } } };

@@ -6,11 +6,7 @@ interface FilterBarProps {
   searchTerm: string;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({
-  onSortChange,
-  onSearch,
-  searchTerm,
-}) => {
+const FilterBar: React.FC<FilterBarProps> = ({ onSortChange, onSearch, searchTerm }) => {
   return (
     <div className="bg-transparent glass p-4 rounded-lg mb-4 flex flex-col md:flex-row gap-4">
       <div className="flex-1">
@@ -22,7 +18,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           className="w-full px-4 py-2 rounded-lg text-white border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
         />
       </div>
-      
+
       <div className="flex-shrink-0">
         <select
           onChange={(e) => onSortChange(e.target.value)}

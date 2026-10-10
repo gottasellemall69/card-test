@@ -1,144 +1,70 @@
-import clientPromise from "@/utils/mongo.js";
-import { requireUser } from "@/proxy/authenticate";
-import { ensureSafeUserId, coerceNumberField, coerceStringField } from "@/utils/securityValidators.js";
+import { apiRoute } from '@/lib/server/http';
+import { getDatabase } from '@/lib/server/database';
+import { HttpError } from '@/lib/server/errors';
+import { coerceNumberField, coerceStringField, safeImageUrl } from '@/utils/securityValidators';
 
-const MAX_CARDS_PER_REQUEST = 5000;
-const MAX_QUANTITY_PER_CARD = 1000;
-
-const buildCardKey = ( card ) => [
-  card.productName,
-  card.setName,
-  card.number,
-  card.printing,
-  card.rarity,
-  card.condition
-].join( "::" );
-
-export default async function handler( req, res ) {
-  if ( req.method !== "POST" ) {
-    res.setHeader( "Allow", [ "POST" ] );
-    return res.status( 405 ).json( { message: "Method Not Allowed" } );
+const identityFields = ['productName', 'setName', 'number', 'printing', 'rarity', 'condition'];
+export default apiRoute({ methods: ['POST'], auth: true }, async (req, res) => {
+  const input = req.body?.cards;
+  if (!Array.isArray(input) || !input.length) throw new HttpError(400, 'No cards provided.');
+  if (input.length > 5000) throw new HttpError(413, 'A maximum of 5000 cards may be submitted.');
+  const grouped = new Map();
+  // Validate the entire request before writing anything; malformed rows are never silently dropped.
+  for (const card of input) {
+    if (!card || typeof card !== 'object' || Array.isArray(card))
+      throw new HttpError(400, 'Invalid card');
+    const clean = Object.fromEntries(
+      identityFields.map((field) => [
+        field,
+        coerceStringField(card[field] ?? '', {
+          maxLength: 256,
+          allowEmpty: !['productName', 'setName'].includes(field),
+        }),
+      ]),
+    );
+    Object.assign(clean, {
+      marketPrice: coerceNumberField(card.marketPrice ?? 0),
+      lowPrice: coerceNumberField(card.lowPrice ?? 0),
+      quantity: coerceNumberField(card.quantity ?? 1, { min: 0, max: 1000, integer: true }),
+      cardId: card.cardId == null ? null : coerceStringField(card.cardId, { maxLength: 128 }),
+      remoteImageUrl: safeImageUrl(card.remoteImageUrl),
+    });
+    const key = JSON.stringify(identityFields.map((field) => clean[field]));
+    const prior = grouped.get(key);
+    if (prior) {
+      prior.quantity += clean.quantity;
+      if (prior.quantity > 1000)
+        throw new HttpError(400, 'A card quantity cannot exceed 1000 in one request');
+    } else grouped.set(key, clean);
   }
-
-  const auth = await requireUser( req, res );
-  if ( !auth ) {
-    return;
-  }
-
-  try {
-    const { cards } = req.body ?? {};
-    if ( !Array.isArray( cards ) || cards.length === 0 ) {
-      return res.status( 400 ).json( { error: "No cards provided." } );
-    }
-
-    if ( cards.length > MAX_CARDS_PER_REQUEST ) {
-      return res.status( 413 ).json( {
-        error: `Too many cards submitted. Max allowed per request is ${ MAX_CARDS_PER_REQUEST }.`
-      } );
-    }
-
-    const client = await clientPromise;
-    const db = client.db( "cardPriceApp" );
-    const collection = db.collection( "myCollection" );
-    const safeUserId = ensureSafeUserId( auth.decoded.username );
-
-    const dedupedCards = new Map();
-
-    for ( const card of cards ) {
-      if ( !card || typeof card !== "object" ) {
-        continue;
-      }
-
-      try {
-        const sanitizedCard = {
-          productName: coerceStringField( card.productName, { maxLength: 256 } ),
-          setName: coerceStringField( card.setName, { maxLength: 256 } ),
-          number: coerceStringField( card.number ?? "", { maxLength: 128, allowEmpty: true } ),
-          printing: coerceStringField( card.printing ?? "", { maxLength: 128, allowEmpty: true } ),
-          rarity: coerceStringField( card.rarity ?? "", { maxLength: 128, allowEmpty: true } ),
-          condition: coerceStringField( card.condition ?? "", { maxLength: 128, allowEmpty: true } ),
-          marketPrice: coerceNumberField( card.marketPrice ?? 0, { min: 0 } ),
-          lowPrice: coerceNumberField( card.lowPrice ?? 0, { min: 0 } ),
-          quantity: coerceNumberField( card.quantity ?? 1, { min: 0, max: MAX_QUANTITY_PER_CARD } ),
-          cardId:
-            card.cardId === null || card.cardId === undefined
-              ? null
-              : coerceStringField( card.cardId, { maxLength: 128 } ),
-          remoteImageUrl: coerceStringField( card.remoteImageUrl ?? "", { maxLength: 1024, allowEmpty: true } ),
-        };
-
-        if ( !sanitizedCard.remoteImageUrl ) {
-          sanitizedCard.remoteImageUrl = null;
-        }
-
-        const key = buildCardKey( sanitizedCard );
-        const existing = dedupedCards.get( key );
-
-        if ( existing ) {
-          existing.quantity = Math.min( existing.quantity + sanitizedCard.quantity, MAX_QUANTITY_PER_CARD );
-          existing.marketPrice = sanitizedCard.marketPrice || existing.marketPrice;
-          existing.lowPrice = sanitizedCard.lowPrice || existing.lowPrice;
-          existing.cardId = sanitizedCard.cardId ?? existing.cardId;
-          existing.remoteImageUrl = sanitizedCard.remoteImageUrl || existing.remoteImageUrl || null;
-        } else {
-          dedupedCards.set( key, sanitizedCard );
-        }
-      } catch ( error ) {
-        console.warn( "Skipping invalid card payload:", error?.message ?? error );
-      }
-    }
-
-    const sanitizedCards = Array.from( dedupedCards.values() );
-
-    if ( sanitizedCards.length === 0 ) {
-      return res.status( 400 ).json( { error: "No valid card data provided." } );
-    }
-
-    const bulkOps = sanitizedCards.map( ( card ) => {
-      const now = new Date();
-      const setFields = {
-        oldPrice: null,
-        cardId: card.cardId || null,
-        updatedAt: now,
-      };
-
-      if ( card.remoteImageUrl ) {
-        setFields.remoteImageUrl = card.remoteImageUrl;
-      }
-
-      return {
-        updateOne: {
-          filter: {
-            userId: safeUserId,
-            productName: card.productName,
-            setName: card.setName,
-            number: card.number,
-            printing: card.printing,
-            rarity: card.rarity,
-            condition: card.condition
-          },
-          update: {
-            $inc: { quantity: card.quantity },
-            $set: {
-              ...setFields
-            },
-            $setOnInsert: {
-              marketPrice: card.marketPrice || 0,
-              lowPrice: card.lowPrice || 0,
-              folderIds: [],
-              userId: safeUserId,
-              createdAt: now
-            }
-          },
-          upsert: true
-        }
-      };
-    } );
-
-    await collection.bulkWrite( bulkOps, { ordered: false } );
-    return res.status( 201 ).json( { message: "Cards saved/updated successfully" } );
-  } catch ( error ) {
-    console.error( "Error saving/updating cards:", error );
-    return res.status( 500 ).json( { message: "Server error" } );
-  }
-}
+  const userId = req.auth.decoded.username;
+  const now = new Date();
+  const operations = [...grouped.values()].map((card) => ({
+    updateOne: {
+      filter: {
+        userId,
+        ...Object.fromEntries(identityFields.map((field) => [field, card[field]])),
+      },
+      update: {
+        $inc: { quantity: card.quantity },
+        $set: {
+          updatedAt: now,
+          ...(card.cardId ? { cardId: card.cardId } : {}),
+          ...(card.remoteImageUrl ? { remoteImageUrl: card.remoteImageUrl } : {}),
+        },
+        $setOnInsert: {
+          marketPrice: card.marketPrice,
+          lowPrice: card.lowPrice,
+          oldPrice: null,
+          folderIds: [],
+          createdAt: now,
+        },
+      },
+      upsert: true,
+    },
+  }));
+  const db = await getDatabase();
+  await db.collection('myCollection').bulkWrite(operations, { ordered: true });
+  return res.status(201).json({ message: 'Cards saved/updated successfully' });
+});
+export const config = { api: { bodyParser: { sizeLimit: '4mb' } } };

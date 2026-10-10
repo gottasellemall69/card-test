@@ -1,118 +1,23 @@
-const API_ENDPOINT = `https://${ process.env.GET_CARD_SETS_API }/v2/Catalog/SetNames?active=true&categoryId=2`;
+import { requestJson } from '@/lib/client/request';
 
-// Cache for set name to ID mapping and card data
-let setNameIdCache = null;
-let setCatalogueCache = null;
-
-// Fetches set data dynamically and builds setNameIdMap + catalogue cache
-async function fetchSetData() {
-  if ( setNameIdCache && setCatalogueCache ) {
-    return setNameIdCache;
-  }
-  try {
-    const response = await fetch( API_ENDPOINT );
-    const data = await response.json();
-
-    if ( data.errors?.length > 0 ) {
-      console.error( "Error fetching set data:", data.errors );
-      return null;
-    }
-
-    const results = Array.isArray( data.results ) ? data.results : [];
-    setCatalogueCache = results;
-
-    // Build the setNameIdMap from fetched data
-    setNameIdCache = results.reduce( ( map, set ) => {
-      map[ set.name ] = set.setNameId;
-      return map;
-    }, {} );
-
-    return setNameIdCache;
-  } catch ( error ) {
-    console.error( "Error fetching set data:", error );
-    setCatalogueCache = setCatalogueCache || [];
-    return null;
-  }
-};
-
-// Export the mapping for external use
-export async function getSetNameIdMap() {
-  return await fetchSetData();
-};
-
-export async function getSetCatalogue() {
-  await fetchSetData();
-  return setCatalogueCache || [];
-};
-
-// Fetches card data for a specific set name
-export async function getCardData( setName ) {
-  try {
-    // Get the setNameIdMap to retrieve the numerical ID for the set
-    const setNameIdMap = await getSetNameIdMap();
-    const setNameId = setNameIdMap?.[ setName ];
-
-    if ( !setNameId ) {
-      throw new Error( "Set name not found in mapping" );
-    }
-    const response = await fetch(
-      `https://${ process.env.GET_CARD_DATA_API }/priceguide/set/${ setNameId }/cards/?rows=5000`
-    );
-
-    if ( !response.ok ) {
-      throw new Error( "Failed to fetch card data" );
-    }
-    return await response.json();
-  } catch ( error ) {
-    console.error( "Error fetching card data:", error );
-    return null;
-  }
-};
-
-// Fetches and maps card set data (setNameId to cleanSetName)
+// Browser-safe functions. Provider hosts and credentials remain on the server.
+export const getSetNameIdMap = () => requestJson('/api/Yugioh/setNameIdMap');
+export const getSetCatalogue = () => requestJson('/api/Yugioh/set-catalogue');
+export async function getCardData(setName) {
+  const map = await getSetNameIdMap();
+  const id = map[setName];
+  if (!id) throw new Error('Set name not found in mapping');
+  return requestJson(`/api/Yugioh/cards/${encodeURIComponent(id)}`);
+}
 export async function getCardSetsData() {
-  const setNameIdMap = await getSetNameIdMap();
-  if ( !setNameIdMap ) return null;
-  return Object.entries( setNameIdMap ).reduce( ( acc, [ name, id ] ) => {
-    acc[ id ] = name;
-    return acc;
-  }, {} );
-};
-
-export const updateCardPrices = async ( setName, cardData ) => {
-  try {
-    const response = await fetch( '/api/Yugioh/updateCardPrices', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify( { setName, cardData } ),
-    } );
-
-    if ( !response.ok ) {
-      console.error( "Response status:", response.status );
-      console.error( "Response body:", await response.text() );
-      throw new Error( 'Failed to update card prices' );
-    }
-    return await response.json(); // Return the response for further processing if needed
-  } catch ( error ) {
-    console.error( 'Error updating card prices:', error );
-    throw error; // Re-throw the error for upstream handling
-  }
-};
-
-export async function fetchCardData() {
-  const url = `https://db.ygoprodeck.com/api/v7/cardinfo.php`;
-  try {
-    const response = await fetch( url );
-    if ( !response.ok ) {
-      throw new Error( 'Network response was not ok' );
-    }
-    const data = await response.json();
-    return data.data; // The API wraps results in a "data" property.
-  } catch ( error ) {
-    console.error( "Error fetching card data:", error );
-    throw error; // Rethrow to handle it in the calling context.
-  }
-};
+  return Object.fromEntries(
+    Object.entries(await getSetNameIdMap()).map(([name, id]) => [id, name]),
+  );
+}
+export const updateCardPrices = () =>
+  requestJson('/api/Yugioh/updateCardPrices', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+export const fetchCardData = () => requestJson('/api/Yugioh/catalogue');

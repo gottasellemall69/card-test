@@ -1,3 +1,4 @@
+import { escapeCsvValue, downloadCsv } from '@/lib/client/csv';
 // components/Yugioh/YugiohCardDataTable.js
 import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -6,562 +7,573 @@ import { CheckCircleIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/reac
 import dynamic from 'next/dynamic';
 import Notification from '@/components/Notification.js';
 
-const YugiohPagination = dynamic(
-    () => import( '@/components/Yugioh/YugiohPagination.js' ),
-    { ssr: false }
-);
+const YugiohPagination = dynamic(() => import('@/components/Yugioh/YugiohPagination.js'), {
+  ssr: false,
+});
 
 const DEFAULT_SORT_KEY = 'productName';
-const SORTABLE_KEYS = new Set( [
-    'productName',
-    'setName',
-    'number',
-    'printing',
-    'rarity',
-    'condition',
-    'quantity',
-    'marketPrice',
-    'totalPrice',
-] );
+const SORTABLE_KEYS = new Set([
+  'productName',
+  'setName',
+  'number',
+  'printing',
+  'rarity',
+  'condition',
+  'quantity',
+  'marketPrice',
+  'totalPrice',
+]);
 
-const getQuantity = ( value ) => {
-    const quantity = Number.parseInt( value, 10 );
-    return Number.isFinite( quantity ) && quantity > 0 ? quantity : 1;
+const getQuantity = (value) => {
+  const quantity = Number.parseInt(value, 10);
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
 };
 
-const getUnitPrice = ( value ) => {
-    const price = Number.parseFloat( value );
-    return Number.isFinite( price ) ? price : 0;
+const getUnitPrice = (value) => {
+  const price = Number.parseFloat(value);
+  return Number.isFinite(price) ? price : 0;
 };
 
-const getTotalPrice = ( item ) =>
-    getUnitPrice( item?.data?.marketPrice ) * getQuantity( item?.card?.quantity );
+const getTotalPrice = (item) =>
+  getUnitPrice(item?.data?.marketPrice) * getQuantity(item?.card?.quantity);
 
-const getOptionalString = ( value ) => {
-    if ( value === null || value === undefined ) {
-        return null;
+const getOptionalString = (value) => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const normalized = String(value).trim();
+  return normalized || null;
+};
+
+const getPrimaryCardImage = (card) =>
+  Array.isArray(card?.card_images)
+    ? card.card_images.find(
+        (image) =>
+          image?.id || image?.image_url || image?.image_url_cropped || image?.image_url_small,
+      )
+    : null;
+
+const getCollectionCardId = (item) =>
+  getOptionalString(item?.cardImageId) ||
+  getOptionalString(item?.cardDetailId) ||
+  getOptionalString(item?.detailParams?.cardId) ||
+  getOptionalString(item?.card?.cardId) ||
+  getOptionalString(item?.card?.cardImageId) ||
+  getOptionalString(item?.card?.cardDetailId) ||
+  getOptionalString(getPrimaryCardImage(item?.card)?.id) ||
+  getOptionalString(item?.card?.id) ||
+  getOptionalString(item?.variant?.productID) ||
+  getOptionalString(item?.resolvedVariant?.productID);
+
+const getCollectionRemoteImageUrl = (item) => {
+  const primaryCardImage = getPrimaryCardImage(item?.card);
+  return (
+    getOptionalString(item?.remoteImageUrl) ||
+    getOptionalString(item?.card?.remoteImageUrl) ||
+    getOptionalString(item?.card?.image_url) ||
+    getOptionalString(item?.card?.image_url_cropped) ||
+    getOptionalString(item?.card?.image_url_small) ||
+    getOptionalString(primaryCardImage?.image_url) ||
+    getOptionalString(primaryCardImage?.image_url_cropped) ||
+    getOptionalString(primaryCardImage?.image_url_small)
+  );
+};
+
+const YugiohCardDataTable = ({
+  matchedCardData = [],
+  isAuthenticated = false,
+  collectionMap = {},
+  onCollectionUpdated = null,
+}) => {
+  const router = useRouter();
+  const itemsPerPage = 15;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({
+    key: DEFAULT_SORT_KEY,
+    direction: 'ascending',
+  });
+  const [selectedKeys, setSelectedKeys] = useState(new Set());
+  const [lastCheckedKey, setLastCheckedKey] = useState(null);
+  const [notification, setNotification] = useState({ show: false, message: '' });
+
+  const triggerNotification = useCallback((message) => {
+    setNotification({ show: true, message });
+  }, []);
+
+  const updateNotificationVisibility = useCallback((showValue) => {
+    setNotification((prev) => ({ ...prev, show: showValue }));
+  }, []);
+
+  // Build base key from card properties (without index)
+  const makeKey = ({ card }) =>
+    `${card?.productName}|${card?.setName}|${card?.number}|${card?.printing}|${card?.rarity}`;
+
+  // Stable unique IDs including duplicate counts
+  const safeMatchedData = useMemo(
+    () => (Array.isArray(matchedCardData) ? matchedCardData : []),
+    [matchedCardData],
+  );
+
+  const itemUniqueIds = useMemo(() => {
+    const counts = {};
+    return safeMatchedData.map((item) => {
+      const baseKey = makeKey(item);
+      counts[baseKey] = (counts[baseKey] || 0) + 1;
+      return `${baseKey}|${counts[baseKey]}`;
+    });
+  }, [safeMatchedData]);
+
+  // Sorted data with index
+  const sortedDataWithIndex = useMemo(() => {
+    if (!safeMatchedData.length) return [];
+
+    const sortKey = SORTABLE_KEYS.has(sortConfig.key) ? sortConfig.key : DEFAULT_SORT_KEY;
+    const isMarketPriceSort = sortKey === 'marketPrice' || sortKey === 'totalPrice';
+    const isQuantitySort = sortKey === 'quantity';
+
+    const sorted = safeMatchedData.map((item, index) => ({ item, originalIndex: index }));
+    sorted.sort((a, b) => {
+      const rawA = isMarketPriceSort ? a.item.data?.marketPrice : a.item.card?.[sortKey];
+      const rawB = isMarketPriceSort ? b.item.data?.marketPrice : b.item.card?.[sortKey];
+      const aValue =
+        sortKey === 'totalPrice'
+          ? getTotalPrice(a.item)
+          : isQuantitySort
+            ? getQuantity(rawA)
+            : isMarketPriceSort
+              ? getUnitPrice(rawA)
+              : (rawA ?? '').toString().toLowerCase();
+      const bValue =
+        sortKey === 'totalPrice'
+          ? getTotalPrice(b.item)
+          : isQuantitySort
+            ? getQuantity(rawB)
+            : isMarketPriceSort
+              ? getUnitPrice(rawB)
+              : (rawB ?? '').toString().toLowerCase();
+
+      if (aValue < bValue) return sortConfig.direction === 'ascending' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [safeMatchedData, sortConfig]);
+
+  // Pagination slice
+  const sortedAndPaginatedData = useMemo(() => {
+    const indexOfLast = currentPage * itemsPerPage;
+    const indexOfFirst = indexOfLast - itemsPerPage;
+    const currentItems = sortedDataWithIndex.slice(indexOfFirst, indexOfLast);
+    return { currentItems, totalCount: safeMatchedData.length };
+  }, [sortedDataWithIndex, currentPage, safeMatchedData.length]);
+
+  const sortedUniqueIds = useMemo(
+    () => sortedDataWithIndex.map(({ originalIndex }) => itemUniqueIds[originalIndex]),
+    [sortedDataWithIndex, itemUniqueIds],
+  );
+
+  // Checkbox toggle with Shift+Click
+  const toggleCheckbox = useCallback(
+    (e, uniqueId) => {
+      const isShift = e.nativeEvent.shiftKey;
+      const newSelected = new Set(selectedKeys);
+
+      if (isShift && lastCheckedKey !== null && sortedUniqueIds.length) {
+        const start = sortedUniqueIds.indexOf(lastCheckedKey);
+        const end = sortedUniqueIds.indexOf(uniqueId);
+        if (start !== -1 && end !== -1) {
+          const [lo, hi] = start < end ? [start, end] : [end, start];
+          for (let i = lo; i <= hi; i++) {
+            newSelected.add(sortedUniqueIds[i]);
+          }
+        }
+      } else {
+        if (newSelected.has(uniqueId)) newSelected.delete(uniqueId);
+        else newSelected.add(uniqueId);
+        setLastCheckedKey(uniqueId);
+      }
+
+      setSelectedKeys(newSelected);
+    },
+    [selectedKeys, lastCheckedKey, sortedUniqueIds],
+  );
+
+  const pagedUniqueIds = useMemo(
+    () =>
+      sortedAndPaginatedData.currentItems.map(({ originalIndex }) => itemUniqueIds[originalIndex]),
+    [sortedAndPaginatedData, itemUniqueIds],
+  );
+
+  const isAllOnPage = pagedUniqueIds.length > 0 && pagedUniqueIds.every((k) => selectedKeys.has(k));
+
+  const handleSelectAllOnPage = () => {
+    const newSet = new Set(selectedKeys);
+    pagedUniqueIds.forEach((k) => newSet.add(k));
+    setSelectedKeys(newSet);
+  };
+
+  const handleDeselectAllOnPage = () => {
+    const newSet = new Set(selectedKeys);
+    pagedUniqueIds.forEach((k) => newSet.delete(k));
+    setSelectedKeys(newSet);
+  };
+
+  const handleSelectAllDataset = () => {
+    setSelectedKeys(new Set(itemUniqueIds));
+  };
+
+  const handleClear = () => {
+    setSelectedKeys(new Set());
+    setLastCheckedKey(null);
+  };
+
+  const handleSort = useCallback((key) => {
+    if (!SORTABLE_KEYS.has(key)) {
+      return;
+    }
+    setSortConfig((prev) => {
+      let direction = 'ascending';
+      if (prev.key === key && prev.direction === 'ascending') {
+        direction = 'descending';
+      }
+      return { key, direction };
+    });
+    setCurrentPage(1);
+  }, []);
+
+  const addToCollection = useCallback(async () => {
+    if (!isAuthenticated) {
+      triggerNotification('Log in to add cards to your collection.');
+      return;
     }
 
-    const normalized = String( value ).trim();
-    return normalized || null;
-};
+    if (selectedKeys.size === 0) {
+      triggerNotification('No cards were selected to add to the collection!');
+      return;
+    }
 
-const getPrimaryCardImage = ( card ) =>
-    Array.isArray( card?.card_images )
-        ? card.card_images.find( ( image ) => image?.id || image?.image_url || image?.image_url_cropped || image?.image_url_small )
-        : null;
-
-const getCollectionCardId = ( item ) =>
-    getOptionalString( item?.cardImageId ) ||
-    getOptionalString( item?.cardDetailId ) ||
-    getOptionalString( item?.detailParams?.cardId ) ||
-    getOptionalString( item?.card?.cardId ) ||
-    getOptionalString( item?.card?.cardImageId ) ||
-    getOptionalString( item?.card?.cardDetailId ) ||
-    getOptionalString( getPrimaryCardImage( item?.card )?.id ) ||
-    getOptionalString( item?.card?.id ) ||
-    getOptionalString( item?.variant?.productID ) ||
-    getOptionalString( item?.resolvedVariant?.productID );
-
-const getCollectionRemoteImageUrl = ( item ) => {
-    const primaryCardImage = getPrimaryCardImage( item?.card );
-    return (
-        getOptionalString( item?.remoteImageUrl ) ||
-        getOptionalString( item?.card?.remoteImageUrl ) ||
-        getOptionalString( item?.card?.image_url ) ||
-        getOptionalString( item?.card?.image_url_cropped ) ||
-        getOptionalString( item?.card?.image_url_small ) ||
-        getOptionalString( primaryCardImage?.image_url ) ||
-        getOptionalString( primaryCardImage?.image_url_cropped ) ||
-        getOptionalString( primaryCardImage?.image_url_small )
-    );
-};
-
-const YugiohCardDataTable = ( {
-    matchedCardData = [],
-    isAuthenticated = false,
-    collectionMap = {},
-    onCollectionUpdated = null,
-} ) => {
-    const router = useRouter();
-    const itemsPerPage = 15;
-    const [ currentPage, setCurrentPage ] = useState( 1 );
-    const [ sortConfig, setSortConfig ] = useState( {
-        key: DEFAULT_SORT_KEY,
-        direction: 'ascending',
-    } );
-    const [ selectedKeys, setSelectedKeys ] = useState( new Set() );
-    const [ lastCheckedKey, setLastCheckedKey ] = useState( null );
-    const [ notification, setNotification ] = useState( { show: false, message: '' } );
-
-    const triggerNotification = useCallback( ( message ) => {
-        setNotification( { show: true, message } );
-    }, [] );
-
-    const updateNotificationVisibility = useCallback( ( showValue ) => {
-        setNotification( ( prev ) => ( { ...prev, show: showValue } ) );
-    }, [] );
-
-    // Build base key from card properties (without index)
-    const makeKey = ( { card } ) =>
-        `${ card?.productName }|${ card?.setName }|${ card?.number }|${ card?.printing }|${ card?.rarity }`;
-
-    // Stable unique IDs including duplicate counts
-    const safeMatchedData = Array.isArray( matchedCardData ) ? matchedCardData : [];
-
-    const itemUniqueIds = useMemo( () => {
-        const counts = {};
-        return safeMatchedData.map( ( item ) => {
-            const baseKey = makeKey( item );
-            counts[ baseKey ] = ( counts[ baseKey ] || 0 ) + 1;
-            return `${ baseKey }|${ counts[ baseKey ] }`;
-        } );
-    }, [ safeMatchedData ] );
-
-    // Sorted data with index
-    const sortedDataWithIndex = useMemo( () => {
-        if ( !safeMatchedData.length ) return [];
-
-        const sortKey = SORTABLE_KEYS.has( sortConfig.key ) ? sortConfig.key : DEFAULT_SORT_KEY;
-        const isMarketPriceSort = sortKey === 'marketPrice' || sortKey === 'totalPrice';
-        const isQuantitySort = sortKey === 'quantity';
-
-        const sorted = safeMatchedData.map( ( item, index ) => ( { item, originalIndex: index } ) );
-        sorted.sort( ( a, b ) => {
-            const rawA = isMarketPriceSort ? a.item.data?.marketPrice : a.item.card?.[ sortKey ];
-            const rawB = isMarketPriceSort ? b.item.data?.marketPrice : b.item.card?.[ sortKey ];
-            const aValue = sortKey === 'totalPrice'
-                ? getTotalPrice( a.item )
-                : isQuantitySort
-                    ? getQuantity( rawA )
-                    : isMarketPriceSort
-                        ? getUnitPrice( rawA )
-                        : ( rawA ?? '' ).toString().toLowerCase();
-            const bValue = sortKey === 'totalPrice'
-                ? getTotalPrice( b.item )
-                : isQuantitySort
-                    ? getQuantity( rawB )
-                    : isMarketPriceSort
-                        ? getUnitPrice( rawB )
-                        : ( rawB ?? '' ).toString().toLowerCase();
-
-            if ( aValue < bValue ) return sortConfig.direction === 'ascending' ? -1 : 1;
-            if ( aValue > bValue ) return sortConfig.direction === 'ascending' ? 1 : -1;
-            return 0;
-        } );
-        return sorted;
-    }, [ safeMatchedData, sortConfig ] );
-
-    // Pagination slice
-    const sortedAndPaginatedData = useMemo( () => {
-        const indexOfLast = currentPage * itemsPerPage;
-        const indexOfFirst = indexOfLast - itemsPerPage;
-        const currentItems = sortedDataWithIndex.slice( indexOfFirst, indexOfLast );
-        return { currentItems, totalCount: safeMatchedData.length };
-    }, [ sortedDataWithIndex, currentPage, safeMatchedData.length ] );
-
-    const sortedUniqueIds = useMemo(
-        () => sortedDataWithIndex.map( ( { originalIndex } ) => itemUniqueIds[ originalIndex ] ),
-        [ sortedDataWithIndex, itemUniqueIds ]
+    const selectedData = safeMatchedData.filter((_, index) =>
+      selectedKeys.has(itemUniqueIds[index]),
     );
 
-    // Checkbox toggle with Shift+Click
-    const toggleCheckbox = useCallback(
-        ( e, uniqueId ) => {
-            const isShift = e.nativeEvent.shiftKey;
-            const newSelected = new Set( selectedKeys );
+    const collectionArray = selectedData.map((item) => {
+      const { card, data } = item;
 
-            if ( isShift && lastCheckedKey !== null && sortedUniqueIds.length ) {
-                const start = sortedUniqueIds.indexOf( lastCheckedKey );
-                const end = sortedUniqueIds.indexOf( uniqueId );
-                if ( start !== -1 && end !== -1 ) {
-                    const [ lo, hi ] = start < end ? [ start, end ] : [ end, start ];
-                    for ( let i = lo; i <= hi; i++ ) {
-                        newSelected.add( sortedUniqueIds[ i ] );
-                    }
-                }
-            } else {
-                if ( newSelected.has( uniqueId ) ) newSelected.delete( uniqueId );
-                else newSelected.add( uniqueId );
-                setLastCheckedKey( uniqueId );
-            }
+      return {
+        cardId: getCollectionCardId(item),
+        productName: card?.productName,
+        setName: card?.setName,
+        number: card?.number,
+        printing: card?.printing,
+        rarity: card?.rarity,
+        condition: card?.condition,
+        marketPrice: data?.marketPrice,
+        lowPrice: data?.lowPrice,
+        remoteImageUrl: getCollectionRemoteImageUrl(item),
+        quantity: getQuantity(card?.quantity),
+      };
+    });
 
-            setSelectedKeys( newSelected );
+    try {
+      const response = await fetch(`/api/Yugioh/cards`, {
+        method: 'POST',
+        credentials: 'include', // ✅ automatically sends the JWT cookie
+        headers: {
+          'Content-Type': 'application/json',
         },
-        [ selectedKeys, lastCheckedKey, sortedUniqueIds ]
-    );
+        body: JSON.stringify({ cards: collectionArray }),
+      });
 
-    const pagedUniqueIds = useMemo(
-        () => sortedAndPaginatedData.currentItems.map( ( { originalIndex } ) => itemUniqueIds[ originalIndex ] ),
-        [ sortedAndPaginatedData, itemUniqueIds ]
-    );
+      if (!response.ok) throw new Error();
+      triggerNotification('Card(s) added to the collection!');
+      if (typeof onCollectionUpdated === 'function') {
+        onCollectionUpdated();
+      }
+    } catch {
+      triggerNotification('Card(s) failed to save!');
+    }
+  }, [
+    isAuthenticated,
+    selectedKeys,
+    safeMatchedData,
+    itemUniqueIds,
+    triggerNotification,
+    onCollectionUpdated,
+  ]);
 
-    const isAllOnPage = pagedUniqueIds.length > 0 && pagedUniqueIds.every( ( k ) => selectedKeys.has( k ) );
+  const downloadCSV = useCallback(() => {
+    if (selectedKeys.size === 0) {
+      triggerNotification('No cards selected to download!');
+      return;
+    }
 
-    const handleSelectAllOnPage = () => {
-        const newSet = new Set( selectedKeys );
-        pagedUniqueIds.forEach( ( k ) => newSet.add( k ) );
-        setSelectedKeys( newSet );
-    };
+    const headers = [
+      'Name',
+      'Set',
+      'Number',
+      'Printing',
+      'Rarity',
+      'Condition',
+      'Quantity',
+      'Unit Market Price',
+      'Total Market Price',
+    ];
+    const rows = safeMatchedData
+      .filter((_, index) => selectedKeys.has(itemUniqueIds[index]))
+      .map(({ card, data }) => [
+        card?.productName ?? '',
+        card?.setName ?? '',
+        card?.number ?? '',
+        card?.printing ?? '',
+        card?.rarity ?? '',
+        card?.condition ?? '',
+        getQuantity(card?.quantity),
+        data?.marketPrice ?? '',
+        getTotalPrice({ card, data }).toFixed(2),
+      ]);
 
-    const handleDeselectAllOnPage = () => {
-        const newSet = new Set( selectedKeys );
-        pagedUniqueIds.forEach( ( k ) => newSet.delete( k ) );
-        setSelectedKeys( newSet );
-    };
+    const csvBody = [
+      headers.join('|'),
+      ...rows.map((row) => row.map(escapeCsvValue).join('|')),
+    ].join('\n');
 
-    const handleSelectAllDataset = () => {
-        setSelectedKeys( new Set( itemUniqueIds ) );
-    };
+    downloadCsv('\uFEFF' + csvBody, 'yugioh_card_prices.csv');
+  }, [selectedKeys, safeMatchedData, itemUniqueIds, triggerNotification]);
 
-    const handleClear = () => {
-        setSelectedKeys( new Set() );
-        setLastCheckedKey( null );
-    };
+  const handleGoToCollectionPage = useCallback(() => {
+    if (!isAuthenticated) {
+      triggerNotification('Log in to view your collection.');
+      return;
+    }
 
-    const handleSort = useCallback(
-        ( key ) => {
-            if ( !SORTABLE_KEYS.has( key ) ) {
-                return;
-            }
-            setSortConfig( ( prev ) => {
-                let direction = 'ascending';
-                if ( prev.key === key && prev.direction === 'ascending' ) {
-                    direction = 'descending';
-                }
-                return { key, direction };
-            } );
-            setCurrentPage( 1 );
-        },
-        []
-    );
+    router.push('/yugioh/my-collection');
+  }, [isAuthenticated, router, triggerNotification]);
 
-    const addToCollection = useCallback( async () => {
-        if ( !isAuthenticated ) {
-            triggerNotification( "Log in to add cards to your collection." );
-            return;
-        }
+  // Format helper for prices
+  const formatPrice = (val) => {
+    const num = parseFloat(val);
+    return Number.isFinite(num) ? `${num.toFixed(2)}` : '0.00';
+  };
 
-        if ( selectedKeys.size === 0 ) {
-            triggerNotification( "No cards were selected to add to the collection!" );
-            return;
-        }
+  return (
+    <div className="mx-auto w-full mb-10 min-h-fit">
+      <Notification
+        show={notification.show}
+        setShow={updateNotificationVisibility}
+        message={notification.message}
+      />
 
-        const selectedData = safeMatchedData.filter( ( _, index ) =>
-            selectedKeys.has( itemUniqueIds[ index ] )
-        );
-
-        const collectionArray = selectedData.map( ( item ) => {
-            const { card, data } = item;
-
-            return {
-                cardId: getCollectionCardId( item ),
-                productName: card?.productName,
-                setName: card?.setName,
-                number: card?.number,
-                printing: card?.printing,
-                rarity: card?.rarity,
-                condition: card?.condition,
-                marketPrice: data?.marketPrice,
-                lowPrice: data?.lowPrice,
-                remoteImageUrl: getCollectionRemoteImageUrl( item ),
-                quantity: getQuantity( card?.quantity ),
-            };
-        } );
-
-        try {
-            const response = await fetch( `/api/Yugioh/cards`, {
-                method: "POST",
-                credentials: "include", // ✅ automatically sends the JWT cookie
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify( { cards: collectionArray } ),
-            } );
-
-            if ( !response.ok ) throw new Error();
-            triggerNotification( "Card(s) added to the collection!" );
-            if ( typeof onCollectionUpdated === 'function' ) {
-                onCollectionUpdated();
-            }
-        } catch {
-            triggerNotification( "Card(s) failed to save!" );
-        }
-    }, [ isAuthenticated, selectedKeys, safeMatchedData, itemUniqueIds, triggerNotification, onCollectionUpdated ] );
-
-
-    const downloadCSV = useCallback( () => {
-        if ( selectedKeys.size === 0 ) {
-            triggerNotification( 'No cards selected to download!' );
-            return;
-        }
-
-        const headers = [ "Name", "Set", "Number", "Printing", "Rarity", "Condition", "Quantity", "Unit Market Price", "Total Market Price" ];
-        const rows = safeMatchedData
-            .filter( ( _, index ) => selectedKeys.has( itemUniqueIds[ index ] ) )
-            .map( ( { card, data } ) => [
-                card?.productName ?? '',
-                card?.setName ?? '',
-                card?.number ?? '',
-                card?.printing ?? '',
-                card?.rarity ?? '',
-                card?.condition ?? '',
-                getQuantity( card?.quantity ),
-                data?.marketPrice ?? '',
-                getTotalPrice( { card, data } ).toFixed( 2 ),
-            ] );
-
-        const csvBody = [
-            headers.join( "|" ),
-            ...rows.map( ( row ) => row.map( ( value ) => `"${ String( value ).replace( /"/g, '""' ) }"` ).join( "|" ) ),
-        ].join( "\n" );
-
-        let url;
-
-        try {
-            const blob = new Blob( [ "\uFEFF" + csvBody ], { type: "text/csv;charset=utf-8;" } );
-            url = URL.createObjectURL( blob );
-            const link = document.createElement( "a" );
-            link.href = url;
-            link.download = "yugioh_card_prices.csv";
-            document.body.appendChild( link );
-            link.click();
-            document.body.removeChild( link );
-        } finally {
-            if ( url ) {
-                URL.revokeObjectURL( url );
-            }
-        }
-    }, [ selectedKeys, safeMatchedData, itemUniqueIds, triggerNotification ] );
-
-    const handleGoToCollectionPage = useCallback( () => {
-        if ( !isAuthenticated ) {
-            triggerNotification( "Log in to view your collection." );
-            return;
-        }
-
-        router.push( '/yugioh/my-collection' );
-    }, [ isAuthenticated, router, triggerNotification ] );
-
-    // Format helper for prices
-    const formatPrice = ( val ) => {
-        const num = parseFloat( val );
-        return Number.isFinite( num ) ? `${ num.toFixed( 2 ) }` : "0.00";
-    };
-
-    return (
-        <div className="mx-auto w-full mb-10 min-h-fit">
-            <Notification
-                show={ notification.show }
-                setShow={ updateNotificationVisibility }
-                message={ notification.message }
-            />
-
-            { sortedAndPaginatedData.currentItems.length > 0 && (
-                <div>
-                    {/* Pagination */ }
-                    <div className="w-full -mt-5">
-                        <div className="w-fit mx-auto">
-                            <YugiohPagination
-                                currentPage={ currentPage }
-                                itemsPerPage={ itemsPerPage }
-                                totalItems={ sortedAndPaginatedData.totalCount }
-                                handlePageClick={ setCurrentPage }
-                            />
-                        </div>
-                        <div className="max-h-fit w-full mt-2 flex justify-center space-x-2">
-                            <button
-                                type="button"
-                                className="border border-white rounded-lg px-2 py-2 text-white text-sm font-bold hover:text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                                onClick={ downloadCSV }
-                                disabled={ selectedKeys.size === 0 }
-                            >
-                                Download CSV
-                            </button>
-                            { isAuthenticated && (
-                                <>
-                                    <button
-                                        type="button"
-                                        className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                                        onClick={ addToCollection }
-                                        disabled={ selectedKeys.size === 0 }
-                                    >
-                                        Add card(s) to collection
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
-                                        onClick={ handleGoToCollectionPage }
-                                    >
-                                        View Collection
-                                    </button>
-                                </>
-                            ) }
-                        </div>
-                        {/* Table */ }
-                        <div className="w-full mx-auto overflow-x-auto">
-                            { selectedKeys.size > 0 && (
-                                <div className="my-5 py-2 h-fit bg-stone-500 bg-opacity-20 backdrop-blur backdrop-filter text-white p-2 mb-2 flex justify-between items-center">
-                                    <div className="text-sm float-start">
-                                        <strong>{ selectedKeys.size }</strong> selected
-                                        <button onClick={ handleClear } className="ml-4 underline float-end">Clear</button>
-                                        <button onClick={ handleSelectAllDataset } className="ml-4 underline float-end">Select All in Dataset</button>
-                                    </div>
-                                </div>
-                            ) }
-
-                            <table className="min-w-full max-w-7xl text-white items-center border-collapse mx-auto">
-                                <thead className="p-1 bg-transparent">
-                                    <tr>
-                                        <th className="sticky px-1 top-0 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
-                                            <input
-                                                type="checkbox"
-                                                checked={ isAllOnPage }
-                                                onChange={ ( e ) =>
-                                                    e.target.checked ? handleSelectAllOnPage() : handleDeselectAllOnPage()
-                                                }
-                                            />
-                                        </th>
-                                        { [
-                                            { key: 'productName', label: 'Name' },
-                                            { key: 'setName', label: 'Set' },
-                                            { key: 'number', label: 'Number' },
-                                            { key: 'printing', label: 'Printing' },
-                                            { key: 'rarity', label: 'Rarity' },
-                                            { key: 'condition', label: 'Condition' },
-                                            { key: 'quantity', label: 'Qty' },
-                                            { key: 'marketPrice', label: 'Unit Price' },
-                                            { key: 'totalPrice', label: 'Total Price' },
-                                        ].map( ( { key, label } ) => (
-                                            <th
-                                                key={ key }
-                                                onClick={ () => handleSort( key ) }
-                                                className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter"
-                                            >
-                                                { label }
-                                                { sortConfig.key === key && (
-                                                    <span className="ml-1">
-                                                        { sortConfig.direction === 'ascending' ? (
-                                                            <ChevronUpIcon className="h-2 w-2 text-white font-black inline" />
-                                                        ) : (
-                                                            <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />
-                                                        ) }
-                                                    </span>
-                                                ) }
-                                            </th>
-                                        ) ) }
-                                    </tr>
-                                </thead>
-
-                                <tbody className=" glass text-shadow divide-y divide-gray-300 text-white px-1 py-1 mx-auto">
-                                    { sortedAndPaginatedData.currentItems.map( ( { item, originalIndex } ) => {
-                                        const uniqueId = itemUniqueIds[ originalIndex ];
-                                        const isSelected = selectedKeys.has( uniqueId );
-                                        const { card, data } = item;
-                                        const isCollected = isAuthenticated && Boolean( collectionMap?.[ item.collectionKey ] );
-                                        const quantity = getQuantity( card?.quantity );
-                                        const totalPrice = getTotalPrice( item );
-
-                                        return (
-                                            <tr key={ uniqueId } className="hover:bg-gray-600">
-                                                <td className="text-center border border-gray-300">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={ isSelected }
-                                                        onChange={ ( e ) => toggleCheckbox( e, uniqueId ) }
-                                                    />
-                                                </td>
-                                                <td className="p-2 text-center text-nowrap border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { ( () => {
-                                                        const detailParams = item.detailParams || {};
-                                                        const rawLetter = router.query?.letter;
-                                                        const resolvedLetter = Array.isArray( rawLetter )
-                                                            ? rawLetter[ 0 ]
-                                                            : rawLetter;
-                                                        const fallbackSetName = detailParams.setName || card?.setName || '';
-                                                        const computedLetter =
-                                                            resolvedLetter ||
-                                                            ( typeof fallbackSetName === 'string' && fallbackSetName.length > 0
-                                                                ? fallbackSetName.charAt( 0 ).toUpperCase()
-                                                                : undefined );
-
-                                                        const query = { source: 'set' };
-
-                                                        if ( detailParams.cardId ) query.card = detailParams.cardId;
-                                                        if ( detailParams.cardName || card?.productName ) query.card_name = detailParams.cardName || card?.productName;
-                                                        if ( fallbackSetName ) {
-                                                            query.set_name = fallbackSetName;
-                                                            query.tcg_set_name = fallbackSetName;
-                                                        }
-                                                        const fallbackSetCode = detailParams.setCode || card?.number || '';
-                                                        if ( fallbackSetCode ) query.set_code = fallbackSetCode;
-                                                        const fallbackRarity = detailParams.rarity || detailParams.setRarity || card?.rarity || '';
-                                                        if ( fallbackRarity ) {
-                                                            query.rarity = fallbackRarity;
-                                                            query.set_rarity = fallbackRarity;
-                                                        }
-                                                        const fallbackEdition = detailParams.edition || card?.printing || '';
-                                                        if ( fallbackEdition ) query.edition = fallbackEdition;
-                                                        if ( computedLetter ) query.letter = computedLetter;
-
-                                                        return (
-                                                            <Link
-                                                                href={ {
-                                                                    pathname: '/yugioh/sets/[letter]/cards/card-details',
-                                                                    query,
-                                                                } }
-                                                                className="block h-full w-full cursor-pointer text-inherit hover:underline"
-                                                            >
-                                                                <span className="inline-flex items-center gap-2">
-                                                                    { isCollected && (
-                                                                        <CheckCircleIcon
-                                                                            className="h-4 w-4 shrink-0 text-emerald-300"
-                                                                            aria-label="In collection"
-                                                                        />
-                                                                    ) }
-                                                                    <span>{ card?.productName || 'N/A' }</span>
-                                                                </span>
-                                                            </Link>
-                                                        );
-                                                    } )() }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { card?.setName || 'N/A' }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm  sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { card?.number || 'N/A' }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { card?.printing || 'N/A' }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { card?.rarity || 'N/A' }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
-                                                    { card?.condition || card?.condition + " " + card?.printing }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
-                                                    { quantity }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
-                                                    { formatPrice( data?.marketPrice ) }
-                                                </td>
-                                                <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
-                                                    { formatPrice( totalPrice ) }
-                                                </td>
-                                            </tr>
-                                        );
-                                    } ) }
-                                </tbody>
-                            </table>
-                        </div>
-
-
-                    </div>
+      {sortedAndPaginatedData.currentItems.length > 0 && (
+        <div>
+          {/* Pagination */}
+          <div className="w-full -mt-5">
+            <div className="w-fit mx-auto">
+              <YugiohPagination
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={sortedAndPaginatedData.totalCount}
+                handlePageClick={setCurrentPage}
+              />
+            </div>
+            <div className="max-h-fit w-full mt-2 flex justify-center space-x-2">
+              <button
+                type="button"
+                className="border border-white rounded-lg px-2 py-2 text-white text-sm font-bold hover:text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={downloadCSV}
+                disabled={selectedKeys.size === 0}
+              >
+                Download CSV
+              </button>
+              {isAuthenticated && (
+                <>
+                  <button
+                    type="button"
+                    className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                    onClick={addToCollection}
+                    disabled={selectedKeys.size === 0}
+                  >
+                    Add card(s) to collection
+                  </button>
+                  <button
+                    type="button"
+                    className="border border-white rounded-lg px-2 py-2 text-sm text-white font-bold hover:text-black hover:bg-white"
+                    onClick={handleGoToCollectionPage}
+                  >
+                    View Collection
+                  </button>
+                </>
+              )}
+            </div>
+            {/* Table */}
+            <div className="w-full mx-auto overflow-x-auto">
+              {selectedKeys.size > 0 && (
+                <div className="my-5 py-2 h-fit bg-stone-500 bg-opacity-20 backdrop-blur backdrop-filter text-white p-2 mb-2 flex justify-between items-center">
+                  <div className="text-sm float-start">
+                    <strong>{selectedKeys.size}</strong> selected
+                    <button onClick={handleClear} className="ml-4 underline float-end">
+                      Clear
+                    </button>
+                    <button onClick={handleSelectAllDataset} className="ml-4 underline float-end">
+                      Select All in Dataset
+                    </button>
+                  </div>
                 </div>
-            ) }
+              )}
+
+              <table className="min-w-full max-w-7xl text-white items-center border-collapse mx-auto">
+                <thead className="p-1 bg-transparent">
+                  <tr>
+                    <th className="sticky px-1 top-0 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-lg font-black text-white whitespace-pre backdrop-blur backdrop-filter">
+                      <input
+                        type="checkbox"
+                        checked={isAllOnPage}
+                        onChange={(e) =>
+                          e.target.checked ? handleSelectAllOnPage() : handleDeselectAllOnPage()
+                        }
+                      />
+                    </th>
+                    {[
+                      { key: 'productName', label: 'Name' },
+                      { key: 'setName', label: 'Set' },
+                      { key: 'number', label: 'Number' },
+                      { key: 'printing', label: 'Printing' },
+                      { key: 'rarity', label: 'Rarity' },
+                      { key: 'condition', label: 'Condition' },
+                      { key: 'quantity', label: 'Qty' },
+                      { key: 'marketPrice', label: 'Unit Price' },
+                      { key: 'totalPrice', label: 'Total Price' },
+                    ].map(({ key, label }) => (
+                      <th
+                        key={key}
+                        onClick={() => handleSort(key)}
+                        className="sticky cursor-pointer top-0 z-10 p-2 border-x-2 border-y-2 border-gray-300 bg-stone-500 bg-opacity-20 outline-1 outline-black text-center text-shadow text-sm lg:text-base font-black text-white whitespace-pre backdrop-blur backdrop-filter"
+                      >
+                        {label}
+                        {sortConfig.key === key && (
+                          <span className="ml-1">
+                            {sortConfig.direction === 'ascending' ? (
+                              <ChevronUpIcon className="h-2 w-2 text-white font-black inline" />
+                            ) : (
+                              <ChevronDownIcon className="h-2 w-2 text-white font-black inline" />
+                            )}
+                          </span>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody className=" glass text-shadow divide-y divide-gray-300 text-white px-1 py-1 mx-auto">
+                  {sortedAndPaginatedData.currentItems.map(({ item, originalIndex }) => {
+                    const uniqueId = itemUniqueIds[originalIndex];
+                    const isSelected = selectedKeys.has(uniqueId);
+                    const { card, data } = item;
+                    const isCollected =
+                      isAuthenticated && Boolean(collectionMap?.[item.collectionKey]);
+                    const quantity = getQuantity(card?.quantity);
+                    const totalPrice = getTotalPrice(item);
+
+                    return (
+                      <tr key={uniqueId} className="hover:bg-gray-600">
+                        <td className="text-center border border-gray-300">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => toggleCheckbox(e, uniqueId)}
+                          />
+                        </td>
+                        <td className="p-2 text-center text-nowrap border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                          {(() => {
+                            const detailParams = item.detailParams || {};
+                            const rawLetter = router.query?.letter;
+                            const resolvedLetter = Array.isArray(rawLetter)
+                              ? rawLetter[0]
+                              : rawLetter;
+                            const fallbackSetName = detailParams.setName || card?.setName || '';
+                            const computedLetter =
+                              resolvedLetter ||
+                              (typeof fallbackSetName === 'string' && fallbackSetName.length > 0
+                                ? fallbackSetName.charAt(0).toUpperCase()
+                                : undefined);
+
+                            const query = { source: 'set' };
+
+                            if (detailParams.cardId) query.card = detailParams.cardId;
+                            if (detailParams.cardName || card?.productName)
+                              query.card_name = detailParams.cardName || card?.productName;
+                            if (fallbackSetName) {
+                              query.set_name = fallbackSetName;
+                              query.tcg_set_name = fallbackSetName;
+                            }
+                            const fallbackSetCode = detailParams.setCode || card?.number || '';
+                            if (fallbackSetCode) query.set_code = fallbackSetCode;
+                            const fallbackRarity =
+                              detailParams.rarity || detailParams.setRarity || card?.rarity || '';
+                            if (fallbackRarity) {
+                              query.rarity = fallbackRarity;
+                              query.set_rarity = fallbackRarity;
+                            }
+                            const fallbackEdition = detailParams.edition || card?.printing || '';
+                            if (fallbackEdition) query.edition = fallbackEdition;
+                            if (computedLetter) query.letter = computedLetter;
+
+                            return (
+                              <Link
+                                href={{
+                                  pathname: '/yugioh/sets/[letter]/cards/card-details',
+                                  query,
+                                }}
+                                className="block h-full w-full cursor-pointer text-inherit hover:underline"
+                              >
+                                <span className="inline-flex items-center gap-2">
+                                  {isCollected && (
+                                    <CheckCircleIcon
+                                      className="h-4 w-4 shrink-0 text-emerald-300"
+                                      aria-label="In collection"
+                                    />
+                                  )}
+                                  <span>{card?.productName || 'N/A'}</span>
+                                </span>
+                              </Link>
+                            );
+                          })()}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                          {card?.setName || 'N/A'}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm  sm:text-left text-white hover:bg-black hover:text-white">
+                          {card?.number || 'N/A'}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                          {card?.printing || 'N/A'}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                          {card?.rarity || 'N/A'}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-left text-white hover:bg-black hover:text-white">
+                          {card?.condition || card?.condition + ' ' + card?.printing}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
+                          {quantity}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
+                          {formatPrice(data?.marketPrice)}
+                        </td>
+                        <td className="text-nowrap p-2 text-center border-t border-gray-100 text-xs md:text-sm sm:text-center font-bold text-white hover:bg-black hover:text-white">
+                          {formatPrice(totalPrice)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
 export default YugiohCardDataTable;

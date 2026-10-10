@@ -7,7 +7,7 @@ const BASE_BUTTON_CLASSES =
 
 const noop = () => {};
 
-const FiltersButton = ( {
+const FiltersButton = ({
   filters = {},
   updateFilters = noop,
   label = 'Filters',
@@ -15,45 +15,45 @@ const FiltersButton = ( {
   disabled = false,
   showCount = true,
   ...restProps
-} ) => {
-  const [ isOpen, setIsOpen ] = useState( false );
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-  const activeCount = useMemo( () => {
-    return Object.values( filters ).reduce( ( total, value ) => {
-      if ( Array.isArray( value ) ) {
+  const activeCount = useMemo(() => {
+    return Object.values(filters).reduce((total, value) => {
+      if (Array.isArray(value)) {
         return total + value.length;
       }
       return total;
-    }, 0 );
-  }, [ filters ] );
+    }, 0);
+  }, [filters]);
 
-  const buttonClasses = [ BASE_BUTTON_CLASSES, className ].filter( Boolean ).join( ' ' );
+  const buttonClasses = [BASE_BUTTON_CLASSES, className].filter(Boolean).join(' ');
 
   return (
     <CardFilter
-      filters={ filters }
-      updateFilters={ updateFilters }
-      open={ isOpen }
-      setOpen={ setIsOpen }
-      renderTrigger={ ( { openFilters } ) => (
+      filters={filters}
+      updateFilters={updateFilters}
+      open={isOpen}
+      setOpen={setIsOpen}
+      renderTrigger={({ openFilters }) => (
         <button
           type="button"
-          className={ buttonClasses }
-          onClick={ openFilters }
+          className={buttonClasses}
+          onClick={openFilters}
           aria-haspopup="dialog"
-          aria-expanded={ isOpen }
-          disabled={ disabled }
-          { ...restProps }
+          aria-expanded={isOpen}
+          disabled={disabled}
+          {...restProps}
         >
-          <Filter size={ 16 } aria-hidden="true" />
-          <span>{ label }</span>
-          { showCount && activeCount > 0 && (
+          <Filter size={16} aria-hidden="true" />
+          <span>{label}</span>
+          {showCount && activeCount > 0 && (
             <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-xs font-bold text-indigo-200">
-              { activeCount }
+              {activeCount}
             </span>
-          ) }
+          )}
         </button>
-      ) }
+      )}
     />
   );
 };

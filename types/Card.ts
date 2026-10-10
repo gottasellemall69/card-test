@@ -19,4 +19,4 @@ export interface SportsDataItem {
   [key: string]: any;
 }
 
-export interface SportsData extends Array<SportsDataItem> {}
+export type SportsData = SportsDataItem[];

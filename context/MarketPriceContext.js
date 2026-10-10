@@ -1,45 +1,26 @@
-import { getCardData, updateCardPrices } from '@/utils/api.js';
-import { createContext, useCallback, useContext } from 'react';
-
-const MarketPriceContext = createContext();
-
-export const MarketPriceProvider = ({ children }) => {
-  const cache = {};
-
+import { createContext, useCallback, useContext, useMemo, useRef } from 'react';
+import { getCardData } from '@/utils/api';
+const MarketPriceContext = createContext(null);
+export function MarketPriceProvider({ children }) {
+  const cache = useRef(new Map());
   const fetchMarketPrice = useCallback(async (setName) => {
-    if (!setName) {
-      console.error('Set name is required');
-      return [];
-    }
-
-    // Check if the data for the set is already cached
-    if (cache.current[setName]) {
-      console.log(`Using cached data for set: ${ setName }`);
-      return cache.current[setName];
-    }
-
-    try {
-      const cardData = await getCardData(setName);
-      if (cardData && Array.isArray(cardData)) {
-        cache.current[setName] = cardData; // Cache the data for the set
-
-        // Save the fetched prices to MongoDB
-        await updateCardPrices(setName, cardData);
-
-        return cardData;
-      }
-      return [];
-    } catch (error) {
-      console.error('Error fetching market price:', error);
-      return [];
-    }
+    if (!setName) return [];
+    const old = cache.current.get(setName);
+    if (old && old.expires > Date.now()) return old.promise;
+    const promise = getCardData(setName)
+      .then((data) => (Array.isArray(data) ? data : data?.result || data?.results || []))
+      .catch((error) => {
+        cache.current.delete(setName);
+        throw error;
+      });
+    cache.current.set(setName, { promise, expires: Date.now() + 300000 });
+    return promise;
   }, []);
-
-  return (
-    <MarketPriceContext.Provider value={{ fetchMarketPrice }}>
-      {children}
-    </MarketPriceContext.Provider>
-  );
-};
-
-export const useMarketPrice = () => useContext(MarketPriceContext);
+  const value = useMemo(() => ({ fetchMarketPrice }), [fetchMarketPrice]);
+  return <MarketPriceContext.Provider value={value}>{children}</MarketPriceContext.Provider>;
+}
+export function useMarketPrice() {
+  const context = useContext(MarketPriceContext);
+  if (!context) throw new Error('useMarketPrice must be used inside MarketPriceProvider');
+  return context;
+}
