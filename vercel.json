@@ -1,7 +1,7 @@
 {
   "crons": [
     { "path": "/api/cron/track-prices?start=1", "schedule": "0 0 * * *" },
-    { "path": "/api/cron/track-prices", "schedule": "*/5 * * * *" }
+    { "path": "/api/cron/track-prices", "schedule": "0 0 * * *" }
   ],
   "functions": {
     "pages/api/Yugioh/updateCardPrices": {
