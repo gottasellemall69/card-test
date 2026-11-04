@@ -34,17 +34,6 @@ npm run build
 npm start
 ```
 
-## TCGPlayer pricing without an API key
-
-Pricing uses the original publicly responding TCGPlayer paths on the server:
-
-- `https://mpapi.tcgplayer.com/v2/Catalog/SetNames?categoryId=2`
-- `https://infinite-api.tcgplayer.com/priceguide/set/{setNameId}/cards/?rows=5000&offset={offset}`
-
-These are public catalogue/price-guide endpoints, separate from the credentialed TCGPlayer developer API. No API key is required by this implementation. They are subject to TCGPlayer availability and changes; failures and rate limits are reported and retried without manufacturing prices. There is no scraping or credential workaround in the Yu-Gi-Oh tracker.
-
-YGOPRODeck supplies names, images, descriptions, card types and set metadata. TCGPlayer is preferred for set/printing/condition prices. The original metadata price fallback remains for detail lookups when a matching TCGPlayer row is absent; those fallback values are never written as TCGPlayer daily snapshots.
-
 ## Track the whole catalogue
 
 Run the initial sweep, or resume a previous incomplete sweep:
@@ -65,7 +54,7 @@ The tracker requests all catalogue sets, including inactive sets, and stores pri
 
 History exists before the first detail-page visit once the initial sweep has collected that printing. Detail visits only read history. Missing market prices are treated as unavailable rather than zero and are not stored as history points. The charts show observed dates; they do not append a fabricated current-day price. Existing legacy history is retained, and manual price points are restricted to their owner. Collection value history applies the current quantities to observed prices; it is not a historical record of purchases and sales.
 
-Coverage is limited to cards and variants actually published in the TCGPlayer catalogue. Cards with no published price cannot have a priced observation, and current price guides cannot recover earlier historical prices. History starts when collection runs. A resumed job records the actual fetch date, never an earlier day. By default, each variant retains its newest 90 observed daily points. Set `PRICE_HISTORY_POINTS` to a value from 7 through 1825 to change that bound.
+Cards with no published price cannot have a priced observation, and current price guides cannot recover earlier historical prices. History starts when collection runs. A resumed job records the actual fetch date, never an earlier day. By default, each variant retains its newest 90 observed daily points. Set `PRICE_HISTORY_POINTS` to a value from 7 through 1825 to change that bound.
 
 ### Daily scheduling
 
@@ -91,7 +80,7 @@ For the original browser-based cache refresh utility, use your own authenticated
 npm run refresh:sports-cache
 ```
 
-Use `npm run refresh:sports-cache -- --help` for options. Sports access depends on the provider and your existing access; a TCGPlayer key is not involved.
+Use `npm run refresh:sports-cache -- --help` for options. Sports access depends on the provider and your existing access.
 
 The supplied archive contained no `public` artwork or card-cache files. Small SVG backgrounds and a card placeholder are included as functional fallbacks; the original decorative dragon/character/glow artwork cannot be reconstructed from the source archive. You can restore original assets under their original `public` paths. Metadata and card images can load from YGOPRODeck, and an optional metadata cache can be generated with:
 
