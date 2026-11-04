@@ -4,7 +4,11 @@ import { MongoClient } from 'mongodb';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { CARD_SETS } from '../constants/cardSets';
-import { snapshotFromRow } from '../lib/server/snapshots';
+import {
+  PRICE_SERIES_COLLECTION,
+  snapshotFromRow,
+  type PriceSeriesDocument,
+} from '../lib/server/snapshots';
 
 async function main() {
   const mongo = await MongoMemoryServer.create({
@@ -29,12 +33,22 @@ async function main() {
     condition: 'Near Mint Limited Edition',
     marketPrice: 12,
   };
-  await db
-    .collection('cardPriceSnapshots')
-    .insertMany([
-      snapshotFromRow(row, set, new Date('2026-01-01T01:00:00Z')),
-      snapshotFromRow({ ...row, marketPrice: 13 }, set, new Date('2026-01-02T01:00:00Z')),
-    ]);
+  const snapshots = [
+    snapshotFromRow(row, set, new Date('2026-01-01T01:00:00Z')),
+    snapshotFromRow({ ...row, marketPrice: 13 }, set, new Date('2026-01-02T01:00:00Z')),
+  ];
+  const latest = snapshots.at(-1)!;
+  await db.collection<PriceSeriesDocument>(PRICE_SERIES_COLLECTION).insertOne({
+    _id: latest.signature,
+    setNameKey: latest.setNameKey,
+    numberKey: latest.numberKey,
+    rarityKey: latest.rarityKey,
+    editionKey: latest.editionKey,
+    conditionKey: latest.conditionKey,
+    source: 'tcgplayer',
+    updatedAt: latest.date,
+    points: snapshots.map((snapshot) => ({ d: snapshot.date, p: snapshot.price! })),
+  });
   await db.collection('sportsDataCache').insertOne({
     cardSet: CARD_SETS[0],
     data: [

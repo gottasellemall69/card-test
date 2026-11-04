@@ -1,7 +1,30 @@
 import { createHash } from 'node:crypto';
-import type { AnyBulkWriteOperation, Document } from 'mongodb';
+import type { AnyBulkWriteOperation } from 'mongodb';
 import { getDatabase } from './database';
 import { historyIdentity, parsePrice } from '@/lib/cards/prices';
+
+export const PRICE_SERIES_COLLECTION = 'cardPriceSeries';
+const DEFAULT_HISTORY_POINTS = 90;
+
+export type PriceHistoryPoint = { d: Date; p: number };
+export type PriceSeriesDocument = {
+  _id: string;
+  setNameKey: string;
+  numberKey: string;
+  rarityKey: string;
+  editionKey: string;
+  conditionKey: string;
+  source: 'tcgplayer';
+  updatedAt: Date;
+  points: PriceHistoryPoint[];
+};
+
+export function getHistoryPointLimit() {
+  const configured = Number.parseInt(process.env.PRICE_HISTORY_POINTS || '', 10);
+  return Number.isFinite(configured) && configured >= 7 && configured <= 1825
+    ? configured
+    : DEFAULT_HISTORY_POINTS;
+}
 
 export function snapshotFromRow(
   row: Record<string, unknown>,
@@ -52,27 +75,79 @@ export async function saveSetSnapshots(
   capturedAt = new Date(),
 ) {
   const db = await getDatabase();
-  const snapshots = db.collection('cardPriceSnapshots');
+  const series = db.collection<PriceSeriesDocument>(PRICE_SERIES_COLLECTION);
+  const historyPointLimit = getHistoryPointLimit();
   let saved = 0;
   let withoutMarketPrice = 0;
   for (let offset = 0; offset < rows.length; offset += 500) {
-    const operations: AnyBulkWriteOperation<Document>[] = rows
+    const operations: AnyBulkWriteOperation<PriceSeriesDocument>[] = rows
       .slice(offset, offset + 500)
-      .map((row) => {
+      .flatMap((row): AnyBulkWriteOperation<PriceSeriesDocument>[] => {
         const snapshot = snapshotFromRow(row, set, capturedAt);
-        if (snapshot.price === null) withoutMarketPrice += 1;
-        return {
+        if (snapshot.price === null) {
+          withoutMarketPrice += 1;
+          return [];
+        }
+        const dayStart = new Date(`${snapshot.day}T00:00:00.000Z`);
+        const dayEnd = new Date(dayStart.getTime() + 86400000);
+        const point: PriceHistoryPoint = { d: snapshot.date, p: snapshot.price };
+        return [{
           updateOne: {
-            filter: { signature: snapshot.signature, day: snapshot.day },
-            update: { $set: snapshot },
+            filter: { _id: snapshot.signature },
+            update: [
+              {
+                $set: {
+                  setNameKey: { $literal: snapshot.setNameKey },
+                  numberKey: { $literal: snapshot.numberKey },
+                  rarityKey: { $literal: snapshot.rarityKey },
+                  editionKey: { $literal: snapshot.editionKey },
+                  conditionKey: { $literal: snapshot.conditionKey },
+                  source: 'tcgplayer',
+                  updatedAt: snapshot.date,
+                  points: {
+                    $slice: [
+                      {
+                        $concatArrays: [
+                          {
+                            $filter: {
+                              input: { $ifNull: ['$points', []] },
+                              as: 'point',
+                              cond: {
+                                $or: [
+                                  { $lt: ['$$point.d', dayStart] },
+                                  { $gte: ['$$point.d', dayEnd] },
+                                ],
+                              },
+                            },
+                          },
+                          [{ $literal: point }],
+                        ],
+                      },
+                      -historyPointLimit,
+                    ],
+                  },
+                },
+              },
+            ],
             upsert: true,
           },
-        };
+        }];
       });
     if (operations.length) {
-      await snapshots.bulkWrite(operations, { ordered: false });
+      await series.bulkWrite(operations, { ordered: false });
       saved += operations.length;
     }
   }
   return { saved, withoutMarketPrice };
+}
+
+export async function ensurePriceSeriesIndexes() {
+  const db = await getDatabase();
+  await db.collection<PriceSeriesDocument>(PRICE_SERIES_COLLECTION).createIndex({
+    setNameKey: 1,
+    numberKey: 1,
+    rarityKey: 1,
+    editionKey: 1,
+    conditionKey: 1,
+  });
 }

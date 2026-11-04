@@ -1,5 +1,6 @@
 import { loadEnvConfig } from '@next/env';
 import { getDatabase, closeDatabase } from '../lib/server/database';
+import { ensurePriceSeriesIndexes } from '../lib/server/snapshots';
 loadEnvConfig(process.cwd());
 async function main() {
   try {
@@ -10,19 +11,7 @@ async function main() {
     await db.collection('myCollection').createIndex({ userId: 1 });
     await db.collection('collectionFolders').createIndex({ userId: 1, name: 1 });
     await db.collection('sportsDataCache').createIndex({ cardSet: 1 }, { unique: true });
-    await db
-      .collection('cardPriceSnapshots')
-      .createIndex({ signature: 1, day: 1 }, { unique: true });
-    await db
-      .collection('cardPriceSnapshots')
-      .createIndex({
-        setNameKey: 1,
-        numberKey: 1,
-        rarityKey: 1,
-        editionKey: 1,
-        conditionKey: 1,
-        date: 1,
-      });
+    await ensurePriceSeriesIndexes();
     console.log(
       'Database indexes are ready. Existing cards and legacy price history were retained.',
     );

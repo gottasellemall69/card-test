@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { getDatabase } from './database';
 import { extractPriceRows, getPricesBySetId, getSetCatalogue } from './cardApi';
-import { saveSetSnapshots } from './snapshots';
+import { ensurePriceSeriesIndexes, saveSetSnapshots } from './snapshots';
 import { HttpError } from './errors';
 
 type SetEntry = { name: string; setNameId: number };
@@ -115,19 +115,7 @@ export async function runPriceTracking(
       );
     }
     if (job.retryAfter && job.retryAfter.getTime() > Date.now()) return getTrackingStatus();
-    await db
-      .collection('cardPriceSnapshots')
-      .createIndex({ signature: 1, day: 1 }, { unique: true });
-    await db
-      .collection('cardPriceSnapshots')
-      .createIndex({
-        setNameKey: 1,
-        numberKey: 1,
-        rarityKey: 1,
-        editionKey: 1,
-        conditionKey: 1,
-        date: 1,
-      });
+    await ensurePriceSeriesIndexes();
     const completed = new Set(job.completedIds);
     let processed = 0;
     await jobs.updateOne(

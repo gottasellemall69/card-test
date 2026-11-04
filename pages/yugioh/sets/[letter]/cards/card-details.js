@@ -415,8 +415,27 @@ const CardDetails = () => {
   const rawEffectiveCardId = resolvedCardData?.id || cardId;
   const effectiveCardId = rawEffectiveCardId ? rawEffectiveCardId.toString() : undefined;
 
+  const versionOptions = useMemo(() => {
+    const cardSets = resolvedCardData?.card_sets;
+    if (!Array.isArray(cardSets)) return [];
+
+    return cardSets.map((setEntry) => {
+      if (!isUnknownEditionLabel(setEntry.set_edition)) return setEntry;
+
+      const hasRouteCode = typeof set_code === 'string' && set_code.trim().length > 0;
+      const matchesRoute =
+        hasRouteCode &&
+        valueMatchesRouteToken(setEntry.set_code, set_code) &&
+        valueMatchesRouteToken(setEntry.set_rarity, resolvedRarityParam);
+
+      return matchesRoute && edition
+        ? { ...setEntry, set_edition: normalizeEditionLabel(edition) }
+        : setEntry;
+    });
+  }, [resolvedCardData, set_code, resolvedRarityParam, edition]);
+
   useEffect(() => {
-    if (!resolvedCardData?.card_sets?.length) {
+    if (!versionOptions.length) {
       return;
     }
 
@@ -460,7 +479,7 @@ const CardDetails = () => {
     const hasQueryPreferences =
       queryTokens.setName || queryTokens.setCode || queryTokens.rarity || queryTokens.edition;
 
-    const cardSets = resolvedCardData.card_sets;
+    const cardSets = versionOptions;
 
     const evaluateCandidate = (setEntry) => {
       const tokens = {
@@ -534,7 +553,7 @@ const CardDetails = () => {
       }
 
       if (bestCandidate.set) {
-        commitSelection(serializeVersion(bestCandidate.set, edition));
+        commitSelection(serializeVersion(bestCandidate.set));
         return;
       }
     }
@@ -542,13 +561,9 @@ const CardDetails = () => {
     if (storageKey) {
       const savedVersion = localStorage.getItem(storageKey);
       if (savedVersion) {
-        const savedMatch = cardSets.find(
-          (setEntry) =>
-            serializeVersion(setEntry, edition) === savedVersion ||
-            serializeVersion(setEntry) === savedVersion,
-        );
+        const savedMatch = cardSets.find((setEntry) => serializeVersion(setEntry) === savedVersion);
         if (savedMatch) {
-          commitSelection(serializeVersion(savedMatch, edition));
+          commitSelection(serializeVersion(savedMatch));
           return;
         }
       }
@@ -564,13 +579,13 @@ const CardDetails = () => {
         );
       });
       if (matchBySetName) {
-        commitSelection(serializeVersion(matchBySetName, edition));
+        commitSelection(serializeVersion(matchBySetName));
         return;
       }
     }
 
-    commitSelection(serializeVersion(cardSets[0], edition));
-  }, [resolvedCardData, effectiveCardId, set_name, set_code, resolvedRarityParam, edition]);
+    commitSelection(serializeVersion(cardSets[0]));
+  }, [versionOptions, effectiveCardId, set_name, set_code, resolvedRarityParam, edition]);
 
   const handleVersionChange = (event) => {
     const newVersion = event.target.value;
@@ -621,13 +636,9 @@ const CardDetails = () => {
   }, [priceHistoryKey]);
 
   const selectedSetDetails = useMemo(() => {
-    if (!selectedVersion || !resolvedCardData?.card_sets?.length) return null;
-    return resolvedCardData.card_sets.find(
-      (setEntry) =>
-        serializeVersion(setEntry, edition) === selectedVersion ||
-        serializeVersion(setEntry) === selectedVersion,
-    );
-  }, [resolvedCardData, selectedVersion, edition]);
+    if (!selectedVersion || !versionOptions.length) return null;
+    return versionOptions.find((setEntry) => serializeVersion(setEntry) === selectedVersion);
+  }, [versionOptions, selectedVersion]);
 
   const localImageSrc = activeCardId ? buildImagePath(activeCardId) : null;
   const primaryCardImage = resolvedCardData?.card_images?.[0] || null;
@@ -650,7 +661,7 @@ const CardDetails = () => {
   );
 
   const selectedEditionLabel = selectedSetDetails
-    ? resolveVersionEdition(selectedSetDetails, edition)
+    ? resolveVersionEdition(selectedSetDetails)
     : normalizeEditionLabel(edition);
   const routeRarityLabel =
     typeof resolvedRarityParam === 'string' && resolvedRarityParam.trim()
@@ -741,7 +752,24 @@ const CardDetails = () => {
   const selectedMarketPriceLabel = formatCurrency(selectedSetDetails?.set_price, {
     allowZero: false,
   });
-  const versionCount = resolvedCardData?.card_sets?.length || 0;
+  const displayPriceHistory = useMemo(() => {
+    const history = Array.isArray(priceHistoryData?.priceHistory)
+      ? [...priceHistoryData.priceHistory]
+      : [];
+    const livePrice = Number(selectedSetDetails?.set_price);
+    if (!Number.isFinite(livePrice) || livePrice <= 0) return history;
+
+    const capturedAt = new Date().toISOString();
+    const currentDay = capturedAt.slice(0, 10);
+    return [
+      ...history.filter((entry) => {
+        const date = new Date(entry?.date);
+        return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== currentDay;
+      }),
+      { date: capturedAt, price: livePrice },
+    ];
+  }, [priceHistoryData, selectedSetDetails?.set_price]);
+  const versionCount = versionOptions.length;
   const cardPriceSnapshot = resolvedCardData?.card_prices?.[0] || null;
   const typeDetailLabel = resolvedCardData?.type?.toLowerCase().includes('monster')
     ? 'Monster Type'
@@ -940,8 +968,8 @@ const CardDetails = () => {
   }, [cardPriceSnapshot]);
 
   const priceHistorySummary = useMemo(() => {
-    const parsedHistory = Array.isArray(priceHistoryData?.priceHistory)
-      ? priceHistoryData.priceHistory
+    const parsedHistory = Array.isArray(displayPriceHistory)
+      ? displayPriceHistory
           .map((entry) => ({
             date: new Date(entry?.date),
             price: Number(entry?.price),
@@ -968,7 +996,7 @@ const CardDetails = () => {
       changeAmount: latestPrice - firstPrice,
       trackedDays: uniqueDayCount,
     };
-  }, [priceHistoryData]);
+  }, [displayPriceHistory]);
 
   const historyCards = useMemo(() => {
     if (!priceHistorySummary) {
@@ -1398,13 +1426,13 @@ const CardDetails = () => {
                         value={selectedVersion ?? ''}
                         onChange={handleVersionChange}
                       >
-                        {resolvedCardData.card_sets?.map((setEntry, index) => (
+                        {versionOptions.map((setEntry, index) => (
                           <option
                             key={`${setEntry.set_code}-${setEntry.set_rarity}-${index}`}
-                            value={serializeVersion(setEntry, edition)}
+                            value={serializeVersion(setEntry)}
                           >
                             {setEntry.set_name} - {setEntry.set_code} - {setEntry.set_rarity} -{' '}
-                            {resolveVersionEdition(setEntry, edition)}
+                            {resolveVersionEdition(setEntry)}
                           </option>
                         ))}
                       </select>
@@ -1449,7 +1477,7 @@ const CardDetails = () => {
 
                   <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-black/35 p-4 sm:p-5">
                     <PriceHistoryChart
-                      priceHistory={priceHistoryData?.priceHistory || []}
+                      priceHistory={displayPriceHistory}
                       selectedVersion={selectedVersion}
                       source={'set'}
                     />

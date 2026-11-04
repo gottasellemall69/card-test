@@ -25,7 +25,9 @@ export default defineConfig([
     'node_modules/**',
     'test-results/**',
     'playwright-report/**',
-    'public/card-data/**',
+    'public/**',
+    '.sports-refresh-browser/**',
+    'repomix-output.*',
     'next-env.d.ts',
   ]),
 ]);

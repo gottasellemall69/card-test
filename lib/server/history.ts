@@ -1,6 +1,7 @@
 import { getDatabase } from './database';
 import { historyIdentity, type PriceIdentity } from '@/lib/cards/prices';
 import { mergeDailyPrices } from '@/lib/cards/history';
+import { PRICE_SERIES_COLLECTION, type PriceHistoryPoint } from './snapshots';
 
 export const identityKey = (identity: ReturnType<typeof historyIdentity>) =>
   JSON.stringify(identity);
@@ -17,6 +18,23 @@ export async function getPriceHistories(inputs: PriceIdentity[], username?: stri
   const entries = [...identities.entries()];
   for (let offset = 0; offset < entries.length; offset += 250) {
     const batch = entries.slice(offset, offset + 250);
+    const series = await db
+      .collection(PRICE_SERIES_COLLECTION)
+      .find(
+        { $or: batch.map(([, input]) => historyIdentity(input)) },
+        {
+          projection: {
+            setNameKey: 1,
+            numberKey: 1,
+            rarityKey: 1,
+            editionKey: 1,
+            conditionKey: 1,
+            points: 1,
+            _id: 0,
+          },
+        },
+      )
+      .toArray();
     const snapshots = await db
       .collection('cardPriceSnapshots')
       .find(
@@ -51,6 +69,19 @@ export async function getPriceHistories(inputs: PriceIdentity[], username?: stri
         ],
       })
       .toArray();
+    for (const document of series) {
+      const key = identityKey({
+        setNameKey: document.setNameKey,
+        numberKey: document.numberKey,
+        rarityKey: document.rarityKey,
+        editionKey: document.editionKey,
+        conditionKey: document.conditionKey,
+      });
+      const history = points.get(key) || [];
+      for (const point of (document.points || []) as PriceHistoryPoint[])
+        history.push({ date: point.d, price: point.p });
+      points.set(key, history);
+    }
     for (const snapshot of snapshots) {
       const key = identityKey({
         setNameKey: snapshot.setNameKey,

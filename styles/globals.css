@@ -1,5 +1,7 @@
 @import 'tw-animate-css';
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
+@source '../pages';
+@source '../components';
 @config "../tailwind.config.js";
 
 :root {

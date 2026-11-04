@@ -1,5 +1,6 @@
 import { apiRoute } from '@/lib/server/http';
 import { fetchYgoCards } from '@/lib/server/cardApi';
+import { enrichCardSetsWithTrackedVariants } from '@/lib/server/cardVersions';
 import { formatYugiohCardData } from '@/utils/formatYugiohCardData';
 
 async function handler(req, res) {
@@ -18,7 +19,8 @@ async function handler(req, res) {
     }
 
     const card = data.data?.[0];
-    res.status(200).json(formatYugiohCardData(card));
+    const formatted = formatYugiohCardData(card);
+    res.status(200).json(await enrichCardSetsWithTrackedVariants(formatted));
   } catch (error) {
     if (error?.statusCode) throw error;
     console.error('Card API request failed');

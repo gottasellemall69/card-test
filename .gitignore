@@ -41,8 +41,9 @@ next-env.d.ts
 .aider*
 server/changeStreamHandler.js
 .codex
-/.vscode/*
-
+.vscode/*
+tests
+/.vscode
 
 /rift
 /.gpteng
@@ -55,3 +56,5 @@ prompt.md
 /.agents
 AGENTS.override.md
 AGENTS.md
+scripts/setup-database.ts
+scripts/test.mjs

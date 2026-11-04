@@ -2,8 +2,10 @@ import { apiRoute } from '@/lib/server/http';
 import { buildCardNameCandidates, buildCardNameKeys } from '@/utils/yugiohCardNameVariants';
 import { formatYugiohCardData } from '@/utils/formatYugiohCardData';
 import { getCardData, fetchJson } from '@/lib/server/cardApi';
+import { enrichCardSetsWithTrackedVariants } from '@/lib/server/cardVersions';
 
 import { findBestPriceRow } from '@/lib/cards/match';
+import { normalizeConditionKey } from '@/lib/cards/prices';
 
 const UNKNOWN_EDITION = 'Unknown Edition';
 
@@ -102,6 +104,55 @@ const findTcgPriceRow = (rows, { setCode, cardName, rarity, edition, condition }
     condition: condition || 'Near Mint',
   })?.row || null;
 
+const cardNamesMatch = (left, right) => {
+  const leftKeys = new Set(buildCardNameKeys(left));
+  const rightKeys = buildCardNameKeys(right);
+  if (leftKeys.size > 0 && rightKeys.some((key) => leftKeys.has(key))) return true;
+  const leftLoose = normalizeLooseText(left);
+  const rightLoose = normalizeLooseText(right);
+  return Boolean(
+    leftLoose &&
+      rightLoose &&
+      (leftLoose === rightLoose ||
+        leftLoose.includes(rightLoose) ||
+        rightLoose.includes(leftLoose)),
+  );
+};
+
+const priceVariantKey = (row) =>
+  [
+    normalizeToken(row?.number),
+    normalizeRarityKey(row?.rarity),
+    normalizeEditionKey(row?.printing) || 'unknown',
+  ].join('|');
+
+const priceRowScore = (row, condition) => {
+  const conditionMatches =
+    normalizeConditionKey(row?.condition) === normalizeConditionKey(condition || 'Near Mint');
+  return (
+    (conditionMatches ? 100 : 0) +
+    (parsePrice(row?.marketPrice) !== null ? 20 : 0) +
+    (parsePrice(row?.lowPrice) !== null ? 10 : 0)
+  );
+};
+
+const findTcgPriceRows = (rows, { setCode, cardName, condition }) => {
+  const variants = new Map();
+
+  for (const row of rows) {
+    if (!matchesSetCode(row?.number, setCode)) continue;
+    if (cardName && !cardNamesMatch(row?.productName, cardName)) continue;
+
+    const key = priceVariantKey(row);
+    const current = variants.get(key);
+    if (!current || priceRowScore(row, condition) > priceRowScore(current, condition)) {
+      variants.set(key, row);
+    }
+  }
+
+  return Array.from(variants.values());
+};
+
 const findMatchedSetEntry = (match, { setCode, rarity, edition }) => {
   const candidates = Array.isArray(match?.card_sets)
     ? match.card_sets.filter((set) => matchesSetCode(set?.set_code, setCode))
@@ -133,48 +184,63 @@ const findMatchedSetEntry = (match, { setCode, rarity, edition }) => {
 
 const enrichMatchWithTcg = (
   match,
-  { setName, tcgSetName, setCode, cardName, rarity, edition, tcgRow },
+  { setName, tcgSetName, setCode, cardName, rarity, edition, tcgRow, tcgRows },
 ) => {
   const matchedSet = findMatchedSetEntry(match, { setCode, rarity, edition });
   const selectedSetName = tcgSetName || setName || matchedSet?.set_name || '';
-  const selectedPrice =
-    parsePrice(tcgRow?.marketPrice) ??
-    parsePrice(tcgRow?.lowPrice) ??
-    parsePrice(matchedSet?.set_price);
+  const requestedKey = tcgRow ? priceVariantKey(tcgRow) : '';
+  const variantRows = (tcgRows?.length ? tcgRows : tcgRow ? [tcgRow] : [null]).sort(
+    (left, right) =>
+      Number(priceVariantKey(right) === requestedKey) -
+      Number(priceVariantKey(left) === requestedKey),
+  );
 
-  const selectedEdition =
-    tcgRow?.printing ||
-    edition ||
-    (matchedSet && !isUnknownEdition(matchedSet.set_edition) ? matchedSet.set_edition : '') ||
-    matchedSet?.set_edition ||
-    UNKNOWN_EDITION;
+  const enrichedSets = variantRows.map((row) => {
+    const selectedPrice =
+      parsePrice(row?.marketPrice) ??
+      parsePrice(row?.lowPrice) ??
+      parsePrice(matchedSet?.set_price);
+    const selectedEdition =
+      row?.printing ||
+      edition ||
+      (matchedSet && !isUnknownEdition(matchedSet.set_edition) ? matchedSet.set_edition : '') ||
+      matchedSet?.set_edition ||
+      UNKNOWN_EDITION;
 
-  const enrichedSet = {
-    ...(matchedSet || {}),
-    set_name: selectedSetName,
-    tcg_set_name: selectedSetName,
-    set_code: tcgRow?.number || matchedSet?.set_code || setCode,
-    set_rarity: tcgRow?.rarity || rarity || matchedSet?.set_rarity || 'Unknown Rarity',
-    set_rarity_code: matchedSet?.set_rarity_code,
-    set_edition: selectedEdition,
-    set_price: selectedPrice !== null ? selectedPrice.toFixed(2) : matchedSet?.set_price || '0.00',
-  };
+    return {
+      ...(matchedSet || {}),
+      set_name: selectedSetName,
+      tcg_set_name: selectedSetName,
+      set_code: row?.number || matchedSet?.set_code || setCode,
+      set_rarity: row?.rarity || rarity || matchedSet?.set_rarity || 'Unknown Rarity',
+      set_rarity_code: matchedSet?.set_rarity_code,
+      set_edition: selectedEdition,
+      set_price:
+        selectedPrice !== null ? selectedPrice.toFixed(2) : matchedSet?.set_price || '0.00',
+    };
+  });
 
-  const remainingSets = Array.isArray(match?.card_sets)
-    ? match.card_sets.filter(
-        (set) =>
-          !(
-            matchesSetCode(set?.set_code, enrichedSet.set_code) &&
-            raritiesMatch(set?.set_rarity, enrichedSet.set_rarity) &&
-            editionsMatch(set?.set_edition, enrichedSet.set_edition)
-          ),
-      )
-    : [];
+  const originalSets = Array.isArray(match?.card_sets) ? match.card_sets : [];
+  const belongsToEnrichedGroup = (set) =>
+    enrichedSets.some(
+      (enrichedSet) =>
+        matchesSetCode(set?.set_code, enrichedSet.set_code) &&
+        raritiesMatch(set?.set_rarity, enrichedSet.set_rarity),
+    );
+  const firstEnrichedIndex = originalSets.findIndex(belongsToEnrichedGroup);
+  const insertionIndex =
+    firstEnrichedIndex < 0
+      ? 0
+      : originalSets.slice(0, firstEnrichedIndex).filter((set) => !belongsToEnrichedGroup(set))
+          .length;
+  const remainingSets = originalSets.filter((set) => !belongsToEnrichedGroup(set));
+  const orderedSets = [...remainingSets];
+  orderedSets.splice(insertionIndex, 0, ...enrichedSets);
 
   return {
     ...match,
     name: match?.name || cardName,
-    card_sets: [enrichedSet, ...remainingSets],
+    card_sets: orderedSets,
   };
 };
 
@@ -282,7 +348,26 @@ async function handler(req, res) {
     }
 
     const tcgData = await fetchTcgRows([tcgSetName, setName]);
-    const tcgRow = findTcgPriceRow(tcgData.rows, { setCode, cardName, rarity, edition, condition });
+    const tcgRows = findTcgPriceRows(tcgData.rows, {
+      setCode,
+      cardName: cardName || match.name,
+      condition,
+    });
+    const tcgRow =
+      findTcgPriceRow(tcgData.rows, {
+        setCode,
+        cardName: cardName || match.name,
+        rarity,
+        edition,
+        condition,
+      }) ||
+      tcgRows.find(
+        (row) =>
+          (!rarity || raritiesMatch(row?.rarity, rarity)) &&
+          (!edition || editionsMatch(row?.printing, edition)),
+      ) ||
+      tcgRows[0] ||
+      null;
     const enrichedMatch = enrichMatchWithTcg(match, {
       setName,
       tcgSetName: tcgData.setName || tcgSetName,
@@ -291,9 +376,11 @@ async function handler(req, res) {
       rarity,
       edition,
       tcgRow,
+      tcgRows,
     });
 
-    return res.status(200).json(formatYugiohCardData(enrichedMatch));
+    const formatted = formatYugiohCardData(enrichedMatch);
+    return res.status(200).json(await enrichCardSetsWithTrackedVariants(formatted));
   } catch (error) {
     if (error?.statusCode) throw error;
     console.error('Card API request failed');
